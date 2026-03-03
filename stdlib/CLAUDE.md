@@ -373,6 +373,23 @@ import "stdlib/json" as jsonpkg        # avoids clash with 'encoding/json'
 import "github.com/jackc/pgx/v5" as pgx
 ```
 
+## Vulnerability Auditing
+
+The stdlib is extracted as a standalone Go module (`.kukicha/stdlib/`) with its own `go.mod` (embedded in `cmd/kukicha/stdlib.go`). When users run `kukicha audit` in their project, govulncheck follows the `replace` directive into the extracted stdlib and checks its dependencies transitively.
+
+```bash
+# In the kukicha repo: audit compiler + stdlib dependencies together
+kukicha audit
+
+# In a user project: audits project deps including stdlib transitively
+kukicha audit
+
+# During build
+kukicha build --vulncheck app.kuki
+```
+
+When updating stdlib dependencies (the `stdlibGoMod` constant in `cmd/kukicha/stdlib.go`), always run `kukicha audit` afterward to verify no new vulnerabilities were introduced.
+
 ## Critical Rules
 
 1. **Never edit generated `*.go` files in stdlib** — edit `.kuki` source, then `make generate`

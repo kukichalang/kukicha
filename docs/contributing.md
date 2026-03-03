@@ -90,7 +90,20 @@ Determine which phase(s) need modification:
 | Type system change | Semantic, possibly Parser |
 | New transpilation pattern | CodeGen |
 
-### Step 3: Add Tests
+### Step 3: Check for Vulnerabilities
+
+After adding or updating stdlib dependencies, run a vulnerability audit:
+
+```bash
+kukicha audit             # check all dependencies for known CVEs
+kukicha audit --warn-only # same but exit 0 (useful in CI)
+```
+
+Since Kukicha transpiles to Go, the stdlib's Go dependencies (declared in `cmd/kukicha/stdlib.go`) are part of the user's dependency graph. When a user runs `kukicha audit` in their project, govulncheck follows the `replace` directive into `.kukicha/stdlib/` and checks stdlib dependencies transitively. Keep them up to date.
+
+To check the compiler's own dependencies, run `kukicha audit` (or `go run ./cmd/kukicha audit`) in the kukicha repo root.
+
+### Step 4: Add Tests
 
 For **compiler internals** (`internal/`), add tests in the appropriate Go `*_test.go` file:
 
@@ -107,7 +120,7 @@ func TestYourNewFeature(t *testing.T) {
 
 For **stdlib packages**, write tests in `*_test.kuki` using the table-driven pattern (see "Writing stdlib tests" under "Modifying the Standard Library").
 
-### Step 4: Update Examples
+### Step 5: Update Examples
 
 Add example code to `examples/` if the feature is significant.
 
