@@ -626,23 +626,24 @@ func (g *Generator) generateMethodCallExpr(expr *ast.MethodCallExpr) string {
 	return fmt.Sprintf("%s.%s(%s)", object, method, strings.Join(args, ", "))
 }
 
+// printfMethods lists printf-style methods that expect a format string as their first argument.
+var printfMethods = map[string]bool{
+	"Errorf":  true,
+	"Fatalf":  true,
+	"Logf":    true,
+	"Skipf":   true,
+	"Printf":  true,
+	"Sprintf": true,
+	"Fprintf": true,
+	"Panicf":  true,
+	"Warnf":   true,
+	"Infof":   true,
+	"Debugf":  true,
+}
+
 // isPrintfStyleMethod returns true if the method name is a printf-style method
 // that expects a format string as its first argument.
 func (g *Generator) isPrintfStyleMethod(method string) bool {
-	// Common printf-style methods from testing, fmt, and log packages
-	printfMethods := map[string]bool{
-		"Errorf":  true,
-		"Fatalf":  true,
-		"Logf":    true,
-		"Skipf":   true,
-		"Printf":  true,
-		"Sprintf": true,
-		"Fprintf": true,
-		"Panicf":  true,
-		"Warnf":   true,
-		"Infof":   true,
-		"Debugf":  true,
-	}
 	return printfMethods[method]
 }
 
