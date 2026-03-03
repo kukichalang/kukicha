@@ -34,16 +34,17 @@ func main() {
 		target := buildFlags.String("target", "", "Compile target")
 		skipBuild := buildFlags.Bool("skip-build", false, "Skip go build step (for test files)")
 		ifChanged := buildFlags.Bool("if-changed", false, "Skip writing output if Go body (excluding generated header) is unchanged")
+		vulncheck := buildFlags.Bool("vulncheck", false, "Run govulncheck after successful build")
 		if err := buildFlags.Parse(args); err != nil {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] <file.kuki>")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] <file.kuki>")
 			os.Exit(1)
 		}
 		buildArgs := buildFlags.Args()
 		if len(buildArgs) < 1 {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] <file.kuki>")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] <file.kuki>")
 			os.Exit(1)
 		}
-		buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged)
+		buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck)
 	case "run":
 		runFlags := flag.NewFlagSet("run", flag.ContinueOnError)
 		runFlags.SetOutput(os.Stderr)
@@ -92,6 +93,16 @@ func main() {
 			os.Exit(1)
 		}
 		packCommand(packArgs[0], *outputDir)
+	case "audit":
+		auditFlags := flag.NewFlagSet("audit", flag.ContinueOnError)
+		auditFlags.SetOutput(os.Stderr)
+		jsonFlag := auditFlags.Bool("json", false, "Output in JSON format")
+		warnOnly := auditFlags.Bool("warn-only", false, "Exit 0 even if vulnerabilities are found")
+		if err := auditFlags.Parse(args); err != nil {
+			fmt.Fprintln(os.Stderr, "Usage: kukicha audit [--json] [--warn-only] [dir]")
+			os.Exit(1)
+		}
+		auditCommand(auditFlags.Args(), *jsonFlag, *warnOnly)
 	case "init":
 		initCommand(args)
 	case "version":
@@ -109,9 +120,10 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "Kukicha - A transpiler that compiles Kukicha to Go")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] <file.kuki> Compile Kukicha file to Go")
+	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] [--vulncheck] <file.kuki>  Compile Kukicha file to Go")
 	fmt.Fprintln(os.Stderr, "  kukicha run [--target t] <file.kuki>   Transpile and execute Kukicha file")
 	fmt.Fprintln(os.Stderr, "  kukicha check <file.kuki>   Type check Kukicha file")
+	fmt.Fprintln(os.Stderr, "  kukicha audit [--json] [--warn-only] [dir]  Check dependencies for vulnerabilities")
 	fmt.Fprintln(os.Stderr, "  kukicha fmt [options] <files>  Fix indentation and normalize style")
 	fmt.Fprintln(os.Stderr, "    -w          Write result to file instead of stdout")
 	fmt.Fprintln(os.Stderr, "    --check     Check if files are formatted (exit 1 if not)")
@@ -193,7 +205,7 @@ func stripFirstLine(b []byte) []byte {
 	return b
 }
 
-func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool) {
+func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool) {
 	absFile, err := filepath.Abs(filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error resolving file path: %v\n", err)
@@ -303,6 +315,13 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 		}
 
 		fmt.Printf("Successfully built binary: %s\n", binaryName)
+	}
+
+	if vulncheck {
+		code := runAudit(AuditOptions{Dir: projectDir})
+		if code != 0 {
+			os.Exit(code)
+		}
 	}
 }
 

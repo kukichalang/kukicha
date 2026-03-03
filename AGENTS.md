@@ -307,8 +307,12 @@ make generate             # Regenerate stdlib_registry_gen.go + all stdlib .go f
 make genstdlibregistry    # Regenerate only internal/semantic/stdlib_registry_gen.go
 kukicha check file.kuki   # Validate syntax without compiling
 kukicha build file.kuki   # Transpile and compile to binary
+kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run
 kukicha fmt -w file.kuki  # Format in place
+kukicha audit             # Check dependencies for known vulnerabilities
+kukicha audit --warn-only # Audit but exit 0 even if vulns found
+kukicha audit --json      # Audit with JSON output
 ```
 
 ## File Map
