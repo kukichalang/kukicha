@@ -1704,6 +1704,59 @@ func TestArrowLambdaZeroParams(t *testing.T) {
 	}
 }
 
+func TestArrowLambdaImplicitIt(t *testing.T) {
+	input := `func main()
+    f := () => print(it)
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "func(it any)") {
+		t.Errorf("expected 'func(it any)' in output, got: %s", output)
+	}
+	if !strings.Contains(output, "fmt.Println(it)") {
+		t.Errorf("expected 'fmt.Println(it)' in output, got: %s", output)
+	}
+}
+
+func TestArrowLambdaImplicitItBlockForm(t *testing.T) {
+	input := `func main()
+    f := () =>
+        return it.Name
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "func(it any)") {
+		t.Errorf("expected 'func(it any)' in output, got: %s", output)
+	}
+	if !strings.Contains(output, "return it.Name") {
+		t.Errorf("expected 'return it.Name' in output, got: %s", output)
+	}
+}
+
 func TestArrowLambdaBlockForm(t *testing.T) {
 	input := `func main()
     f := (r Repo) =>
@@ -2246,6 +2299,108 @@ func TestNegativeSliceBothRewriting(t *testing.T) {
 
 	if !strings.Contains(output, "items[1:len(items)-1]") {
 		t.Errorf("expected items[1:len(items)-1], got: %s", output)
+	}
+}
+
+func TestPipedSwitchCodegen(t *testing.T) {
+	input := `func HandleEvent(event string)
+    event |> switch
+        when "click"
+            print("clicked")
+        when "hover"
+            print("hovered")
+        otherwise
+            print("unknown")
+
+func ConvertEvent(event string) string
+    result := event |> string.ToUpper() |> switch
+        when "CLICK"
+            return "C"
+        otherwise
+            return "U"
+    return result
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "switch event {") {
+		t.Errorf("expected flattened 'switch event {', got: %s", output)
+	}
+
+	if !strings.Contains(output, "func() {") {
+		t.Errorf("expected IIFE 'func() {', got: %s", output)
+	}
+}
+
+func TestOnErrPipeChainFull(t *testing.T) {
+	input := `import "stdlib/fetch"
+func Run()
+    url |> fetch.Get() |> fetch.CheckStatus() onerr panic "failed"
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+	
+	analyzer := semantic.New(program)
+	analyzer.Analyze()
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "pipe_2, err_3 := fetch.Get(pipe_1)") {
+		t.Errorf("expected fetch.Get to capture err_3, got: \n%s", output)
+	}
+	if !strings.Contains(output, "pipe_4, err_5 := fetch.CheckStatus(pipe_2)") {
+		t.Errorf("expected fetch.CheckStatus to capture err_5, got: \n%s", output)
+	}
+}
+
+func TestPipeAwareIterators(t *testing.T) {
+	input := `import "stdlib/slice"
+func PrintActiveUsers(users list of string)
+    for u in users |> slice.Filter((u string) => u != "")
+        print(u)
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+	
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "for _, u := range slice.Filter(users, func(u string) bool { return (u != \"\") }) {") {
+		t.Errorf("expected proper iterator pipeline codegen, got: \n%s", output)
 	}
 }
 

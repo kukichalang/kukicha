@@ -16,6 +16,7 @@ type Analyzer struct {
 	loopDepth        int                    // Track loop nesting for break/continue
 	switchDepth      int                    // Track switch nesting for break
 	exprReturnCounts    map[ast.Expression]int // Inferred return counts for expressions (used by codegen)
+	exprTypes           map[ast.Expression]*TypeInfo // Inferred types for expressions (used by codegen)
 	sourceFile          string                 // Source file path, used to detect stdlib context
 	inOnerr             bool                   // True while analyzing an onerr handler
 	currentOnerrrAlias  string                 // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
@@ -41,6 +42,12 @@ func NewWithFile(program *ast.Program, sourceFile string) *Analyzer {
 	}
 }
 
+// ExprTypes returns the inferred types for expressions.
+// Call after Analyze() to pass these to codegen.
+func (a *Analyzer) ExprTypes() map[ast.Expression]*TypeInfo {
+	return a.exprTypes
+}
+
 // ReturnCounts returns the inferred return counts for expressions.
 // Call after Analyze() to pass these to codegen.
 func (a *Analyzer) ReturnCounts() map[ast.Expression]int {
@@ -50,6 +57,7 @@ func (a *Analyzer) ReturnCounts() map[ast.Expression]int {
 // Analyze performs semantic analysis on the program
 func (a *Analyzer) Analyze() []error {
 	a.exprReturnCounts = make(map[ast.Expression]int)
+	a.exprTypes = make(map[ast.Expression]*TypeInfo)
 
 	// Check package name for collisions with Go stdlib
 	a.checkPackageName()
@@ -71,6 +79,13 @@ func (a *Analyzer) recordReturnCount(expr ast.Expression, count int) {
 		return
 	}
 	a.exprReturnCounts[expr] = count
+}
+
+func (a *Analyzer) recordType(expr ast.Expression, info *TypeInfo) {
+	if expr == nil || info == nil {
+		return
+	}
+	a.exprTypes[expr] = info
 }
 
 func (a *Analyzer) error(pos ast.Position, message string) {

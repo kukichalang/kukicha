@@ -635,43 +635,49 @@ func isLetter(c rune) bool {
 // (or '\r') case after advance() has already consumed the newline, so
 // l.current points to the first character of the next line.
 func (l *Lexer) isPipeAtStartOfNextLine() bool {
-	idx := l.current
-
-	for idx < len(l.source) {
-		c := l.source[idx]
-		if c == ' ' || c == '\t' {
-			idx++
-			continue
-		}
-		// Found non-whitespace
-		if c == '|' && idx+1 < len(l.source) && l.source[idx+1] == '>' {
-			return true
-		}
+	idx, indent := l.nextNonWhitespaceWithIndent()
+	if indent < l.indentStack[len(l.indentStack)-1] {
 		return false
+	}
+	if idx+1 < len(l.source) && l.source[idx] == '|' && l.source[idx+1] == '>' {
+		return true
 	}
 	return false
 }
 
-// isOnErrAtStartOfNextLine checks if the next non-whitespace characters
-// on the upcoming line form the keyword "onerr". This lets users place
-// `onerr` on its own line after an expression/pipeline.
 func (l *Lexer) isOnErrAtStartOfNextLine() bool {
-	idx := l.current
-
-	for idx < len(l.source) {
-		c := l.source[idx]
-		if c == ' ' || c == '\t' {
-			idx++
-			continue
-		}
-
-		if idx+5 <= len(l.source) && string(l.source[idx:idx+5]) == "onerr" {
-			// Ensure identifier boundary
-			if idx+5 == len(l.source) || !isLetter(l.source[idx+5]) && !isDigit(l.source[idx+5]) {
-				return true
-			}
-		}
+	idx, indent := l.nextNonWhitespaceWithIndent()
+	if indent < l.indentStack[len(l.indentStack)-1] {
 		return false
 	}
+	if idx+5 <= len(l.source) && string(l.source[idx:idx+5]) == "onerr" {
+		if idx+5 == len(l.source) || !isLetter(l.source[idx+5]) && !isDigit(l.source[idx+5]) {
+			return true
+		}
+	}
 	return false
+}
+
+func (l *Lexer) nextNonWhitespaceWithIndent() (int, int) {
+	idx := l.current
+	indent := 0
+	for idx < len(l.source) {
+		c := l.source[idx]
+		if c == ' ' {
+			indent++
+			idx++
+		} else if c == '\t' {
+			indent += 4
+			idx++
+		} else if c == '\n' || c == '\r' {
+			idx++
+			indent = 0
+			if c == '\r' && idx < len(l.source) && l.source[idx] == '\n' {
+				idx++
+			}
+		} else {
+			break
+		}
+	}
+	return idx, indent
 }

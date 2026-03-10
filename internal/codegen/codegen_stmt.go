@@ -65,6 +65,11 @@ func (g *Generator) generateStatement(stmt ast.Statement) {
 	case *ast.ExpressionStmt:
 		if s.OnErr != nil {
 			g.generateOnErrStmt(s.Expression, s.OnErr)
+		} else if pipedSwitch, ok := s.Expression.(*ast.PipedSwitchExpr); ok {
+			originalExpr := pipedSwitch.SwitchStmt.Expression
+			pipedSwitch.SwitchStmt.Expression = pipedSwitch.Left
+			g.generateSwitchStmt(pipedSwitch.SwitchStmt)
+			pipedSwitch.SwitchStmt.Expression = originalExpr
 		} else {
 			g.writeLine(g.exprToString(s.Expression))
 		}

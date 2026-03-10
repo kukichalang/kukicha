@@ -148,9 +148,41 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		targetType := g.generateTypeAnnotation(e.TargetType)
 		expr := g.exprToString(e.Expression)
 		return fmt.Sprintf("%s.(%s)", expr, targetType)
+	case *ast.PipedSwitchExpr:
+		return g.generatePipedSwitchExpr(e)
 	default:
 		return ""
 	}
+}
+
+func (g *Generator) generatePipedSwitchExpr(expr *ast.PipedSwitchExpr) string {
+	left := g.exprToString(expr.Left)
+	originalExpr := expr.SwitchStmt.Expression
+	expr.SwitchStmt.Expression = &ast.Identifier{Value: left}
+
+	tempGen := &Generator{
+		program:        g.program,
+		output:         strings.Builder{},
+		indent:         g.indent + 1,
+		placeholderMap: g.placeholderMap,
+		autoImports:    g.autoImports,
+		pkgAliases:     g.pkgAliases,
+		funcDefaults:   g.funcDefaults,
+		isStdlibIter:   g.isStdlibIter,
+		sourceFile:     g.sourceFile,
+	}
+
+	tempGen.generateSwitchStmt(expr.SwitchStmt)
+	expr.SwitchStmt.Expression = originalExpr
+
+	var result strings.Builder
+	result.WriteString("func() {\n")
+	result.WriteString(tempGen.output.String())
+	for i := 0; i < g.indent; i++ {
+		result.WriteString("\t")
+	}
+	result.WriteString("}()")
+	return result.String()
 }
 
 // escapeRune returns the Go escape sequence for a rune

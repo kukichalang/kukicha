@@ -675,6 +675,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 			Token:   p.previousToken(),
 		}
 		// Check for onerr clause
+		p.skipNewlines()
 		if p.check(lexer.TOKEN_ONERR) {
 			stmt.OnErr = p.parseOnErrClause()
 		}
@@ -694,6 +695,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 			Token:  p.previousToken(),
 		}
 		// Check for onerr clause
+		p.skipNewlines()
 		if p.check(lexer.TOKEN_ONERR) {
 			stmt.OnErr = p.parseOnErrClause()
 		}
@@ -702,6 +704,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 	}
 
 	// ExpressionStmt — check for onerr clause
+	p.skipNewlines()
 	if p.check(lexer.TOKEN_ONERR) {
 		onErr := p.parseOnErrClause()
 		p.skipNewlines()

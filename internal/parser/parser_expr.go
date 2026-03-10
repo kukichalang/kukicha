@@ -53,6 +53,19 @@ func (p *Parser) parsePipeExpr() ast.Expression {
 
 	for p.match(lexer.TOKEN_PIPE) {
 		operator := p.previousToken()
+
+		// Check for piped switch: expr |> switch
+		if p.check(lexer.TOKEN_SWITCH) {
+			switchToken := p.advance() // consume 'switch'
+			switchStmt := p.parseSwitchBody(switchToken, nil)
+			left = &ast.PipedSwitchExpr{
+				Token:      operator,
+				Left:       left,
+				SwitchStmt: switchStmt,
+			}
+			continue
+		}
+
 		right := p.parseAndExpr()
 		left = &ast.PipeExpr{
 			Token: operator,

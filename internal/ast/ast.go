@@ -952,6 +952,19 @@ func (e *DerefExpr) Pos() Position {
 }
 func (e *DerefExpr) exprNode() {}
 
+type PipedSwitchExpr struct {
+	Token      lexer.Token // The '|>' token
+	Left       Expression  // The value being piped into the switch
+	SwitchStmt *SwitchStmt // The switch block itself
+}
+
+func (e *PipedSwitchExpr) TokenLiteral() string { return e.Token.Lexeme }
+func (e *PipedSwitchExpr) Pos() Position {
+	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
+}
+func (e *PipedSwitchExpr) exprNode() {}
+
+
 type BlockExpr struct {
 	Token lexer.Token // The INDENT token
 	Body  *BlockStmt

@@ -304,6 +304,23 @@ func (g *Generator) walkExpr(expr ast.Expression, visit func(ast.Expression) boo
 		if e.Body != nil && g.walkBlock(e.Body, visit) {
 			return true
 		}
+	case *ast.PipedSwitchExpr:
+		if g.walkExpr(e.Left, visit) {
+			return true
+		}
+		for _, c := range e.SwitchStmt.Cases {
+			for _, v := range c.Values {
+				if g.walkExpr(v, visit) {
+					return true
+				}
+			}
+			if c.Body != nil && g.walkBlock(c.Body, visit) {
+				return true
+			}
+		}
+		if e.SwitchStmt.Otherwise != nil && e.SwitchStmt.Otherwise.Body != nil && g.walkBlock(e.SwitchStmt.Otherwise.Body, visit) {
+			return true
+		}
 	}
 	return false
 }
@@ -603,6 +620,23 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 		if e.Body != nil {
 			return g.blockHasNonPrintfInterpolation(e.Body)
 		}
+	case *ast.PipedSwitchExpr:
+		if g.exprHasNonPrintfInterpolation(e.Left) {
+			return true
+		}
+		for _, c := range e.SwitchStmt.Cases {
+			for _, v := range c.Values {
+				if g.exprHasNonPrintfInterpolation(v) {
+					return true
+				}
+			}
+			if c.Body != nil && g.blockHasNonPrintfInterpolation(c.Body) {
+				return true
+			}
+		}
+		if e.SwitchStmt.Otherwise != nil && e.SwitchStmt.Otherwise.Body != nil && g.blockHasNonPrintfInterpolation(e.SwitchStmt.Otherwise.Body) {
+			return true
+		}
 	}
 	return false
 }
@@ -628,3 +662,22 @@ func (g *Generator) needsErrorsPackage() bool {
 		return ok
 	})
 }
+
+// exprHasItIdentifier returns true if the expression contains an identifier
+// named "it" (not as a field name, but as an independent identifier).
+func (g *Generator) exprHasItIdentifier(expr ast.Expression) bool {
+	return g.walkExpr(expr, func(e ast.Expression) bool {
+		ident, ok := e.(*ast.Identifier)
+		return ok && ident.Value == "it"
+	})
+}
+
+// blockHasItIdentifier returns true if the block contains an identifier
+// named "it".
+func (g *Generator) blockHasItIdentifier(block *ast.BlockStmt) bool {
+	return g.walkBlock(block, func(e ast.Expression) bool {
+		ident, ok := e.(*ast.Identifier)
+		return ok && ident.Value == "it"
+	})
+}
+

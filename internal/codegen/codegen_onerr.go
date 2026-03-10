@@ -349,6 +349,54 @@ func (g *Generator) buildPipeArgs(leftExpr string, arguments []ast.Expression) [
 	return args
 }
 
+func (g *Generator) generateOnErrPipeChainWithLabels(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []*ast.Identifier, onErrLabel, endLabel string) (string, bool) {
+	base, steps, ok := flattenPipeChain(pipe)
+	if !ok {
+		return "", false
+	}
+
+	// Generate base expression
+	baseExpr := g.exprToString(base)
+	current := g.uniqueId("pipe")
+
+	if count, ok := g.inferReturnCount(base); ok && count >= 2 {
+		errVar := g.uniqueId("err")
+		g.writeLine(fmt.Sprintf("%s, %s := %s", current, errVar, baseExpr))
+		g.writeLine(fmt.Sprintf("if %s != nil {", errVar))
+		g.indent++
+		g.writeLine(fmt.Sprintf("goto %s", onErrLabel))
+		g.indent--
+		g.writeLine("}")
+	} else {
+		g.writeLine(fmt.Sprintf("%s := %s", current, baseExpr))
+	}
+
+	// Generate intermediate steps
+	for i, step := range steps {
+		next := g.uniqueId("pipe")
+		callExpr, ok := g.generatePipedStepCall(step, current)
+		if !ok {
+			return "", false
+		}
+
+		if count, ok := g.inferReturnCount(step); ok && count >= 2 {
+			errVar := g.uniqueId("err")
+			g.writeLine(fmt.Sprintf("%s, %s := %s", next, errVar, callExpr))
+			g.writeLine(fmt.Sprintf("if %s != nil {", errVar))
+			g.indent++
+			g.writeLine(fmt.Sprintf("goto %s", onErrLabel))
+			g.indent--
+			g.writeLine("}")
+		} else {
+			g.writeLine(fmt.Sprintf("%s := %s", next, callExpr))
+		}
+		current = next
+		_ = i
+	}
+
+	return current, true
+}
+
 func (g *Generator) generateOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []*ast.Identifier) (string, bool) {
 	base, steps, ok := flattenPipeChain(pipe)
 	if !ok || base == nil || len(steps) == 0 {
@@ -394,6 +442,43 @@ func (g *Generator) generateOnErrStmt(expr ast.Expression, clause *ast.OnErrClau
 			g.writeLine(fmt.Sprintf("_ = %s", finalVar))
 			return
 		}
+	} else if ps, ok := expr.(*ast.PipedSwitchExpr); ok {
+		// Handle piped switch as statement: pipe |> switch ... onerr handler
+		onErrLabel := g.uniqueId("onerr")
+		endLabel := g.uniqueId("end")
+
+		g.writeLine("{")
+		g.indent++
+
+		var finalVal string
+		var ok bool
+		if pipe, ok2 := ps.Left.(*ast.PipeExpr); ok2 {
+			finalVal, ok = g.generateOnErrPipeChainWithLabels(pipe, clause, []*ast.Identifier{}, onErrLabel, endLabel)
+		} else {
+			finalVal = g.exprToString(ps.Left)
+			ok = true
+		}
+
+		if ok {
+			// Now run the switch
+			originalExpr := ps.SwitchStmt.Expression
+			ps.SwitchStmt.Expression = &ast.Identifier{Value: finalVal}
+			g.generateSwitchStmt(ps.SwitchStmt)
+			ps.SwitchStmt.Expression = originalExpr
+
+			g.writeLine(fmt.Sprintf("goto %s", endLabel))
+			g.indent--
+			g.writeLine("}")
+			g.writeLine(fmt.Sprintf("%s:", onErrLabel))
+			g.indent++
+			g.generateOnErrHandler([]*ast.Identifier{{Value: finalVal}}, clause.Handler, g.currentOnErrVar)
+			g.indent--
+			g.writeLine(fmt.Sprintf("%s:", endLabel))
+			return
+		}
+		g.indent--
+		g.writeLine("}")
+		return
 	}
 
 	// Check for discard case - just execute and ignore error

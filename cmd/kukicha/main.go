@@ -133,15 +133,15 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  kukicha help                Show this help message")
 }
 
-func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, error) {
+func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, map[ast.Expression]*semantic.TypeInfo, error) {
 	source, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error reading file: %v", err)
+		return nil, nil, nil, fmt.Errorf("Error reading file: %v", err)
 	}
 
 	p, err := parser.New(string(source), filename)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Lexer error: %v", err)
+		return nil, nil, nil, fmt.Errorf("Lexer error: %v", err)
 	}
 
 	program, parseErrors := p.Parse()
@@ -150,7 +150,7 @@ func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, erro
 		for _, e := range parseErrors {
 			msgs = append(msgs, fmt.Sprintf("  %v", e))
 		}
-		return nil, nil, fmt.Errorf("Parse errors:\n%s", strings.Join(msgs, "\n"))
+		return nil, nil, nil, fmt.Errorf("Parse errors:\n%s", strings.Join(msgs, "\n"))
 	}
 
 	analyzer := semantic.NewWithFile(program, filename)
@@ -160,10 +160,10 @@ func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, erro
 		for _, e := range semanticErrors {
 			msgs = append(msgs, fmt.Sprintf("  %v", e))
 		}
-		return nil, nil, fmt.Errorf("Semantic errors:\n%s", strings.Join(msgs, "\n"))
+		return nil, nil, nil, fmt.Errorf("Semantic errors:\n%s", strings.Join(msgs, "\n"))
 	}
 
-	return program, analyzer.ReturnCounts(), nil
+	return program, analyzer.ReturnCounts(), analyzer.ExprTypes(), nil
 }
 
 func detectTarget(source string) string {
@@ -213,7 +213,7 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 	}
 	projectDir := findProjectDir(absFile)
 
-	program, returnCounts, err := loadAndAnalyze(absFile)
+	program, returnCounts, exprTypes, err := loadAndAnalyze(absFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -236,6 +236,7 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 	gen := codegen.New(program)
 	gen.SetSourceFile(absFile) // Enable special transpilation detection
 	gen.SetExprReturnCounts(returnCounts)
+	gen.SetExprTypes(exprTypes)
 	if program.Target == "mcp" {
 		gen.SetMCPTarget(true)
 	}
@@ -333,7 +334,7 @@ func runCommand(filename string, targetFlag string, scriptArgs []string) {
 	}
 	projectDir := findProjectDir(absFile)
 
-	program, returnCounts, err := loadAndAnalyze(absFile)
+	program, returnCounts, exprTypes, err := loadAndAnalyze(absFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -355,6 +356,7 @@ func runCommand(filename string, targetFlag string, scriptArgs []string) {
 	gen := codegen.New(program)
 	gen.SetSourceFile(absFile) // Enable special transpilation detection
 	gen.SetExprReturnCounts(returnCounts)
+	gen.SetExprTypes(exprTypes)
 	if program.Target == "mcp" {
 		gen.SetMCPTarget(true)
 	}

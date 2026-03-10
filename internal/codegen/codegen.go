@@ -3,6 +3,7 @@ package codegen
 import (
 	"fmt"
 	"strings"
+	"github.com/duber000/kukicha/internal/semantic"
 
 	"github.com/duber000/kukicha/internal/ast"
 	"github.com/duber000/kukicha/internal/version"
@@ -56,8 +57,9 @@ type Generator struct {
 	currentReturnTypes   []ast.TypeAnnotation     // Return types of current function (for type coercion in returns)
 	processingReturnType bool                     // Whether we are currently generating return types
 	tempCounter          int                      // Counter for generating unique temporary variable names
-	exprReturnCounts     map[ast.Expression]int   // Semantic return counts passed from analyzer
-	mcpTarget            bool                     // True if targeting MCP (Model Context Protocol)
+	exprReturnCounts     map[ast.Expression]int      // Semantic return counts passed from analyzer
+	exprTypes            map[ast.Expression]*semantic.TypeInfo // Semantic type info passed from analyzer
+	mcpTarget            bool                        // True if targeting MCP (Model Context Protocol)
 	currentOnErrVar      string                   // Current onerr error variable name (for block-style onerr {error} references)
 	currentOnErrAlias    string                   // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
 	currentReturnIndex   int                      // Index of return value being generated (-1 if not in return)
@@ -95,6 +97,11 @@ func (g *Generator) SetSourceFile(path string) {
 // SetExprReturnCounts passes semantic analysis return counts to the generator.
 func (g *Generator) SetExprReturnCounts(counts map[ast.Expression]int) {
 	g.exprReturnCounts = counts
+}
+
+// SetExprTypes passes semantic analysis expression types to the generator.
+func (g *Generator) SetExprTypes(types map[ast.Expression]*semantic.TypeInfo) {
+	g.exprTypes = types
 }
 
 // SetMCPTarget enables special codegen for MCP servers (e.g., print to stderr)

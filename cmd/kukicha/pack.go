@@ -24,7 +24,7 @@ func packCommand(filename string, outputDir string) {
 	}
 
 	// 1. Parse and analyze
-	program, returnCounts, err := loadAndAnalyze(absFile)
+	program, returnCounts, exprTypes, err := loadAndAnalyze(absFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -78,6 +78,7 @@ func packCommand(filename string, outputDir string) {
 	gen := codegen.New(program)
 	gen.SetSourceFile(absFile)
 	gen.SetExprReturnCounts(returnCounts)
+	gen.SetExprTypes(exprTypes)
 	gen.SetMCPTarget(true)
 	goCode, err := gen.Generate()
 	if err != nil {
