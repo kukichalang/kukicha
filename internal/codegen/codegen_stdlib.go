@@ -464,6 +464,22 @@ func (g *Generator) errorValueExpr(expr ast.Expression, errVar string) string {
 	return fmt.Sprintf("errors.New(%s)", g.exprToString(expr))
 }
 
+// isErrorOnlyReturn checks whether an expression returns exactly one value
+// of type error (e.g., os.WriteFile). Used by pipe chain onerr codegen to
+// generate error checks instead of treating the result as a data value.
+func (g *Generator) isErrorOnlyReturn(expr ast.Expression) bool {
+	count, ok := g.inferReturnCount(expr)
+	if !ok || count != 1 {
+		return false
+	}
+	if g.exprTypes != nil {
+		if ti, ok := g.exprTypes[expr]; ok && ti != nil {
+			return ti.Kind == semantic.TypeKindNamed && ti.Name == "error"
+		}
+	}
+	return false
+}
+
 func (g *Generator) inferReturnCount(expr ast.Expression) (int, bool) {
 	if g.exprReturnCounts != nil {
 		if count, ok := g.exprReturnCounts[expr]; ok {

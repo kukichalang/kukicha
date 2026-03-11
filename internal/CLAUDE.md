@@ -14,7 +14,7 @@ source (.kuki)
 
 Semantic analysis produces two maps that are passed to codegen:
 - `exprReturnCounts map[ast.Expression]int` — passed via `generator.SetExprReturnCounts(...)`. Tells codegen how many values an expression returns so it can emit the right `val, err := f()` split for `onerr`.
-- `exprTypes map[ast.Expression]*TypeInfo` — passed via `generator.SetExprTypes(...)`. Records the inferred type of every analyzed expression. Not yet consumed by codegen — infrastructure for future contextual type inference (e.g., typed lambda parameters, smarter zero-value generation in pipe chains).
+- `exprTypes map[ast.Expression]*TypeInfo` — passed via `generator.SetExprTypes(...)`. Records the inferred type of every analyzed expression. Consumed by codegen's `isErrorOnlyReturn()` to detect error-only pipe steps (e.g., `os.WriteFile`), and available for future contextual type inference. In `analyzePipeExprMulti`, types are explicitly recorded on pipe step nodes via `recordType(right, types[0])` since steps bypass `analyzeExpression`.
 
 The formatter (`formatter/`) is a separate pipeline that re-parses and pretty-prints. The LSP (`lsp/`) wraps the compiler pipeline and is independent of the above.
 
@@ -217,10 +217,18 @@ make genstdlibregistry   # or: make generate (runs everything)
 | `currentOnErrVar string` | Error variable name in active `onerr` block (for `{error}` interpolation) |
 | `currentReturnIndex int` | Index of return value being generated (-1 if not in return); used to emit `*new(T)` vs `nil` for bare `empty` in generic stdlib functions |
 | `exprReturnCounts map[ast.Expression]int` | From semantic — drives `onerr` multi-value split |
+| `exprTypes map[ast.Expression]*TypeInfo` | From semantic — used by `isErrorOnlyReturn()` for error-only pipe step detection |
 
 ### onerr code generation
 
 `onerr` is the most complex part of codegen. The generator wraps the call in a temporary assignment, checks the error, and runs the handler. `currentOnErrVar` holds the generated error variable name so that `{error}` in string interpolation inside the block resolves to it.
+
+Pipe chain onerr (`generateOnErrPipeChain`, `generateOnErrPipeChainWithLabels`) handles three cases per step:
+1. **Multi-return** (count ≥ 2): split into `val, err := call()`; check err
+2. **Error-only** (count == 1 and type is `error`): `err := call()`; check err; keep current pipe variable unchanged (the step produces no data value)
+3. **Single value** (count == 1, non-error): `pipe := call()`; advance pipe variable
+
+Error-only detection uses `isErrorOnlyReturn()` which checks both `exprReturnCounts` (count == 1) and `exprTypes` (type is `error`). Known error-only Go stdlib functions (`os.WriteFile`, `os.Remove`, etc.) are registered in `knownExternalReturns` in `semantic_calls.go` with proper type info.
 
 Piped switches participate in the same machinery. For `pipe |> switch ... onerr ...`, codegen first lowers the upstream pipe chain with error checks, then runs either a regular switch or typed type-switch over the final pipe value. Typed piped switches are supported in both statement position and value-producing declarations/assignments.
 

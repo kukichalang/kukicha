@@ -472,6 +472,16 @@ func (g *Generator) generateOnErrPipeChainWithLabels(pipe *ast.PipeExpr, clause 
 			g.writeLine(fmt.Sprintf("goto %s", onErrLabel))
 			g.indent--
 			g.writeLine("}")
+		} else if g.isErrorOnlyReturn(step) {
+			// Error-only return: check the error, keep current pipe variable.
+			errVar := g.uniqueId("err")
+			g.writeLine(fmt.Sprintf("%s := %s", errVar, callExpr))
+			g.writeLine(fmt.Sprintf("if %s != nil {", errVar))
+			g.indent++
+			g.writeLine(fmt.Sprintf("goto %s", onErrLabel))
+			g.indent--
+			g.writeLine("}")
+			continue
 		} else {
 			g.writeLine(fmt.Sprintf("%s := %s", next, callExpr))
 		}
@@ -508,6 +518,13 @@ func (g *Generator) generateOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErr
 			errVar := g.uniqueId("err")
 			g.writeLine(fmt.Sprintf("%s, %s := %s", next, errVar, callExpr))
 			g.writeOnErrCheck(clause, errVar, names)
+		} else if g.isErrorOnlyReturn(step) {
+			// Error-only return (e.g., os.WriteFile): check the error,
+			// keep the current pipe variable unchanged.
+			errVar := g.uniqueId("err")
+			g.writeLine(fmt.Sprintf("%s := %s", errVar, callExpr))
+			g.writeOnErrCheck(clause, errVar, names)
+			continue
 		} else {
 			g.writeLine(fmt.Sprintf("%s := %s", next, callExpr))
 		}

@@ -59,8 +59,8 @@ type Generator struct {
 	tempCounter          int                      // Counter for generating unique temporary variable names
 	exprReturnCounts     map[ast.Expression]int      // Semantic return counts passed from analyzer (drives onerr multi-value split)
 	// exprTypes holds per-expression type info from semantic analysis.
-	// Not yet consumed by codegen — infrastructure for future contextual
-	// type inference (e.g., typed lambda parameters, smarter zero values).
+	// Used by isErrorOnlyReturn to detect error-only pipe steps, and
+	// available for future contextual type inference.
 	exprTypes            map[ast.Expression]*semantic.TypeInfo
 	mcpTarget            bool                        // True if targeting MCP (Model Context Protocol)
 	currentOnErrVar      string                   // Current onerr error variable name (for block-style onerr {error} references)
@@ -103,8 +103,8 @@ func (g *Generator) SetExprReturnCounts(counts map[ast.Expression]int) {
 }
 
 // SetExprTypes passes semantic analysis expression types to the generator.
-// Currently infrastructure — not yet consumed by codegen, but wired through
-// so future features (contextual type inference, typed zero values) can use it.
+// Used by isErrorOnlyReturn for pipe chain error detection, and wired through
+// for future features (contextual type inference, typed zero values).
 func (g *Generator) SetExprTypes(types map[ast.Expression]*semantic.TypeInfo) {
 	g.exprTypes = types
 }

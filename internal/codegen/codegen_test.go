@@ -1625,6 +1625,97 @@ func Run(path string) (list of os.DirEntry, error)
 	}
 }
 
+func TestOnErrPipeChainErrorOnlyReturn(t *testing.T) {
+	input := `import "os"
+
+func Write(data list of byte, path string) error
+    data |> os.WriteFile(path, _, 0644) onerr return
+    return empty
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	gen.SetExprTypes(analyzer.ExprTypes())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	// os.WriteFile returns only error — should generate error check, not value assignment
+	if !strings.Contains(output, "err_3 := os.WriteFile(path, pipe_1, 0644)") {
+		t.Errorf("expected os.WriteFile error assigned to err var, got:\n%s", output)
+	}
+	if !strings.Contains(output, "if err_3 != nil {") {
+		t.Errorf("expected error check for os.WriteFile, got:\n%s", output)
+	}
+}
+
+func TestOnErrPipeChainErrorOnlyAfterMultiReturn(t *testing.T) {
+	// Simulates the files.Write pattern: data |> marshalFunc() |> os.WriteFile(path, _, 0644) onerr return
+	// where marshalFunc returns ([]byte, error) and os.WriteFile returns only error.
+	input := `import "os"
+
+func marshalPretty(data any) (list of byte, error)
+    return data as list of byte, empty
+
+func Write(data any, path string) error
+    data |> marshalPretty() |> os.WriteFile(path, _, 0644) onerr return
+    return empty
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	gen.SetExprTypes(analyzer.ExprTypes())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	// marshalPretty returns 2 values — should split into value + error
+	if !strings.Contains(output, "pipe_2, err_3 := marshalPretty(pipe_1)") {
+		t.Errorf("expected marshalPretty to split into value + error, got:\n%s", output)
+	}
+	// os.WriteFile returns only error — should check error directly
+	if !strings.Contains(output, "err_5 := os.WriteFile(path, pipe_2, 0644)") {
+		t.Errorf("expected os.WriteFile error assigned to err var, got:\n%s", output)
+	}
+	if !strings.Contains(output, "if err_5 != nil {") {
+		t.Errorf("expected error check for os.WriteFile, got:\n%s", output)
+	}
+}
+
 func TestGoBlockSyntax(t *testing.T) {
 	input := `func main()
     go

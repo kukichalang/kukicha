@@ -377,10 +377,18 @@ func (a *Analyzer) analyzePipeExprMulti(expr *ast.PipeExpr) []*TypeInfo {
 	case *ast.CallExpr:
 		types := a.analyzeCallExpr(right, leftType)
 		a.recordReturnCount(expr, len(types))
+		// Record type info on the step expression so codegen can detect
+		// error-only returns in pipe chains (e.g., os.WriteFile returns only error).
+		if len(types) > 0 {
+			a.recordType(right, types[0])
+		}
 		return types
 	case *ast.MethodCallExpr:
 		types := a.analyzeMethodCallExpr(right, leftType)
 		a.recordReturnCount(expr, len(types))
+		if len(types) > 0 {
+			a.recordType(right, types[0])
+		}
 		return types
 	case *ast.PipeExpr:
 		// Nested pipe: analyze recursively

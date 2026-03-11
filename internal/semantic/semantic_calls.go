@@ -31,6 +31,18 @@ func init() {
 	knownExternalReturns["io.Copy"] = 2
 	knownExternalReturns["io.WriteString"] = 2
 	knownExternalReturns["io.ReadFull"] = 2
+
+	// Error-only Go stdlib functions (return only error, no data value)
+	knownExternalReturns["os.WriteFile"] = 1
+	knownExternalReturns["os.Remove"] = 1
+	knownExternalReturns["os.RemoveAll"] = 1
+	knownExternalReturns["os.Rename"] = 1
+	knownExternalReturns["os.Mkdir"] = 1
+	knownExternalReturns["os.MkdirAll"] = 1
+	knownExternalReturns["os.Chmod"] = 1
+	knownExternalReturns["os.Chown"] = 1
+	knownExternalReturns["os.Setenv"] = 1
+	knownExternalReturns["os.Unsetenv"] = 1
 }
 
 func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*TypeInfo {
@@ -242,6 +254,10 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 			case "strconv.Atoi":
 				types[0] = &TypeInfo{Kind: TypeKindInt}
 				types[1] = &TypeInfo{Kind: TypeKindNamed, Name: "error"}
+			case "os.WriteFile", "os.Remove", "os.RemoveAll", "os.Rename",
+				"os.Mkdir", "os.MkdirAll", "os.Chmod", "os.Chown",
+				"os.Setenv", "os.Unsetenv":
+				types[0] = &TypeInfo{Kind: TypeKindNamed, Name: "error"}
 			}
 			a.recordReturnCount(expr, count)
 			return types
