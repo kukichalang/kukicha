@@ -9,7 +9,7 @@ KUKI_SOURCES := $(wildcard stdlib/*/*.kuki)
 KUKI_MAIN := $(filter-out %_test.kuki stdlib/test/test.kuki,$(KUKI_SOURCES))
 KUKI_TESTS := $(filter %_test.kuki,$(KUKI_SOURCES))
 
-.PHONY: all build lsp generate generate-tests genstdlibregistry test check-generate check-test-staleness clean install-lsp install-hooks zed-test
+.PHONY: all build lsp generate generate-tests genstdlibregistry gengostdlib test check-generate check-test-staleness clean install-lsp install-hooks zed-test
 
 all: build lsp
 
@@ -21,6 +21,11 @@ build:
 # Run this whenever a stdlib .kuki file adds, removes, or changes exported functions.
 genstdlibregistry:
 	go run ./cmd/genstdlibregistry
+
+# Regenerate internal/semantic/go_stdlib_gen.go from Go stdlib signatures via go/types.
+# Run this when adding new Go stdlib functions to the curated list in cmd/gengostdlib.
+gengostdlib:
+	go run ./cmd/gengostdlib
 
 # Regenerate all stdlib .go files from .kuki sources.
 # Runs genstdlibregistry first so the semantic registry stays in sync,
@@ -69,7 +74,7 @@ test: check-test-staleness
 
 # Check that generated .go files are up to date (for CI)
 check-generate: generate
-	@if [ -n "$$(git diff --name-only stdlib/ internal/semantic/stdlib_registry_gen.go)" ]; then \
+	@if [ -n "$$(git diff --name-only stdlib/ internal/semantic/stdlib_registry_gen.go internal/semantic/go_stdlib_gen.go)" ]; then \
 		echo "ERROR: Generated files are out of date:"; \
 		git diff --name-only stdlib/ internal/semantic/stdlib_registry_gen.go; \
 		echo "Run 'make generate' and commit the results."; \

@@ -7,76 +7,37 @@ import (
 )
 
 // knownExternalReturns maps qualified function names to their return count.
-// Built once from the auto-generated stdlib registry plus Go stdlib entries.
+// Built once from the auto-generated Kukicha stdlib registry (generatedStdlibRegistry)
+// plus the auto-generated Go stdlib registry (generatedGoStdlib).
 var knownExternalReturns map[string]int
 
 func init() {
-	knownExternalReturns = make(map[string]int, len(generatedStdlibRegistry)+20)
+	knownExternalReturns = make(map[string]int, len(generatedStdlibRegistry)+len(generatedGoStdlib))
 	for k, v := range generatedStdlibRegistry {
 		knownExternalReturns[k] = v
 	}
-	// Go stdlib (not derived from .kuki files)
-	knownExternalReturns["os.ReadFile"] = 2
-	knownExternalReturns["os.ReadDir"] = 2
-	knownExternalReturns["os.Create"] = 2
-	knownExternalReturns["os.Open"] = 2
-	knownExternalReturns["os.LookupEnv"] = 2
-	knownExternalReturns["strconv.Atoi"] = 2
-	knownExternalReturns["strconv.ParseInt"] = 2
-	knownExternalReturns["strconv.ParseFloat"] = 2
-	knownExternalReturns["url.Parse"] = 2
-	knownExternalReturns["fmt.Fprintf"] = 2
-	knownExternalReturns["fmt.Sprintf"] = 1
-	knownExternalReturns["net.ParseCIDR"] = 3
-	knownExternalReturns["io.Copy"] = 2
-	knownExternalReturns["io.WriteString"] = 2
-	knownExternalReturns["io.ReadFull"] = 2
-
-	// Error-only Go stdlib functions (return only error, no data value)
-	knownExternalReturns["os.WriteFile"] = 1
-	knownExternalReturns["os.Remove"] = 1
-	knownExternalReturns["os.RemoveAll"] = 1
-	knownExternalReturns["os.Rename"] = 1
-	knownExternalReturns["os.Mkdir"] = 1
-	knownExternalReturns["os.MkdirAll"] = 1
-	knownExternalReturns["os.Chmod"] = 1
-	knownExternalReturns["os.Chown"] = 1
-	knownExternalReturns["os.Setenv"] = 1
-	knownExternalReturns["os.Unsetenv"] = 1
+	for k, v := range generatedGoStdlib {
+		knownExternalReturns[k] = v.Count
+	}
 }
 
 func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*TypeInfo {
-	// Check for known stdlib functions first
+	// Check for known Go stdlib functions (parsed as direct Identifier, e.g. os.LookupEnv)
 	if id, ok := expr.Function.(*ast.Identifier); ok {
-		switch id.Value {
-		case "os.LookupEnv":
-			types := []*TypeInfo{
-				{Kind: TypeKindString},
-				{Kind: TypeKindBool},
-			}
-			a.recordReturnCount(expr, len(types))
+		if entry, ok := generatedGoStdlib[id.Value]; ok {
+			types := goStdlibEntryToTypeInfos(entry)
+			a.recordReturnCount(expr, entry.Count)
 			return types
 		}
 	}
 
-	// Check for known stdlib method calls (e.g., os.LookupEnv)
-	// This might be parsed as a MethodCallExpr in some cases
+	// Check for known Go stdlib functions parsed as MethodCallExpr (pkg.Func form)
 	if methodCall, ok := expr.Function.(*ast.MethodCallExpr); ok {
 		if objID, ok := methodCall.Object.(*ast.Identifier); ok {
-			methodName := methodCall.Method.Value
-			qualifiedName := objID.Value + "." + methodName
-			switch qualifiedName {
-			case "os.LookupEnv":
-				types := []*TypeInfo{
-					{Kind: TypeKindString},
-					{Kind: TypeKindBool},
-				}
-				a.recordReturnCount(expr, len(types))
-				return types
-			// bufio package functions
-			case "bufio.NewScanner":
-				types := []*TypeInfo{{Kind: TypeKindNamed, Name: "bufio.Scanner"}}
-				a.recordReturnCount(expr, len(types))
+			qualifiedName := objID.Value + "." + methodCall.Method.Value
+			if entry, ok := generatedGoStdlib[qualifiedName]; ok {
+				types := goStdlibEntryToTypeInfos(entry)
+				a.recordReturnCount(expr, entry.Count)
 				return types
 			}
 		}
@@ -200,6 +161,18 @@ func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*Ty
 	return []*TypeInfo{{Kind: TypeKindUnknown}}
 }
 
+// goStdlibEntryToTypeInfos converts a generated Go stdlib entry to a slice of TypeInfo.
+func goStdlibEntryToTypeInfos(entry goStdlibEntry) []*TypeInfo {
+	types := make([]*TypeInfo, entry.Count)
+	for i, gt := range entry.Types {
+		types[i] = &TypeInfo{Kind: gt.Kind, Name: gt.Name}
+	}
+	for i := len(entry.Types); i < entry.Count; i++ {
+		types[i] = &TypeInfo{Kind: TypeKindUnknown}
+	}
+	return types
+}
+
 func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *TypeInfo) []*TypeInfo {
 	// Analyze object
 	objType := a.analyzeExpression(expr.Object)
@@ -239,25 +212,18 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 		// Security: detect http.Redirect with non-literal URL (open redirect)
 		a.checkRedirectNonLiteral(qualifiedName, expr, pipedArg)
 
+		// Check generated Go stdlib registry first (has full type info)
+		if entry, ok := generatedGoStdlib[qualifiedName]; ok {
+			types := goStdlibEntryToTypeInfos(entry)
+			a.recordReturnCount(expr, entry.Count)
+			return types
+		}
+
+		// Fall back to Kukicha stdlib registry (count only, no type info)
 		if count, ok := knownExternalReturns[qualifiedName]; ok {
 			types := make([]*TypeInfo, count)
 			for i := range types {
 				types[i] = &TypeInfo{Kind: TypeKindUnknown}
-			}
-			// Provide specific type info for well-known cases
-			switch qualifiedName {
-			case "os.LookupEnv":
-				types[0] = &TypeInfo{Kind: TypeKindString}
-				types[1] = &TypeInfo{Kind: TypeKindBool}
-			case "fmt.Sprintf":
-				types[0] = &TypeInfo{Kind: TypeKindString}
-			case "strconv.Atoi":
-				types[0] = &TypeInfo{Kind: TypeKindInt}
-				types[1] = &TypeInfo{Kind: TypeKindNamed, Name: "error"}
-			case "os.WriteFile", "os.Remove", "os.RemoveAll", "os.Rename",
-				"os.Mkdir", "os.MkdirAll", "os.Chmod", "os.Chown",
-				"os.Setenv", "os.Unsetenv":
-				types[0] = &TypeInfo{Kind: TypeKindNamed, Name: "error"}
 			}
 			a.recordReturnCount(expr, count)
 			return types
