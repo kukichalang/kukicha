@@ -17,6 +17,7 @@ func init() {
 	}
 	// Go stdlib (not derived from .kuki files)
 	knownExternalReturns["os.ReadFile"] = 2
+	knownExternalReturns["os.ReadDir"] = 2
 	knownExternalReturns["os.Create"] = 2
 	knownExternalReturns["os.Open"] = 2
 	knownExternalReturns["os.LookupEnv"] = 2

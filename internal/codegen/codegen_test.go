@@ -1586,6 +1586,45 @@ func Run() int
 	}
 }
 
+func TestOnErrPipeChainKnownExternalMultiReturn(t *testing.T) {
+	input := `import "os"
+
+func Run(path string) (list of os.DirEntry, error)
+    entries := path |> os.ReadDir() onerr return
+    return entries, empty
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "pipe_2, err_3 := os.ReadDir(pipe_1)") {
+		t.Fatalf("expected os.ReadDir pipe step to capture error, got: %s", output)
+	}
+	if !strings.Contains(output, "return []os.DirEntry{}, err_3") {
+		t.Fatalf("expected onerr return to propagate os.ReadDir error, got: %s", output)
+	}
+}
+
 func TestGoBlockSyntax(t *testing.T) {
 	input := `func main()
     go
@@ -2478,6 +2517,42 @@ func PrintActiveUsers(users list of string)
 	}
 }
 
+func TestPipeAwareIteratorsTypedReducerLambda(t *testing.T) {
+	input := `import "stdlib/iterator"
+
+func Run() int
+    items := list of int{1, 2, 3, 4}
+    return items |> iterator.Values() |> iterator.Reduce(0, (acc int, n int) => acc + n)
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprTypes(analyzer.ExprTypes())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "func(acc int, n int) int { return (acc + n) }") {
+		t.Fatalf("expected typed reducer lambda to emit an int return type, got: %s", output)
+	}
+}
+
 func TestEmptyAsVariableName(t *testing.T) {
 	input := `func Main()
     empty := 42
@@ -2502,5 +2577,47 @@ func TestEmptyAsVariableName(t *testing.T) {
 
 	if !strings.Contains(output, "empty := 42") {
 		t.Errorf("expected 'empty := 42', got: %s", output)
+	}
+}
+
+func TestEmptyIdentifierInPipeExpression(t *testing.T) {
+	input := `import "stdlib/iterator"
+
+func addInts(acc int, n int) int
+    return acc + n
+
+func Run() int
+    empty := list of int{}
+    return empty |> iterator.Values() |> iterator.Reduce(42, addInts)
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if strings.Contains(output, "iterator.Values(nil)") {
+		t.Fatalf("expected pipe to preserve identifier named empty, got: %s", output)
+	}
+	if !strings.Contains(output, "iterator.Values(empty)") {
+		t.Fatalf("expected pipe to use the empty variable, got: %s", output)
 	}
 }

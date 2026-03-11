@@ -402,11 +402,14 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		}
 		return p.parseIdentifierOrStructLiteral()
 	case lexer.TOKEN_EMPTY:
-		// empty is almost always a literal unless it's an assignment or member access
+		// empty is usually a literal, but it can also be used as an identifier.
+		// Keep common expression-followers identifier-friendly so constructs like
+		// `print(empty)` and `empty |> iterator.Values()` don't collapse to nil.
 		next := p.peekNextToken().Type
 		if next == lexer.TOKEN_WALRUS || next == lexer.TOKEN_ASSIGN ||
 			next == lexer.TOKEN_DOT || next == lexer.TOKEN_LBRACKET ||
-			next == lexer.TOKEN_COLON {
+			next == lexer.TOKEN_COLON || next == lexer.TOKEN_PIPE ||
+			next == lexer.TOKEN_RPAREN || next == lexer.TOKEN_COMMA {
 			token := p.advance()
 			return &ast.Identifier{Token: token, Value: token.Lexeme}
 		}

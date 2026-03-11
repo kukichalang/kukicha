@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/duber000/kukicha/internal/ast"
+	"github.com/duber000/kukicha/internal/semantic"
 )
 
 // Package-level lookup maps — allocated once to avoid per-call allocation.
@@ -75,6 +76,12 @@ var knownInterfaces = map[string]bool{
 // inferExprReturnType tries to infer the return type of an expression lambda body.
 // Returns empty string if it can't determine the type.
 func (g *Generator) inferExprReturnType(expr ast.Expression) string {
+	if g.exprTypes != nil {
+		if ti, ok := g.exprTypes[expr]; ok && ti != nil && ti.Kind != semantic.TypeKindUnknown {
+			return g.typeInfoToGoString(ti)
+		}
+	}
+
 	switch e := expr.(type) {
 	case *ast.BinaryExpr:
 		switch e.Operator {
@@ -487,4 +494,3 @@ func (g *Generator) returnCountForFunctionName(name string) (int, bool) {
 	}
 	return 0, false
 }
-

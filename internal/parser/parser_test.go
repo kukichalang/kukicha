@@ -1888,6 +1888,38 @@ func TestEmptyAsVariableName(t *testing.T) {
 	}
 }
 
+func TestParseEmptyIdentifierInPipeExpr(t *testing.T) {
+	input := `func Run()
+    empty := 10
+    empty |> print
+`
+	p, err := New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("lexer error: %v", err)
+	}
+	program, errs := p.Parse()
+	if len(errs) > 0 {
+		t.Fatalf("expected no parse errors, got: %v", errs)
+	}
+
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	stmt, ok := fn.Body.Statements[1].(*ast.ExpressionStmt)
+	if !ok {
+		t.Fatalf("expected ExpressionStmt, got %T", fn.Body.Statements[1])
+	}
+	pipeExpr, ok := stmt.Expression.(*ast.PipeExpr)
+	if !ok {
+		t.Fatalf("expected PipeExpr, got %T", stmt.Expression)
+	}
+	left, ok := pipeExpr.Left.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("expected pipe left side to be Identifier, got %T", pipeExpr.Left)
+	}
+	if left.Value != "empty" {
+		t.Fatalf("expected identifier named empty, got %q", left.Value)
+	}
+}
+
 func TestMultiValueAssignmentWithError(t *testing.T) {
 	input := `func Main()
     val, error := f()
