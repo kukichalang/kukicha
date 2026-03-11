@@ -24,6 +24,7 @@ type Analyzer struct {
 	sourceFile          string                 // Source file path, used to detect stdlib context
 	inOnerr             bool                   // True while analyzing an onerr handler
 	currentOnerrrAlias  string                 // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
+	inPipedSwitch       bool                   // True while analyzing piped switch case bodies (suppresses return-count checks)
 }
 
 // New creates a new semantic analyzer

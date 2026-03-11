@@ -103,35 +103,57 @@ func (a *Analyzer) mergePipedSwitchReturnType(inferred, candidate *TypeInfo) *Ty
 	return inferred
 }
 
-func (a *Analyzer) analyzePipedSwitchReturns(body *ast.BlockStmt) *TypeInfo {
+// collectReturnTypes walks a block and collects the inferred type of the first
+// return value in each ReturnStmt found at any nesting depth.
+func (a *Analyzer) collectReturnTypes(body *ast.BlockStmt) *TypeInfo {
 	if body == nil {
 		return nil
 	}
 	var inferred *TypeInfo
-	for _, s := range body.Statements {
-		ret, ok := s.(*ast.ReturnStmt)
-		if !ok || len(ret.Values) == 0 {
-			continue
+	var walk func(stmts []ast.Statement)
+	walk = func(stmts []ast.Statement) {
+		for _, s := range stmts {
+			if ret, ok := s.(*ast.ReturnStmt); ok && len(ret.Values) > 0 {
+				retType := a.exprTypes[ret.Values[0]]
+				inferred = a.mergePipedSwitchReturnType(inferred, retType)
+			}
+			if ifStmt, ok := s.(*ast.IfStmt); ok {
+				if ifStmt.Consequence != nil {
+					walk(ifStmt.Consequence.Statements)
+				}
+				switch alt := ifStmt.Alternative.(type) {
+				case *ast.ElseStmt:
+					if alt.Body != nil {
+						walk(alt.Body.Statements)
+					}
+				case *ast.IfStmt:
+					walk([]ast.Statement{alt})
+				}
+			}
 		}
-		retType := a.analyzeExpression(ret.Values[0])
-		inferred = a.mergePipedSwitchReturnType(inferred, retType)
 	}
+	walk(body.Statements)
 	return inferred
 }
 
-// analyzePipedSwitchBody analyzes only the return expressions inside a piped
-// switch body and returns the inferred value type for the switch expression.
-// Full statement analysis is skipped to avoid false errors from the
-// condition-switch bool check and outer-function return-count validation.
+// analyzePipedSwitchBody fully analyzes each case/otherwise body of a piped
+// switch (so that all expression types are recorded for codegen), then infers
+// the value type from any return statements found in the bodies.
 func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *TypeInfo) *TypeInfo {
+	prev := a.inPipedSwitch
+	a.inPipedSwitch = true
+	defer func() { a.inPipedSwitch = prev }()
+
 	var inferred *TypeInfo
 	switch s := stmt.(type) {
 	case *ast.SwitchStmt:
 		for _, c := range s.Cases {
-			inferred = a.mergePipedSwitchReturnType(inferred, a.analyzePipedSwitchReturns(c.Body))
+			a.analyzeBlock(c.Body)
+			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(c.Body))
 		}
 		if s.Otherwise != nil {
-			inferred = a.mergePipedSwitchReturnType(inferred, a.analyzePipedSwitchReturns(s.Otherwise.Body))
+			a.analyzeBlock(s.Otherwise.Body)
+			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(s.Otherwise.Body))
 		}
 	case *ast.TypeSwitchStmt:
 		for _, c := range s.Cases {
@@ -143,7 +165,8 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 				Defined: s.Binding.Pos(),
 			}
 			a.symbolTable.Define(bindingSymbol)
-			inferred = a.mergePipedSwitchReturnType(inferred, a.analyzePipedSwitchReturns(c.Body))
+			a.analyzeBlock(c.Body)
+			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(c.Body))
 			a.symbolTable.ExitScope()
 		}
 		if s.Otherwise != nil {
@@ -155,7 +178,8 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 				Defined: s.Binding.Pos(),
 			}
 			a.symbolTable.Define(bindingSymbol)
-			inferred = a.mergePipedSwitchReturnType(inferred, a.analyzePipedSwitchReturns(s.Otherwise.Body))
+			a.analyzeBlock(s.Otherwise.Body)
+			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(s.Otherwise.Body))
 			a.symbolTable.ExitScope()
 		}
 	}
@@ -399,6 +423,15 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt) {
 func (a *Analyzer) analyzeReturnStmt(stmt *ast.ReturnStmt) {
 	if a.currentFunc == nil {
 		a.error(stmt.Pos(), "return statement outside of function")
+		return
+	}
+
+	// Inside piped switch bodies, return statements are IIFE returns (not function returns).
+	// Analyze expressions for type recording but skip return-count/type validation.
+	if a.inPipedSwitch {
+		for _, v := range stmt.Values {
+			a.analyzeExpression(v)
+		}
 		return
 	}
 

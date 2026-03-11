@@ -7,69 +7,69 @@ import (
 	"fmt"
 )
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:22
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:22
 func Wrap(err error, msg string) error {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:23
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:23
 	return fmt.Errorf("%s: %w", msg, err)
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:27
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:27
 func Is(err error, target error) bool {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:28
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:28
 	return goerrors.Is(err, target)
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:33
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:33
 func Unwrap(err error) error {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:34
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:34
 	return goerrors.Unwrap(err)
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:38
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:38
 func New(msg string) error {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:39
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:39
 	return goerrors.New(msg)
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:43
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:43
 func Join(items ...error) error {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:44
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:44
 	return goerrors.Join(items...)
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:50
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:50
 func Opaque(err error, msg string) error {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:51
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:51
 	return fmt.Errorf("%s: %s", msg, err)
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:56
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:56
 type PublicError struct {
 	internal string
 	public   string
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:61
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:61
 func (e PublicError) Error() string {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:62
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:62
 	return e.internal
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:67
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:67
 func NewPublic(internalMsg string, publicMsg string) error {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:68
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:68
 	return PublicError{internal: internalMsg, public: publicMsg}
 }
 
-//line /home/user/kukicha/stdlib/errors/errors.kuki:73
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:73
 func Public(err error) string {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:74
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:74
 	e, ok := err.(PublicError)
-//line /home/user/kukicha/stdlib/errors/errors.kuki:75
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:75
 	if ok {
-//line /home/user/kukicha/stdlib/errors/errors.kuki:76
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:76
 		return e.public
 	}
-//line /home/user/kukicha/stdlib/errors/errors.kuki:77
+//line /var/home/tluker/repos/go/kukicha/stdlib/errors/errors.kuki:77
 	return "an error occurred"
 }

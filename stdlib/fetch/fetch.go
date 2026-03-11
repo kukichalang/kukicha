@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:31
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:31
 type Request struct {
 	url              string
 	headers          map[string]string
@@ -32,243 +32,243 @@ type Request struct {
 	maxBodySize      int64
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:45
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:45
 func New(url string) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:46
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:46
 	req := Request{}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:47
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:47
 	req.url = url
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:48
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:48
 	req.headers = make(map[string]string)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:49
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:49
 	req.timeoutNs = 30000000000
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:50
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:50
 	req.method = "GET"
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:51
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:51
 	req.body = nil
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:52
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:52
 	req.retryMaxAttempts = 0
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:53
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:53
 	req.retryDelayMs = 0
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:54
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:54
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:58
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:58
 func Header(req Request, name string, value string) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:59
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:59
 	req.headers[name] = value
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:60
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:60
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:65
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:65
 func Timeout(req Request, durationNs int64) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:66
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:66
 	req.timeoutNs = durationNs
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:67
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:67
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:71
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:71
 func Method(req Request, method string) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:72
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:72
 	req.method = method
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:73
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:73
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:78
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:78
 func Body(req Request, data any) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:79
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:79
 	req.body = data
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:80
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:80
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:85
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:85
 func Transport(req Request, t *http.Transport) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:86
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:86
 	req.transport = t
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:87
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:87
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:92
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:92
 func MaxBodySize(req Request, limit int64) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:93
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:93
 	req.maxBodySize = limit
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:94
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:94
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:99
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:99
 func Retry(req Request, maxAttempts int, delayMs int) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:100
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:100
 	req.retryMaxAttempts = maxAttempts
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:101
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:101
 	if delayMs <= 0 {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:102
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:102
 		req.retryDelayMs = 1000
 	} else {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:104
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:104
 		req.retryDelayMs = delayMs
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:105
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:105
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:108
 func doOnce(req Request) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:109
 	client := http.Client{}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:110
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:110
 	if req.transport != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:111
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:111
 		client.Transport = req.transport
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:112
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:112
 	client.Timeout = time.Duration(req.timeoutNs)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:115
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:115
 	var bodyData any
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:116
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:116
 	if req.body != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:118
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:118
 		switch bodyStr := req.body.(type) {
 		case string:
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:120
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:120
 			bodyData = []byte(bodyStr)
 		default:
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:123
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:123
 			jsonBytes, marshalErr := json.Marshal(req.body)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:124
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:124
 			if marshalErr != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:125
-				return empty, marshalErr
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:125
+				return nil, marshalErr
 			}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:126
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:126
 			bodyData = jsonBytes
 		}
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:128
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:128
 	httpReq, reqErr := createHTTPRequest(req.method, req.url, bodyData)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:129
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:129
 	if reqErr != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:130
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:130
 		return nil, reqErr
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:133
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:133
 	for name, value := range req.headers {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:134
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:134
 		httpReq.Header.Set(name, value)
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:137
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:137
 	if req.body != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:138
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:138
 		contentType := httpReq.Header.Get("Content-Type")
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:139
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:139
 		if contentType == "" {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:140
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:140
 			httpReq.Header.Set("Content-Type", "application/json")
 		}
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:142
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:142
 	resp, doErr := client.Do(httpReq)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:143
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:143
 	if doErr != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:144
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:144
 		return nil, doErr
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:145
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:145
 	if req.maxBodySize > 0 {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:146
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:146
 		resp.Body = io.NopCloser(io.LimitReader(resp.Body, req.maxBodySize))
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:147
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:147
 	return resp, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:152
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:152
 func Do(req Request) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:153
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:153
 	if req.retryMaxAttempts <= 1 {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:154
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:154
 		return doOnce(req)
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:156
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:156
 	delayMs := req.retryDelayMs
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:157
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:157
 	if delayMs <= 0 {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:158
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:158
 		delayMs = 1000
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:159
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:159
 	cfg := retry.Config{MaxAttempts: req.retryMaxAttempts, InitialDelay: delayMs, Strategy: 1}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:161
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:161
 	lastErr := errors.New("no attempts made")
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:162
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:162
 	for attempt := range cfg.MaxAttempts {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:163
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:163
 		resp, err := doOnce(req)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:164
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:164
 		if err == nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:166
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:166
 			if (resp.StatusCode != 429) && (resp.StatusCode != 503) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:167
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:167
 				return resp, nil
 			}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:169
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:169
 			resp.Body.Close()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:170
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:170
 			lastErr = errors.New(fmt.Sprintf("request failed: status %v", resp.StatusCode))
 		} else {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:173
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:173
 			lastErr = err
 		}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:174
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:174
 		retry.Sleep(cfg, attempt)
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:176
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:176
 	return nil, lastErr
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:179
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:179
 func createHTTPRequest(method string, url string, bodyData any) (*http.Request, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:180
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:180
 	if bodyData != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:181
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:181
 		bodyBytes := bodyData.([]byte)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:182
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:182
 		req, err := http.NewRequest(method, url, bytes.NewReader(bodyBytes))
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:183
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:183
 		return req, err
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:184
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:184
 	req, err := http.NewRequest(method, url, nil)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:185
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:185
 	return req, err
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:190
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:190
 func Get(url string) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:192
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:192
 	pipe_1 := New(url)
 	pipe_2, err_3 := Do(pipe_1)
 	if err_3 != nil {
 		return nil, err_3
 	}
 	resp := pipe_2
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:194
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:194
 	return resp, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:200
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:200
 func SafeGet(url string) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:201
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:201
 	guard := netguard.NewSSRFGuard()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:202
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:202
 	transport := netguard.HTTPTransport(guard)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:205
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:205
 	pipe_4 := New(url)
 	pipe_5 := Transport(pipe_4, transport)
 	pipe_6, err_7 := Do(pipe_5)
@@ -276,13 +276,13 @@ func SafeGet(url string) (*http.Response, error) {
 		return nil, err_7
 	}
 	resp := pipe_6
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:207
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:207
 	return resp, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:213
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:213
 func Post(data any, url string) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:217
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:217
 	pipe_8 := New(url)
 	pipe_9 := Method(pipe_8, "POST")
 	pipe_10 := Body(pipe_9, data)
@@ -291,311 +291,311 @@ func Post(data any, url string) (*http.Response, error) {
 		return nil, err_12
 	}
 	resp := pipe_11
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:219
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:219
 	return resp, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:224
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:224
 func CheckStatus(resp *http.Response) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:225
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:225
 	if resp.StatusCode >= 400 {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:226
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:226
 		return nil, errors.New(fmt.Sprintf("request failed: %v", resp.Status))
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:227
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:227
 	return resp, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:231
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:231
 func Text(resp *http.Response) (string, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:232
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:232
 	defer resp.Body.Close()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:233
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:233
 	bodyBytes, err := io.ReadAll(resp.Body)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:234
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:234
 	if err != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:235
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:235
 		return "", err
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:237
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:237
 	text := string(bodyBytes)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:238
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:238
 	return text, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:243
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:243
 func Bytes(resp *http.Response) ([]byte, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:244
 	defer resp.Body.Close()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:245
 	bodyBytes, err := io.ReadAll(resp.Body)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:246
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:246
 	if err != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:247
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:247
 		return nil, err
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:248
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:248
 	return bodyBytes, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:253
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:253
 func Json[T any](resp *http.Response, sample T) (T, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:254
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:254
 	defer resp.Body.Close()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:255
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:255
 	data := sample
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:256
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:256
 	if err_13 := json.UnmarshalRead(resp.Body, &data); err_13 != nil {
 		err_13 = fmt.Errorf("failed to decode response json: %w", err_13)
 		return *new(T), err_13
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:257
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:257
 	return data, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:264
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:264
 func Decode(resp *http.Response, target any) error {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:265
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:265
 	defer resp.Body.Close()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:266
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:266
 	return json.UnmarshalRead(resp.Body, target)
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:270
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:270
 func PathEscape(value string) string {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:271
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:271
 	return url.PathEscape(value)
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:275
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:275
 func QueryEscape(value string) string {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:276
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:276
 	return url.QueryEscape(value)
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:282
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:282
 func URLTemplate(tmpl string, params map[string]string) (string, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:283
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:283
 	result := tmpl
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:284
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:284
 	for key, value := range params {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:285
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:285
 		placeholder := fmt.Sprintf("%c%s%c", 123, key, 125)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:286
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:286
 		result = kukistring.ReplaceAll(result, placeholder, url.PathEscape(value))
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:288
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:288
 	if kukistring.Contains(result, "{") || kukistring.Contains(result, "}") {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:289
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:289
 		return "", errors.New(fmt.Sprintf("unresolved URL template placeholders: %v", result))
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:290
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:290
 	return result, nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:295
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:295
 func URLWithQuery(baseURL string, params map[string]string) (string, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:296
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:296
 	parsed, err := url.Parse(baseURL)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:297
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:297
 	if err != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:298
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:298
 		return "", err
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:299
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:299
 	query := parsed.Query()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:300
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:300
 	for key, value := range params {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:301
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:301
 		query.Set(key, value)
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:302
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:302
 	parsed.RawQuery = query.Encode()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:303
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:303
 	return parsed.String(), nil
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:311
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:311
 func BearerAuth(req Request, token string) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:312
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:312
 	return Header(req, "Authorization", fmt.Sprintf("Bearer %v", token))
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:316
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:316
 func BasicAuth(req Request, username string, password string) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:317
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:317
 	credentials := fmt.Sprintf("%v:%v", username, password)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:318
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:318
 	encoded := base64.StdEncoding.EncodeToString([]byte(credentials))
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:319
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:319
 	return Header(req, "Authorization", fmt.Sprintf("Basic %v", encoded))
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:328
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:328
 func FormData(req Request, data map[string]string) Request {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:329
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:329
 	values := url.Values{}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:330
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:330
 	for key, value := range data {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:331
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:331
 		values.Set(key, value)
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:332
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:332
 	req.body = values.Encode()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:333
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:333
 	req = Header(req, "Content-Type", "application/x-www-form-urlencoded")
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:334
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:334
 	return req
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:341
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:341
 type Session struct {
 	client    http.Client
 	headers   map[string]string
 	timeoutNs int64
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:348
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:348
 func NewSession() Session {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:349
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:349
 	jar, _ := cookiejar.New(nil)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:350
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:350
 	client := http.Client{Jar: jar}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:351
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:351
 	s := Session{}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:352
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:352
 	s.client = client
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:353
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:353
 	s.headers = make(map[string]string)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:354
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:354
 	s.timeoutNs = 30000000000
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:355
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:355
 	return s
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:359
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:359
 func SessionHeader(s Session, name string, value string) Session {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:360
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:360
 	s.headers[name] = value
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:361
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:361
 	return s
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:365
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:365
 func SessionTimeout(s Session, durationNs int64) Session {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:366
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:366
 	s.timeoutNs = durationNs
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:367
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:367
 	return s
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:372
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:372
 func SessionDo(s Session, req Request) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:374
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:374
 	for name, value := range s.headers {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:375
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:375
 		_, exists := req.headers[name]
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:376
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:376
 		if !exists {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:377
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:377
 			req.headers[name] = value
 		}
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:380
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:380
 	if req.timeoutNs == 30000000000 {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:381
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:381
 		req.timeoutNs = s.timeoutNs
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:384
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:384
 	s.client.Timeout = time.Duration(req.timeoutNs)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:387
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:387
 	var bodyData any
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:388
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:388
 	if req.body != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:390
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:390
 		switch bodyStr := req.body.(type) {
 		case string:
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:392
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:392
 			bodyData = []byte(bodyStr)
 		default:
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:394
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:394
 			jsonBytes, marshalErr := json.Marshal(req.body)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:395
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:395
 			if marshalErr != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:396
-				return empty, marshalErr
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:396
+				return nil, marshalErr
 			}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:397
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:397
 			bodyData = jsonBytes
 		}
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:399
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:399
 	httpReq, reqErr := createHTTPRequest(req.method, req.url, bodyData)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:400
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:400
 	if reqErr != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:401
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:401
 		return nil, reqErr
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:403
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:403
 	for name, value := range req.headers {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:404
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:404
 		httpReq.Header.Set(name, value)
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:407
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:407
 	if req.body != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:408
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:408
 		contentType := httpReq.Header.Get("Content-Type")
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:409
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:409
 		if contentType == "" {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:410
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:410
 			httpReq.Header.Set("Content-Type", "application/json")
 		}
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:412
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:412
 	resp, doErr := s.client.Do(httpReq)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:413
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:413
 	return resp, doErr
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:417
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:417
 func SessionGet(s Session, url string) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:418
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:418
 	req := New(url)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:419
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:419
 	return SessionDo(s, req)
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:423
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:423
 func SessionPost(s Session, data any, url string) (*http.Response, error) {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:424
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:424
 	req := New(url)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:425
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:425
 	req = Method(req, "POST")
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:426
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:426
 	req.body = data
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:427
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:427
 	return SessionDo(s, req)
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:432
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:432
 func SessionTransport(s Session, t *http.Transport) Session {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:433
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:433
 	s.client.Transport = t
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:434
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:434
 	return s
 }
 
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:442
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:442
 func DownloadTo(resp *http.Response, box sandbox.Root, path string) error {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:443
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:443
 	defer resp.Body.Close()
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:444
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:444
 	bodyBytes, err := io.ReadAll(resp.Body)
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:445
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:445
 	if err != nil {
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:446
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:446
 		return err
 	}
-//line /home/user/kukicha/stdlib/fetch/fetch.kuki:447
+//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:447
 	return sandbox.WriteString(box, string(bodyBytes), path)
 }
