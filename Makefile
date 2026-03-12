@@ -15,6 +15,7 @@ all: build lsp
 
 # Build the kukicha compiler
 build:
+	go generate ./...
 	go build -o $(KUKICHA) ./cmd/kukicha
 
 # Regenerate internal/semantic/stdlib_registry_gen.go from stdlib/*.kuki signatures.

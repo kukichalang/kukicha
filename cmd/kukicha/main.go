@@ -1,5 +1,8 @@
 package main
 
+//go:generate sh -c "cd ../.. && go run ./cmd/genstdlibregistry"
+//go:generate sh -c "cd ../.. && go run ./cmd/gengostdlib"
+
 import (
 	"bytes"
 	"flag"

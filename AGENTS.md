@@ -341,7 +341,7 @@ internal/
   parser/                 # Recursive descent parser → AST
   ast/                    # AST node definitions
   semantic/               # Type checking, validation
-    stdlib_registry_gen.go  # GENERATED — run "make genstdlibregistry" to update
+    stdlib_registry_gen.go  # GENERATED — auto-updated by "make build" via go generate
   codegen/                # AST → Go code generation
   formatter/              # Code formatting
 stdlib/                   # Standard library (.kuki source files)
