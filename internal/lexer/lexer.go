@@ -395,6 +395,15 @@ func (l *Lexer) scanString() {
 					value.WriteRune('\uE000') // PUA sentinel for literal {
 				case '}':
 					value.WriteRune('\uE001') // PUA sentinel for literal }
+				case 's':
+					// Check for \sep (filepath separator)
+					if l.peek() == 'e' && l.peekNext() == 'p' {
+						l.advance() // consume 'e'
+						l.advance() // consume 'p'
+						value.WriteRune('\uE002') // PUA sentinel for filepath.Separator
+					} else {
+						value.WriteRune('s')
+					}
 				case 'x':
 					// Hex escape: \xHH
 					if !l.isAtEnd() {

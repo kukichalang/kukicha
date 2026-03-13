@@ -1,6 +1,8 @@
 package codegen
 
 import (
+	"strings"
+
 	"github.com/duber000/kukicha/internal/ast"
 )
 
@@ -633,7 +635,7 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 	}
 	switch e := expr.(type) {
 	case *ast.StringLiteral:
-		if !e.Interpolated {
+		if !e.Interpolated && !strings.ContainsRune(e.Value, '\uE002') {
 			return false
 		}
 		_, args := g.parseStringInterpolation(e.Value)
