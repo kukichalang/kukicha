@@ -81,7 +81,7 @@ func highestSemverTag(repo string) (string, error)
     # Filter to strict semver tags, find highest via simple comparison
     tags := raw
         |> string.Lines()
-        |> slice.Filter((t string) => semverPattern.MatchString(t))
+        |> slice.Filter(validateSemver)
 
     if slice.IsEmpty(tags)
         return "", empty
@@ -112,7 +112,8 @@ func parseSemverParts(tag string) (int, int, int)
     return major, minor, patch
 
 func defaultBranch(repo string) (string, error)
-    return shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name")
+    branch := shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name") onerr return "", error "{error}"
+    return branch |> string.TrimSpace(), empty
 
 func releaseExists(repo string, tag string) bool
     result := shell.New("gh", "release", "view", tag, "--repo", repo) |> shell.Execute()
@@ -123,7 +124,8 @@ func tagExists(repo string, tag string) bool
     return shell.Success(result)
 
 func currentUser() (string, error)
-    return shell.Output("gh", "api", "user", "--jq", ".login")
+    login := shell.Output("gh", "api", "user", "--jq", ".login") onerr return "", error "{error}"
+    return login |> string.TrimSpace(), empty
 
 # ── Repo discovery ─────────────────────────────────────────────
 
