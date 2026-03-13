@@ -218,6 +218,9 @@ func goTypeToRepr(t types.Type) typeRepr {
 	case *types.Chan:
 		return typeRepr{Kind: "TypeKindChannel"}
 	case *types.Pointer:
+		if named, ok := u.Elem().(*types.Named); ok && named.Obj().Pkg() != nil {
+			return typeRepr{Kind: "TypeKindReference", Name: "*" + named.Obj().Pkg().Name() + "." + named.Obj().Name()}
+		}
 		return typeRepr{Kind: "TypeKindReference"}
 	case *types.Interface:
 		// Check if this is the error interface

@@ -340,10 +340,11 @@ func usage()
     print("  INITIAL_TAG=v0.0.1  Starting tag when no semver tag exists")
     print("  GENERATE_NOTES=1    Use --generate-notes (default: true, also accepts 1/yes/on)")
 
-func requireArg(flag string, value string)
-    if value == "" or value |> string.HasPrefix("--")
+func nextFlagValue(args list of string, i int, flag string) string
+    if i + 1 >= len(args) or args[i + 1] |> string.HasPrefix("--")
         fmt.Fprintln(os.Stderr, "{flag} requires a value")
         os.Exit(1)
+    return args[i + 1]
 
 func validateBump(bump string)
     validBumps := list of string{"patch", "minor", "major"}
@@ -378,26 +379,14 @@ func parseArgs() Options
     for i < len(args)
         args[i] |> switch
             when "--repo"
-                if i + 1 < len(args)
-                    requireArg("--repo", args[i + 1])
-                    opts.repo = args[i + 1]
-                    i = i + 1
-                else
-                    requireArg("--repo", "")
+                opts.repo = nextFlagValue(args, i, "--repo")
+                i = i + 1
             when "--org"
-                if i + 1 < len(args)
-                    requireArg("--org", args[i + 1])
-                    opts.org = args[i + 1]
-                    i = i + 1
-                else
-                    requireArg("--org", "")
+                opts.org = nextFlagValue(args, i, "--org")
+                i = i + 1
             when "--bump"
-                if i + 1 < len(args)
-                    requireArg("--bump", args[i + 1])
-                    opts.bump = args[i + 1]
-                    i = i + 1
-                else
-                    requireArg("--bump", "")
+                opts.bump = nextFlagValue(args, i, "--bump")
+                i = i + 1
             when "--csv"
                 opts.format = "csv"
             when "--dry-run"

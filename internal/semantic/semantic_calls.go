@@ -299,6 +299,25 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 		}
 	}
 
+	// regexp.Regexp instance methods
+	if objType != nil && objType.Kind == TypeKindReference &&
+		(objType.Name == "*regexp.Regexp" || objType.Name == "regexp.Regexp") {
+		switch methodName {
+		case "MatchString", "Match", "MatchReader":
+			types := []*TypeInfo{{Kind: TypeKindBool}, {Kind: TypeKindNamed, Name: "error"}}
+			a.recordReturnCount(expr, len(types))
+			return types
+		case "FindString", "ReplaceAllString", "ReplaceAllLiteralString", "String":
+			types := []*TypeInfo{{Kind: TypeKindString}}
+			a.recordReturnCount(expr, 1)
+			return types
+		case "FindStringSubmatch", "FindAllString":
+			types := []*TypeInfo{{Kind: TypeKindList, ElementType: &TypeInfo{Kind: TypeKindString}}}
+			a.recordReturnCount(expr, 1)
+			return types
+		}
+	}
+
 	// Handle pipedArg for method calls too?
 	// Currently method analysis is mostly "Unknown", but we should at least not crash/error on count if we implemented it.
 	// Since we return Unknown anyway, ignoring pipedArg here is safe for now,

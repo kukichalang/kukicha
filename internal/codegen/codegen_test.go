@@ -2805,3 +2805,44 @@ func Run() int
 		t.Fatalf("expected pipe to use the empty variable, got: %s", output)
 	}
 }
+
+func TestArrowLambdaMethodCallReturnType(t *testing.T) {
+	// Regression test: arrow lambda whose body is a method call on a *regexp.Regexp variable
+	// must emit the return type in the Go closure signature so it type-checks as func(T) bool.
+	input := `import "regexp"
+import "stdlib/slice"
+
+func FilterSemver(tags list of string) list of string
+    re := regexp.MustCompile("^v[0-9]+")
+    return tags |> slice.Filter((tag string) => re.MatchString(tag))
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	gen.SetExprTypes(analyzer.ExprTypes())
+	output, genErr := gen.Generate()
+	if genErr != nil {
+		t.Fatalf("codegen error: %v", genErr)
+	}
+
+	if strings.Contains(output, "func(tag string) {") {
+		t.Errorf("arrow lambda emitted without return type; got:\n%s", output)
+	}
+	if !strings.Contains(output, "func(tag string) bool {") {
+		t.Errorf("expected arrow lambda with 'bool' return type; got:\n%s", output)
+	}
+}
