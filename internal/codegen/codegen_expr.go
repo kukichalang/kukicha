@@ -410,7 +410,7 @@ func (g *Generator) escapeString(s string) string {
 }
 
 func (g *Generator) generateStringLiteral(lit *ast.StringLiteral) string {
-	if !lit.Interpolated {
+	if !lit.Interpolated && !strings.ContainsRune(lit.Value, '\uE002') {
 		return fmt.Sprintf("\"%s\"", g.escapeString(lit.Value))
 	}
 
@@ -431,6 +431,13 @@ func (g *Generator) generateStringInterpolation(str string) string {
 // a Kukicha string with {expr} interpolation patterns.
 // Returns the format string (with %v placeholders) and the list of argument expressions.
 func (g *Generator) parseStringInterpolation(str string) (string, []string) {
+	// Pre-process: expand \uE002 sentinel to filepath.Separator interpolation.
+	// filepath.Separator is a runtime value so it must be injected as an expression.
+	if strings.ContainsRune(str, '\uE002') {
+		g.addImport("path/filepath")
+		str = strings.ReplaceAll(str, "\uE002", "{string(filepath.Separator)}")
+	}
+
 	// Find all {expr} patterns where expr starts with an identifier character.
 	// This avoids matching regex quantifiers like {2,} or {3,5}.
 	re := regexp.MustCompile(`\{([a-zA-Z_][^}]*)\}`)

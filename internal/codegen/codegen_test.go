@@ -2915,3 +2915,70 @@ func FilterSemver(tags list of string) list of string
 		t.Errorf("expected arrow lambda with 'bool' return type; got:\n%s", output)
 	}
 }
+
+func TestFilepathSeparatorEscape(t *testing.T) {
+	// \sep should produce string(filepath.Separator) at runtime, not a literal character
+	input := `func Sep() string
+    return "\sep"
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "string(filepath.Separator)") {
+		t.Errorf("expected string(filepath.Separator) in output, got: %s", output)
+	}
+	if !strings.Contains(output, `"path/filepath"`) {
+		t.Errorf("expected path/filepath auto-import, got: %s", output)
+	}
+}
+
+func TestFilepathSeparatorEscapeMixedWithInterpolation(t *testing.T) {
+	// \sep mixed with {expr} interpolation should work together
+	input := `func JoinParts(dir string, file string) string
+    return "{dir}\sep{file}"
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "string(filepath.Separator)") {
+		t.Errorf("expected string(filepath.Separator) in output, got: %s", output)
+	}
+	if !strings.Contains(output, "dir") {
+		t.Errorf("expected dir variable in output, got: %s", output)
+	}
+	if !strings.Contains(output, "file") {
+		t.Errorf("expected file variable in output, got: %s", output)
+	}
+}

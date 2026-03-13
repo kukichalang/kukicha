@@ -205,6 +205,16 @@ func TestStrings(t *testing.T) {
 			input:    `"\{key\}: {value}"`,
 			expected: "\uE000key\uE001: {value}",
 		},
+		{
+			name:     "filepath separator escape",
+			input:    `"\sep"`,
+			expected: "\uE002",
+		},
+		{
+			name:     "filepath separator mixed with interpolation",
+			input:    `"{dir}\sep{file}"`,
+			expected: "{dir}\uE002{file}",
+		},
 	}
 
 	for _, tt := range tests {

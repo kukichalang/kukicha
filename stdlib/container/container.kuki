@@ -644,8 +644,7 @@ func extractTar(reader io.Reader, destPath string) error
             return err
         cleanName := filepath.Clean(header.Name)
         target := filepath.Join(destPath, cleanName)
-        sepStr := fmt.Sprintf("%c", filepath.Separator)
-        if not string.HasPrefix(target, cleanDest + sepStr) and filepath.Clean(target) != cleanDest
+        if not string.HasPrefix(target, cleanDest + "\sep") and filepath.Clean(target) != cleanDest
             return fmt.Errorf("invalid archive path: %s", header.Name)
         switch header.Typeflag
             when tar.TypeDir

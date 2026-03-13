@@ -1039,10 +1039,8 @@ func extractTar(reader io.Reader, destPath string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:646
 		target := filepath.Join(destPath, cleanName)
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:647
-		sepStr := fmt.Sprintf("%c", filepath.Separator)
+		if !kukistring.HasPrefix(target, (cleanDest+fmt.Sprintf("%v", string(filepath.Separator)))) && (filepath.Clean(target) != cleanDest) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:648
-		if !kukistring.HasPrefix(target, (cleanDest+sepStr)) && (filepath.Clean(target) != cleanDest) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:649
 			return fmt.Errorf("invalid archive path: %s", header.Name)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:650
