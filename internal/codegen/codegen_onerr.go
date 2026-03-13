@@ -18,10 +18,13 @@ func (g *Generator) generateOnErrVarDecl(names []*ast.Identifier, values []ast.E
 
 	if len(names) == 1 && len(values) == 1 {
 		if pipe, ok := values[0].(*ast.PipeExpr); ok {
-			// Variable declarations do not have declared targets available inside
-			// onerr handlers yet, so use handler forms that don't assign to names.
-			if finalVar, ok := g.generateOnErrPipeChain(pipe, clause, []*ast.Identifier{}); ok {
-				g.writeLine(fmt.Sprintf("%s := %s", names[0].Value, finalVar))
+			// Pass the target variable name so the last pipe step assigns
+			// directly to it, eliminating the redundant final copy.
+			target := names[0].Value
+			if finalVar, ok := g.generateOnErrPipeChain(pipe, clause, []*ast.Identifier{}, target); ok {
+				if finalVar != target {
+					g.writeLine(fmt.Sprintf("%s := %s", target, finalVar))
+				}
 				return
 			}
 		}
@@ -311,10 +314,10 @@ func (g *Generator) buildPipeArgs(leftExpr string, arguments []ast.Expression) [
 	return args
 }
 
-func (g *Generator) generateOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []*ast.Identifier) (string, bool) {
+func (g *Generator) generateOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []*ast.Identifier, targetName string) (string, bool) {
 	l := newLowerer(g)
 	nameStrs := identNames(names)
-	block, finalVar := l.lowerOnErrPipeChain(pipe, clause, nameStrs)
+	block, finalVar := l.lowerOnErrPipeChain(pipe, clause, nameStrs, targetName)
 	if block == nil {
 		return "", false
 	}
@@ -327,7 +330,7 @@ func (g *Generator) generateOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErr
 // Generates: if err := json.MarshalWrite(w, todo); err != nil { panic("failed") }
 func (g *Generator) generateOnErrStmt(expr ast.Expression, clause *ast.OnErrClause) {
 	if pipe, ok := expr.(*ast.PipeExpr); ok {
-		if finalVar, ok := g.generateOnErrPipeChain(pipe, clause, []*ast.Identifier{}); ok {
+		if finalVar, ok := g.generateOnErrPipeChain(pipe, clause, []*ast.Identifier{}, ""); ok {
 			g.writeLine(fmt.Sprintf("_ = %s", finalVar))
 			return
 		}
@@ -369,7 +372,7 @@ func (g *Generator) generateOnErrAssign(stmt *ast.AssignStmt) {
 
 	if len(stmt.Targets) == 1 && len(stmt.Values) == 1 {
 		if pipe, ok := stmt.Values[0].(*ast.PipeExpr); ok {
-			if finalVar, ok := g.generateOnErrPipeChain(pipe, clause, names); ok {
+			if finalVar, ok := g.generateOnErrPipeChain(pipe, clause, names, ""); ok {
 				g.writeLine(fmt.Sprintf("%s = %s", g.exprToString(stmt.Targets[0]), finalVar))
 				return
 			}

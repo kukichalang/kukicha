@@ -162,16 +162,35 @@ func (l *Lowerer) renderHandler(clause *ast.OnErrClause, names []string, errVar 
 
 // lowerOnErrPipeChain lowers a pipe chain with onerr into IR.
 // Each step gets its own error check with the handler inlined.
+// When targetName is non-empty, the last value-producing step assigns directly
+// to that variable instead of a temp, eliminating the redundant final copy.
 // Returns the IR block and the final pipe variable name.
-func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []string) (*ir.Block, string) {
+func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []string, targetName string) (*ir.Block, string) {
 	base, steps, ok := flattenPipeChain(pipe)
 	if !ok || base == nil || len(steps) == 0 {
 		return nil, ""
 	}
 
+	// Pre-scan to find the last value-producing step index so we can
+	// assign directly to targetName there instead of a temp.
+	lastValueStep := -1
+	if targetName != "" {
+		for i, step := range steps {
+			if !l.gen.isErrorOnlyReturn(step) {
+				lastValueStep = i
+			}
+		}
+	}
+
 	block := &ir.Block{}
 	current := l.uniqueId("pipe")
 	baseExpr := l.gen.exprToString(base)
+
+	// Special case: if there are no value-producing steps at all (all error-only),
+	// the base itself is the last value producer. Use targetName for the base.
+	if targetName != "" && lastValueStep == -1 {
+		current = targetName
+	}
 
 	if count, ok := l.gen.inferReturnCount(base); ok && count >= 2 {
 		errVar := l.uniqueId("err")
@@ -182,13 +201,17 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 		block.Add(&ir.Assign{Names: []string{current}, Expr: baseExpr, Walrus: true})
 	}
 
-	for _, step := range steps {
+	for i, step := range steps {
 		callExpr, ok := l.gen.generatePipedStepCall(step, current)
 		if !ok {
 			return nil, ""
 		}
 
 		next := l.uniqueId("pipe")
+		if targetName != "" && i == lastValueStep {
+			next = targetName
+		}
+
 		if count, ok := l.gen.inferReturnCount(step); ok && count >= 2 {
 			errVar := l.uniqueId("err")
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true})

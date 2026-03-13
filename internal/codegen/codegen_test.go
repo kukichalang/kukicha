@@ -1537,8 +1537,9 @@ func Load(url string) list of Repo
 	if !strings.Contains(output, "pipe_3, err_4 := fetch.CheckStatus(pipe_1)") {
 		t.Fatalf("expected explicit fetch.CheckStatus error capture, got: %s", output)
 	}
-	if !strings.Contains(output, "pipe_5, err_6 := fetch.Json(pipe_3, []Repo{})") {
-		t.Fatalf("expected explicit fetch.Json error capture, got: %s", output)
+	// Last step assigns directly to the target variable instead of a temp
+	if !strings.Contains(output, "repos, err_6 := fetch.Json(pipe_3, []Repo{})") {
+		t.Fatalf("expected last pipe step to assign directly to 'repos', got: %s", output)
 	}
 }
 
@@ -1580,9 +1581,9 @@ func Run() int
 	if !strings.Contains(output, "pipe_1 := GetInput()") {
 		t.Fatalf("expected simple assignment for GetInput(), got: %s", output)
 	}
-	// Parse() returns (int, error), so should capture error
-	if !strings.Contains(output, "pipe_2, err_3 := Parse(pipe_1)") {
-		t.Fatalf("expected error capture for user-defined Parse(), got: %s", output)
+	// Parse() is last step — assigns directly to target variable 'result'
+	if !strings.Contains(output, "result, err_3 := Parse(pipe_1)") {
+		t.Fatalf("expected last pipe step to assign directly to 'result', got: %s", output)
 	}
 }
 
@@ -1617,8 +1618,9 @@ func Run(path string) (list of os.DirEntry, error)
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	if !strings.Contains(output, "pipe_2, err_3 := os.ReadDir(pipe_1)") {
-		t.Fatalf("expected os.ReadDir pipe step to capture error, got: %s", output)
+	// os.ReadDir is the last step — assigns directly to 'entries'
+	if !strings.Contains(output, "entries, err_3 := os.ReadDir(pipe_1)") {
+		t.Fatalf("expected last pipe step to assign directly to 'entries', got: %s", output)
 	}
 	if !strings.Contains(output, "return []os.DirEntry{}, err_3") {
 		t.Fatalf("expected onerr return to propagate os.ReadDir error, got: %s", output)

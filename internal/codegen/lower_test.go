@@ -6,6 +6,7 @@ import (
 
 	"github.com/duber000/kukicha/internal/ast"
 	"github.com/duber000/kukicha/internal/ir"
+	"github.com/duber000/kukicha/internal/semantic"
 )
 
 func TestLowererUniqueId(t *testing.T) {
@@ -161,7 +162,7 @@ func TestLowerOnErrPipeChainEmitsCorrectly(t *testing.T) {
 	}
 
 	l := newLowerer(gen)
-	block, finalVar := l.lowerOnErrPipeChain(pipe, clause, []string{})
+	block, finalVar := l.lowerOnErrPipeChain(pipe, clause, []string{}, "")
 
 	if block == nil {
 		t.Fatal("expected non-nil block")
@@ -184,6 +185,110 @@ func TestLowerOnErrPipeChainEmitsCorrectly(t *testing.T) {
 	// Should have the process call
 	if !strings.Contains(out, "process(") {
 		t.Errorf("expected process call, got: %s", out)
+	}
+}
+
+func TestLowerOnErrPipeChainTargetName(t *testing.T) {
+	// Build: result := getData() |> process() onerr panic "failed"
+	// With targetName="result", the last step should assign directly to "result"
+	// instead of a temp variable, eliminating the redundant final copy.
+	aCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "getData"},
+		Arguments: []ast.Expression{},
+	}
+	bCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "process"},
+		Arguments: []ast.Expression{},
+	}
+	pipe := &ast.PipeExpr{Left: aCall, Right: bCall}
+
+	gen := New(&ast.Program{})
+	gen.exprReturnCounts = map[ast.Expression]int{
+		aCall: 2,
+		bCall: 2,
+	}
+
+	clause := &ast.OnErrClause{
+		Handler: &ast.PanicExpr{
+			Message: &ast.StringLiteral{Value: "failed"},
+		},
+	}
+
+	l := newLowerer(gen)
+	block, finalVar := l.lowerOnErrPipeChain(pipe, clause, []string{}, "result")
+
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+	if finalVar != "result" {
+		t.Errorf("expected finalVar to be 'result', got '%s'", finalVar)
+	}
+
+	gen.emitIR(block)
+	out := gen.output.String()
+
+	// Last step should use target name directly
+	if !strings.Contains(out, "result, err_") {
+		t.Errorf("expected last step to assign to 'result', got: %s", out)
+	}
+	// Should NOT have a redundant "result := pipe_N" line
+	if strings.Contains(out, "result := pipe_") {
+		t.Errorf("expected no redundant final copy, got: %s", out)
+	}
+}
+
+func TestLowerOnErrPipeChainTargetNameErrorOnlyLast(t *testing.T) {
+	// Build: data |> marshalPretty() |> os.WriteFile() onerr panic "failed"
+	// When the last step is error-only, targetName should apply to the
+	// last value-producing step (marshalPretty), not the error-only step.
+	dataIdent := &ast.Identifier{Value: "data"}
+	marshalCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "marshalPretty"},
+		Arguments: []ast.Expression{},
+	}
+	writeCall := &ast.MethodCallExpr{
+		Object:    &ast.Identifier{Value: "os"},
+		Method:    &ast.Identifier{Value: "WriteFile"},
+		IsCall:    true,
+		Arguments: []ast.Expression{},
+	}
+
+	pipe1 := &ast.PipeExpr{Left: dataIdent, Right: marshalCall}
+	pipe2 := &ast.PipeExpr{Left: pipe1, Right: writeCall}
+
+	gen := New(&ast.Program{})
+	gen.exprReturnCounts = map[ast.Expression]int{
+		marshalCall: 2,
+		writeCall:   1, // error-only returns need count=1
+	}
+	// Mark writeCall as error-only via exprTypes
+	gen.exprTypes = map[ast.Expression]*semantic.TypeInfo{
+		writeCall: {Kind: semantic.TypeKindNamed, Name: "error"},
+	}
+
+	clause := &ast.OnErrClause{
+		Handler: &ast.PanicExpr{
+			Message: &ast.StringLiteral{Value: "failed"},
+		},
+	}
+
+	l := newLowerer(gen)
+	block, finalVar := l.lowerOnErrPipeChain(pipe2, clause, []string{}, "result")
+
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+	// The last value-producing step is marshalPretty, so finalVar should be "result"
+	if finalVar != "result" {
+		t.Errorf("expected finalVar to be 'result', got '%s'", finalVar)
+	}
+
+	gen.emitIR(block)
+	out := gen.output.String()
+
+	// marshalPretty (last value-producing step) should assign to "result"
+	if !strings.Contains(out, "result, err_") {
+		t.Errorf("expected marshalPretty to assign to 'result', got: %s", out)
 	}
 }
 
