@@ -2584,6 +2584,44 @@ func Run()
 	}
 }
 
+func TestPipeTempVarSkipsUserDefinedNames(t *testing.T) {
+	// A user variable named pipe_1 should not collide with generated temps
+	input := `import "os"
+
+func Run() (string, error)
+    pipe_1 := "hello"
+    result := pipe_1 |> os.ReadFile() onerr return
+    return result, empty
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	analyzer.Analyze()
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	// The user declared pipe_1, so the generated temp should skip to pipe_2
+	if !strings.Contains(output, "pipe_1 := \"hello\"") {
+		t.Errorf("expected user variable pipe_1, got:\n%s", output)
+	}
+	// The pipe chain should use pipe_2 (not pipe_1) to avoid collision
+	if strings.Contains(output, "pipe_1 := pipe_1") {
+		t.Errorf("generated temp collided with user variable pipe_1, got:\n%s", output)
+	}
+}
+
 func TestPipeAwareIterators(t *testing.T) {
 	input := `import "stdlib/slice"
 func PrintActiveUsers(users list of string)

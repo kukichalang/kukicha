@@ -67,6 +67,7 @@ type Generator struct {
 	currentOnErrAlias    string                   // Render-time context: set/restored only by renderHandler in lower.go
 	currentReturnIndex   int                      // Index of return value being generated (-1 if not in return)
 	stdlibModuleBase     string                   // Base module path for rewriting "stdlib/X" imports (default: defaultStdlibModuleBase)
+	reservedNames        map[string]bool          // User-declared identifiers — uniqueId skips these to avoid collisions
 }
 
 // New creates a new code generator
@@ -127,6 +128,9 @@ func (g *Generator) Generate() (string, error) {
 
 	// Generate skill metadata comment if present
 	g.generateSkillComment()
+
+	// Collect user-declared identifiers so uniqueId can avoid collisions
+	g.collectReservedNames()
 
 	// Pre-scan for auto-imports (e.g. net/http for fetch wrappers)
 	g.scanForAutoImports()
@@ -213,8 +217,14 @@ func (g *Generator) emitLineDirective(pos ast.Position) {
 	}
 }
 
-// uniqueId generates unique identifiers to prevent variable shadowing
+// uniqueId generates unique identifiers to prevent variable shadowing.
+// It skips names that collide with user-declared variables in reservedNames.
 func (g *Generator) uniqueId(prefix string) string {
-	g.tempCounter++
-	return fmt.Sprintf("%s_%d", prefix, g.tempCounter)
+	for {
+		g.tempCounter++
+		name := fmt.Sprintf("%s_%d", prefix, g.tempCounter)
+		if !g.reservedNames[name] {
+			return name
+		}
+	}
 }

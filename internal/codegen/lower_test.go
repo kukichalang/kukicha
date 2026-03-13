@@ -25,6 +25,32 @@ func TestLowererUniqueId(t *testing.T) {
 	}
 }
 
+func TestUniqueIdSkipsReservedNames(t *testing.T) {
+	gen := New(&ast.Program{})
+	gen.reservedNames = map[string]bool{
+		"pipe_1": true,
+		"err_3":  true,
+	}
+
+	// pipe_1 is reserved, so should skip to pipe_2
+	id1 := gen.uniqueId("pipe")
+	if id1 != "pipe_2" {
+		t.Errorf("expected pipe_2 (skipping reserved pipe_1), got %s", id1)
+	}
+
+	// err_3 is reserved, so should skip to err_4
+	id2 := gen.uniqueId("err")
+	if id2 != "err_4" {
+		t.Errorf("expected err_4 (skipping reserved err_3), got %s", id2)
+	}
+
+	// pipe_5 is not reserved, should be returned directly
+	id3 := gen.uniqueId("pipe")
+	if id3 != "pipe_5" {
+		t.Errorf("expected pipe_5, got %s", id3)
+	}
+}
+
 func TestLowerPipeChainSimple(t *testing.T) {
 	// Simulate: a |> b() |> c()
 	// Build AST by hand

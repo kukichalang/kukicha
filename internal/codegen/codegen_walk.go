@@ -4,6 +4,125 @@ import (
 	"github.com/duber000/kukicha/internal/ast"
 )
 
+// collectReservedNames walks the AST and collects all user-declared variable
+// names into g.reservedNames so that uniqueId can avoid collisions.
+func (g *Generator) collectReservedNames() {
+	g.reservedNames = make(map[string]bool)
+	for _, decl := range g.program.Declarations {
+		fn, ok := decl.(*ast.FunctionDecl)
+		if !ok {
+			continue
+		}
+		// Function parameters
+		for _, p := range fn.Parameters {
+			g.reservedNames[p.Name.Value] = true
+		}
+		// Receiver
+		if fn.Receiver != nil {
+			g.reservedNames[fn.Receiver.Name.Value] = true
+		}
+		if fn.Body != nil {
+			g.collectBlockNames(fn.Body)
+		}
+	}
+}
+
+// collectBlockNames recursively collects variable names from a block.
+func (g *Generator) collectBlockNames(block *ast.BlockStmt) {
+	for _, stmt := range block.Statements {
+		g.collectStmtNames(stmt)
+	}
+}
+
+// collectStmtNames collects variable names declared in a statement.
+func (g *Generator) collectStmtNames(stmt ast.Statement) {
+	if stmt == nil {
+		return
+	}
+	switch s := stmt.(type) {
+	case *ast.VarDeclStmt:
+		for _, n := range s.Names {
+			g.reservedNames[n.Value] = true
+		}
+	case *ast.AssignStmt:
+		for _, t := range s.Targets {
+			if id, ok := t.(*ast.Identifier); ok {
+				g.reservedNames[id.Value] = true
+			}
+		}
+	case *ast.ForRangeStmt:
+		if s.Variable != nil {
+			g.reservedNames[s.Variable.Value] = true
+		}
+		if s.Index != nil {
+			g.reservedNames[s.Index.Value] = true
+		}
+		if s.Body != nil {
+			g.collectBlockNames(s.Body)
+		}
+	case *ast.ForNumericStmt:
+		if s.Variable != nil {
+			g.reservedNames[s.Variable.Value] = true
+		}
+		if s.Body != nil {
+			g.collectBlockNames(s.Body)
+		}
+	case *ast.ForConditionStmt:
+		if s.Body != nil {
+			g.collectBlockNames(s.Body)
+		}
+	case *ast.IfStmt:
+		if s.Consequence != nil {
+			g.collectBlockNames(s.Consequence)
+		}
+		if s.Alternative != nil {
+			g.collectStmtNames(s.Alternative)
+		}
+	case *ast.ElseStmt:
+		if s.Body != nil {
+			g.collectBlockNames(s.Body)
+		}
+	case *ast.SwitchStmt:
+		for _, c := range s.Cases {
+			if c.Body != nil {
+				g.collectBlockNames(c.Body)
+			}
+		}
+		if s.Otherwise != nil && s.Otherwise.Body != nil {
+			g.collectBlockNames(s.Otherwise.Body)
+		}
+	case *ast.TypeSwitchStmt:
+		if s.Binding != nil {
+			g.reservedNames[s.Binding.Value] = true
+		}
+		for _, c := range s.Cases {
+			if c.Body != nil {
+				g.collectBlockNames(c.Body)
+			}
+		}
+		if s.Otherwise != nil && s.Otherwise.Body != nil {
+			g.collectBlockNames(s.Otherwise.Body)
+		}
+	case *ast.SelectStmt:
+		for _, c := range s.Cases {
+			if c.Body != nil {
+				g.collectBlockNames(c.Body)
+			}
+		}
+		if s.Otherwise != nil && s.Otherwise.Body != nil {
+			g.collectBlockNames(s.Otherwise.Body)
+		}
+	case *ast.GoStmt:
+		if s.Block != nil {
+			g.collectBlockNames(s.Block)
+		}
+	case *ast.DeferStmt:
+		// defer calls don't introduce new names
+	case *ast.ExpressionStmt:
+		// expression statements don't introduce new names
+	}
+}
+
 // walkProgram calls visit for every expression reachable from any function
 // body in the program. Returns true (and stops early) the moment visit returns
 // true for any expression.
