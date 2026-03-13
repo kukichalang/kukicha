@@ -41,6 +41,16 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 		}
 	}
 
+	// Warn if the onerr error variable name shadows a user-declared variable.
+	// The implicit name is "error"; an explicit alias overrides it.
+	onerrrName := "error"
+	if clause.Alias != "" {
+		onerrrName = clause.Alias
+	}
+	if sym := a.symbolTable.Resolve(onerrrName); sym != nil {
+		a.warn(pos, fmt.Sprintf("onerr variable '%s' shadows declaration at %s:%d", onerrrName, sym.Defined.File, sym.Defined.Line))
+	}
+
 	prev := a.inOnerr
 	prevAlias := a.currentOnerrrAlias
 	a.inOnerr = true

@@ -200,7 +200,7 @@ func TestLowerOnErrPipeChainEmitsCorrectly(t *testing.T) {
 	gen.emitIR(block)
 	out := gen.output.String()
 
-	// Should have: pipe_1, err_1 := getData()
+	// Should have: pipe_1, err_2 := getData()
 	if !strings.Contains(out, ", err_") {
 		t.Errorf("expected err variable in base assignment, got: %s", out)
 	}
@@ -208,9 +208,10 @@ func TestLowerOnErrPipeChainEmitsCorrectly(t *testing.T) {
 	if !strings.Contains(out, "!= nil {") {
 		t.Errorf("expected error check, got: %s", out)
 	}
-	// Should have the process call
-	if !strings.Contains(out, "process(") {
-		t.Errorf("expected process call, got: %s", out)
+	// process() is non-error, so it's collapsed into the finalVar expression
+	// (not emitted as IR). Verify finalVar contains the process call.
+	if !strings.Contains(finalVar, "process(") {
+		t.Errorf("expected finalVar to contain process call, got: %s", finalVar)
 	}
 }
 

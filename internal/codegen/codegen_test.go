@@ -1577,13 +1577,10 @@ func Run() int
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	// GetInput() returns 1 value, so no error capture
-	if !strings.Contains(output, "pipe_1 := GetInput()") {
-		t.Fatalf("expected simple assignment for GetInput(), got: %s", output)
-	}
-	// Parse() is last step — assigns directly to target variable 'result'
-	if !strings.Contains(output, "result, err_3 := Parse(pipe_1)") {
-		t.Fatalf("expected last pipe step to assign directly to 'result', got: %s", output)
+	// GetInput() is a non-error step — collapsed into the Parse call.
+	// Parse() is the last (and only error-returning) step, assigns directly to 'result'.
+	if !strings.Contains(output, "result, err_2 := Parse(GetInput())") {
+		t.Fatalf("expected collapsed pipe chain 'result, err_2 := Parse(GetInput())', got: %s", output)
 	}
 }
 
@@ -1618,11 +1615,12 @@ func Run(path string) (list of os.DirEntry, error)
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	// os.ReadDir is the last step — assigns directly to 'entries'
-	if !strings.Contains(output, "entries, err_3 := os.ReadDir(pipe_1)") {
-		t.Fatalf("expected last pipe step to assign directly to 'entries', got: %s", output)
+	// path is a non-error base — collapsed directly into os.ReadDir call.
+	// os.ReadDir is the last step, assigns directly to 'entries'.
+	if !strings.Contains(output, "entries, err_2 := os.ReadDir(path)") {
+		t.Fatalf("expected collapsed pipe 'entries, err_2 := os.ReadDir(path)', got: %s", output)
 	}
-	if !strings.Contains(output, "return []os.DirEntry{}, err_3") {
+	if !strings.Contains(output, "return []os.DirEntry{}, err_2") {
 		t.Fatalf("expected onerr return to propagate os.ReadDir error, got: %s", output)
 	}
 }
@@ -1659,11 +1657,12 @@ func Write(data list of byte, path string) error
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	// os.WriteFile returns only error — should generate error check, not value assignment
-	if !strings.Contains(output, "err_3 := os.WriteFile(path, pipe_1, 0644)") {
-		t.Errorf("expected os.WriteFile error assigned to err var, got:\n%s", output)
+	// data is a non-error base — collapsed directly into os.WriteFile call.
+	// os.WriteFile returns only error — should generate error check, not value assignment.
+	if !strings.Contains(output, "err_1 := os.WriteFile(path, data, 0644)") {
+		t.Errorf("expected collapsed os.WriteFile with data directly, got:\n%s", output)
 	}
-	if !strings.Contains(output, "if err_3 != nil {") {
+	if !strings.Contains(output, "if err_1 != nil {") {
 		t.Errorf("expected error check for os.WriteFile, got:\n%s", output)
 	}
 }
@@ -1705,15 +1704,16 @@ func Write(data any, path string) error
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	// marshalPretty returns 2 values — should split into value + error
-	if !strings.Contains(output, "pipe_2, err_3 := marshalPretty(pipe_1)") {
-		t.Errorf("expected marshalPretty to split into value + error, got:\n%s", output)
+	// data base is non-error — collapsed into marshalPretty call.
+	// marshalPretty returns 2 values — split into value + error.
+	if !strings.Contains(output, "pipe_1, err_2 := marshalPretty(data)") {
+		t.Errorf("expected collapsed marshalPretty(data), got:\n%s", output)
 	}
 	// os.WriteFile returns only error — should check error directly
-	if !strings.Contains(output, "err_5 := os.WriteFile(path, pipe_2, 0644)") {
+	if !strings.Contains(output, "err_3 := os.WriteFile(path, pipe_1, 0644)") {
 		t.Errorf("expected os.WriteFile error assigned to err var, got:\n%s", output)
 	}
-	if !strings.Contains(output, "if err_5 != nil {") {
+	if !strings.Contains(output, "if err_3 != nil {") {
 		t.Errorf("expected error check for os.WriteFile, got:\n%s", output)
 	}
 }
@@ -2576,11 +2576,63 @@ func Run()
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	if !strings.Contains(output, "pipe_2, err_3 := fetch.Get(pipe_1)") {
-		t.Errorf("expected fetch.Get to capture err_3, got: \n%s", output)
+	// url base is non-error — collapsed directly into fetch.Get call.
+	if !strings.Contains(output, "pipe_1, err_2 := fetch.Get(url)") {
+		t.Errorf("expected collapsed fetch.Get(url), got: \n%s", output)
 	}
-	if !strings.Contains(output, "pipe_4, err_5 := fetch.CheckStatus(pipe_2)") {
-		t.Errorf("expected fetch.CheckStatus to capture err_5, got: \n%s", output)
+	if !strings.Contains(output, "pipe_3, err_4 := fetch.CheckStatus(pipe_1)") {
+		t.Errorf("expected fetch.CheckStatus to capture err_4, got: \n%s", output)
+	}
+}
+
+func TestNestedOnErrCodegen(t *testing.T) {
+	// An onerr block body that contains another statement with onerr.
+	// Both onerr handlers should resolve {error} to their own error variable.
+	input := `func readData() (string, error)
+    return "data", empty
+
+func writeData(data string) error
+    return empty
+
+func Process() error
+    data := readData() onerr return
+    writeData(data) onerr return
+    return empty
+`
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	analyzer.Analyze()
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	gen.SetExprTypes(analyzer.ExprTypes())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	// First onerr: data, err_1 := readData()
+	if !strings.Contains(output, "data, err_1 := readData()") {
+		t.Errorf("expected first onerr assignment, got:\n%s", output)
+	}
+	// Second onerr: err_2 := writeData(data)
+	if !strings.Contains(output, "err_2 := writeData(data)") {
+		t.Errorf("expected second onerr assignment, got:\n%s", output)
+	}
+	// Both should have error checks
+	if !strings.Contains(output, "if err_1 != nil") {
+		t.Errorf("expected first error check, got:\n%s", output)
+	}
+	if !strings.Contains(output, "if err_2 != nil") {
+		t.Errorf("expected second error check, got:\n%s", output)
 	}
 }
 

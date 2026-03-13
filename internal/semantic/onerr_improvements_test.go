@@ -222,6 +222,105 @@ func main()
 }
 
 // ---------------------------------------------------------------------------
+// Phase 2B: onerr shadowing warnings
+// ---------------------------------------------------------------------------
+
+func TestOnErrShadowingWarningForErrorVariable(t *testing.T) {
+	// User declares 'error' as a variable, then uses it in an onerr block.
+	// The onerr's implicit 'error' variable shadows the user's variable.
+	input := `func readData() (string, error)
+    return "data", empty
+
+func Process() string
+    error := "previous error"
+    data := readData() onerr
+        print("got: {error}")
+        return ""
+    return data
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "shadows") && strings.Contains(w.Error(), "'error'") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected shadowing warning for 'error', got warnings: %v", warnings)
+	}
+}
+
+func TestOnErrShadowingWarningForAlias(t *testing.T) {
+	// User declares 'e' as a variable, then uses 'onerr as e'.
+	input := `func readData() (string, error)
+    return "data", empty
+
+func Process() string
+    e := "some value"
+    data := readData() onerr as e
+        print("got: {e}")
+        return ""
+    return data
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "shadows") && strings.Contains(w.Error(), "'e'") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected shadowing warning for 'e', got warnings: %v", warnings)
+	}
+}
+
+func TestOnErrNoShadowingWarningWhenNoConflict(t *testing.T) {
+	// No variable named 'error' in scope — no warning expected.
+	input := `func readData() (string, error)
+    return "data", empty
+
+func Process() string
+    data := readData() onerr
+        print("got: {error}")
+        return ""
+    return data
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "shadows") {
+			t.Errorf("unexpected shadowing warning: %v", w)
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2C: nested onerr correctness
+// ---------------------------------------------------------------------------
+
+func TestNestedOnErrNoSemanticErrors(t *testing.T) {
+	// An onerr block body contains another onerr expression.
+	input := `func readData() (string, error)
+    return "data", empty
+
+func writeData(data string) error
+    return empty
+
+func Process() error
+    data := readData() onerr
+        print("read failed: {error}")
+        return error "{error}"
+    writeData(data) onerr return
+    return empty
+`
+	errs := analyzeInput(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected no semantic errors for nested onerr, got: %v", errs)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------
 

@@ -161,44 +161,58 @@ func (l *Lowerer) renderHandler(clause *ast.OnErrClause, names []string, errVar 
 // ---------- Phase 3: onerr pipe chains ----------
 
 // lowerOnErrPipeChain lowers a pipe chain with onerr into IR.
-// Each step gets its own error check with the handler inlined.
+// Each error-returning step gets its own temp variable and error check.
+// Non-error steps are collapsed into nested expressions to reduce temp
+// variable clutter — e.g., `a |> toLower() |> parse() onerr panic` becomes
+// `result, err := parse(toLower(a))` instead of three separate assignments.
 // When targetName is non-empty, the last value-producing step assigns directly
 // to that variable instead of a temp, eliminating the redundant final copy.
-// Returns the IR block and the final pipe variable name.
+// Returns the IR block and the final expression (variable name or nested call).
 func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClause, names []string, targetName string) (*ir.Block, string) {
 	base, steps, ok := flattenPipeChain(pipe)
 	if !ok || base == nil || len(steps) == 0 {
 		return nil, ""
 	}
 
-	// Pre-scan to find the last value-producing step index so we can
-	// assign directly to targetName there instead of a temp.
-	lastValueStep := -1
+	// Pre-scan to find the last error-returning step index for targetName.
+	// Only error-returning steps materialize to temps, so that's where
+	// we apply the target name optimization.
+	lastErrStep := -1
 	if targetName != "" {
 		for i, step := range steps {
-			if !l.gen.isErrorOnlyReturn(step) {
-				lastValueStep = i
+			if count, ok := l.gen.inferReturnCount(step); ok && count >= 2 {
+				lastErrStep = i
 			}
 		}
 	}
 
 	block := &ir.Block{}
-	current := l.uniqueId("pipe")
-	baseExpr := l.gen.exprToString(base)
 
-	// Special case: if there are no value-producing steps at all (all error-only),
-	// the base itself is the last value producer. Use targetName for the base.
-	if targetName != "" && lastValueStep == -1 {
-		current = targetName
-	}
+	// Start with the base as an expression string, not a temp variable.
+	// Only materialize to a temp if the base is multi-return (needs error check).
+	current := l.gen.exprToString(base)
 
 	if count, ok := l.gen.inferReturnCount(base); ok && count >= 2 {
+		tempVar := l.uniqueId("pipe")
+		// If all steps are error-only (no error-returning steps), base is the
+		// last value producer — use targetName if available.
+		if targetName != "" && lastErrStep == -1 {
+			hasValueStep := false
+			for _, step := range steps {
+				if !l.gen.isErrorOnlyReturn(step) {
+					hasValueStep = true
+					break
+				}
+			}
+			if !hasValueStep {
+				tempVar = targetName
+			}
+		}
 		errVar := l.uniqueId("err")
-		block.Add(&ir.Assign{Names: []string{current, errVar}, Expr: baseExpr, Walrus: true})
+		block.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: current, Walrus: true})
 		handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
 		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock})
-	} else {
-		block.Add(&ir.Assign{Names: []string{current}, Expr: baseExpr, Walrus: true})
+		current = tempVar
 	}
 
 	for i, step := range steps {
@@ -207,26 +221,27 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 			return nil, ""
 		}
 
-		next := l.uniqueId("pipe")
-		if targetName != "" && i == lastValueStep {
-			next = targetName
-		}
-
 		if count, ok := l.gen.inferReturnCount(step); ok && count >= 2 {
+			// Error-returning step: must materialize to temp + error check.
+			next := l.uniqueId("pipe")
+			if targetName != "" && i == lastErrStep {
+				next = targetName
+			}
 			errVar := l.uniqueId("err")
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true})
 			handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock})
+			current = next
 		} else if l.gen.isErrorOnlyReturn(step) {
+			// Error-only step: check error, don't advance pipe value.
 			errVar := l.uniqueId("err")
 			block.Add(&ir.Assign{Names: []string{errVar}, Expr: callExpr, Walrus: true})
 			handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock})
-			continue
 		} else {
-			block.Add(&ir.Assign{Names: []string{next}, Expr: callExpr, Walrus: true})
+			// Non-error step: collapse into nested expression (no temp variable).
+			current = callExpr
 		}
-		current = next
 	}
 
 	return block, current
@@ -241,18 +256,17 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel, 
 	}
 
 	block := &ir.Block{}
-	current := l.uniqueId("pipe")
-	baseExpr := l.gen.exprToString(base)
+	gotoErr := &ir.Block{Nodes: []ir.Node{&ir.Goto{Label: onErrLabel}}}
+
+	// Start with the base as an expression, materialize only if multi-return.
+	current := l.gen.exprToString(base)
 
 	if count, ok := l.gen.inferReturnCount(base); ok && count >= 2 {
+		tempVar := l.uniqueId("pipe")
 		errVar := l.uniqueId("err")
-		block.Add(&ir.Assign{Names: []string{current, errVar}, Expr: baseExpr, Walrus: true})
-		block.Add(&ir.IfErrCheck{
-			ErrVar: errVar,
-			Body:   &ir.Block{Nodes: []ir.Node{&ir.Goto{Label: onErrLabel}}},
-		})
-	} else {
-		block.Add(&ir.Assign{Names: []string{current}, Expr: baseExpr, Walrus: true})
+		block.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: current, Walrus: true})
+		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
+		current = tempVar
 	}
 
 	for _, step := range steps {
@@ -261,26 +275,20 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel, 
 			return nil, ""
 		}
 
-		next := l.uniqueId("pipe")
 		if count, ok := l.gen.inferReturnCount(step); ok && count >= 2 {
+			next := l.uniqueId("pipe")
 			errVar := l.uniqueId("err")
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true})
-			block.Add(&ir.IfErrCheck{
-				ErrVar: errVar,
-				Body:   &ir.Block{Nodes: []ir.Node{&ir.Goto{Label: onErrLabel}}},
-			})
+			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
+			current = next
 		} else if l.gen.isErrorOnlyReturn(step) {
 			errVar := l.uniqueId("err")
 			block.Add(&ir.Assign{Names: []string{errVar}, Expr: callExpr, Walrus: true})
-			block.Add(&ir.IfErrCheck{
-				ErrVar: errVar,
-				Body:   &ir.Block{Nodes: []ir.Node{&ir.Goto{Label: onErrLabel}}},
-			})
-			continue
+			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
 		} else {
-			block.Add(&ir.Assign{Names: []string{next}, Expr: callExpr, Walrus: true})
+			// Non-error step: collapse into nested expression.
+			current = callExpr
 		}
-		current = next
 	}
 
 	return block, current
