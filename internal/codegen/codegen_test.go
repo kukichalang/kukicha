@@ -1941,6 +1941,45 @@ func TestArrowLambdaBlockForm(t *testing.T) {
 	}
 }
 
+func TestBitwiseAndEndToEnd(t *testing.T) {
+	input := `func main()
+    mask := 6 & 3
+    flags := 7
+    flags &= 3
+    _ = mask
+    _ = flags
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semanticErrors := analyzer.Analyze()
+	if len(semanticErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semanticErrors)
+	}
+
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "mask := (6 & 3)") {
+		t.Fatalf("expected bitwise AND expression in output, got:\n%s", output)
+	}
+	if !strings.Contains(output, "flags &= 3") {
+		t.Fatalf("expected bitwise AND assignment in output, got:\n%s", output)
+	}
+}
+
 // ============================================================================
 // Skill codegen tests
 // ============================================================================

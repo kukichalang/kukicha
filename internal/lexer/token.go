@@ -63,35 +63,37 @@ const (
 	TOKEN_MANY
 
 	// Operators
-	TOKEN_WALRUS        // :=
-	TOKEN_ASSIGN        // =
-	TOKEN_EQUALS        // equals
-	TOKEN_DOUBLE_EQUALS // ==
-	TOKEN_NOT_EQUALS    // !=
-	TOKEN_LT            // <
-	TOKEN_GT            // >
-	TOKEN_LTE           // <=
-	TOKEN_GTE           // >=
-	TOKEN_PLUS          // +
-	TOKEN_PLUS_PLUS     // ++
-	TOKEN_MINUS         // -
-	TOKEN_MINUS_MINUS   // --
-	TOKEN_STAR          // *
-	TOKEN_SLASH         // /
-	TOKEN_PERCENT       // %
-	TOKEN_AND           // and
-	TOKEN_AND_AND       // &&
-	TOKEN_OR            // or
-	TOKEN_OR_OR         // ||
-	TOKEN_BIT_OR        // | (for Go flag combinations like os.O_APPEND | os.O_CREATE)
-	TOKEN_RUNE          // 'a' (character/rune literal)
-	TOKEN_ONERR         // onerr
-	TOKEN_EXPLAIN       // explain
-	TOKEN_NOT           // not
-	TOKEN_BANG          // !
-	TOKEN_PIPE          // |>
-	TOKEN_FAT_ARROW     // =>
-	TOKEN_ARROW_LEFT    // <-
+	TOKEN_WALRUS         // :=
+	TOKEN_ASSIGN         // =
+	TOKEN_EQUALS         // equals
+	TOKEN_DOUBLE_EQUALS  // ==
+	TOKEN_NOT_EQUALS     // !=
+	TOKEN_LT             // <
+	TOKEN_GT             // >
+	TOKEN_LTE            // <=
+	TOKEN_GTE            // >=
+	TOKEN_PLUS           // +
+	TOKEN_PLUS_PLUS      // ++
+	TOKEN_MINUS          // -
+	TOKEN_MINUS_MINUS    // --
+	TOKEN_STAR           // *
+	TOKEN_SLASH          // /
+	TOKEN_PERCENT        // %
+	TOKEN_AND            // and
+	TOKEN_AND_AND        // &&
+	TOKEN_BIT_AND        // &
+	TOKEN_BIT_AND_ASSIGN // &=
+	TOKEN_OR             // or
+	TOKEN_OR_OR          // ||
+	TOKEN_BIT_OR         // | (for Go flag combinations like os.O_APPEND | os.O_CREATE)
+	TOKEN_RUNE           // 'a' (character/rune literal)
+	TOKEN_ONERR          // onerr
+	TOKEN_EXPLAIN        // explain
+	TOKEN_NOT            // not
+	TOKEN_BANG           // !
+	TOKEN_PIPE           // |>
+	TOKEN_FAT_ARROW      // =>
+	TOKEN_ARROW_LEFT     // <-
 
 	// Delimiters
 	TOKEN_LPAREN   // (
@@ -262,6 +264,10 @@ func (t TokenType) String() string {
 		return "AND"
 	case TOKEN_AND_AND:
 		return "AND_AND"
+	case TOKEN_BIT_AND:
+		return "BIT_AND"
+	case TOKEN_BIT_AND_ASSIGN:
+		return "BIT_AND_ASSIGN"
 	case TOKEN_OR:
 		return "OR"
 	case TOKEN_OR_OR:

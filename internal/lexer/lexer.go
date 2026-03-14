@@ -39,11 +39,11 @@ type Lexer struct {
 	// NEWLINE token and causes the next line's indentation to be consumed
 	// without emitting INDENT/DEDENT, so the pipe RHS is parsed as part of
 	// the same expression regardless of how it is indented.
-	lastTokenType    TokenType // last emitted token type (TOKEN_COMMENT excluded)
-	continuationLine bool      // true when the next line is a |> continuation
-	braceDepth       int       // current nesting level of [], {} (used for continuations)
-	parenDepth       int       // current nesting level of () (used for closures)
-	inFunctionLiteral bool     // true when we've just seen 'func' and are parsing its body
+	lastTokenType     TokenType // last emitted token type (TOKEN_COMMENT excluded)
+	continuationLine  bool      // true when the next line is a |> continuation
+	braceDepth        int       // current nesting level of [], {} (used for continuations)
+	parenDepth        int       // current nesting level of () (used for closures)
+	inFunctionLiteral bool      // true when we've just seen 'func' and are parsing its body
 }
 
 // NewLexer creates a new lexer for the given source code
@@ -269,8 +269,10 @@ func (l *Lexer) scanToken() {
 	case '&':
 		if l.match('&') {
 			l.addToken(TOKEN_AND_AND)
+		} else if l.match('=') {
+			l.addToken(TOKEN_BIT_AND_ASSIGN)
 		} else {
-			l.error("Unexpected '&'. Use 'and' for logical AND, or '&&' for Go-style AND. Bitwise AND is not supported.")
+			l.addToken(TOKEN_BIT_AND)
 		}
 	default:
 		if isDigit(c) {
@@ -398,8 +400,8 @@ func (l *Lexer) scanString() {
 				case 's':
 					// Check for \sep (filepath separator)
 					if l.peek() == 'e' && l.peekNext() == 'p' {
-						l.advance() // consume 'e'
-						l.advance() // consume 'p'
+						l.advance()               // consume 'e'
+						l.advance()               // consume 'p'
 						value.WriteRune('\uE002') // PUA sentinel for filepath.Separator
 					} else {
 						value.WriteRune('s')
@@ -526,7 +528,7 @@ func (l *Lexer) scanIdentifier() {
 	text := unique.Make(string(l.source[l.start:l.current])).Value()
 	tokenType := LookupKeyword(text)
 	l.addTokenWithLexeme(tokenType, text)
-	
+
 	// Track when we enter a function literal context
 	if tokenType == TOKEN_FUNC {
 		l.inFunctionLiteral = true

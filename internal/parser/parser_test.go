@@ -1349,6 +1349,65 @@ func TestParseArrowLambdaInPipe(t *testing.T) {
 	}
 }
 
+func TestParseBitwiseAndPrecedence(t *testing.T) {
+	input := `func main()
+    value := a | b & c
+`
+
+	p, err := New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("lexer error: %v", err)
+	}
+	program, errors := p.Parse()
+
+	if len(errors) > 0 {
+		t.Fatalf("parser errors: %v", errors)
+	}
+
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	varDecl := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	root, ok := varDecl.Values[0].(*ast.BinaryExpr)
+	if !ok {
+		t.Fatalf("expected BinaryExpr, got %T", varDecl.Values[0])
+	}
+	if root.Operator != "|" {
+		t.Fatalf("expected root operator '|', got %q", root.Operator)
+	}
+
+	right, ok := root.Right.(*ast.BinaryExpr)
+	if !ok {
+		t.Fatalf("expected right-hand BinaryExpr, got %T", root.Right)
+	}
+	if right.Operator != "&" {
+		t.Fatalf("expected nested operator '&', got %q", right.Operator)
+	}
+}
+
+func TestParseBitwiseAndAssign(t *testing.T) {
+	input := `func main()
+    flags &= mask
+`
+
+	p, err := New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("lexer error: %v", err)
+	}
+	program, errors := p.Parse()
+
+	if len(errors) > 0 {
+		t.Fatalf("parser errors: %v", errors)
+	}
+
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	assign, ok := fn.Body.Statements[0].(*ast.AssignStmt)
+	if !ok {
+		t.Fatalf("expected AssignStmt, got %T", fn.Body.Statements[0])
+	}
+	if assign.Token.Lexeme != "&=" {
+		t.Fatalf("expected '&=' token, got %q", assign.Token.Lexeme)
+	}
+}
+
 func TestParseGroupedExpressionStillWorks(t *testing.T) {
 	// Ensure (x + y) still parses as grouped expression, not lambda
 	input := `func main()

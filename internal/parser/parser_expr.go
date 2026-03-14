@@ -17,12 +17,14 @@ import (
 // 1. or
 // 2. pipe (|>)
 // 3. and
-// 4. comparison (==, !=, <, >, <=, >=)
-// 5. additive (+, -)
-// 6. multiplicative (*, /, %)
-// 7. unary (not, -)
-// 8. postfix (call, index, slice, method call)
-// 9. primary
+// 4. bitwise or (|)
+// 5. bitwise and (&)
+// 6. comparison (==, !=, <, >, <=, >=)
+// 7. additive (+, -)
+// 8. multiplicative (*, /, %)
+// 9. unary (not, -)
+// 10. postfix (call, index, slice, method call)
+// 11. primary
 //
 // Note: onerr is NOT an expression operator. It is a statement-level clause
 // attached to VarDeclStmt, AssignStmt, or ExpressionStmt.
@@ -101,9 +103,26 @@ func (p *Parser) parseAndExpr() ast.Expression {
 }
 
 func (p *Parser) parseBitwiseOrExpr() ast.Expression {
-	left := p.parseComparisonExpr()
+	left := p.parseBitwiseAndExpr()
 
 	for p.match(lexer.TOKEN_BIT_OR) {
+		operator := p.previousToken()
+		right := p.parseBitwiseAndExpr()
+		left = &ast.BinaryExpr{
+			Token:    operator,
+			Left:     left,
+			Operator: operator.Lexeme,
+			Right:    right,
+		}
+	}
+
+	return left
+}
+
+func (p *Parser) parseBitwiseAndExpr() ast.Expression {
+	left := p.parseComparisonExpr()
+
+	for p.match(lexer.TOKEN_BIT_AND) {
 		operator := p.previousToken()
 		right := p.parseComparisonExpr()
 		left = &ast.BinaryExpr{
@@ -407,6 +426,7 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		// `print(empty)` and `empty |> iterator.Values()` don't collapse to nil.
 		next := p.peekNextToken().Type
 		if next == lexer.TOKEN_WALRUS || next == lexer.TOKEN_ASSIGN ||
+			next == lexer.TOKEN_BIT_AND || next == lexer.TOKEN_BIT_AND_ASSIGN ||
 			next == lexer.TOKEN_DOT || next == lexer.TOKEN_LBRACKET ||
 			next == lexer.TOKEN_COLON || next == lexer.TOKEN_PIPE ||
 			next == lexer.TOKEN_RPAREN || next == lexer.TOKEN_COMMA {

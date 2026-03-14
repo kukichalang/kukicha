@@ -310,7 +310,11 @@ func (p *Printer) printAssignStmt(stmt *ast.AssignStmt) {
 	for i, v := range stmt.Values {
 		values[i] = p.exprToString(v)
 	}
-	p.writeLine(fmt.Sprintf("%s = %s%s", strings.Join(targets, ", "), strings.Join(values, ", "), p.onErrSuffix(stmt.OnErr)))
+	op := stmt.Token.Lexeme
+	if op == "" {
+		op = "="
+	}
+	p.writeLine(fmt.Sprintf("%s %s %s%s", strings.Join(targets, ", "), op, strings.Join(values, ", "), p.onErrSuffix(stmt.OnErr)))
 }
 
 func (p *Printer) printReturnStmt(stmt *ast.ReturnStmt) {
@@ -597,6 +601,10 @@ func (p *Printer) callExprToString(expr *ast.CallExpr) string {
 		args[i] = p.exprToString(arg)
 	}
 
+	if hasMultilineArg(args) {
+		return fmt.Sprintf("%s(%s\n%s)", funcName, strings.Join(args, ", "), p.indent())
+	}
+
 	return fmt.Sprintf("%s(%s)", funcName, strings.Join(args, ", "))
 }
 
@@ -614,6 +622,10 @@ func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
 	args := make([]string, len(expr.Arguments))
 	for i, arg := range expr.Arguments {
 		args[i] = p.exprToString(arg)
+	}
+
+	if hasMultilineArg(args) {
+		return fmt.Sprintf("%s.%s(%s\n%s)", object, method, strings.Join(args, ", "), p.indent())
 	}
 
 	return fmt.Sprintf("%s.%s(%s)", object, method, strings.Join(args, ", "))
@@ -722,8 +734,12 @@ func (p *Printer) arrowLambdaToString(lambda *ast.ArrowLambda) string {
 		return fmt.Sprintf("%s => %s", paramsStr, p.exprToString(lambda.Body))
 	}
 
-	// Block form — for now, render inline (full block rendering would need multi-line support)
-	return fmt.Sprintf("%s => ...", paramsStr)
+	blockPrinter := NewPrinter()
+	blockPrinter.indentStr = p.indentStr
+	blockPrinter.indentLevel = p.indentLevel + 1
+	blockPrinter.printBlock(lambda.Block)
+
+	return fmt.Sprintf("%s =>\n%s", paramsStr, strings.TrimRight(blockPrinter.output.String(), "\n"))
 }
 
 // Helper methods
@@ -740,4 +756,13 @@ func (p *Printer) writeLine(s string) {
 	p.output.WriteString(p.indent())
 	p.output.WriteString(s)
 	p.output.WriteString("\n")
+}
+
+func hasMultilineArg(args []string) bool {
+	for _, arg := range args {
+		if strings.Contains(arg, "\n") {
+			return true
+		}
+	}
+	return false
 }

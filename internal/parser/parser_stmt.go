@@ -666,22 +666,29 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 	}
 
 	// Check for assignment or walrus operator
-	if p.match(lexer.TOKEN_ASSIGN) {
+	if p.match(lexer.TOKEN_ASSIGN, lexer.TOKEN_BIT_AND_ASSIGN) {
+		operator := p.previousToken()
 		// Regular assignment: x = value
 		values := p.parseExpressionList()
 		stmt := &ast.AssignStmt{
 			Targets: []ast.Expression{expr},
 			Values:  values,
-			Token:   p.previousToken(),
+			Token:   operator,
 		}
 		// Check for onerr clause
 		p.skipNewlines()
 		if p.check(lexer.TOKEN_ONERR) {
-			stmt.OnErr = p.parseOnErrClause()
+			if operator.Type == lexer.TOKEN_BIT_AND_ASSIGN {
+				p.error(p.peekToken(), "onerr is not supported with '&=' assignments")
+				_ = p.parseOnErrClause()
+			} else {
+				stmt.OnErr = p.parseOnErrClause()
+			}
 		}
 		p.skipNewlines()
 		return stmt
 	} else if p.match(lexer.TOKEN_WALRUS) {
+		operator := p.previousToken()
 		// Variable declaration with inference: x := value
 		ident, ok := expr.(*ast.Identifier)
 		if !ok {
@@ -692,7 +699,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 		stmt := &ast.VarDeclStmt{
 			Names:  []*ast.Identifier{ident},
 			Values: values,
-			Token:  p.previousToken(),
+			Token:  operator,
 		}
 		// Check for onerr clause
 		p.skipNewlines()
@@ -793,12 +800,13 @@ func (p *Parser) parseMultiValueAssignmentStmt() ast.Statement {
 
 	// Check for assignment operator
 	if p.match(lexer.TOKEN_WALRUS) {
+		operator := p.previousToken()
 		// Multi-value declaration: x, y := expr, expr
 		values := p.parseExpressionList()
 		stmt := &ast.VarDeclStmt{
 			Names:  names,
 			Values: values,
-			Token:  p.previousToken(),
+			Token:  operator,
 		}
 		// Check for onerr clause
 		if p.check(lexer.TOKEN_ONERR) {
@@ -807,12 +815,13 @@ func (p *Parser) parseMultiValueAssignmentStmt() ast.Statement {
 		p.skipNewlines()
 		return stmt
 	} else if p.match(lexer.TOKEN_ASSIGN) {
+		operator := p.previousToken()
 		// Multi-value assignment: x, y = expr, expr
 		values := p.parseExpressionList()
 		stmt := &ast.AssignStmt{
 			Targets: targets,
 			Values:  values,
-			Token:   p.previousToken(),
+			Token:   operator,
 		}
 		// Check for onerr clause
 		if p.check(lexer.TOKEN_ONERR) {
@@ -950,4 +959,3 @@ func (p *Parser) parseOnErrClause() *ast.OnErrClause {
 
 	return clause
 }
-

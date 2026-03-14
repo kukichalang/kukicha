@@ -178,7 +178,11 @@ func (g *Generator) generateAssignStmt(stmt *ast.AssignStmt) {
 	}
 	valuesStr := strings.Join(values, ", ")
 
-	g.writeLine(fmt.Sprintf("%s = %s", targetsStr, valuesStr))
+	op := stmt.Token.Lexeme
+	if op == "" {
+		op = "="
+	}
+	g.writeLine(fmt.Sprintf("%s %s %s", targetsStr, op, valuesStr))
 }
 
 func (g *Generator) generateIncDecStmt(stmt *ast.IncDecStmt) {

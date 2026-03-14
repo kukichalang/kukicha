@@ -1066,6 +1066,90 @@ func Process(path string) (string, error)
 	}
 }
 
+func TestOnerrAliasInterpolationIsValid(t *testing.T) {
+	input := `func readFile(path string) (string, error)
+    return path, empty
+
+func Process(path string) (string, error)
+    data := readFile(path) onerr as myErr return "", error "{myErr}"
+    return data, empty
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := New(program)
+	errors := analyzer.Analyze()
+
+	for _, e := range errors {
+		if strings.Contains(e.Error(), "undefined identifier 'myErr'") {
+			t.Fatalf("unexpected alias interpolation error: %v", e)
+		}
+	}
+}
+
+func TestStringInterpolationUndefinedIdentifierIsError(t *testing.T) {
+	input := `func Process() string
+    return "Hello {name}"
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := New(program)
+	errors := analyzer.Analyze()
+
+	found := false
+	for _, e := range errors {
+		if strings.Contains(e.Error(), "undefined identifier 'name'") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected undefined identifier error for interpolation, got: %v", errors)
+	}
+}
+
+func TestStringInterpolationDefinedIdentifierIsValid(t *testing.T) {
+	input := `func Process(name string) string
+    return "Hello {name}"
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := New(program)
+	errors := analyzer.Analyze()
+
+	for _, e := range errors {
+		if strings.Contains(e.Error(), "undefined identifier 'name'") {
+			t.Fatalf("unexpected interpolation identifier error: %v", e)
+		}
+	}
+}
+
 func TestSQLInterpolationDetection(t *testing.T) {
 	tests := []struct {
 		name      string

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/duber000/kukicha/internal/ast"
+	"github.com/duber000/kukicha/internal/lexer"
 )
 
 func (a *Analyzer) analyzeBlock(block *ast.BlockStmt) {
@@ -354,6 +355,16 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt) {
 	valueTypes := make([]*TypeInfo, len(stmt.Values))
 	for i, val := range stmt.Values {
 		valueTypes[i] = a.analyzeExpression(val)
+	}
+
+	if stmt.Token.Type == lexer.TOKEN_BIT_AND_ASSIGN {
+		if len(stmt.Targets) != 1 || len(stmt.Values) != 1 {
+			a.error(stmt.Pos(), "bitwise AND assignment requires a single target and a single value")
+			return
+		}
+		if !isBitwiseType(targetTypes[0]) || !isBitwiseType(valueTypes[0]) {
+			a.error(stmt.Pos(), fmt.Sprintf("bitwise AND assignment requires integer operands, got %s and %s", targetTypes[0], valueTypes[0]))
+		}
 	}
 
 	// Special handling for multi-value return from single function call or type assertion

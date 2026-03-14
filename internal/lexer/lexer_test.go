@@ -75,6 +75,13 @@ func TestBasicTokens(t *testing.T) {
 			},
 		},
 		{
+			name:  "bitwise and operators",
+			input: "& &=\n",
+			expected: []TokenType{
+				TOKEN_BIT_AND, TOKEN_BIT_AND_ASSIGN, TOKEN_NEWLINE, TOKEN_EOF,
+			},
+		},
+		{
 			name:  "channel operators",
 			input: "send receive <-\n",
 			expected: []TokenType{

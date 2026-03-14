@@ -21,8 +21,8 @@ import (
 type Parser struct {
 	tokens            []lexer.Token
 	pos               int
-	errors            []error           // Collected errors - parsing continues after errors for better diagnostics
-	pendingDirectives []ast.Directive    // Directives collected before the next declaration
+	errors            []error         // Collected errors - parsing continues after errors for better diagnostics
+	pendingDirectives []ast.Directive // Directives collected before the next declaration
 }
 
 // New creates a new parser from a source string
@@ -273,6 +273,7 @@ func (p *Parser) isIdentifierFollower() bool {
 	next := p.peekNextToken().Type
 	switch next {
 	case lexer.TOKEN_WALRUS, lexer.TOKEN_ASSIGN,
+		lexer.TOKEN_BIT_AND, lexer.TOKEN_BIT_AND_ASSIGN,
 		lexer.TOKEN_DOT, lexer.TOKEN_LBRACKET,
 		lexer.TOKEN_COMMA, lexer.TOKEN_RPAREN, lexer.TOKEN_RBRACKET, lexer.TOKEN_RBRACE,
 		lexer.TOKEN_PLUS_PLUS, lexer.TOKEN_MINUS_MINUS,

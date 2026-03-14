@@ -211,7 +211,6 @@ func (a *Analyzer) analyzeExpressionMulti(expr ast.Expression) []*TypeInfo {
 	}
 }
 
-
 func (a *Analyzer) analyzeIdentifier(ident *ast.Identifier) *TypeInfo {
 	// Check for builtin functions first
 	if ident.Value == "print" {
@@ -331,9 +330,19 @@ func (a *Analyzer) analyzeBinaryExpr(expr *ast.BinaryExpr) *TypeInfo {
 		}
 		return &TypeInfo{Kind: TypeKindBool}
 
+	case "&":
+		if !isBitwiseType(leftType) || !isBitwiseType(rightType) {
+			a.error(expr.Pos(), fmt.Sprintf("bitwise AND requires integer operands, got %s and %s", leftType, rightType))
+		}
+		return &TypeInfo{Kind: TypeKindInt}
+
 	default:
 		return &TypeInfo{Kind: TypeKindUnknown}
 	}
+}
+
+func isBitwiseType(t *TypeInfo) bool {
+	return t.Kind == TypeKindInt || t.Kind == TypeKindUnknown
 }
 
 func (a *Analyzer) analyzeUnaryExpr(expr *ast.UnaryExpr) *TypeInfo {
