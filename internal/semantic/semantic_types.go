@@ -212,6 +212,12 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 			return a.isReferenceType(t1)
 		}
 
+		// Interface types are compatible with named types (defer structural
+		// check to Go compiler — we can't verify interface satisfaction here)
+		if t1.Kind == TypeKindInterface || t2.Kind == TypeKindInterface {
+			return true
+		}
+
 		return false
 	}
 
@@ -230,8 +236,22 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 		}
 		return a.typesCompatible(t1.KeyType, t2.KeyType) && a.typesCompatible(t1.ValueType, t2.ValueType)
 	case TypeKindNamed:
-		return t1.Name == t2.Name
+		if t1.Name == t2.Name {
+			return true
+		}
+		// Allow unqualified vs qualified name match (e.g., "Handle" == "ctx.Handle")
+		// This handles cross-package type references where one side is unqualified.
+		return unqualifiedName(t1.Name) == unqualifiedName(t2.Name)
 	default:
 		return true
 	}
+}
+
+// unqualifiedName strips the package prefix from a qualified type name.
+// "ctx.Handle" → "Handle", "Handle" → "Handle"
+func unqualifiedName(name string) string {
+	if i := strings.LastIndex(name, "."); i >= 0 {
+		return name[i+1:]
+	}
+	return name
 }

@@ -530,24 +530,42 @@ func (a *Analyzer) analyzeForRangeStmt(stmt *ast.ForRangeStmt) {
 	a.symbolTable.EnterScope()
 	defer a.symbolTable.ExitScope()
 
+	// Determine loop variable types from collection type
+	var indexType, elemType *TypeInfo
+	if collType.Kind == TypeKindMap {
+		// for key, value in map: key is KeyType, value is ValueType
+		if collType.KeyType != nil {
+			indexType = collType.KeyType
+		} else {
+			indexType = &TypeInfo{Kind: TypeKindUnknown}
+		}
+		if collType.ValueType != nil {
+			elemType = collType.ValueType
+		} else {
+			elemType = &TypeInfo{Kind: TypeKindUnknown}
+		}
+	} else {
+		// for index, elem in list/string/channel: index is int
+		indexType = &TypeInfo{Kind: TypeKindInt}
+		if collType.Kind == TypeKindList && collType.ElementType != nil {
+			elemType = collType.ElementType
+		} else if collType.Kind == TypeKindString {
+			elemType = &TypeInfo{Kind: TypeKindInt} // rune
+		} else {
+			elemType = &TypeInfo{Kind: TypeKindUnknown}
+		}
+	}
+
 	// Add loop variables to scope
 	if stmt.Index != nil {
 		indexSymbol := &Symbol{
 			Name:    stmt.Index.Value,
 			Kind:    SymbolVariable,
-			Type:    &TypeInfo{Kind: TypeKindInt},
+			Type:    indexType,
 			Defined: stmt.Index.Pos(),
 			Mutable: true,
 		}
 		a.symbolTable.Define(indexSymbol)
-	}
-
-	// Determine element type from collection type
-	var elemType *TypeInfo
-	if collType.Kind == TypeKindList && collType.ElementType != nil {
-		elemType = collType.ElementType
-	} else {
-		elemType = &TypeInfo{Kind: TypeKindUnknown}
 	}
 
 	varSymbol := &Symbol{

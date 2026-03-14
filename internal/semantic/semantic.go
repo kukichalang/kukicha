@@ -131,6 +131,10 @@ func (a *Analyzer) recordType(expr ast.Expression, info *TypeInfo) {
 	if expr == nil || info == nil {
 		return
 	}
+	// Do not overwrite TypeKindNil; we need it to identify the empty keyword in codegen.
+	if existing, ok := a.exprTypes[expr]; ok && existing.Kind == TypeKindNil && info.Kind != TypeKindNil {
+		return
+	}
 	a.exprTypes[expr] = info
 }
 

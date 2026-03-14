@@ -3,6 +3,8 @@
 //
 // Source: Go standard library function signatures extracted via go/importer.
 // This replaces the hand-maintained knownExternalReturns entries.
+//
+// Type definitions (goStdlibType, goStdlibEntry) live in stdlib_types.go.
 
 package semantic
 
@@ -89,8 +91,10 @@ var generatedGoStdlib = map[string]goStdlibEntry{
 	"sync.OnceValue":        {Count: 1, Types: []goStdlibType{{Kind: TypeKindFunction}}},
 	"sync.OnceValues":       {Count: 1, Types: []goStdlibType{{Kind: TypeKindFunction}}},
 	"time.LoadLocation":     {Count: 2, Types: []goStdlibType{{Kind: TypeKindReference, Name: "*time.Location"}, {Kind: TypeKindNamed, Name: "error"}}},
-	"time.Parse":            {Count: 2, Types: []goStdlibType{{Kind: TypeKindStruct}, {Kind: TypeKindNamed, Name: "error"}}},
+	"time.Now":              {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "time.Time"}}},
+	"time.Parse":            {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "time.Time"}, {Kind: TypeKindNamed, Name: "error"}}},
 	"time.ParseDuration":    {Count: 2, Types: []goStdlibType{{Kind: TypeKindInt}, {Kind: TypeKindNamed, Name: "error"}}},
+	"time.Since":            {Count: 1, Types: []goStdlibType{{Kind: TypeKindInt}}},
 	"url.Parse":             {Count: 2, Types: []goStdlibType{{Kind: TypeKindReference, Name: "*url.URL"}, {Kind: TypeKindNamed, Name: "error"}}},
 	"url.ParseRequestURI":   {Count: 2, Types: []goStdlibType{{Kind: TypeKindReference, Name: "*url.URL"}, {Kind: TypeKindNamed, Name: "error"}}},
 }

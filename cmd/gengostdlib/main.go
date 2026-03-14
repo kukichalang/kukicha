@@ -23,6 +23,14 @@ type funcSpec struct {
 	funcs []string // specific functions; empty = all exported
 }
 
+// knownNamedTypes lists qualified type names that should be preserved as
+// TypeKindNamed in the generated registry. These are types with hand-coded
+// method entries in semantic_calls.go (e.g., time.Time has method resolution
+// for .Unix(), .Before(), etc.).
+var knownNamedTypes = map[string]bool{
+	"time.Time": true,
+}
+
 // packages lists Go stdlib packages and the specific functions we need.
 // Only functions actually used in Kukicha programs or stdlib wrappers
 // need to be here — this is intentionally curated, not exhaustive.
@@ -64,7 +72,7 @@ var packages = []funcSpec{
 		"Compile", "MustCompile", "MatchString",
 	}},
 	{pkg: "time", funcs: []string{
-		"Parse", "ParseDuration", "LoadLocation",
+		"Now", "Since", "Parse", "ParseDuration", "LoadLocation",
 	}},
 	{pkg: "sync", funcs: []string{}}, // no top-level funcs we need
 	{pkg: "context", funcs: []string{
@@ -194,6 +202,16 @@ func kukichaAlias(pkg string) string {
 
 // goTypeToRepr converts a Go type to our serializable type representation.
 func goTypeToRepr(t types.Type) typeRepr {
+	// Preserve type identity for specific named struct types that have
+	// hand-coded method entries in semantic_calls.go (e.g., time.Time).
+	// Other named types resolve to their underlying kind to avoid
+	// cascading type compatibility issues.
+	if named, ok := t.(*types.Named); ok && named.Obj().Pkg() != nil {
+		qualName := kukichaAlias(named.Obj().Pkg().Path()) + "." + named.Obj().Name()
+		if knownNamedTypes[qualName] {
+			return typeRepr{Kind: "TypeKindNamed", Name: qualName}
+		}
+	}
 	t = t.Underlying()
 
 	switch u := t.(type) {

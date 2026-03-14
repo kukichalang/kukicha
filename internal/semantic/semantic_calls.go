@@ -161,11 +161,14 @@ func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*Ty
 			// variadic parameter type instead of comparing directly.
 			if expr.Variadic && funcType.Variadic && paramIndex == len(funcType.Params)-1 && i == len(providedArgTypes)-1 {
 				variadicParamType := funcType.Params[paramIndex]
-				if argType.Kind == TypeKindList && argType.ElementType != nil {
-					// list of T spread into ...T — check element type
-					if !a.typesCompatible(variadicParamType, argType.ElementType) {
-						a.error(expr.Pos(), fmt.Sprintf("argument %d: cannot use %s as []%s in variadic spread", i+1, argType, variadicParamType))
+				if argType.Kind == TypeKindList {
+					if argType.ElementType != nil {
+						// list of T spread into ...T — check element type
+						if !a.typesCompatible(variadicParamType, argType.ElementType) {
+							a.error(expr.Pos(), fmt.Sprintf("argument %d: cannot use %s as []%s in variadic spread", i+1, argType, variadicParamType))
+						}
 					}
+					// If ElementType is nil, we can't check — be lenient
 				} else if argType.Kind != TypeKindUnknown {
 					// Not a list — could still be valid for interface{} params or unknown types
 					if !a.typesCompatible(variadicParamType, argType) {
@@ -276,7 +279,11 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 			types := []*TypeInfo{{Kind: TypeKindNamed, Name: "time.Month"}}
 			a.recordReturnCount(expr, len(types))
 			return types
-		case "Day", "Hour", "Minute", "Second":
+		case "Day", "Hour", "Minute", "Second", "Nanosecond", "YearDay":
+			types := []*TypeInfo{{Kind: TypeKindInt}}
+			a.recordReturnCount(expr, len(types))
+			return types
+		case "Unix", "UnixMilli", "UnixMicro", "UnixNano":
 			types := []*TypeInfo{{Kind: TypeKindInt}}
 			a.recordReturnCount(expr, len(types))
 			return types

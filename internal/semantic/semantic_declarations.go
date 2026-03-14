@@ -401,10 +401,15 @@ func (a *Analyzer) analyzeFunctionDecl(decl *ast.FunctionDecl) {
 
 		a.validateTypeAnnotation(param.Type)
 
+		paramType := a.typeAnnotationToTypeInfo(param.Type)
+		// Variadic params are slices inside the function body (e.g., "many args string" → []string)
+		if param.Variadic {
+			paramType = &TypeInfo{Kind: TypeKindList, ElementType: paramType}
+		}
 		paramSymbol := &Symbol{
 			Name:    param.Name.Value,
 			Kind:    SymbolParameter,
-			Type:    a.typeAnnotationToTypeInfo(param.Type),
+			Type:    paramType,
 			Defined: param.Name.Pos(),
 		}
 		if err := a.symbolTable.Define(paramSymbol); err != nil {
