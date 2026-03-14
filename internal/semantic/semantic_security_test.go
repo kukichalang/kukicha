@@ -3,8 +3,6 @@ package semantic
 import (
 	"strings"
 	"testing"
-
-	"github.com/duber000/kukicha/internal/parser"
 )
 
 // =============================================================================
@@ -277,17 +275,7 @@ func Handle(w http.ResponseWriter, r reference http.Request)
     target := "/dashboard"
     httphelper.Redirect(w, r, target)
 `
-	p, err := parser.New(source, "stdlib/http/redirect.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := NewWithFile(program, "stdlib/http/redirect.kuki")
-	errors := analyzer.Analyze()
+	_, errors := analyzeSourceWithFile(t, source, "stdlib/http/redirect.kuki")
 
 	for _, e := range errors {
 		if strings.Contains(e.Error(), "open redirect risk") {
@@ -324,16 +312,7 @@ func TestIsInHTTPHandler_NoFunc(t *testing.T) {
 // assertSecurityError parses source and asserts an error containing substr.
 func assertSecurityError(t *testing.T, source string, substr string) {
 	t.Helper()
-	p, err := parser.New(source, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-	analyzer := New(program)
-	errors := analyzer.Analyze()
+	_, errors := analyzeSource(t, source)
 
 	for _, e := range errors {
 		if strings.Contains(e.Error(), substr) {
@@ -346,16 +325,7 @@ func assertSecurityError(t *testing.T, source string, substr string) {
 // assertNoSecurityError parses source and asserts NO error containing substr.
 func assertNoSecurityError(t *testing.T, source string, substr string) {
 	t.Helper()
-	p, err := parser.New(source, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-	analyzer := New(program)
-	errors := analyzer.Analyze()
+	_, errors := analyzeSource(t, source)
 
 	for _, e := range errors {
 		if strings.Contains(e.Error(), substr) {
@@ -368,16 +338,7 @@ func assertNoSecurityError(t *testing.T, source string, substr string) {
 // ignoring all errors except those containing the security substr.
 func analyzeIgnoringNonSecurity(t *testing.T, source string, securitySubstr string) {
 	t.Helper()
-	p, err := parser.New(source, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-	analyzer := New(program)
-	errors := analyzer.Analyze()
+	_, errors := analyzeSource(t, source)
 
 	for _, e := range errors {
 		if strings.Contains(e.Error(), securitySubstr) {

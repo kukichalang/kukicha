@@ -3,8 +3,6 @@ package semantic
 import (
 	"strings"
 	"testing"
-
-	"github.com/duber000/kukicha/internal/parser"
 )
 
 // ---------------------------------------------------------------------------
@@ -332,16 +330,6 @@ func analyzeInput(t *testing.T, input string) []error {
 
 func analyzeInputWithFile(t *testing.T, input, filename string) (errs []error, warnings []error) {
 	t.Helper()
-	p, err := parser.New(input, filename)
-	if err != nil {
-		t.Fatalf("parser init error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-	analyzer := NewWithFile(program, filename)
-	errs = analyzer.Analyze()
-	warnings = analyzer.Warnings()
-	return
+	analyzer, errs := analyzeSourceWithFile(t, input, filename)
+	return errs, analyzer.Warnings()
 }
