@@ -187,7 +187,7 @@ Currently supported directives:
 | `semantic_onerr.go` | `onerr` clause analysis (`analyzeOnErrClause`, `funcReturnsError`, `analyzeStringInterpolation`) |
 | `semantic_types.go` | Type annotation validation and conversion (`validateTypeAnnotation`, `typeAnnotationToTypeInfo`, `typesCompatible`) |
 | `semantic_helpers.go` | Pure utilities (`isValidIdentifier`, `extractPackageName`, `isExported`, `isNumericType`, `primitiveTypeFromString`) |
-| `semantic_calls.go` | `analyzeCallExpr`, `analyzeMethodCallExpr` |
+| `semantic_calls.go` | `analyzeCallExpr`, `analyzeMethodCallExpr`, `analyzeFieldAccessExpr` |
 | `semantic_security.go` | Security checks (`checkSQLInterpolation`, `checkHTMLNonLiteral`, `checkFetchInHandler`, `checkFilesInHandler`, `checkShellRunNonLiteral`, `checkRedirectNonLiteral`, `isInHTTPHandler`) |
 | `symbols.go` | Symbol table and type info |
 | `stdlib_registry_gen.go` | Generated Kukicha stdlib return-count registry (from `.kuki` files) |
@@ -203,7 +203,7 @@ The semantic analyzer validates struct literal field names and types at compile 
 
 ### Method and field resolution
 
-`TypeInfo.Methods` (added alongside `Fields`) maps method names to their function `TypeInfo`. During `collectDeclarations()`, `registerMethod()` attaches each method's signature to its receiver type's symbol. At analysis time, `resolveFieldType()` and `resolveMethodType()` in `semantic_calls.go` distinguish field access from method calls using `MethodCallExpr.IsCall` — field accesses resolve the field's type from `Fields`, while method calls resolve return types from `Methods`. Both handle pointer/reference receivers by dereferencing first.
+`TypeInfo.Methods` (added alongside `Fields`) maps method names to their function `TypeInfo`. During `collectDeclarations()`, `registerMethod()` attaches each method's signature to its receiver type's symbol. At analysis time, `FieldAccessExpr` nodes resolve through `resolveFieldType()`, while `MethodCallExpr` nodes resolve through `resolveMethodType()`. Both handle pointer/reference receivers by dereferencing first.
 
 ### Analysis passes
 

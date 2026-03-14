@@ -401,6 +401,55 @@ func TestParseMethodCall(t *testing.T) {
 	}
 }
 
+func TestParseFieldAccess(t *testing.T) {
+	input := `func Test(user User) string
+    return user.name
+`
+
+	program := mustParseProgram(t, input)
+
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	retStmt := fn.Body.Statements[0].(*ast.ReturnStmt)
+
+	fieldAccess, ok := retStmt.Values[0].(*ast.FieldAccessExpr)
+	if !ok {
+		t.Fatalf("expected FieldAccessExpr, got %T", retStmt.Values[0])
+	}
+
+	if fieldAccess.Field.Value != "name" {
+		t.Errorf("expected field name 'name', got '%s'", fieldAccess.Field.Value)
+	}
+}
+
+func TestParsePipedFieldAccess(t *testing.T) {
+	input := `func Test(user User) string
+    return user |> .name
+`
+
+	program := mustParseProgram(t, input)
+
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	retStmt := fn.Body.Statements[0].(*ast.ReturnStmt)
+
+	pipeExpr, ok := retStmt.Values[0].(*ast.PipeExpr)
+	if !ok {
+		t.Fatalf("expected PipeExpr, got %T", retStmt.Values[0])
+	}
+
+	fieldAccess, ok := pipeExpr.Right.(*ast.FieldAccessExpr)
+	if !ok {
+		t.Fatalf("expected FieldAccessExpr on pipe right side, got %T", pipeExpr.Right)
+	}
+
+	if fieldAccess.Object != nil {
+		t.Fatalf("expected shorthand field access to have nil object, got %T", fieldAccess.Object)
+	}
+
+	if fieldAccess.Field.Value != "name" {
+		t.Errorf("expected field name 'name', got '%s'", fieldAccess.Field.Value)
+	}
+}
+
 func TestParseIndexExpression(t *testing.T) {
 	input := `func Test(items list of int) int
     return items[0]

@@ -163,13 +163,38 @@ func main()
 
 	// Verify field access type was recorded
 	for expr, typeInfo := range analyzer.ExprTypes() {
-		if mc, ok := expr.(*ast.MethodCallExpr); ok {
-			if mc.Method.Value == "name" && !mc.IsCall {
-				if typeInfo.Kind != TypeKindString {
-					t.Errorf("expected string type for field 'name', got %s", typeInfo.Kind)
-				}
-				return
+		if field, ok := expr.(*ast.FieldAccessExpr); ok && field.Field.Value == "name" {
+			if typeInfo.Kind != TypeKindString {
+				t.Errorf("expected string type for field 'name', got %s", typeInfo.Kind)
 			}
+			return
+		}
+	}
+}
+
+func TestPipedFieldAccessTypeResolution(t *testing.T) {
+	input := `type User
+    name string
+
+func main()
+    u := User{name: "Alice"}
+    n := u |> .name
+    print(n)
+`
+
+	analyzer, errors := analyzeSource(t, input)
+	_ = analyzer
+
+	for _, e := range errors {
+		t.Errorf("unexpected error: %v", e)
+	}
+
+	for expr, typeInfo := range analyzer.ExprTypes() {
+		if field, ok := expr.(*ast.FieldAccessExpr); ok && field.Object == nil && field.Field.Value == "name" {
+			if typeInfo.Kind != TypeKindString {
+				t.Errorf("expected string type for piped field 'name', got %s", typeInfo.Kind)
+			}
+			return
 		}
 	}
 }
@@ -198,7 +223,7 @@ func main()
 	// Verify 2-return method was correctly resolved
 	for expr, count := range analyzer.ReturnCounts() {
 		if mc, ok := expr.(*ast.MethodCallExpr); ok {
-			if mc.Method.Value == "Parse" && mc.IsCall {
+			if mc.Method.Value == "Parse" {
 				if count != 2 {
 					t.Errorf("expected return count 2 for Parse, got %d", count)
 				}

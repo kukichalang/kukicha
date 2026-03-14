@@ -54,6 +54,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 			return types[0]
 		}
 		return &TypeInfo{Kind: TypeKindUnknown}
+	case *ast.FieldAccessExpr:
+		return a.analyzeFieldAccessExpr(e, nil)
 	case *ast.IndexExpr:
 		return a.analyzeIndexExpr(e)
 	case *ast.SliceExpr:
@@ -196,6 +198,8 @@ func (a *Analyzer) analyzeExpressionMulti(expr ast.Expression) []*TypeInfo {
 		return a.analyzeCallExpr(e, nil)
 	case *ast.MethodCallExpr:
 		return a.analyzeMethodCallExpr(e, nil)
+	case *ast.FieldAccessExpr:
+		return []*TypeInfo{a.analyzeFieldAccessExpr(e, nil)}
 	case *ast.PipeExpr:
 		return a.analyzePipeExprMulti(e)
 	case *ast.IndexExpr:
@@ -396,6 +400,11 @@ func (a *Analyzer) analyzePipeExprMulti(expr *ast.PipeExpr) []*TypeInfo {
 			a.recordType(right, types[0])
 		}
 		return types
+	case *ast.FieldAccessExpr:
+		fieldType := a.analyzeFieldAccessExpr(right, leftType)
+		a.recordReturnCount(expr, 1)
+		a.recordType(right, fieldType)
+		return []*TypeInfo{fieldType}
 	case *ast.PipeExpr:
 		// Nested pipe: analyze recursively
 		types := a.analyzePipeExprMulti(right)

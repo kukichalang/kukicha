@@ -289,7 +289,6 @@ func (p *Parser) parsePostfixExpr() ast.Expression {
 					Arguments:      args,
 					NamedArguments: namedArgs,
 					Variadic:       variadic,
-					IsCall:         true,
 				}
 			} else if p.check(lexer.TOKEN_LBRACE) {
 				// Qualified struct literal: pkg.Type{}
@@ -330,20 +329,17 @@ func (p *Parser) parsePostfixExpr() ast.Expression {
 					}
 				} else {
 					// Not a simple package.Type, treat as field access
-					expr = &ast.MethodCallExpr{
-						Token:     dotToken,
-						Object:    expr,
-						Method:    method,
-						Arguments: []ast.Expression{},
+					expr = &ast.FieldAccessExpr{
+						Token:  dotToken,
+						Object: expr,
+						Field:  method,
 					}
 				}
 			} else {
-				// Field access - treat as method call with no args for now
-				expr = &ast.MethodCallExpr{
-					Token:     dotToken,
-					Object:    expr,
-					Method:    method,
-					Arguments: []ast.Expression{},
+				expr = &ast.FieldAccessExpr{
+					Token:  dotToken,
+					Object: expr,
+					Field:  method,
 				}
 			}
 
@@ -985,24 +981,28 @@ func (p *Parser) parseReturnExpr() ast.Expression {
 
 func (p *Parser) parseShorthandMethodCall() ast.Expression {
 	token := p.advance() // consume '.'
-	methodName := p.parseIdentifier()
+	method := p.parseIdentifier()
+
+	if !p.match(lexer.TOKEN_LPAREN) {
+		return &ast.FieldAccessExpr{
+			Token:  token,
+			Object: nil,
+			Field:  method,
+		}
+	}
 
 	expr := &ast.MethodCallExpr{
 		Token:  token,
-		Object: nil, // shorthand
-		Method: methodName,
-		IsCall: false,
+		Object: nil,
+		Method: method,
 	}
 
-	if p.match(lexer.TOKEN_LPAREN) {
-		expr.IsCall = true
-		if !p.check(lexer.TOKEN_RPAREN) {
-			expr.Arguments = p.parseExpressionList()
-		} else {
-			expr.Arguments = []ast.Expression{}
-		}
-		p.consume(lexer.TOKEN_RPAREN, "expected ')' after method arguments")
+	if !p.check(lexer.TOKEN_RPAREN) {
+		expr.Arguments = p.parseExpressionList()
+	} else {
+		expr.Arguments = []ast.Expression{}
 	}
+	p.consume(lexer.TOKEN_RPAREN, "expected ')' after method arguments")
 
 	return expr
 }

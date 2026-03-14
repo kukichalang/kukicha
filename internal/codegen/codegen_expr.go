@@ -87,6 +87,8 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return g.generateCallExpr(e)
 	case *ast.MethodCallExpr:
 		return g.generateMethodCallExpr(e)
+	case *ast.FieldAccessExpr:
+		return g.generateFieldAccessExpr(e)
 	case *ast.IndexExpr:
 		left := g.exprToString(e.Left)
 		if u, ok := isNegativeExpr(e.Index); ok {
@@ -631,14 +633,8 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 		}
 		funcName = objStr + "." + method.Method.Value
 		if method.Object == nil {
-			// Shorthand: .Method() or .Field
-			// We will prepend expr.Left as the object
+			// Shorthand: .Method()
 			funcName = leftExpr + "." + method.Method.Value
-
-			if !method.IsCall {
-				// Field access: obj.Field
-				return funcName
-			}
 
 			// Method call: obj.Method(args)
 			arguments = method.Arguments
@@ -653,12 +649,13 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 			}
 			return fmt.Sprintf("%s(%s)", funcName, strings.Join(args, ", "))
 		}
-		// Normal method call (already has object)
-		if !method.IsCall {
-			return funcName
-		}
 		arguments = method.Arguments
 		isVariadic = method.Variadic
+	} else if field, ok := expr.Right.(*ast.FieldAccessExpr); ok {
+		if field.Object == nil {
+			return leftExpr + "." + field.Field.Value
+		}
+		return g.generateFieldAccessExpr(field)
 	} else if id, ok := expr.Right.(*ast.Identifier); ok {
 		// Bare identifier on right side of pipe: treat as function call with piped value
 		// e.g., data |> print  →  fmt.Println(data)
@@ -800,11 +797,6 @@ func (g *Generator) generateMethodCallExpr(expr *ast.MethodCallExpr) string {
 		object = alias
 	}
 
-	// If no parentheses were used, it's field access
-	if !expr.IsCall {
-		return fmt.Sprintf("%s.%s", object, method)
-	}
-
 	// Check if this is a printf-style method (Errorf, Fatalf, Logf, Skipf, Printf, etc.)
 	// These methods require a constant format string in Go 1.26+
 	if g.isPrintfStyleMethod(method) && len(expr.Arguments) > 0 {
@@ -843,6 +835,17 @@ func (g *Generator) generateMethodCallExpr(expr *ast.MethodCallExpr) string {
 		return fmt.Sprintf("%s.%s(%s...)", object, method, strings.Join(args, ", "))
 	}
 	return fmt.Sprintf("%s.%s(%s)", object, method, strings.Join(args, ", "))
+}
+
+func (g *Generator) generateFieldAccessExpr(expr *ast.FieldAccessExpr) string {
+	object := g.exprToString(expr.Object)
+	field := expr.Field.Value
+
+	if alias, ok := g.pkgAliases[object]; ok {
+		object = alias
+	}
+
+	return fmt.Sprintf("%s.%s", object, field)
 }
 
 // printfMethods lists printf-style methods that expect a format string as their first argument.

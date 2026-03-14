@@ -166,7 +166,7 @@ func TestLowerOnErrPipeChainEmitsCorrectly(t *testing.T) {
 	// Build: a |> b() with onerr panic
 	a := &ast.Identifier{Value: "getData"}
 	aCall := &ast.CallExpr{
-		Function: a,
+		Function:  a,
 		Arguments: []ast.Expression{},
 	}
 	bCall := &ast.CallExpr{
@@ -276,7 +276,6 @@ func TestLowerOnErrPipeChainTargetNameErrorOnlyLast(t *testing.T) {
 	writeCall := &ast.MethodCallExpr{
 		Object:    &ast.Identifier{Value: "os"},
 		Method:    &ast.Identifier{Value: "WriteFile"},
-		IsCall:    true,
 		Arguments: []ast.Expression{},
 	}
 
@@ -323,7 +322,7 @@ func TestLowerOnErrPipeChainWithLabels(t *testing.T) {
 	// Build: a |> b() with goto-based error handling
 	a := &ast.Identifier{Value: "getData"}
 	aCall := &ast.CallExpr{
-		Function: a,
+		Function:  a,
 		Arguments: []ast.Expression{},
 	}
 	bCall := &ast.CallExpr{

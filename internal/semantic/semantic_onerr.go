@@ -133,6 +133,12 @@ func patchExprPosition(expr ast.Expression, file string, line, column int) {
 			obj.Token.Line = line
 			obj.Token.Column = column
 		}
+	case *ast.FieldAccessExpr:
+		if obj, ok := e.Object.(*ast.Identifier); ok {
+			obj.Token.File = file
+			obj.Token.Line = line
+			obj.Token.Column = column
+		}
 	}
 }
 

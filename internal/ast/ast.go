@@ -707,7 +707,6 @@ type MethodCallExpr struct {
 	Arguments      []Expression     // Positional arguments
 	NamedArguments []*NamedArgument // Named arguments (e.g., name: value)
 	Variadic       bool             // true if 'many' used: obj.f(many args)
-	IsCall         bool             // true if explicit parentheses were used: obj.method() vs obj.field
 }
 
 func (e *MethodCallExpr) TokenLiteral() string { return e.Token.Lexeme }
@@ -715,6 +714,18 @@ func (e *MethodCallExpr) Pos() Position {
 	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
 }
 func (e *MethodCallExpr) exprNode() {}
+
+type FieldAccessExpr struct {
+	Token  lexer.Token // The '.' token
+	Object Expression  // Can be nil for shorthand pipes: |> .Field
+	Field  *Identifier
+}
+
+func (e *FieldAccessExpr) TokenLiteral() string { return e.Token.Lexeme }
+func (e *FieldAccessExpr) Pos() Position {
+	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
+}
+func (e *FieldAccessExpr) exprNode() {}
 
 type IndexExpr struct {
 	Token lexer.Token // The '[' token

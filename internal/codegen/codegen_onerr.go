@@ -257,18 +257,17 @@ func (g *Generator) generatePipedStepCall(right ast.Expression, leftExpr string)
 
 		if method.Object == nil {
 			funcName = leftExpr + "." + method.Method.Value
-			if !method.IsCall {
-				return funcName, true
-			}
 			arguments = method.Arguments
 			isVariadic = method.Variadic
 		} else {
-			if !method.IsCall {
-				return funcName, true
-			}
 			arguments = method.Arguments
 			isVariadic = method.Variadic
 		}
+	} else if field, ok := right.(*ast.FieldAccessExpr); ok {
+		if field.Object == nil {
+			return leftExpr + "." + field.Field.Value, true
+		}
+		return g.generateFieldAccessExpr(field), true
 	} else {
 		return "", false
 	}

@@ -70,6 +70,21 @@ func TestAddressOfWithFieldAccess(t *testing.T) {
 	}
 }
 
+func TestPipeIntoFieldAccess(t *testing.T) {
+	input := `type User
+    name string
+
+func Name(user User) string
+    return user |> .name
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "return user.name") {
+		t.Errorf("expected piped field access to generate 'user.name', got: %s", output)
+	}
+}
+
 func TestAddressOfCallExprUsesNew(t *testing.T) {
 	// Go 1.26 new(expr): function call returns are non-addressable,
 	// so `reference of someFunc()` should generate `new(someFunc())`.

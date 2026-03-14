@@ -241,6 +241,9 @@ func (g *Generator) coerceReturnValue(valStr string, val ast.Expression, returnT
 	if _, ok := val.(*ast.MethodCallExpr); ok {
 		return valStr
 	}
+	if _, ok := val.(*ast.FieldAccessExpr); ok {
+		return valStr
+	}
 
 	// Don't wrap identifiers - they might already be the right type
 	if _, ok := val.(*ast.Identifier); ok {

@@ -377,6 +377,8 @@ func (g *Generator) scanExprForAutoImports(expr ast.Expression) {
 		for _, arg := range e.Arguments {
 			g.scanExprForAutoImports(arg)
 		}
+	case *ast.FieldAccessExpr:
+		g.scanExprForAutoImports(e.Object)
 	case *ast.IndexExpr:
 		g.scanExprForAutoImports(e.Left)
 		g.scanExprForAutoImports(e.Index)
@@ -414,4 +416,3 @@ func (g *Generator) scanExprForAutoImports(expr ast.Expression) {
 		}
 	}
 }
-

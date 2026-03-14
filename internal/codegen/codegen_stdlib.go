@@ -116,6 +116,8 @@ func (g *Generator) inferExprReturnType(expr ast.Expression) string {
 			return "bool"
 		}
 		return ""
+	case *ast.FieldAccessExpr:
+		return ""
 	case *ast.CallExpr:
 		// Can't easily determine return type of arbitrary call
 		return ""
@@ -528,6 +530,8 @@ func (g *Generator) inferReturnCount(expr ast.Expression) (int, bool) {
 	case *ast.MethodCallExpr:
 		// Fall through — if exprReturnCounts didn't have it, we can't infer from AST alone.
 		return 0, false
+	case *ast.FieldAccessExpr:
+		return 1, true
 	}
 	return 0, false
 }

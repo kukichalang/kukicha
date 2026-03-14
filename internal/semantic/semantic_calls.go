@@ -212,7 +212,10 @@ func goStdlibEntryToTypeInfos(entry goStdlibEntry) []*TypeInfo {
 
 func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *TypeInfo) []*TypeInfo {
 	// Analyze object
-	objType := a.analyzeExpression(expr.Object)
+	objType := pipedArg
+	if expr.Object != nil {
+		objType = a.analyzeExpression(expr.Object)
+	}
 
 	// Analyze named arguments
 	for _, namedArg := range expr.NamedArguments {
@@ -353,18 +356,8 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 		}
 	}
 
-	// Field access (no parentheses): resolve struct field type
-	if !expr.IsCall && objType != nil {
-		fieldType := a.resolveFieldType(objType, methodName)
-		if fieldType != nil {
-			a.recordReturnCount(expr, 1)
-			a.recordType(expr, fieldType)
-			return []*TypeInfo{fieldType}
-		}
-	}
-
 	// Method call on user-defined type: look up method signature
-	if expr.IsCall && objType != nil {
+	if objType != nil {
 		methodType := a.resolveMethodType(objType, methodName)
 		if methodType != nil && len(methodType.Returns) > 0 {
 			a.recordReturnCount(expr, len(methodType.Returns))
@@ -375,6 +368,24 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 	// Return count of 1 gives codegen's onerr path a safe default.
 	a.recordReturnCount(expr, 1)
 	return []*TypeInfo{{Kind: TypeKindUnknown}}
+}
+
+func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *TypeInfo) *TypeInfo {
+	objType := pipedArg
+	if expr.Object != nil {
+		objType = a.analyzeExpression(expr.Object)
+	}
+
+	if objType != nil {
+		fieldType := a.resolveFieldType(objType, expr.Field.Value)
+		if fieldType != nil {
+			a.recordReturnCount(expr, 1)
+			return fieldType
+		}
+	}
+
+	a.recordReturnCount(expr, 1)
+	return &TypeInfo{Kind: TypeKindUnknown}
 }
 
 // checkDeprecatedCall emits a warning if the called function is marked # kuki:deprecated.

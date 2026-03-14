@@ -352,6 +352,10 @@ func (g *Generator) walkExpr(expr ast.Expression, visit func(ast.Expression) boo
 				return true
 			}
 		}
+	case *ast.FieldAccessExpr:
+		if g.walkExpr(e.Object, visit) {
+			return true
+		}
 	case *ast.IndexExpr:
 		return g.walkExpr(e.Left, visit) || g.walkExpr(e.Index, visit)
 	case *ast.SliceExpr:
@@ -678,6 +682,8 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 				return true
 			}
 		}
+	case *ast.FieldAccessExpr:
+		return g.exprHasNonPrintfInterpolation(e.Object)
 	case *ast.PipeExpr:
 		return g.exprHasNonPrintfInterpolation(e.Left) || g.exprHasNonPrintfInterpolation(e.Right)
 	case *ast.ErrorExpr:

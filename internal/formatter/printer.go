@@ -504,6 +504,8 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		return p.callExprToString(e)
 	case *ast.MethodCallExpr:
 		return p.methodCallExprToString(e)
+	case *ast.FieldAccessExpr:
+		return p.fieldAccessExprToString(e)
 	case *ast.IndexExpr:
 		left := p.exprToString(e.Left)
 		index := p.exprToString(e.Index)
@@ -613,10 +615,7 @@ func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
 	method := expr.Method.Value
 
 	if len(expr.Arguments) == 0 {
-		if expr.IsCall {
-			return fmt.Sprintf("%s.%s()", object, method)
-		}
-		return fmt.Sprintf("%s.%s", object, method)
+		return fmt.Sprintf("%s.%s()", object, method)
 	}
 
 	args := make([]string, len(expr.Arguments))
@@ -629,6 +628,11 @@ func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
 	}
 
 	return fmt.Sprintf("%s.%s(%s)", object, method, strings.Join(args, ", "))
+}
+
+func (p *Printer) fieldAccessExprToString(expr *ast.FieldAccessExpr) string {
+	object := p.exprToString(expr.Object)
+	return fmt.Sprintf("%s.%s", object, expr.Field.Value)
 }
 
 func (p *Printer) sliceExprToString(expr *ast.SliceExpr) string {
