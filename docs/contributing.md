@@ -362,14 +362,26 @@ Follow these steps in order. Skipping step 3 is how the stdlib `.go` files end u
 
 1. Bump the version constant in `internal/version/version.go`.
 2. Update the version references in `README.md` (the `go install` snippet and the **Status** section at the bottom).
-3. Run `make generate && make build` to regenerate all stdlib `.go` files (including `*_test.go`) with the new version header and rebuild the compiler with the updated files embedded.
+3. Run `make generate && make build`, then **force-regenerate** all stdlib files to update version headers. `make generate` uses `--if-changed` and skips `.kuki` files whose source hasn't changed, so a version-only bump will leave stale headers. After the initial generate, re-transpile without `--if-changed` and rebuild:
+   ```bash
+   make generate && make build
+   # Force-regenerate all stdlib .go files (updates version headers):
+   for f in stdlib/*/*.kuki; do
+       [[ "$f" == *_test.kuki ]] && continue
+       [[ "$f" == stdlib/test/test.kuki ]] && continue
+       ./kukicha build --skip-build "$f"
+   done
+   for f in stdlib/*/*_test.kuki; do ./kukicha build --skip-build "$f"; done
+   make build   # re-embed the updated .go files
+   ```
 4. Run `make test` to confirm everything passes before tagging.
 5. Commit the regenerated `.go`/`*_test.go` files and doc/version updates in a single commit. (The `.kuki` sources are inputs, not outputs — only stage them if you changed them.)
-6. Tag and push:
+6. Tag and push (push the tag explicitly — `--follow-tags` can silently skip tags):
 
 ```bash
 git tag v0.0.X
-git push --follow-tags
+git push origin main
+git push origin v0.0.X
 ```
 
 ## Questions?
