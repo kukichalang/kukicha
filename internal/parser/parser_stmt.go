@@ -867,6 +867,7 @@ func (p *Parser) parseExpressionList() []ast.Expression {
 //	onerr INDENT ... DEDENT                  - block handler
 //	onerr return                             - shorthand: propagate error with zero-value returns
 //	onerr as <ident> INDENT ... DEDENT       - block handler with named error alias
+//	onerr as <ident> <handler>               - inline handler with named error alias
 func (p *Parser) parseOnErrClause() *ast.OnErrClause {
 	token := p.advance() // consume 'onerr'
 
@@ -881,19 +882,23 @@ func (p *Parser) parseOnErrClause() *ast.OnErrClause {
 		}
 		alias := aliasToken.Lexeme
 		p.skipNewlines()
-		if !p.check(lexer.TOKEN_INDENT) {
-			p.error(p.peekToken(), "'onerr as <ident>' must be followed by an indented block")
-			return &ast.OnErrClause{Token: token}
+		if p.check(lexer.TOKEN_INDENT) {
+			// Block form: onerr as e \n INDENT ... DEDENT
+			block := p.parseBlock()
+			return &ast.OnErrClause{
+				Token: token,
+				Alias: alias,
+				Handler: &ast.BlockExpr{
+					Token: block.Token,
+					Body:  block,
+				},
+			}
 		}
-		block := p.parseBlock()
-		return &ast.OnErrClause{
-			Token: token,
-			Alias: alias,
-			Handler: &ast.BlockExpr{
-				Token: block.Token,
-				Body:  block,
-			},
-		}
+		// Inline form: onerr as e <handler>
+		// Fall through to parse inline handler with alias set
+		clause := p.parseInlineOnErrHandler(token)
+		clause.Alias = alias
+		return clause
 	}
 
 	// Check for block handler: onerr \n INDENT ...
@@ -909,6 +914,12 @@ func (p *Parser) parseOnErrClause() *ast.OnErrClause {
 		}
 	}
 
+	return p.parseInlineOnErrHandler(token)
+}
+
+// parseInlineOnErrHandler parses the inline (non-block) part of an onerr clause.
+// Handles: return, explain, panic, default value, and trailing explain.
+func (p *Parser) parseInlineOnErrHandler(token lexer.Token) *ast.OnErrClause {
 	// Check for bare "onerr return" shorthand.
 	// Disambiguate from "onerr return empty, error ..." by peeking at the token
 	// immediately after "return": if it is a newline, dedent, or EOF the user

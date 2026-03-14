@@ -153,6 +153,58 @@ func Process(path string) (string, error)
 	}
 }
 
+// TestOnErrInlineAsReturn checks that "onerr as e return" (inline alias with
+// shorthand return) generates correct error handling code.
+func TestOnErrInlineAsReturn(t *testing.T) {
+	input := `func readData(path string) (string, error)
+    return "data", empty
+
+func Process(path string) (string, error)
+    data := readData(path) onerr as e return
+    return data, empty
+`
+	program := mustParse(t, input)
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "err_1") {
+		t.Errorf("expected error variable err_1 in output; got: %s", output)
+	}
+	if !strings.Contains(output, "if err_1 != nil") {
+		t.Errorf("expected error check for err_1; got: %s", output)
+	}
+}
+
+// TestOnErrInlineAsDefaultValue checks that "onerr as e <default>" generates
+// correct default-value error handling with the alias available.
+func TestOnErrInlineAsDefaultValue(t *testing.T) {
+	input := `func getPort() (int, error)
+    return 80, empty
+
+func Process() int
+    port := getPort() onerr as e 8080
+    return port
+`
+	program := mustParse(t, input)
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "8080") {
+		t.Errorf("expected default value 8080 in output; got: %s", output)
+	}
+	if !strings.Contains(output, "if err_") {
+		t.Errorf("expected error check; got: %s", output)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------

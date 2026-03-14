@@ -41,16 +41,6 @@ The `_` placeholder in piped calls (e.g., `todo |> json.MarshalWrite(w, _)`) is 
 
 ---
 
-## Parser / Semantic Interaction
-
-### Inline `onerr as` syntax fails to parse
-**File:** `internal/parser/parser_stmt.go`
-**Test:** `TestOnerrAliasInterpolationIsValid`
-
-`onerr as myErr return` (inline alias with immediate handler) is rejected by the parser with `'onerr as <ident>' must be followed by an indented block`. The block form (`onerr as myErr` + indented body) works correctly. The parser's `parseOnErrClause` requires an `INDENT` after `as <ident>` and has no fallback for inline handlers. This causes a persistent test failure.
-
----
-
 ## Summary
 
 | Phase | Items |
@@ -58,5 +48,4 @@ The `_` placeholder in piped calls (e.g., `todo |> json.MarshalWrite(w, _)`) is 
 | Semantic / type inference | 3 |
 | Parser | 1 |
 | String interpolation | 1 |
-| Parser / semantic interaction | 1 |
-| **Total** | **6** |
+| **Total** | **5** |

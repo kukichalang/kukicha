@@ -144,6 +144,99 @@ func TestParseOnErrWithHandlerAndExplain(t *testing.T) {
 	}
 }
 
+func TestParseInlineOnerrAsReturn(t *testing.T) {
+	input := `func readFile(path string) (string, error)
+    return path, empty
+
+func Process(path string) (string, error)
+    data := readFile(path) onerr as e return
+    return data, empty
+`
+
+	program := mustParseProgram(t, input)
+
+	fn := program.Declarations[1].(*ast.FunctionDecl)
+	varDecl, ok := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	if !ok {
+		t.Fatalf("expected VarDeclStmt, got %T", fn.Body.Statements[0])
+	}
+
+	if varDecl.OnErr == nil {
+		t.Fatal("expected OnErr clause, got nil")
+	}
+
+	if varDecl.OnErr.Alias != "e" {
+		t.Errorf("expected alias 'e', got '%s'", varDecl.OnErr.Alias)
+	}
+
+	if !varDecl.OnErr.ShorthandReturn {
+		t.Error("expected ShorthandReturn to be true")
+	}
+}
+
+func TestParseInlineOnerrAsDefaultValue(t *testing.T) {
+	input := `func getPort() int
+    return 80
+
+func Process()
+    port := getPort() onerr as e 8080
+`
+
+	program := mustParseProgram(t, input)
+
+	fn := program.Declarations[1].(*ast.FunctionDecl)
+	varDecl, ok := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	if !ok {
+		t.Fatalf("expected VarDeclStmt, got %T", fn.Body.Statements[0])
+	}
+
+	if varDecl.OnErr == nil {
+		t.Fatal("expected OnErr clause, got nil")
+	}
+
+	if varDecl.OnErr.Alias != "e" {
+		t.Errorf("expected alias 'e', got '%s'", varDecl.OnErr.Alias)
+	}
+
+	intLit, ok := varDecl.OnErr.Handler.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("expected IntegerLiteral handler, got %T", varDecl.OnErr.Handler)
+	}
+	if intLit.Value != 8080 {
+		t.Errorf("expected handler value 8080, got %d", intLit.Value)
+	}
+}
+
+func TestParseInlineOnerrAsPanic(t *testing.T) {
+	input := `func readFile(path string) (string, error)
+    return path, empty
+
+func Process(path string) string
+    data := readFile(path) onerr as e panic "read failed"
+    return data
+`
+
+	program := mustParseProgram(t, input)
+
+	fn := program.Declarations[1].(*ast.FunctionDecl)
+	varDecl, ok := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	if !ok {
+		t.Fatalf("expected VarDeclStmt, got %T", fn.Body.Statements[0])
+	}
+
+	if varDecl.OnErr == nil {
+		t.Fatal("expected OnErr clause, got nil")
+	}
+
+	if varDecl.OnErr.Alias != "e" {
+		t.Errorf("expected alias 'e', got '%s'", varDecl.OnErr.Alias)
+	}
+
+	if varDecl.OnErr.Handler == nil {
+		t.Fatal("expected handler, got nil")
+	}
+}
+
 func TestParseThreeValueAssignment(t *testing.T) {
 	input := `func Test()
     _, ipNet, err := net.ParseCIDR("192.168.0.0/16")
