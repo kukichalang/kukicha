@@ -107,6 +107,16 @@ func (l *Lowerer) lowerOnErrHandler(clause *ast.OnErrClause, names []string, err
 		return body
 	}
 
+	if clause.ShorthandContinue {
+		body.Add(&ir.RawStmt{Code: "continue"})
+		return body
+	}
+
+	if clause.ShorthandBreak {
+		body.Add(&ir.RawStmt{Code: "break"})
+		return body
+	}
+
 	// explain wrapping
 	if clause.Explain != "" {
 		l.gen.addImport("fmt")

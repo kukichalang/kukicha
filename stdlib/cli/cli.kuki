@@ -248,14 +248,14 @@ func printHelp(app App)
     print("")
     print("Commands:")
     for cmd in app.subcommands
-        padded := string.PadRight(cmd.name, 14, " ")
+        padded := cmd.name |> string.PadRight(14)
         print("  {padded}{cmd.description}")
 
     if len(app.globalFlags) > 0
         print("")
         print("Global Flags:")
         for flag in app.globalFlags
-            label := string.PadRight("--{flag.name}", 20, " ")
+            label := string.PadRight("--{flag.name}", 20)
             if flag.defaultValue != ""
                 print("  {label}{flag.description} (default: {flag.defaultValue})")
             else
@@ -276,14 +276,14 @@ func printCommandHelp(app App, cmd SubcommandDef)
         print("Flags:")
 
     for flag in app.globalFlags
-        label := string.PadRight("--{flag.name}", 20, " ")
+        label := string.PadRight("--{flag.name}", 20)
         if flag.defaultValue != ""
             print("  {label}{flag.description} (default: {flag.defaultValue})")
         else
             print("  {label}{flag.description}")
 
     for flag in cmd.flags
-        label := string.PadRight("--{flag.name}", 20, " ")
+        label := string.PadRight("--{flag.name}", 20)
         if flag.defaultValue != ""
             print("  {label}{flag.description} (default: {flag.defaultValue})")
         else

@@ -351,3 +351,107 @@ func TestFloatLiteralPrecision(t *testing.T) {
 		t.Errorf("expected float 3.14159265358979 to be preserved, got: %s", output)
 	}
 }
+
+func TestStdlibDefaultParametersApplied(t *testing.T) {
+	input := `import "stdlib/string"
+
+func Format(s string) string
+    return string.PadRight(s, 10)
+`
+	output := generateSource(t, input)
+
+	// Should fill in the default " " for padChar
+	if !strings.Contains(output, `kukistring.PadRight(s, 10, " ")`) {
+		t.Errorf("expected default padChar to be filled in, got: %s", output)
+	}
+}
+
+func TestStdlibDefaultParametersExplicitOverride(t *testing.T) {
+	input := `import "stdlib/string"
+
+func Format(s string) string
+    return string.PadRight(s, 10, "-")
+`
+	output := generateSource(t, input)
+
+	// Explicit override should be preserved
+	if !strings.Contains(output, `kukistring.PadRight(s, 10, "-")`) {
+		t.Errorf("expected explicit padChar override, got: %s", output)
+	}
+}
+
+func TestStdlibDefaultParametersInPipe(t *testing.T) {
+	input := `import "stdlib/string"
+
+func Format(s string) string
+    return s |> string.PadRight(10)
+`
+	output := generateSource(t, input)
+
+	// Should fill in the default " " for padChar even through a pipe
+	if !strings.Contains(output, `kukistring.PadRight(s, 10, " ")`) {
+		t.Errorf("expected default padChar to be filled in via pipe, got: %s", output)
+	}
+}
+
+func TestOnErrContinue(t *testing.T) {
+	input := `func Process(items list of string)
+    for item in items
+        v := doWork(item) onerr continue
+        print(v)
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "continue") {
+		t.Errorf("expected 'continue' in output, got: %s", output)
+	}
+	if !strings.Contains(output, "!= nil") {
+		t.Errorf("expected error check, got: %s", output)
+	}
+}
+
+func TestPipeInStringInterpolation(t *testing.T) {
+	input := `func Show(name string) string
+    return "{name |> toUpper()}"
+`
+	output := generateSource(t, input)
+
+	// Should NOT contain "|>" in the generated Go
+	if strings.Contains(output, "|>") {
+		t.Errorf("pipe operator should not appear in generated Go, got: %s", output)
+	}
+	// Should contain the pipe result as a function call
+	if !strings.Contains(output, "toUpper(name)") {
+		t.Errorf("expected pipe to be converted to function call, got: %s", output)
+	}
+}
+
+func TestMultiPipeInStringInterpolation(t *testing.T) {
+	input := `func Show(name string) string
+    return "{name |> trim() |> toUpper()}"
+`
+	output := generateSource(t, input)
+
+	if strings.Contains(output, "|>") {
+		t.Errorf("pipe operator should not appear in generated Go, got: %s", output)
+	}
+	if !strings.Contains(output, "toUpper(trim(name))") {
+		t.Errorf("expected nested pipe calls, got: %s", output)
+	}
+}
+
+func TestOnErrBreak(t *testing.T) {
+	input := `func Process(items list of string)
+    for item in items
+        v := doWork(item) onerr break
+        print(v)
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "break") {
+		t.Errorf("expected 'break' in output, got: %s", output)
+	}
+	if !strings.Contains(output, "!= nil") {
+		t.Errorf("expected error check, got: %s", output)
+	}
+}

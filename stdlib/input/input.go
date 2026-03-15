@@ -11,90 +11,90 @@ import (
 	"strconv"
 )
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:15
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:15
 func ReadLine(prompt string) (string, error) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:16
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:16
 	if prompt != "" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:17
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:17
 		fmt.Print(prompt)
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:19
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:19
 	reader := bufio.NewReader(os.Stdin)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:20
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20
 	text, err_1 := reader.ReadString('\n')
 	if err_1 != nil {
 		return "", err_1
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:21
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:21
 	return kukistring.TrimSpace(text), nil
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:25
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:25
 func Prompt(prompt string) string {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:26
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:26
 	result, err := ReadLine(prompt)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:27
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:27
 	if err != nil {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:28
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:28
 		panic(err)
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:29
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:29
 	return result
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:34
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:34
 func Confirm(prompt string) (bool, error) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:35
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:35
 	answer, err_2 := ReadLine(fmt.Sprintf("%v [y/N]: ", prompt))
 	if err_2 != nil {
 		return false, errors.New(fmt.Sprintf("%v", err_2))
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:36
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:36
 	lower := kukistring.ToLower(kukistring.TrimSpace(answer))
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:37
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:37
 	return ((lower == "y") || (lower == "yes")), nil
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:45
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:45
 func Choose(prompt string, options []string) (int, error) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:46
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:46
 	if len(options) == 0 {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:47
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:47
 		return -1, errors.New("no options provided")
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:49
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:49
 	fmt.Println(prompt)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:50
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:50
 	fmt.Println("")
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:51
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:51
 	for i, opt := range options {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:52
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:52
 		fmt.Printf("  %d) %s\n", (i + 1), opt)
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:53
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:53
 	fmt.Println("")
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:55
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:55
 	raw, err_3 := ReadLine("Enter number (or q to quit): ")
 	if err_3 != nil {
 		return -1, errors.New(fmt.Sprintf("%v", err_3))
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:56
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:56
 	trimmed := kukistring.TrimSpace(raw)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:58
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:58
 	if ((trimmed == "") || (trimmed == "q")) || (trimmed == "Q") {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:59
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:59
 		return -1, errors.New("cancelled")
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:61
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:61
 	val, err_4 := strconv.Atoi(trimmed)
 	if err_4 != nil {
 		return -1, errors.New(fmt.Sprintf("invalid selection: %v", trimmed))
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:62
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:62
 	if (val < 1) || (val > len(options)) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:63
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:63
 		return -1, errors.New(fmt.Sprintf("selection out of range: %v", val))
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/input/input.kuki:65
+//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:65
 	return (val - 1), nil
 }

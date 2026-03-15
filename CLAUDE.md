@@ -121,6 +121,8 @@ data := fetchData() onerr return                      # Propagate error (shortha
 data := fetchData() onerr return empty, error "{error}" # Propagate error (verbose, wraps error)
 port := getPort() onerr 8080                          # Default value
 _ := riskyOp() onerr discard                          # Ignore error
+v := parse(item) onerr continue                       # Skip iteration on error (inside for loop)
+v := parse(item) onerr break                          # Exit loop on error (inside for loop)
 
 # Explain syntax - wrap error with hint message
 data := fetchData() onerr explain "failed to fetch data"  # Standalone: returns wrapped error
@@ -144,6 +146,8 @@ payload := fetchData() onerr as e
 | Panic | `x := f() onerr panic "msg"` | — |
 | Propagate shorthand | `x := f() onerr return` | — |
 | Propagate inline | `x := f() onerr return empty, error "{error}"` | `{error}` in string |
+| Continue (loop) | `x := f() onerr continue` | — |
+| Break (loop) | `x := f() onerr break` | — |
 | Block (multi-stmt) | `x := f() onerr` + indented body | `{error}` in interpolation |
 | Block with alias | `x := f() onerr as e` + indented body | `{e}` or `{error}` in interpolation |
 

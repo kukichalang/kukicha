@@ -4,411 +4,411 @@ package datetime
 
 import "time"
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:21
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:21
 func Format(t time.Time, format string) string {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:22
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:22
 	layout := getLayout(format)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:23
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:23
 	return t.Format(layout)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:28
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:28
 func Parse(value string, format string) (time.Time, error) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:29
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:29
 	layout := getLayout(format)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:30
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:30
 	return time.Parse(layout, value)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:34
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:34
 func ParseInLocation(value string, format string, location string) (time.Time, error) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:35
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:35
 	layout := getLayout(format)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:36
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:36
 	loc, err_1 := time.LoadLocation(location)
 	if err_1 != nil {
 		return *new(time.Time), err_1
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:37
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:37
 	return time.ParseInLocation(layout, value, loc)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:41
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:41
 func Now() time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:42
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:42
 	return time.Now()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:46
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:46
 func Today() time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:47
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:47
 	now := time.Now()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:48
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:48
 	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:52
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:52
 func Tomorrow() time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:53
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:53
 	return Today().AddDate(0, 0, 1)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:57
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:57
 func Yesterday() time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:58
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:58
 	return Today().AddDate(0, 0, -1)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:65
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:65
 func Nanoseconds(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:66
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:66
 	return time.Duration((n * 1))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:70
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:70
 func Microseconds(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:71
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:71
 	return time.Duration((n * 1000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:75
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:75
 func Milliseconds(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:76
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:76
 	return time.Duration((n * 1000000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:80
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:80
 func Seconds(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:81
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:81
 	return time.Duration((n * 1000000000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:85
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:85
 func Minutes(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:86
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:86
 	return time.Duration((n * 60000000000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:90
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:90
 func Hours(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:91
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:91
 	return time.Duration((n * 3600000000000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:95
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:95
 func Days(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:96
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:96
 	return time.Duration((n * 86400000000000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:100
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:100
 func Weeks(n int64) time.Duration {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:101
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:101
 	return time.Duration((n * 604800000000000))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:107
 func AddDays(t time.Time, days int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:108
 	return t.AddDate(0, 0, days)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:112
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:112
 func AddWeeks(t time.Time, weeks int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:113
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:113
 	return t.AddDate(0, 0, (weeks * 7))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:117
 func AddMonths(t time.Time, months int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:118
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:118
 	return t.AddDate(0, months, 0)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:122
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:122
 func AddYears(t time.Time, years int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:123
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:123
 	return t.AddDate(years, 0, 0)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:127
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:127
 func SubDays(t time.Time, days int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:128
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:128
 	return t.AddDate(0, 0, -days)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:132
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:132
 func SubWeeks(t time.Time, weeks int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:133
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:133
 	return t.AddDate(0, 0, (-weeks * 7))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:137
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:137
 func SubMonths(t time.Time, months int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:138
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:138
 	return t.AddDate(0, -months, 0)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:142
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:142
 func SubYears(t time.Time, years int) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:143
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:143
 	return t.AddDate(-years, 0, 0)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:149
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:149
 func IsBefore(t1 time.Time, t2 time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:150
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:150
 	return t1.Before(t2)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:154
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:154
 func IsAfter(t1 time.Time, t2 time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:155
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:155
 	return t1.After(t2)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:159
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:159
 func IsBetween(t time.Time, start time.Time, end time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:160
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:160
 	atOrAfterStart := t.Equal(start)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:161
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:161
 	afterStart := t.After(start)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:162
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:162
 	atOrBeforeEnd := t.Equal(end)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:163
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:163
 	beforeEnd := t.Before(end)
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:164
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:164
 	return ((atOrAfterStart || afterStart) && (atOrBeforeEnd || beforeEnd))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:168
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:168
 func IsSameDay(t1 time.Time, t2 time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:169
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:169
 	y1 := t1.Year()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:170
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:170
 	m1 := t1.Month()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:171
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:171
 	d1 := t1.Day()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:172
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:172
 	y2 := t2.Year()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:173
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:173
 	m2 := t2.Month()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:174
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:174
 	d2 := t2.Day()
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:175
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:175
 	return (((y1 == y2) && (m1 == m2)) && (d1 == d2))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:179
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:179
 func IsToday(t time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:180
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:180
 	return IsSameDay(t, time.Now())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:184
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:184
 func IsYesterday(t time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:185
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:185
 	return IsSameDay(t, Yesterday())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:189
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:189
 func IsTomorrow(t time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:190
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:190
 	return IsSameDay(t, Tomorrow())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:194
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:194
 func IsPast(t time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:195
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:195
 	return t.Before(time.Now())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:199
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:199
 func IsFuture(t time.Time) bool {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:200
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:200
 	return t.After(time.Now())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:206
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:206
 func Year(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:207
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:207
 	return t.Year()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:211
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:211
 func Month(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:212
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:212
 	return int(t.Month())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:216
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:216
 func Day(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:217
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:217
 	return t.Day()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:221
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:221
 func Hour(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:222
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:222
 	return t.Hour()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:226
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:226
 func Minute(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:227
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:227
 	return t.Minute()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:231
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:231
 func Second(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:232
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:232
 	return t.Second()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:236
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:236
 func Weekday(t time.Time) int {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:237
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:237
 	return int(t.Weekday())
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:241
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:241
 func WeekdayName(t time.Time) string {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:242
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:242
 	return t.Weekday().String()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:248
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:248
 func Unix(t time.Time) int64 {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:249
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:249
 	return t.Unix()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:253
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:253
 func UnixMilli(t time.Time) int64 {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:254
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:254
 	return t.UnixMilli()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:258
 func FromUnix(sec int64) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:259
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:259
 	return time.Unix(sec, 0)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:263
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:263
 func FromUnixMilli(msec int64) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:264
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:264
 	return time.UnixMilli(msec)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:270
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:270
 func Sleep(d time.Duration) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:271
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:271
 	time.Sleep(d)
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:275
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:275
 func SleepSeconds(n int64) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:276
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:276
 	time.Sleep((time.Duration(n) * time.Second))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:280
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:280
 func SleepMilliseconds(n int64) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:281
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:281
 	time.Sleep((time.Duration(n) * time.Millisecond))
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:287
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:287
 func InUTC(t time.Time) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:288
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:288
 	return t.UTC()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:292
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:292
 func InLocal(t time.Time) time.Time {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:293
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:293
 	return t.Local()
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:297
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:297
 func InLocation(t time.Time, location string) (time.Time, error) {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:298
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:298
 	loc, err_2 := time.LoadLocation(location)
 	if err_2 != nil {
 		return *new(time.Time), err_2
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:299
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:299
 	return t.In(loc), nil
 }
 
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:302
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:302
 func getLayout(format string) string {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:303
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:303
 	if (format == "iso8601") || (format == "ISO8601") {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:304
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:304
 		return "2006-01-02T15:04:05Z07:00"
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:305
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:305
 	if (format == "rfc3339") || (format == "RFC3339") {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:306
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:306
 		return time.RFC3339
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:307
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:307
 	if (format == "rfc3339nano") || (format == "RFC3339Nano") {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:308
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:308
 		return time.RFC3339Nano
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:309
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:309
 	if format == "date" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:310
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:310
 		return "2006-01-02"
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:311
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:311
 	if format == "time" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:312
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:312
 		return "15:04:05"
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:313
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:313
 	if format == "datetime" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:314
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:314
 		return "2006-01-02 15:04:05"
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:315
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:315
 	if format == "dateTimeT" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:316
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:316
 		return "2006-01-02T15:04:05"
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:317
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:317
 	if format == "kitchen" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:318
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:318
 		return time.Kitchen
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:319
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:319
 	if format == "stamp" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:320
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:320
 		return time.Stamp
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:321
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:321
 	if format == "rfc822" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:322
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:322
 		return time.RFC822
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:323
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:323
 	if format == "rfc1123" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:324
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:324
 		return time.RFC1123
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:325
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:325
 	if format == "ansic" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:326
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:326
 		return time.ANSIC
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:327
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:327
 	if format == "unixdate" {
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:328
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:328
 		return time.UnixDate
 	}
-//line /Users/tluker/repos/go/kukicha/.claude/worktrees/vigorous-liskov/stdlib/datetime/datetime.kuki:330
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:330
 	return format
 }

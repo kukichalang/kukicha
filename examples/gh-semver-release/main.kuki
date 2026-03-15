@@ -229,7 +229,7 @@ func doPick(args cli.Args, initialTag string)
         displayCurrent := entry.current
         if displayCurrent == ""
             displayCurrent = "<none>"
-        line := string.PadRight(entry.name, 40, " ") + "  " + string.PadRight(displayCurrent, 12, " ") + "  →  " + entry.next
+        line := string.PadRight(entry.name, 40) + "  " + string.PadRight(displayCurrent, 12) + "  →  " + entry.next
         labels = append(labels, line)
 
     i := input.Choose("Select a repo to release:", labels) onerr

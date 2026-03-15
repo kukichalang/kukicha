@@ -170,7 +170,7 @@ Currently supported directives:
 
 ### OnErrClause
 
-`OnErrClause` is **not** a standalone `Statement` or `Expression`. It is an optional field on `VarDeclStmt`, `AssignStmt`, and `ExpressionStmt`. The `Handler` field holds the parsed error handler expression (`PanicExpr`, `EmptyExpr`, `DiscardExpr`, `ReturnExpr`, or a default value expression).
+`OnErrClause` is **not** a standalone `Statement` or `Expression`. It is an optional field on `VarDeclStmt`, `AssignStmt`, and `ExpressionStmt`. The `Handler` field holds the parsed error handler expression (`PanicExpr`, `EmptyExpr`, `DiscardExpr`, `ReturnExpr`, or a default value expression). Shorthand forms use boolean flags instead of `Handler`: `ShorthandReturn`, `ShorthandContinue`, `ShorthandBreak`.
 
 ---
 
@@ -226,7 +226,7 @@ When a new stdlib function is added to a `.kuki` file, run `make genstdlibregist
 1. **`generatedStdlibRegistry`** (`stdlib_registry_gen.go`) — return counts, **per-position return types**, and **parameter names** for Kukicha stdlib functions, generated from `.kuki` files by `cmd/genstdlibregistry`. Uses the shared `goStdlibEntry` struct.
 2. **`generatedGoStdlib`** (`go_stdlib_gen.go`) — return counts **and per-position type info** for Go stdlib functions, generated from Go's `go/importer` by `cmd/gengostdlib`. Includes `TypeKind` and optional `Name` for each return position (e.g., `os.WriteFile` → `[{TypeKindNamed, "error"}]`).
 
-Both registries use the `goStdlibEntry` and `goStdlibType` types defined in `stdlib_types.go`. The Kukicha registry additionally populates `ParamNames` for named argument support.
+Both registries use the `goStdlibEntry` and `goStdlibType` types defined in `stdlib_types.go`. The Kukicha registry additionally populates `ParamNames` for named argument support and `DefaultValues` for default parameter filling in codegen.
 
 In `analyzeMethodCallExpr`, the Go stdlib registry is checked first, then the Kukicha registry. Both provide full type info for package-level functions and methods. Named arguments on Kukicha stdlib calls are resolved using `ParamNames` from the registry.
 
@@ -242,7 +242,7 @@ Add a new `checkXxx` method in `semantic_security.go` following the existing pat
 
 ### stdlib_types.go
 
-Defines the shared `goStdlibType` and `goStdlibEntry` structs used by both generated registries. Not auto-generated — edit directly when adding fields.
+Defines the shared `goStdlibType` and `goStdlibEntry` structs used by both generated registries. Not auto-generated — edit directly when adding fields. Also exports `GetStdlibEntry(name)` for codegen to look up stdlib defaults.
 
 ### stdlib_registry_gen.go
 

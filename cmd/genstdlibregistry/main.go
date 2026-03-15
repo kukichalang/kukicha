@@ -50,9 +50,10 @@ func main() {
 
 // registryEntry holds the full signature info for a stdlib function.
 type registryEntry struct {
-	count      int
-	types      []typeRepr   // per-position return types
-	paramNames []string     // parameter names (for named argument support)
+	count         int
+	types         []typeRepr   // per-position return types
+	paramNames    []string     // parameter names (for named argument support)
+	defaultValues []string     // Go expression strings for default values; "" = no default
 }
 
 // typeRepr is the generator's representation of a type, emitted as goStdlibType.
@@ -152,17 +153,27 @@ func scanRegistry(paths []string) (scanResult, []error) {
 				types[i] = typeAnnotationToRepr(ret)
 			}
 
-			// Extract parameter names
+			// Extract parameter names and default values
 			paramNames := make([]string, len(fd.Parameters))
+			defaultValues := make([]string, len(fd.Parameters))
+			hasDefaults := false
 			for i, param := range fd.Parameters {
 				paramNames[i] = param.Name.Value
+				if param.DefaultValue != nil {
+					defaultValues[i] = defaultValueToGo(param.DefaultValue)
+					hasDefaults = true
+				}
+			}
+			if !hasDefaults {
+				defaultValues = nil
 			}
 
 			if existing, exists := result.registry[key]; !exists || returnCount > existing.count {
 				result.registry[key] = registryEntry{
-					count:      returnCount,
-					types:      types,
-					paramNames: paramNames,
+					count:         returnCount,
+					types:         types,
+					paramNames:    paramNames,
+					defaultValues: defaultValues,
 				}
 			}
 		}
@@ -214,6 +225,27 @@ func formatTypeRepr(tr typeRepr) string {
 	return fmt.Sprintf("{Kind: %s}", tr.kind)
 }
 
+// defaultValueToGo converts an AST default value expression to a Go expression string.
+func defaultValueToGo(expr ast.Expression) string {
+	switch e := expr.(type) {
+	case *ast.StringLiteral:
+		return fmt.Sprintf("%q", e.Value)
+	case *ast.IntegerLiteral:
+		return fmt.Sprintf("%d", e.Value)
+	case *ast.FloatLiteral:
+		return fmt.Sprintf("%g", e.Value)
+	case *ast.BooleanLiteral:
+		if e.Value {
+			return "true"
+		}
+		return "false"
+	case *ast.EmptyExpr:
+		return "nil"
+	default:
+		return ""
+	}
+}
+
 // formatRegistry generates the Go source code for stdlib_registry_gen.go from
 // the scan result. Returns gofmt'd source.
 func formatRegistry(result scanResult) []byte {
@@ -233,10 +265,27 @@ func formatRegistry(result scanResult) []byte {
 		}
 		paramsLiteral := strings.Join(paramParts, ", ")
 
-		entries = append(entries, fmt.Sprintf(
-			"\t%q: {Count: %d, Types: []goStdlibType{%s}, ParamNames: []string{%s}},",
-			k, v.count, typesLiteral, paramsLiteral,
-		))
+		// Build the default values slice literal (only if there are defaults)
+		defaultsLiteral := ""
+		if len(v.defaultValues) > 0 {
+			defaultParts := make([]string, len(v.defaultValues))
+			for i, dv := range v.defaultValues {
+				defaultParts[i] = fmt.Sprintf("%q", dv)
+			}
+			defaultsLiteral = strings.Join(defaultParts, ", ")
+		}
+
+		if defaultsLiteral != "" {
+			entries = append(entries, fmt.Sprintf(
+				"\t%q: {Count: %d, Types: []goStdlibType{%s}, ParamNames: []string{%s}, DefaultValues: []string{%s}},",
+				k, v.count, typesLiteral, paramsLiteral, defaultsLiteral,
+			))
+		} else {
+			entries = append(entries, fmt.Sprintf(
+				"\t%q: {Count: %d, Types: []goStdlibType{%s}, ParamNames: []string{%s}},",
+				k, v.count, typesLiteral, paramsLiteral,
+			))
+		}
 	}
 	sort.Strings(entries)
 

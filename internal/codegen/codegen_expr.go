@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/duber000/kukicha/internal/ast"
+	"github.com/duber000/kukicha/internal/parser"
 	"github.com/duber000/kukicha/internal/semantic"
 )
 
@@ -493,6 +494,13 @@ func (g *Generator) transformInterpolatedExpr(expr string) string {
 		}
 	}
 
+	// Handle pipe expressions: re-parse and generate valid Go
+	if strings.Contains(expr, "|>") {
+		if result, ok := g.parseAndGenerateInterpolatedExpr(expr); ok {
+			return result
+		}
+	}
+
 	// Handle "X as Type" -> "Type(X)" for type conversions
 	// This is a simple string-based transformation for common cases
 	asRe := regexp.MustCompile(`^(.+)\s+as\s+(\w+)$`)
@@ -502,6 +510,39 @@ func (g *Generator) transformInterpolatedExpr(expr string) string {
 		return fmt.Sprintf("%s(%s)", targetType, value)
 	}
 	return expr
+}
+
+// parseAndGenerateInterpolatedExpr re-parses a Kukicha expression string
+// (e.g., from string interpolation) into an AST node, then generates valid Go.
+// This handles pipe expressions and other Kukicha syntax that cannot be
+// emitted as raw strings.
+func (g *Generator) parseAndGenerateInterpolatedExpr(exprStr string) (string, bool) {
+	// Wrap in a synthetic function so the parser has a valid context
+	src := fmt.Sprintf("func __interp__()\n    __x__ := %s\n", exprStr)
+	p, err := parser.New(src, "__interp__.kuki")
+	if err != nil {
+		return "", false
+	}
+	prog, parseErrors := p.Parse()
+	if len(parseErrors) > 0 || prog == nil {
+		return "", false
+	}
+
+	// Extract the expression from the parsed var decl
+	for _, decl := range prog.Declarations {
+		fd, ok := decl.(*ast.FunctionDecl)
+		if !ok || fd.Body == nil {
+			continue
+		}
+		for _, stmt := range fd.Body.Statements {
+			vd, ok := stmt.(*ast.VarDeclStmt)
+			if !ok || len(vd.Values) == 0 {
+				continue
+			}
+			return g.exprToString(vd.Values[0]), true
+		}
+	}
+	return "", false
 }
 
 func (g *Generator) generateBinaryExpr(expr *ast.BinaryExpr) string {
@@ -675,6 +716,11 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 	// Build the argument list using the shared helper
 	args := g.buildPipeArgs(leftExpr, arguments)
 
+	// Fill in missing trailing args from stdlib registry defaults.
+	// funcName may have been aliased (e.g., "kukistring.PadRight"), so
+	// also try the original Kukicha name for registry lookup.
+	g.fillStdlibDefaults(funcName, expr.Right, &args)
+
 	// MCP special case: prepend os.Stderr for fmt.Fprintln
 	if g.mcpTarget && funcName == "fmt.Fprintln" {
 		args = append([]string{"os.Stderr"}, args...)
@@ -831,6 +877,10 @@ func (g *Generator) generateMethodCallExpr(expr *ast.MethodCallExpr) string {
 		args = append(args, g.exprToString(namedArg.Value))
 	}
 
+	// Fill in missing trailing args from stdlib registry defaults
+	goName := object + "." + method
+	g.fillStdlibDefaults(goName, expr, &args)
+
 	if expr.Variadic {
 		return fmt.Sprintf("%s.%s(%s...)", object, method, strings.Join(args, ", "))
 	}
@@ -846,6 +896,43 @@ func (g *Generator) generateFieldAccessExpr(expr *ast.FieldAccessExpr) string {
 	}
 
 	return fmt.Sprintf("%s.%s", object, field)
+}
+
+// fillStdlibDefaults appends missing trailing default values from the stdlib
+// registry to args. goName is the Go-aliased function name (e.g., "kukistring.PadRight").
+// exprNode is the AST node used to extract the original Kukicha package name.
+func (g *Generator) fillStdlibDefaults(goName string, exprNode ast.Expression, args *[]string) {
+	// Try the Go name first (works for non-aliased packages)
+	kukichaName := goName
+
+	// If Go name not in registry, derive the Kukicha name from the AST
+	if _, ok := semantic.GetStdlibEntry(kukichaName); !ok {
+		switch n := exprNode.(type) {
+		case *ast.MethodCallExpr:
+			if objID, ok := n.Object.(*ast.Identifier); ok {
+				kukichaName = objID.Value + "." + n.Method.Value
+			}
+		case *ast.CallExpr:
+			if mc, ok := n.Function.(*ast.MethodCallExpr); ok {
+				if objID, ok := mc.Object.(*ast.Identifier); ok {
+					kukichaName = objID.Value + "." + mc.Method.Value
+				}
+			}
+		}
+	}
+
+	entry, ok := semantic.GetStdlibEntry(kukichaName)
+	if !ok || len(entry.DefaultValues) == 0 {
+		return
+	}
+	for len(*args) < len(entry.ParamNames) {
+		idx := len(*args)
+		if idx < len(entry.DefaultValues) && entry.DefaultValues[idx] != "" {
+			*args = append(*args, entry.DefaultValues[idx])
+		} else {
+			break
+		}
+	}
 }
 
 // printfMethods lists printf-style methods that expect a format string as their first argument.

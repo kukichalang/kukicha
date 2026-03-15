@@ -276,8 +276,10 @@ type OnErrClause struct {
 	Token           lexer.Token // The 'onerr' token
 	Handler         Expression  // Error handler (panic, error, empty, discard, or default value)
 	Explain         string      // Optional explanation/hint for LLM (e.g., onerr explain "hint message")
-	ShorthandReturn bool        // True for bare "onerr return" — propagate error with zero values
-	Alias           string      // Named alias for the caught error in block handlers (e.g., "onerr as e")
+	ShorthandReturn   bool        // True for bare "onerr return" — propagate error with zero values
+	ShorthandContinue bool        // True for bare "onerr continue"
+	ShorthandBreak    bool        // True for bare "onerr break"
+	Alias             string      // Named alias for the caught error in block handlers (e.g., "onerr as e")
 }
 
 // ============================================================================

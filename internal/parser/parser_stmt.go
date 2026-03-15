@@ -938,6 +938,32 @@ func (p *Parser) parseInlineOnErrHandler(token lexer.Token) *ast.OnErrClause {
 		}
 	}
 
+	if p.check(lexer.TOKEN_CONTINUE) {
+		next := p.peekNextToken()
+		if next.Type == lexer.TOKEN_NEWLINE ||
+			next.Type == lexer.TOKEN_DEDENT ||
+			next.Type == lexer.TOKEN_EOF {
+			p.advance() // consume 'continue'
+			return &ast.OnErrClause{
+				Token:             token,
+				ShorthandContinue: true,
+			}
+		}
+	}
+
+	if p.check(lexer.TOKEN_BREAK) {
+		next := p.peekNextToken()
+		if next.Type == lexer.TOKEN_NEWLINE ||
+			next.Type == lexer.TOKEN_DEDENT ||
+			next.Type == lexer.TOKEN_EOF {
+			p.advance() // consume 'break'
+			return &ast.OnErrClause{
+				Token:          token,
+				ShorthandBreak: true,
+			}
+		}
+	}
+
 	// Check for standalone "onerr explain" (no handler before explain)
 	if p.check(lexer.TOKEN_EXPLAIN) {
 		p.advance() // consume 'explain'

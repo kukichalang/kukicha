@@ -103,9 +103,7 @@ func Highest(tags list of string) (string, error)
 
     best := Parse(valid[0]) onerr return "", error "{error}"
     for i from 1 to len(valid)
-        v, err := Parse(valid[i])
-        if err != empty
-            continue
+        v := Parse(valid[i]) onerr continue
         if Greater(v, best)
             best = v
 
