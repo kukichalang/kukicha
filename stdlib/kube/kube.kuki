@@ -311,7 +311,7 @@ func WaitPodReady(c Cluster, name string, timeoutSeconds int64) error
         if ready
             return empty
         if time.Now().After(deadline)
-            return fmt.Errorf("kube wait pod: timed out after %ds", timeoutSeconds)
+            return error "kube wait pod: timed out after {timeoutSeconds}s"
         time.Sleep(1 * time.Second)
 
 # WaitDeploymentReadyCtx waits for deployment readiness until the provided context is canceled.

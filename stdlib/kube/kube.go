@@ -532,7 +532,7 @@ func WaitPodReady(c Cluster, name string, timeoutSeconds int64) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:313
 		if time.Now().After(deadline) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:314
-			return fmt.Errorf("kube wait pod: timed out after %ds", timeoutSeconds)
+			return errors.New(fmt.Sprintf("kube wait pod: timed out after %vs", timeoutSeconds))
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:315
 		time.Sleep((1 * time.Second))

@@ -382,7 +382,7 @@ func eventsWithContext(engine Engine, h ctxpkg.Handle) (list of ContainerEvent, 
             when err := receive from errCh
                 if err == empty or goCtx.Err() != empty
                     return events, empty
-                return events, fmt.Errorf("container events: %w", err)
+                return events, error "container events: {err}"
             when msg, ok := receive from msgCh
                 if not ok
                     return events, empty
@@ -474,13 +474,13 @@ func loadDockerAuth(serverAddress string) (string, string, string, error)
                 ok = true
                 break
     if not ok
-        return "", "", "", fmt.Errorf("container auth: no credentials found for %s", serverAddress)
+        return "", "", "", error "container auth: no credentials found for {serverAddress}"
     if authEntry.Auth == ""
-        return "", "", "", fmt.Errorf("container auth: empty credentials for %s", serverAddress)
+        return "", "", "", error "container auth: empty credentials for {serverAddress}"
     decoded := base64.StdEncoding.DecodeString(authEntry.Auth) onerr explain "container auth decode"
     parts := string.SplitN(decoded as string, ":", 2)
     if len(parts) != 2
-        return "", "", "", fmt.Errorf("container auth: invalid credential format for %s", serverAddress)
+        return "", "", "", error "container auth: invalid credential format for {serverAddress}"
     return parts[0], parts[1], serverAddress, empty
 
 # LoginFromConfig loads registry credentials from ~/.docker/config.json.
@@ -513,16 +513,12 @@ func Connect() (Engine, error)
         if statErr == empty
             host = "unix://" + p
             break
-    cli, err := newClient(host)
-    if err != empty
-        return Engine{}, err
+    cli := newClient(host) onerr return
     return Engine{cli: cli}, empty
 
 # ConnectRemote creates an Engine connected to a specific Docker host.
 func ConnectRemote(host string) (Engine, error)
-    cli, err := newClient(host)
-    if err != empty
-        return Engine{}, err
+    cli := newClient(host) onerr return
     return Engine{cli: cli}, empty
 
 # Open creates an Engine from the builder configuration.
@@ -572,10 +568,8 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
         return copyErr
     )
     if walkErr != empty
-        return "", "", fmt.Errorf("container build context: %w", walkErr)
-    closeErr := tw.Close()
-    if closeErr != empty
-        return "", "", fmt.Errorf("container build tar: %w", closeErr)
+        return "", "", error "container build context: {walkErr}"
+    tw.Close() onerr explain "container build tar"
     buildOpts := dockertypes.ImageBuildOptions{
         Tags: list of string{tag},
         Remove: true,
@@ -593,7 +587,7 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
         msg := buildStreamMsg{}
         json.Unmarshal(scanner.Bytes(), reference of msg) onerr continue
         if msg.Error != ""
-            return "", output.String(), fmt.Errorf("container build: %s", msg.Error)
+            return "", output.String(), error "container build: {msg.Error}"
         if msg.Aux.ID != ""
             imageID = msg.Aux.ID
     scanner.Err() onerr explain "container build stream"
@@ -617,7 +611,7 @@ func extractTar(reader io.Reader, destPath string) error
         cleanName := filepath.Clean(header.Name)
         target := filepath.Join(destPath, cleanName)
         if not string.HasPrefix(target, cleanDest + "\sep") and filepath.Clean(target) != cleanDest
-            return fmt.Errorf("invalid archive path: %s", header.Name)
+            return error "invalid archive path: {header.Name}"
         switch header.Typeflag
             when tar.TypeDir
                 os.MkdirAll(target, os.FileMode(header.Mode)) onerr return
@@ -629,9 +623,9 @@ func extractTar(reader io.Reader, destPath string) error
                     return error "{error}"
                 f.Close() onerr return
             when tar.TypeSymlink, tar.TypeLink
-                return fmt.Errorf("archive contains unsupported link entry: %s", header.Name)
+                return error "archive contains unsupported link entry: {header.Name}"
             otherwise
-                return fmt.Errorf("archive contains unsupported entry type %d: %s", header.Typeflag, header.Name)
+                return error "archive contains unsupported entry type {header.Typeflag}: {header.Name}"
     return empty
 
 # createTarFromPath creates a tar archive from a file or directory.
@@ -642,7 +636,7 @@ func createTarFromPath(sourcePath string) (io.Reader, error)
     info := os.Lstat(absSourcePath) onerr explain "container copy to stat"
 
     if info.Mode().Type() == os.ModeSymlink
-        return empty, fmt.Errorf("container copy to: source path is a symlink: %s", absSourcePath)
+        return empty, error "container copy to: source path is a symlink: {absSourcePath}"
     buf := bytes.Buffer{}
     tw := tar.NewWriter(reference of buf)
     if info.IsDir()

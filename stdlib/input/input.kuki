@@ -23,16 +23,14 @@ func ReadLine(prompt string) (string, error)
 # Prompt is a helper that prints a prompt and reads a line
 # Panics if reading fails - useful for simple scripts
 func Prompt(prompt string) string
-    result, err := ReadLine(prompt)
-    if err != empty
-        panic(err)
+    result := ReadLine(prompt) onerr panic "{error}"
     return result
 
 # Confirm asks a yes/no question and returns true for y/yes, false otherwise
 # Returns an error only if reading stdin fails
 # Example: ok := input.Confirm("Proceed?") onerr return
 func Confirm(prompt string) (bool, error)
-    answer := ReadLine("{prompt} [y/N]: ") onerr return false, error "{error}"
+    answer := ReadLine("{prompt} [y/N]: ") onerr explain "confirm prompt"
     lower := string.ToLower(string.TrimSpace(answer))
     return lower == "y" or lower == "yes", empty
 
@@ -52,7 +50,7 @@ func Choose(prompt string, options list of string) (int, error)
         fmt.Printf("  %d) %s\n", i + 1, opt)
     print("")
 
-    raw := ReadLine("Enter number (or q to quit): ") onerr return -1, error "{error}"
+    raw := ReadLine("Enter number (or q to quit): ") onerr explain "choose prompt"
     trimmed := string.TrimSpace(raw)
 
     if trimmed == "" or trimmed == "q" or trimmed == "Q"

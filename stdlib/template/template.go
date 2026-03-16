@@ -128,33 +128,29 @@ func executeTextTemplate(tmpl *template.Template, data map[string]any) (string, 
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:100
 	buf := bytes.Buffer{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:101
-	err := tmpl.Execute(&buf, data)
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:102
-	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:103
-		return "", err
+	err_13 := tmpl.Execute(&buf, data)
+	if err_13 != nil {
+		return "", err_13
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:104
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:102
 	return buf.String(), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:106
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:104
 func parseHTMLTemplate(content string) (*htmltmpl.Template, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:105
 	return htmltmpl.New("template").Parse(content)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:107
 func executeHTMLTemplate(tmpl *htmltmpl.Template, data map[string]any) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:110
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:108
 	buf := bytes.Buffer{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:111
-	err := tmpl.Execute(&buf, data)
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:112
-	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:113
-		return "", err
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:109
+	err_14 := tmpl.Execute(&buf, data)
+	if err_14 != nil {
+		return "", err_14
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:114
+//line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:110
 	return buf.String(), nil
 }

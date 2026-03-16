@@ -21,7 +21,6 @@ petiole netguard
 import "context"
 import "net"
 import "net/http"
-import "fmt"
 import "syscall"
 import "stdlib/datetime"
 import "stdlib/net" as netutil
@@ -115,7 +114,7 @@ func DialContext(g Guard, ctx context.Context, network string, addr string) (net
             found = true
             break
     if not found
-        return empty, fmt.Errorf("netguard: all resolved IPs for %q are blocked", host)
+        return empty, error "netguard: all resolved IPs for '{host}' are blocked"
 
     # Dial with defense-in-depth Control function
     dialer := net.Dialer{Timeout: datetime.Seconds(30)}
@@ -123,7 +122,7 @@ func DialContext(g Guard, ctx context.Context, network string, addr string) (net
         connHost, _, _ := net.SplitHostPort(controlAddress)
         connIP := net.ParseIP(connHost)
         if connIP != empty and not checkIP(g, connIP)
-            return fmt.Errorf("netguard: connection to %s blocked by policy", connHost)
+            return error "netguard: connection to {connHost} blocked by policy"
         return empty
 
     dialAddr := net.JoinHostPort(dialIP.IP.String(), port)

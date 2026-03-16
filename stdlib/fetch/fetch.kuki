@@ -225,17 +225,15 @@ func CheckStatus(resp reference http.Response) (reference http.Response, error)
 # Example: resp |> fetch.Text()
 func Text(resp reference http.Response) (string, error)
     defer resp.Body.Close()
-    bodyBytes := io.ReadAll(resp.Body) onerr return "", error "{error}"
-    # Convert bytes to string using Go's built-in conversion
-    text := bodyBytes as string
-    return text, empty
+    bodyBytes := io.ReadAll(resp.Body) onerr return
+    return bodyBytes as string, empty
 
 # Bytes reads the response body as bytes
 # Perfect for JSON parsing: resp |> fetch.Bytes() |> json.Unmarshal(_, reference data)
 # Example: resp |> fetch.Bytes()
 func Bytes(resp reference http.Response) (list of byte, error)
     defer resp.Body.Close()
-    bodyBytes := io.ReadAll(resp.Body) onerr return empty, error "{error}"
+    bodyBytes := io.ReadAll(resp.Body) onerr return
     return bodyBytes, empty
 
 # Json reads the response body and unmarshals it as typed JSON.
@@ -380,14 +378,9 @@ func SessionDo(s Session, req Request) (reference http.Response, error)
             when string
                 bodyData = bodyStr as list of byte
             otherwise
-                jsonBytes, marshalErr := json.Marshal(req.body)
-                if marshalErr != empty
-                    return empty, marshalErr
-                bodyData = jsonBytes
+                bodyData = json.Marshal(req.body) onerr return
 
-    httpReq, reqErr := createHTTPRequest(req.method, req.url, bodyData)
-    if reqErr != empty
-        return empty, reqErr
+    httpReq := createHTTPRequest(req.method, req.url, bodyData) onerr return
 
     for name, value in req.headers
         httpReq.Header.Set(name, value)
@@ -398,8 +391,7 @@ func SessionDo(s Session, req Request) (reference http.Response, error)
         if contentType == ""
             httpReq.Header.Set("Content-Type", "application/json")
 
-    resp, doErr := s.client.Do(httpReq)
-    return resp, doErr
+    return s.client.Do(httpReq)
 
 # SessionGet performs an HTTP GET request using the session
 # Example: resp := fetch.SessionGet(session, "https://api.example.com/data")
@@ -430,7 +422,5 @@ func SessionTransport(s Session, t reference http.Transport) Session
 # Example: fetch.Get(url) |> fetch.DownloadTo(box, "data.json")
 func DownloadTo(resp reference http.Response, box sandbox.Root, path string) error
     defer resp.Body.Close()
-    bodyBytes, err := io.ReadAll(resp.Body)
-    if err != empty
-        return err
+    bodyBytes := io.ReadAll(resp.Body) onerr return
     return sandbox.WriteString(box, bodyBytes as string, path)

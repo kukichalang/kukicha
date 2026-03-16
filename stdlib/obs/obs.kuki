@@ -79,8 +79,7 @@ func Log(logger Logger, level string, message string, fields map of string to an
     if fields not equals empty
         maps.Copy(payload, fields)
 
-    line, err := json.Marshal(payload)
-    if err not equals empty
+    line := json.Marshal(payload) onerr
         print("[obs:{level}] {message}")
         return
     fmt.Printf("%s\n", line)

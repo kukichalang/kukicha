@@ -98,9 +98,7 @@ func parseTextTemplate(content string) (reference template.Template, error)
 
 func executeTextTemplate(tmpl reference template.Template, data map of string to any) (string, error)
     buf := bytes.Buffer{}
-    err := tmpl.Execute(reference of buf, data)
-    if err != empty
-        return "", err
+    tmpl.Execute(reference of buf, data) onerr return
     return buf.String(), empty
 
 func parseHTMLTemplate(content string) (reference htmltmpl.Template, error)
@@ -108,7 +106,5 @@ func parseHTMLTemplate(content string) (reference htmltmpl.Template, error)
 
 func executeHTMLTemplate(tmpl reference htmltmpl.Template, data map of string to any) (string, error)
     buf := bytes.Buffer{}
-    err := tmpl.Execute(reference of buf, data)
-    if err != empty
-        return "", err
+    tmpl.Execute(reference of buf, data) onerr return
     return buf.String(), empty
