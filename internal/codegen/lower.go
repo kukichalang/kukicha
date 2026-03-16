@@ -103,27 +103,31 @@ func (l *Lowerer) lowerOnErrHandler(clause *ast.OnErrClause, names []string, err
 
 	if clause.ShorthandReturn {
 		// onerr return (bare) — propagate error with zero values
-		body.Add(&ir.RawStmt{Code: l.gen.buildShorthandReturn(errVar)})
+		body.Add(l.buildReturnNode(errVar))
 		return body
 	}
 
 	if clause.ShorthandContinue {
-		body.Add(&ir.RawStmt{Code: "continue"})
+		body.Add(&ir.ExprStmt{Expr: "continue"})
 		return body
 	}
 
 	if clause.ShorthandBreak {
-		body.Add(&ir.RawStmt{Code: "break"})
+		body.Add(&ir.ExprStmt{Expr: "break"})
 		return body
 	}
 
 	// explain wrapping
 	if clause.Explain != "" {
 		l.gen.addImport("fmt")
-		body.Add(&ir.RawStmt{Code: fmt.Sprintf(`%s = fmt.Errorf("%s: %%w", %s)`, errVar, clause.Explain, errVar)})
+		body.Add(&ir.Assign{
+			Names:  []string{errVar},
+			Expr:   fmt.Sprintf(`fmt.Errorf("%s: %%w", %s)`, clause.Explain, errVar),
+			Walrus: false,
+		})
 		if clause.Handler == nil {
 			// Standalone explain: emit return
-			body.Add(&ir.RawStmt{Code: l.gen.buildShorthandReturn(errVar)})
+			body.Add(l.buildReturnNode(errVar))
 			return body
 		}
 	}
@@ -441,7 +445,7 @@ func (l *Lowerer) lowerOnErrStmt(exprStr string, expr ast.Expression, clause *as
 		}
 	} else if !ok {
 		// Return count inference failed — emit a comment so the user knows.
-		block.Add(&ir.RawStmt{Code: "// kukicha: could not infer return count; use explicit capture if incorrect"})
+		block.Add(&ir.Comment{Text: "kukicha: could not infer return count; use explicit capture if incorrect"})
 	}
 
 	lhs := append(blanks, errVar)
@@ -469,6 +473,24 @@ func (l *Lowerer) lowerOnErrWithExplicitErr(nameStrs []string, expr string, clau
 	handlerBlock := l.lowerOnErrHandler(clause, handlerNames, errVar)
 	block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock})
 	return block
+}
+
+// buildReturnNode creates an ir.ReturnStmt with zero values for all
+// non-error return types, plus the given error variable.
+func (l *Lowerer) buildReturnNode(errVar string) *ir.ReturnStmt {
+	if len(l.gen.currentReturnTypes) == 0 {
+		return &ir.ReturnStmt{Values: []string{errVar}}
+	}
+
+	var parts []string
+	for i, ret := range l.gen.currentReturnTypes {
+		if i == len(l.gen.currentReturnTypes)-1 {
+			parts = append(parts, errVar)
+		} else {
+			parts = append(parts, l.gen.zeroValueForType(ret))
+		}
+	}
+	return &ir.ReturnStmt{Values: parts}
 }
 
 // buildShorthandReturn renders a return statement with zero values for all

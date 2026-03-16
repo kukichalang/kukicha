@@ -288,6 +288,9 @@ The IR (Intermediate Representation) package defines Go-level imperative nodes u
 | `Label` | `LabelName:` |
 | `ScopedBlock` | Bare `{ ... }` block for variable scoping |
 | `RawStmt` | Pre-rendered Go statement (escape hatch) |
+| `ReturnStmt` | `return val1, val2, ...` |
+| `ExprStmt` | Standalone expression (`continue`, `break`, `panic(...)`) |
+| `Comment` | `// text` |
 
 The IR is intentionally thin — it models only the constructs needed by the onerr/pipe lowering passes. Other codegen paths still emit Go text directly.
 
@@ -384,6 +387,10 @@ Application code never sees this — it just calls functions normally.
 3. Build `fmt.Sprintf("...%v...", arg, ...)` format string and args list
 
 `escapeString` handles compile-time PUA sentinels (`\uE000` → `{`, `\uE001` → `}`) and standard Go escapes (`\n`, `\t`, `\\`, `\"`, `\x00`). It is **not** responsible for `\uE002` — that sentinel is expanded before `escapeString` sees it.
+
+### Child generators for inline code blocks
+
+Use `g.childGenerator(extraIndent)` when generating inline function bodies (function literals, arrow lambda blocks). The child shares the parent's semantic state by reference (program, autoImports, pkgAliases, exprTypes, etc.) and writes to a fresh `strings.Builder`. This replaces the old pattern of manually copying 8+ fields into a throwaway `Generator`.
 
 ### Writing to output
 

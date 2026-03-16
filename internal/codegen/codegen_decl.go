@@ -240,27 +240,17 @@ func (g *Generator) generateFunctionLiteral(lit *ast.FunctionLiteral) string {
 		signature += " " + returns
 	}
 
-	// Generate body inline - create temporary generator to capture output
-	tempGen := &Generator{
-		program:        g.program,
-		output:         strings.Builder{},
-		indent:         g.indent + 1,
-		placeholderMap: g.placeholderMap,
-		autoImports:    g.autoImports,
-		isStdlibIter:   g.isStdlibIter,
-		sourceFile:     g.sourceFile,
-		exprTypes:      g.exprTypes,
-	}
+	// Generate body inline using child generator
+	child := g.childGenerator(1)
 
 	var result strings.Builder
 	result.WriteString(signature + " {\n")
 
 	if lit.Body != nil {
-		// Generate body statements using temporary generator
 		for _, stmt := range lit.Body.Statements {
-			tempGen.generateStatement(stmt)
+			child.generateStatement(stmt)
 		}
-		result.WriteString(tempGen.output.String())
+		result.WriteString(child.output.String())
 	}
 
 	// Add proper indentation for closing brace
@@ -318,22 +308,11 @@ func (g *Generator) generateArrowLambda(lambda *ast.ArrowLambda) string {
 		// Block lambda: generate as multi-line anonymous function
 		returnType := g.inferBlockReturnType(lambda.Block)
 
-		// Create temporary generator to capture body output
-		tempGen := &Generator{
-			program:        g.program,
-			output:         strings.Builder{},
-			indent:         g.indent + 1,
-			placeholderMap: g.placeholderMap,
-			autoImports:    g.autoImports,
-			pkgAliases:     g.pkgAliases,
-			funcDefaults:   g.funcDefaults,
-			isStdlibIter:   g.isStdlibIter,
-			sourceFile:     g.sourceFile,
-			exprTypes:      g.exprTypes,
-		}
+		// Generate body using child generator
+		child := g.childGenerator(1)
 
 		for _, stmt := range lambda.Block.Statements {
-			tempGen.generateStatement(stmt)
+			child.generateStatement(stmt)
 		}
 
 		var result string
@@ -342,7 +321,7 @@ func (g *Generator) generateArrowLambda(lambda *ast.ArrowLambda) string {
 		} else {
 			result = fmt.Sprintf("func(%s) {\n", params)
 		}
-		result += tempGen.output.String()
+		result += child.output.String()
 		for i := 0; i < g.indent; i++ {
 			result += "\t"
 		}

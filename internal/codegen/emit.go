@@ -64,6 +64,19 @@ func (g *Generator) emitIRNode(node ir.Node) {
 			g.writeLine(n.Code)
 		}
 
+	case *ir.ReturnStmt:
+		if len(n.Values) == 0 {
+			g.writeLine("return")
+		} else {
+			g.writeLine(fmt.Sprintf("return %s", strings.Join(n.Values, ", ")))
+		}
+
+	case *ir.ExprStmt:
+		g.writeLine(n.Expr)
+
+	case *ir.Comment:
+		g.writeLine(fmt.Sprintf("// %s", n.Text))
+
 	case *ir.Block:
 		g.emitIR(n)
 	}
