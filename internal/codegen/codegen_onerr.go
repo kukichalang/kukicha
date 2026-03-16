@@ -86,10 +86,19 @@ func (g *Generator) generateOnErrHandler(names []*ast.Identifier, handler ast.Ex
 		g.writeLine(fmt.Sprintf("panic(%s)", g.generateStringInterpolation(msg)))
 	case *ast.ErrorExpr:
 		// onerr return empty, error - generate return with error
-		// This assumes the function returns (T, error)
 		errExpr := g.errorValueExpr(h.Message, errVar)
-		if len(names) > 0 {
-			// Return the first value and the error
+		if len(g.currentReturnTypes) > 2 {
+			// Function returns 3+ values — emit zero values for all non-error positions
+			var parts []string
+			for i, ret := range g.currentReturnTypes {
+				if i == len(g.currentReturnTypes)-1 {
+					parts = append(parts, errExpr)
+				} else {
+					parts = append(parts, g.zeroValueForType(ret))
+				}
+			}
+			g.writeLine(fmt.Sprintf("return %s", strings.Join(parts, ", ")))
+		} else if len(names) > 0 {
 			g.writeLine(fmt.Sprintf("return %s, %s", names[0].Value, errExpr))
 		} else {
 			g.writeLine(fmt.Sprintf("return %s", errExpr))
@@ -164,7 +173,10 @@ func (g *Generator) emitOnErrDiscard(clause *ast.OnErrClause, lhsParts []string,
 				g.writeLine(fmt.Sprintf("%s = %s", strings.Join(blanks, ", "), g.exprToString(expr)))
 			}
 		} else {
-			// Fallback: when return count inference fails, default to a single blank assignment.
+			// Fallback: return count inference failed — emit a single blank assignment.
+			// This may discard extra return values. If incorrect, use explicit
+			// variable capture: _ := f() onerr discard
+			g.writeLine("// kukicha: could not infer return count; using _ = ... (use explicit capture if incorrect)")
 			g.writeLine(fmt.Sprintf("_ = %s", g.exprToString(expr)))
 		}
 		return true

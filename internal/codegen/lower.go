@@ -439,6 +439,9 @@ func (l *Lowerer) lowerOnErrStmt(exprStr string, expr ast.Expression, clause *as
 		for i := 0; i < count-1; i++ {
 			blanks = append(blanks, "_")
 		}
+	} else if !ok {
+		// Return count inference failed — emit a comment so the user knows.
+		block.Add(&ir.RawStmt{Code: "// kukicha: could not infer return count; use explicit capture if incorrect"})
 	}
 
 	lhs := append(blanks, errVar)

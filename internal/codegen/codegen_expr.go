@@ -188,7 +188,8 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 	case *ast.PipedSwitchExpr:
 		return g.generatePipedSwitchExpr(e)
 	default:
-		return ""
+		pos := expr.Pos()
+		panic(fmt.Sprintf("codegen: unhandled expression type %T at %s:%d:%d", expr, pos.File, pos.Line, pos.Column))
 	}
 }
 
@@ -709,8 +710,8 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 		}
 		return fmt.Sprintf("%s(%s)", funcName, leftExpr)
 	} else {
-		// Fallback: If piping into something that isn't a call
-		return leftExpr + " |> " + g.exprToString(expr.Right)
+		pos := expr.Right.Pos()
+		panic(fmt.Sprintf("codegen: unhandled pipe target %T at %s:%d:%d", expr.Right, pos.File, pos.Line, pos.Column))
 	}
 
 	// Build the argument list using the shared helper

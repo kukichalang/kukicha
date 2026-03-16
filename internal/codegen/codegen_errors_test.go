@@ -507,3 +507,95 @@ func TestFilepathSeparatorEscapeMixedWithInterpolation(t *testing.T) {
 		t.Errorf("expected file variable in output, got: %s", output)
 	}
 }
+
+func TestOnErrErrorExprThreeReturnValues(t *testing.T) {
+	// Fix 3: onerr error "msg" (shorthand) should emit zero values for all
+	// non-error return positions when function has 3+ return values.
+	input := `func fetch() (string, int, error)
+    return "", 0, empty
+
+func Process() (string, int, error)
+    x := fetch() onerr error "failed: {error}"
+    return x, 42, empty
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	t.Logf("Generated output:\n%s", output)
+
+	// Should emit zero values for all non-error return positions
+	if !strings.Contains(output, `return "", 0,`) {
+		t.Errorf("expected zero values for string and int return types, got: %s", output)
+	}
+}
+
+func TestOnErrDiscardFallbackEmitsComment(t *testing.T) {
+	// Fix 4: when return count inference fails for discard, emit a comment warning.
+	// We simulate this by using a method call on an unknown external type
+	// where inferReturnCount cannot determine the count.
+	input := `import "os"
+
+func Use()
+    os.LookupEnv("X") onerr discard
+`
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	// With semantic analysis, inferReturnCount succeeds — should NOT have warning comment
+	analyzer := semantic.New(program)
+	semErrors := analyzer.Analyze()
+	if len(semErrors) > 0 {
+		t.Fatalf("semantic errors: %v", semErrors)
+	}
+
+	gen := New(program)
+	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if strings.Contains(output, "// kukicha: could not infer") {
+		t.Errorf("should not emit warning comment when semantic return counts are available, got: %s", output)
+	}
+
+	// Without semantic analysis, inferReturnCount fails — should have warning comment
+	gen2 := New(program)
+	output2, err := gen2.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output2, "// kukicha: could not infer") {
+		t.Errorf("expected warning comment when return count inference fails, got: %s", output2)
+	}
+}
