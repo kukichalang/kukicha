@@ -492,22 +492,3 @@ func (l *Lowerer) buildReturnNode(errVar string) *ir.ReturnStmt {
 	}
 	return &ir.ReturnStmt{Values: parts}
 }
-
-// buildShorthandReturn renders a return statement with zero values for all
-// non-error return types, plus the given error variable. Extracted from
-// generateStandaloneExplainReturn for use in IR lowering.
-func (g *Generator) buildShorthandReturn(errVar string) string {
-	if len(g.currentReturnTypes) == 0 {
-		return fmt.Sprintf("return %s", errVar)
-	}
-
-	var parts []string
-	for i, ret := range g.currentReturnTypes {
-		if i == len(g.currentReturnTypes)-1 {
-			parts = append(parts, errVar)
-		} else {
-			parts = append(parts, g.zeroValueForType(ret))
-		}
-	}
-	return fmt.Sprintf("return %s", strings.Join(parts, ", "))
-}
