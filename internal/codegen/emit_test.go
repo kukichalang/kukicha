@@ -157,6 +157,66 @@ func TestEmitIndentation(t *testing.T) {
 	}
 }
 
+func TestEmitReturnStmt(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.ReturnStmt{Values: []string{"0", "err_1"}})
+
+	out := emitToString(t, block)
+	if !strings.Contains(out, "return 0, err_1") {
+		t.Errorf("expected 'return 0, err_1', got: %s", out)
+	}
+}
+
+func TestEmitReturnStmtBare(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.ReturnStmt{})
+
+	out := emitToString(t, block)
+	if !strings.Contains(out, "return") {
+		t.Errorf("expected 'return', got: %s", out)
+	}
+}
+
+func TestEmitReturnStmtSingleValue(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.ReturnStmt{Values: []string{"err_1"}})
+
+	out := emitToString(t, block)
+	if !strings.Contains(out, "return err_1") {
+		t.Errorf("expected 'return err_1', got: %s", out)
+	}
+}
+
+func TestEmitExprStmt(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.ExprStmt{Expr: "continue"})
+
+	out := emitToString(t, block)
+	if !strings.Contains(out, "continue") {
+		t.Errorf("expected 'continue', got: %s", out)
+	}
+}
+
+func TestEmitExprStmtBreak(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.ExprStmt{Expr: "break"})
+
+	out := emitToString(t, block)
+	if !strings.Contains(out, "break") {
+		t.Errorf("expected 'break', got: %s", out)
+	}
+}
+
+func TestEmitComment(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.Comment{Text: "kukicha: inferred"})
+
+	out := emitToString(t, block)
+	if !strings.Contains(out, "// kukicha: inferred") {
+		t.Errorf("expected '// kukicha: inferred', got: %s", out)
+	}
+}
+
 func TestEmitCompositeIR(t *testing.T) {
 	// Simulate a lowered pipe chain with onerr:
 	// pipe_1 := getData()

@@ -46,6 +46,35 @@ func TestNodeInterface(t *testing.T) {
 	var _ Node = &Label{}
 	var _ Node = &ScopedBlock{}
 	var _ Node = &RawStmt{}
+	var _ Node = &ReturnStmt{}
+	var _ Node = &ExprStmt{}
+	var _ Node = &Comment{}
+}
+
+func TestReturnStmtFields(t *testing.T) {
+	r := &ReturnStmt{Values: []string{"0", "err"}}
+	if len(r.Values) != 2 {
+		t.Errorf("expected 2 values, got %d", len(r.Values))
+	}
+
+	bare := &ReturnStmt{}
+	if len(bare.Values) != 0 {
+		t.Errorf("expected 0 values for bare return, got %d", len(bare.Values))
+	}
+}
+
+func TestExprStmtFields(t *testing.T) {
+	e := &ExprStmt{Expr: "continue"}
+	if e.Expr != "continue" {
+		t.Errorf("expected 'continue', got %q", e.Expr)
+	}
+}
+
+func TestCommentFields(t *testing.T) {
+	c := &Comment{Text: "kukicha: inferred"}
+	if c.Text != "kukicha: inferred" {
+		t.Errorf("expected 'kukicha: inferred', got %q", c.Text)
+	}
 }
 
 func TestAssignFields(t *testing.T) {

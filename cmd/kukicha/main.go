@@ -192,9 +192,20 @@ func detectTargetFromFile(filename string) (string, error) {
 }
 
 // rewriteGoErrors replaces references to the generated .go file path in stderr
-// output with the original .kuki source path. This cleans up any residual file
-// references that aren't covered by //line directives (e.g., temp file paths).
+// output with the original .kuki source path. While //line directives handle
+// most source mapping, some Go compiler errors reference the physical file path
+// directly (e.g., package-level errors, import failures, syntax errors in
+// generated code). This function catches those residual references.
+//
+// The replacement is intentionally simple (strings.ReplaceAll) because Go error
+// formats vary across versions and tools (go build, go vet, etc.). A regex
+// approach would need to track multiple formats and could miss edge cases.
+// The broad replacement is safe because goFile is a unique temp/output path
+// that won't appear in error messages for any other reason.
 func rewriteGoErrors(stderr []byte, goFile, kukiFile string) []byte {
+	if len(stderr) == 0 {
+		return stderr
+	}
 	result := strings.ReplaceAll(string(stderr), goFile, kukiFile)
 	return []byte(result)
 }

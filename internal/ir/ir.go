@@ -81,3 +81,24 @@ type RawStmt struct {
 }
 
 func (*RawStmt) irNode() {}
+
+// ReturnStmt represents a return statement: return val1, val2, ...
+type ReturnStmt struct {
+	Values []string // Pre-rendered return value expressions (empty for bare return)
+}
+
+func (*ReturnStmt) irNode() {}
+
+// ExprStmt represents a standalone expression statement (e.g., panic(...), continue, break).
+type ExprStmt struct {
+	Expr string // Pre-rendered expression
+}
+
+func (*ExprStmt) irNode() {}
+
+// Comment represents a Go comment line: // text
+type Comment struct {
+	Text string
+}
+
+func (*Comment) irNode() {}

@@ -83,6 +83,31 @@ func New(program *ast.Program) *Generator {
 	}
 }
 
+// childGenerator creates a temporary Generator that shares the parent's semantic
+// state (program, auto-imports, aliases, type info) but writes to a fresh output
+// buffer at an adjusted indent level. This replaces manual field-by-field copies
+// when generating inline code blocks (function literals, arrow lambda bodies).
+//
+// The child shares the parent's autoImports map by reference, so auto-imports
+// discovered during child generation are visible to the parent.
+func (g *Generator) childGenerator(extraIndent int) *Generator {
+	return &Generator{
+		program:            g.program,
+		indent:             g.indent + extraIndent,
+		placeholderMap:     g.placeholderMap,
+		autoImports:        g.autoImports,
+		pkgAliases:         g.pkgAliases,
+		funcDefaults:       g.funcDefaults,
+		isStdlibIter:       g.isStdlibIter,
+		sourceFile:         g.sourceFile,
+		exprTypes:          g.exprTypes,
+		exprReturnCounts:   g.exprReturnCounts,
+		currentReturnIndex: -1,
+		stdlibModuleBase:   g.stdlibModuleBase,
+		reservedNames:      g.reservedNames,
+	}
+}
+
 // SetStdlibModule overrides the base module path used when rewriting "stdlib/X"
 // imports to full Go module paths. The default is "github.com/duber000/kukicha".
 // Set this when building a fork or vendoring the kukicha stdlib under a different module name.
