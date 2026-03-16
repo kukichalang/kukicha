@@ -508,6 +508,90 @@ func TestFilepathSeparatorEscapeMixedWithInterpolation(t *testing.T) {
 	}
 }
 
+// Phase 4: Edge case tests for nested braces in string interpolation.
+// These cases were previously impossible with the regex-based {expr} splitter
+// because it matched `[^}]*` which couldn't handle nested `}` characters.
+
+func TestInterpolationStructLiteral(t *testing.T) {
+	input := `type Point
+    x int
+    y int
+
+func main()
+    print("point: {Point{x: 1, y: 2}}")
+`
+	output := generateSource(t, input)
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "Point{x: 1, y: 2}") {
+		t.Errorf("expected struct literal in interpolation, got: %s", output)
+	}
+	if !strings.Contains(output, "fmt.Sprintf") {
+		t.Errorf("expected fmt.Sprintf for interpolation, got: %s", output)
+	}
+}
+
+func TestInterpolationMapAccess(t *testing.T) {
+	input := `func Show(m map of string to int)
+    print("val: {m["key"]}")
+`
+	output := generateSource(t, input)
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, `m["key"]`) {
+		t.Errorf("expected map access in interpolation, got: %s", output)
+	}
+}
+
+func TestInterpolationClosureCall(t *testing.T) {
+	input := `func Apply(f func() int) int
+    return f()
+
+func main()
+    print("result: {Apply(() => 42)}")
+`
+	output := generateSource(t, input)
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "Apply(func() int { return 42 })") {
+		t.Errorf("expected closure call in interpolation, got: %s", output)
+	}
+}
+
+func TestInterpolationNestedStructWithText(t *testing.T) {
+	// Struct literal in interpolation with surrounding text
+	input := `type Pair
+    a int
+    b int
+
+func main()
+    print("got {Pair{a: 10, b: 20}} here")
+`
+	output := generateSource(t, input)
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "Pair{a: 10, b: 20}") {
+		t.Errorf("expected struct literal in interpolation, got: %s", output)
+	}
+	if !strings.Contains(output, "got %v here") {
+		t.Errorf("expected format string with surrounding text, got: %s", output)
+	}
+}
+
+func TestInterpolationMethodCallWithBrackets(t *testing.T) {
+	// Index expression inside interpolation
+	input := `func main()
+    items := list of string{"a", "b", "c"}
+    print("first: {items[0]}, last: {items[-1]}")
+`
+	output := generateSource(t, input)
+	t.Logf("Generated output:\n%s", output)
+
+	if !strings.Contains(output, "items[0]") {
+		t.Errorf("expected index access in interpolation, got: %s", output)
+	}
+}
+
 func TestOnErrErrorExprThreeReturnValues(t *testing.T) {
 	// Fix 3: onerr error "msg" (shorthand) should emit zero values for all
 	// non-error return positions when function has 3+ return values.

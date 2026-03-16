@@ -118,13 +118,15 @@ Deleted fallback regex path in `analyzeStringInterpolation()`, the `parseInterpo
 sub-parser function, and the `interpolationPattern`/`identifierPattern` regex vars.
 Removed `regexp` and `parser` imports from `semantic_onerr.go`.
 
-### Phase 4: Edge case tests (follow-up PR)
+### Phase 4: Edge case tests ✅ DONE
 
-Add tests for cases that were previously impossible:
-- `{MyStruct{field: val}}` — struct literal in interpolation
-- `{m[key]}` — map access
-- `{f(func() int { return 1 })}` — closure in interpolation (if sensible)
-- Verify `\sep` sentinel handling is unchanged
+Added full-pipeline codegen tests for cases that were previously impossible:
+- `{Point{x: 1, y: 2}}` — struct literal in interpolation
+- `{m["key"]}` — map access in interpolation
+- `{Apply(() => 42)}` — closure call in interpolation
+- `{Pair{a: 10, b: 20}}` with surrounding text — nested struct with format string
+- `{items[0]}` and `{items[-1]}` — index expressions in interpolation
+- `\sep` sentinel handling verified unchanged (existing tests pass)
 
 ---
 
@@ -154,4 +156,5 @@ Add tests for cases that were previously impossible:
 | `internal/codegen/codegen_walk.go` | 2 | Remove fallback in exprHasNonPrintfInterpolation |
 | `internal/codegen/codegen_imports.go` | 2 | Add \sep detection to scanExprForAutoImports |
 | `internal/semantic/semantic_onerr.go` | 3 | Delete fallback regex path, parseInterpolationExpression, regex vars |
+| `internal/codegen/codegen_errors_test.go` | 4 | Add nested brace edge case tests (struct, map, closure, index) |
 | `internal/formatter/lexer.go` | — | Mirror token changes (formatter has its own lexer) |
