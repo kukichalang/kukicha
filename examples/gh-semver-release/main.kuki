@@ -15,6 +15,7 @@ import "stdlib/input"
 import "stdlib/semver"
 import "stdlib/shell"
 import "stdlib/slice"
+import "stdlib/sort"
 import "stdlib/string"
 import "stdlib/table"
 
@@ -125,6 +126,7 @@ func listReposWhereICommitted(org string) (list of string, error)
         |> string.Lines()
         |> slice.Filter((r string) => not string.IsBlank(r))
         |> slice.Unique()
+        |> sort.Strings()
 
     if org != ""
         repos = repos |> slice.Filter((r string) => r |> string.HasPrefix("{org}/"))
