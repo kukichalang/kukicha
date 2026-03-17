@@ -39,7 +39,7 @@ func Float64s(items []float64) []float64 {
 }
 
 //line /home/user/kukicha/stdlib/sort/sort.kuki:42
-func By(items []any, less func(any, any) bool) []any {
+func By[T any](items []T, less func(T, T) bool) []T {
 //line /home/user/kukicha/stdlib/sort/sort.kuki:43
 	result := slices.Clone(items)
 //line /home/user/kukicha/stdlib/sort/sort.kuki:44
@@ -59,7 +59,7 @@ func ByKey[T any, K comparable](items []T, key func(T) K) []T {
 }
 
 //line /home/user/kukicha/stdlib/sort/sort.kuki:59
-func Reverse(items []any, less func(any, any) bool) []any {
+func Reverse[T any](items []T, less func(T, T) bool) []T {
 //line /home/user/kukicha/stdlib/sort/sort.kuki:60
 	result := slices.Clone(items)
 //line /home/user/kukicha/stdlib/sort/sort.kuki:61
