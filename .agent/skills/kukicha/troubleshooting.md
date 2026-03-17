@@ -333,8 +333,8 @@ func GetConfig() int
 
 ### Escaping Braces
 ```kukicha
-# To include literal braces, double them
-msg := "Use {{name}} for variables"  # Outputs: Use {name} for variables
+# To include literal braces, escape them with backslash
+msg := "Use \{name\} for variables"  # Outputs: Use {name} for variables
 ```
 
 ### Complex Expressions
@@ -493,20 +493,7 @@ Process(func(s string) int
 
 ### "undefined: fmt" in generated Go (interpolated errors)
 
-**Cause:** The compiler generates `errors.New(fmt.Sprintf(...))` for `error "... {var} ..."` literals but does NOT auto-import `fmt`. You must add the import yourself.
-
-```kukicha
-# Wrong — causes "undefined: fmt" in generated Go
-func Load(path string) Config, error
-    data := os.ReadFile(path) onerr return empty Config, error "cannot read {path}"
-
-# Correct — add import "fmt"
-import "fmt"
-import "os"
-
-func Load(path string) Config, error
-    data := os.ReadFile(path) onerr return empty Config, error "cannot read {path}"
-```
+**Note:** This issue has been fixed. The compiler now auto-imports `fmt` when interpolated `error ""` literals are used. No manual `import "fmt"` is needed.
 
 ### Package name conflicts (e.g., "ctx redeclared in this block")
 

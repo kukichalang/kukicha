@@ -38,18 +38,15 @@ result := fetch.Get(url) onerr
 kukicha init    # run once per project: go mod init + extract stdlib
 ```
 
-### `import "fmt"` for interpolated `error ""` literals
+### Auto-imports for interpolated strings
 
-The compiler generates `errors.New(fmt.Sprintf(...))` for `error "msg with {var}"` but does NOT auto-import `fmt`. Add it manually.
+The compiler auto-imports `fmt` when any string interpolation is used, including `error ""` literals with `{expr}`. No manual `import "fmt"` is needed.
 
 ```kukicha
-import "fmt"    # required if any error "" contains {interpolation}
-
+# fmt is auto-imported — no manual import needed
 func doThing(name string) error
     return error "failed for {name}"
 ```
-
-`print(...)` auto-imports `fmt`. Only `error ""` literals do not.
 
 ### `in` is not a membership operator
 

@@ -119,12 +119,8 @@ Added `codegen_integration_test.go` with 25 integration tests that run the full 
 
 Added `ir.ReturnStmt`, `ir.ExprStmt`, and `ir.Comment` IR node types. Replaced `RawStmt` usage for `continue`, `break`, shorthand return, explain wrapping, and inference comments with proper IR nodes. Remaining `RawStmt` usage: rendered handler blocks (requires full handler lowering) and rendered switch statements (complex, deferred).
 
-### 18. String re-parsing for interpolated pipes
-**File:** `codegen_expr.go:519-546`
-
-`parseAndGenerateInterpolatedExpr()` creates a fake function wrapper, re-parses it, extracts the AST, and re-generates. This is a full parser round-trip at codegen time.
-
-**Fix:** Store pipe expressions as AST nodes in `StringLiteral` interpolation slots during parsing, rather than as raw strings that need re-parsing.
+### ~~18. String re-parsing for interpolated pipes~~ ✅ FIXED
+Moved string interpolation tokenization to the lexer (`TOKEN_STRING_HEAD`/`MID`/`TAIL` with `interpStack` brace depth tracking). Deleted all regex-based fallback paths and sub-parsers from codegen and semantic analysis. Nested braces in interpolation (struct literals, map access, closures) now work automatically. See `docs/PLAN-interp-tokenization.md` for full details.
 
 ### ~~19. Temporary generators for lambda codegen~~ ✅ FIXED
 **Files:** `codegen_decl.go`, `codegen.go`

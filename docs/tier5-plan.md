@@ -112,45 +112,11 @@ Items 17 and 19 are coupled: both require extending the IR layer. Doing them tog
 
 ---
 
-## Phase 3: Parser-Level Fix (Item 18 — deferred, highest risk)
+## ~~Phase 3: Parser-Level Fix (Item 18)~~ ✅ DONE
 
-### Item 18: String re-parsing for interpolated pipes
+### ~~Item 18: String re-parsing for interpolated pipes~~ ✅ FIXED
 
-**Goal:** Store parsed AST expressions in `StringLiteral` interpolation slots instead of raw strings that need re-parsing at codegen time.
-
-**Steps:**
-
-1. **Modify AST** (`internal/ast/ast.go`):
-   - Add `ParsedSlots []Expression` field to `StringLiteral` (or change `Slots` from `[]string` to a union type)
-   - Keep `Value string` as-is for the raw string representation
-
-2. **Modify parser** (`internal/parser/parser_expr.go`):
-   - In `parseStringLiteral()`, when an interpolation slot contains complex expressions (pipes, calls), parse them into AST nodes immediately
-   - Store the parsed expressions in `ParsedSlots`
-   - For simple identifiers, either store as `Identifier` nodes or keep as strings
-
-3. **Modify codegen** (`internal/codegen/codegen_expr.go`):
-   - In `parseStringInterpolation()`, check `ParsedSlots` first
-   - If a slot has a parsed AST expression, call `exprToString()` directly — no re-parsing needed
-   - Remove `parseAndGenerateInterpolatedExpr()` once all slots are pre-parsed
-
-4. **Modify formatter** (`internal/formatter/formatter.go`):
-   - Update string literal formatting to handle `ParsedSlots`
-
-5. **Modify semantic analysis** (`internal/semantic/`):
-   - Analyze expressions in `ParsedSlots` during `analyzeExpression`
-
-6. **Add comprehensive tests:**
-   - Simple interpolation: `"{name}"`
-   - Pipe in interpolation: `"{data |> slice.First()}"`
-   - Nested calls: `"{f(g(x))}"`
-   - Method chains: `"{obj.Method().Field}"`
-   - Mixed: `"prefix {a |> f()} middle {b} suffix"`
-
-**Files:** `internal/ast/ast.go`, `internal/parser/parser_expr.go`, `internal/codegen/codegen_expr.go`, `internal/formatter/formatter.go`, `internal/semantic/`
-**Risk:** High — touches AST definition, parser, codegen, formatter, and semantic analysis. Requires careful incremental approach and full regression testing at each step.
-
-**Mitigation:** Keep `parseAndGenerateInterpolatedExpr()` as a fallback during transition. Only remove it once all interpolation forms are covered by the new pre-parsed path.
+Solved with a different (better) approach than originally planned here: lexer-level tokenization instead of parser-level `ParsedSlots`. The lexer now emits `TOKEN_STRING_HEAD`/`MID`/`TAIL` with `interpStack` brace depth tracking, and the parser calls `parseExpression()` directly on the token stream. All regex-based fallbacks and sub-parsers have been deleted from codegen and semantic analysis. See `docs/PLAN-interp-tokenization.md` for the full implementation plan.
 
 ---
 
@@ -160,6 +126,6 @@ Items 17 and 19 are coupled: both require extending the IR layer. Doing them tog
 |-------|-------|--------|------|-----------------|
 | 1 | 21, 20 | ~1 day | Low | Remove dead code; add formatter tests |
 | 2 | 17, 19 | ~2 days | Medium | Proper IR nodes; cleaner lambda codegen |
-| 3 | 18 | ~2-3 days | High | Pre-parsed interpolation slots |
+| ~~3~~ | ~~18~~ | ~~✅ done~~ | — | ~~Lexer-level interpolation tokenization~~ |
 
-Total estimated scope: ~5-6 days of focused work.
+Total estimated scope: Phases 1-2 complete; Phase 3 complete via `PLAN-interp-tokenization.md`.
