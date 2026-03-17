@@ -20,8 +20,8 @@ func TestNew(t reference testing.T)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tbl := table.New(tc.headers)
-            test.AssertEqual(t, len(tbl.headers), len(tc.headers))
-            test.AssertEqual(t, len(tbl.rows), 0)
+            test.AssertEqual(t, len(tbl.Headers), len(tc.headers))
+            test.AssertEqual(t, len(tbl.Rows), 0)
         )
 
 # --- TestAddRow ---
@@ -36,9 +36,9 @@ func TestAddRow(t reference testing.T)
         t.Run(tc.name, (t reference testing.T) =>
             tbl := table.New(list of string{"Name", "Age"})
             tbl = tbl |> table.AddRow(list of string{"Alice", "30"})
-            test.AssertEqual(t, len(tbl.rows), 1)
-            test.AssertEqual(t, tbl.rows[0][0], "Alice")
-            test.AssertEqual(t, tbl.rows[0][1], "30")
+            test.AssertEqual(t, len(tbl.Rows), 1)
+            test.AssertEqual(t, tbl.Rows[0][0], "Alice")
+            test.AssertEqual(t, tbl.Rows[0][1], "30")
         )
 
 # --- TestToString ---

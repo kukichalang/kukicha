@@ -119,6 +119,27 @@ func getExitCode(err error) int
             return 1
     return code
 
+# Args appends additional arguments to an existing command
+# Example: cmd |> shell.Args("--verbose", "--color")
+func Args(cmd Command, many args string) Command
+    cmd.args = append(cmd.args, many args)
+    return cmd
+
+# FlagIf conditionally appends arguments to a command
+# The args are only added when condition is true
+# Example: cmd |> shell.FlagIf(verbose, "--verbose")
+func FlagIf(cmd Command, condition bool, many args string) Command
+    if condition
+        cmd.args = append(cmd.args, many args)
+    return cmd
+
+# Preview returns the command as a display string for logging or dry-run output
+# Example: print("Running: {shell.Preview(cmd)}")
+func Preview(cmd Command) string
+    parts := list of string{cmd.name}
+    parts = append(parts, many cmd.args)
+    return parts |> string.Join(" ")
+
 # Result Helper Functions
 
 # Success returns true if the command succeeded (exit code 0)

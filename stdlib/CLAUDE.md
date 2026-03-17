@@ -44,7 +44,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/retry` | Retry with backoff | New, Attempts, Delay, Sleep |
 | `stdlib/sandbox` | os.Root filesystem sandboxing | New, Read, Write, List, Exists, Delete |
 | `stdlib/semver` | Semantic versioning (parse, bump, compare) | Parse, Bump, Format, Valid, Compare, Greater, Highest |
-| `stdlib/shell` | Safe command execution | Run, Output, New/Dir/Env/Execute, Which, Getenv |
+| `stdlib/shell` | Safe command execution | Run, Output, New/Dir/Env/Execute, Args/FlagIf/Preview, Which, Getenv |
 | `stdlib/slice` | Slice operations (all generic) | Filter, Map, GroupBy, Sort, SortBy, Get, Find, FindLast, Unique, Contains, Pop, Shift |
 | `stdlib/sort` | Sorting slices (strings, ints, floats, custom) | Strings, Ints, Float64s, By, ByKey, Reverse |
 | `stdlib/string` | String utilities | Split, Join, Trim, Contains, Replace, ToUpper, ToLower |
@@ -328,6 +328,13 @@ out := shell.Output("git", "log", "--oneline", userBranch) onerr return
 result := shell.New("npm", "test") |> shell.Dir(projectPath) |> shell.Env("CI", "true") |> shell.Execute()
 if not shell.Success(result)
     print(shell.GetError(result) as string)
+# Fluent command builder with conditional flags
+cmd := shell.New("gh", "release", "create", "v1.0.0", "--repo", "org/repo")
+    |> shell.FlagIf(isDraft, "--draft")
+    |> shell.FlagIf(hasTarget, "--target", "main")
+    |> shell.Args("--title", "v1.0.0")
+print("Running: {shell.Preview(cmd)}")
+result := cmd |> shell.Execute()
 
 # Error wrapping and inspection
 import "stdlib/errors"

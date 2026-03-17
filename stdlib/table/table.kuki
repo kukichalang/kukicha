@@ -19,23 +19,23 @@ import "strings"
 
 # Table holds the headers and rows for a formatted table.
 type Table
-    headers list of string
-    rows    list of list of string
+    Headers list of string
+    Rows    list of list of string
 
 # New creates a new table with the given column headers.
 # Example: t := table.New(list of string{"Name", "Age"})
 func New(headers list of string) Table
-    return Table{headers: headers, rows: make(list of list of string, 0)}
+    return Table{Headers: headers, Rows: make(list of list of string, 0)}
 
 # AddRow appends a row of string values to the table and returns the updated table.
 # Values are coerced to strings. Rows with fewer columns than headers are padded with "".
 # Example: t = t |> table.AddRow(list of string{"Alice", "30"})
 func AddRow(t Table, row list of string) Table
-    padded := make(list of string, len(t.headers))
-    for i from 0 to len(t.headers)
+    padded := make(list of string, len(t.Headers))
+    for i from 0 to len(t.Headers)
         if i < len(row)
             padded[i] = row[i]
-    t.rows = append(t.rows, padded)
+    t.Rows = append(t.Rows, padded)
     return t
 
 # Print prints the table to stdout with auto-aligned columns.
@@ -63,11 +63,11 @@ func ToStringWithStyle(t Table, style string) string
 # renderTable is the internal rendering function.
 func renderTable(t Table, style string) string
     # Compute column widths
-    widths := make(list of int, len(t.headers))
-    for i from 0 to len(t.headers)
-        widths[i] = len(t.headers[i])
-    for row in t.rows
-        for i from 0 to len(t.headers)
+    widths := make(list of int, len(t.Headers))
+    for i from 0 to len(t.Headers)
+        widths[i] = len(t.Headers[i])
+    for row in t.Rows
+        for i from 0 to len(t.Headers)
             if i < len(row) and len(row[i]) > widths[i]
                 widths[i] = len(row[i])
 
@@ -75,21 +75,21 @@ func renderTable(t Table, style string) string
 
     switch style
         when "markdown"
-            out.WriteString(renderMarkdownRow(t.headers, widths))
+            out.WriteString(renderMarkdownRow(t.Headers, widths))
             out.WriteString(renderMarkdownSep(widths))
-            for row in t.rows
+            for row in t.Rows
                 out.WriteString(renderMarkdownRow(row, widths))
         when "box"
             out.WriteString(renderBoxTop(widths))
-            out.WriteString(renderBoxRow(t.headers, widths))
+            out.WriteString(renderBoxRow(t.Headers, widths))
             out.WriteString(renderBoxMid(widths))
-            for row in t.rows
+            for row in t.Rows
                 out.WriteString(renderBoxRow(row, widths))
             out.WriteString(renderBoxBottom(widths))
         otherwise
-            out.WriteString(renderPlainRow(t.headers, widths))
+            out.WriteString(renderPlainRow(t.Headers, widths))
             out.WriteString(renderPlainSep(widths))
-            for row in t.rows
+            for row in t.Rows
                 out.WriteString(renderPlainRow(row, widths))
 
     return out.String()
@@ -130,8 +130,11 @@ func renderMarkdownSep(widths list of int) string
     sb := strings.Builder{}
     sb.WriteString("|")
     for i from 0 to len(widths)
+        dashes := widths[i]
+        if dashes < 3
+            dashes = 3
         sb.WriteString(" ")
-        sb.WriteString(strings.Repeat("-", widths[i]))
+        sb.WriteString(strings.Repeat("-", dashes))
         sb.WriteString(" |")
     sb.WriteString("\n")
     return sb.String()
