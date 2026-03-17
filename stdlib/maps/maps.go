@@ -2,36 +2,62 @@
 
 package maps
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:8
+//line /home/user/kukicha/stdlib/maps/maps.kuki:8
 func Keys(m map[any]any) []any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:9
+//line /home/user/kukicha/stdlib/maps/maps.kuki:9
 	keys := make([]any, 0, len(m))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:10
+//line /home/user/kukicha/stdlib/maps/maps.kuki:10
 	for k := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:11
+//line /home/user/kukicha/stdlib/maps/maps.kuki:11
 		keys = append(keys, k)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:12
+//line /home/user/kukicha/stdlib/maps/maps.kuki:12
 	return keys
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:16
+//line /home/user/kukicha/stdlib/maps/maps.kuki:16
 func Values(m map[any]any) []any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:17
+//line /home/user/kukicha/stdlib/maps/maps.kuki:17
 	values := make([]any, 0, len(m))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:18
+//line /home/user/kukicha/stdlib/maps/maps.kuki:18
 	for _, v := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:19
+//line /home/user/kukicha/stdlib/maps/maps.kuki:19
 		values = append(values, v)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:20
+//line /home/user/kukicha/stdlib/maps/maps.kuki:20
 	return values
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:23
+//line /home/user/kukicha/stdlib/maps/maps.kuki:23
 func Contains(m map[any]any, key any) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:24
+//line /home/user/kukicha/stdlib/maps/maps.kuki:24
 	_, ok := m[key]
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:25
+//line /home/user/kukicha/stdlib/maps/maps.kuki:25
 	return ok
+}
+
+//line /home/user/kukicha/stdlib/maps/maps.kuki:28
+func Has(m map[any]any, key any) bool {
+//line /home/user/kukicha/stdlib/maps/maps.kuki:29
+	_, ok := m[key]
+//line /home/user/kukicha/stdlib/maps/maps.kuki:30
+	return ok
+}
+
+//line /home/user/kukicha/stdlib/maps/maps.kuki:34
+func Merge(base map[any]any, overlay map[any]any) map[any]any {
+//line /home/user/kukicha/stdlib/maps/maps.kuki:35
+	result := make(map[any]any, (len(base) + len(overlay)))
+//line /home/user/kukicha/stdlib/maps/maps.kuki:36
+	for k, v := range base {
+//line /home/user/kukicha/stdlib/maps/maps.kuki:37
+		result[k] = v
+	}
+//line /home/user/kukicha/stdlib/maps/maps.kuki:38
+	for k, v := range overlay {
+//line /home/user/kukicha/stdlib/maps/maps.kuki:39
+		result[k] = v
+	}
+//line /home/user/kukicha/stdlib/maps/maps.kuki:40
+	return result
 }

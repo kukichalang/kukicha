@@ -23,3 +23,18 @@ func Values(m map of any to any) list of any
 func Contains(m map of any to any, key any) bool
     _, ok := m[key]
     return ok
+
+# Has checks if a key exists in the map (alias for Contains)
+func Has(m map of any to any, key any) bool
+    _, ok := m[key]
+    return ok
+
+# Merge combines two maps into a new map
+# If both maps have the same key, the value from the second map wins
+func Merge(base map of any to any, overlay map of any to any) map of any to any
+    result := make(map of any to any, len(base) + len(overlay))
+    for k, v in base
+        result[k] = v
+    for k, v in overlay
+        result[k] = v
+    return result
