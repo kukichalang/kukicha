@@ -54,3 +54,16 @@ func TestMerge(t reference testing.T)
         t.Errorf("Merge should prefer overlay value for 'b'")
     if not containsValue(list of any{merged["c"]}, "3")
         t.Errorf("Merge should include overlay key 'c'")
+
+# --- TestSortedKeys ---
+func TestSortedKeys(t reference testing.T)
+    sample := map of any to any{("c" as any): ("3" as any), ("a" as any): ("1" as any), ("b" as any): ("2" as any)}
+    keys := maps.SortedKeys(sample)
+    if len(keys) != 3
+        t.Fatalf("Expected 3 keys, got {len(keys)}")
+    if keys[0] != "a"
+        t.Errorf("Expected first key 'a', got '{keys[0]}'")
+    if keys[1] != "b"
+        t.Errorf("Expected second key 'b', got '{keys[1]}'")
+    if keys[2] != "c"
+        t.Errorf("Expected third key 'c', got '{keys[2]}'")

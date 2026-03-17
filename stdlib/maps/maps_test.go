@@ -106,3 +106,31 @@ func TestMerge(t *testing.T) {
 		t.Errorf("Merge should include overlay key 'c'")
 	}
 }
+
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:59
+func TestSortedKeys(t *testing.T) {
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:60
+	sample := map[any]any{any("c"): any("3"), any("a"): any("1"), any("b"): any("2")}
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:61
+	keys := maps.SortedKeys(sample)
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:62
+	if len(keys) != 3 {
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:63
+		t.Fatalf("Expected 3 keys, got %v", len(keys))
+	}
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:64
+	if keys[0] != "a" {
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:65
+		t.Errorf("Expected first key 'a', got '%v'", keys[0])
+	}
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:66
+	if keys[1] != "b" {
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:67
+		t.Errorf("Expected second key 'b', got '%v'", keys[1])
+	}
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:68
+	if keys[2] != "c" {
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:69
+		t.Errorf("Expected third key 'c', got '%v'", keys[2])
+	}
+}
