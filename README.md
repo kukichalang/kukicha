@@ -167,7 +167,30 @@ func main()
 
 Read a file, find every line containing "TODO", and print them out.
 
-**More examples:** [AI commit messages](docs/tutorials/data-scripting-tutorial.md), [Concurrent URL health checker](docs/tutorials/concurrent-url-health-checker.md), [REST API link shortener](docs/tutorials/web-app-tutorial.md), [CLI repo explorer](docs/tutorials/cli-explorer-tutorial.md)
+### A CLI Release Tool
+
+```kukicha
+import "stdlib/cli"
+import "stdlib/semver"
+import "stdlib/shell"
+import "stdlib/sort"
+import "stdlib/table"
+
+func main()
+    repos := listMyRepos() onerr panic "{error}"
+    entries := repos
+        |> slice.Map((r string) => buildEntry(r, bump))
+        |> sort.ByKey((e Entry) => e.name)
+
+    t := table.New(list of string{"repo", "current", "next"})
+    for entry in entries
+        t = t |> table.AddRow(list of string{entry.name, entry.current, entry.next})
+    t |> table.Print()
+```
+
+Parse semver tags, sort repos, and display a formatted table — all with stdlib pipes. See the full [gh-semver-release](examples/gh-semver-release/main.kuki) example.
+
+**More examples:** [AI commit messages](docs/tutorials/data-scripting-tutorial.md), [Concurrent URL health checker](docs/tutorials/concurrent-url-health-checker.md), [REST API link shortener](docs/tutorials/web-app-tutorial.md), [CLI repo explorer](docs/tutorials/cli-explorer-tutorial.md), [Semver release tool](examples/gh-semver-release/main.kuki)
 
 ---
 
@@ -202,19 +225,19 @@ Every Kukicha concept maps 1:1 to Go and Python — see the [Quick Reference](do
 
 ## Standard Library
 
-38+ packages, pipe-friendly, error-handled with `onerr`.
+41+ packages, pipe-friendly, error-handled with `onerr`.
 
 | Category | Packages |
 |---------|---------|
 | **Data** | `fetch`, `files`, `json`, `parse`, `encoding`, `cast` |
-| **Logic** | `slice`, `maps`, `string`, `math`, `sort`, `iterator` (lazy iter.Seq pipelines), `random` |
-| **Security** | `crypto` (SHA-256, HMAC, secure random) |
+| **Logic** | `slice`, `maps`, `string`, `math`, `sort` (custom comparators, ByKey), `iterator` (lazy iter.Seq pipelines), `random` |
+| **Security** | `crypto` (SHA-256, HMAC, secure random), `netguard`, `sandbox` |
 | **Infrastructure** | `pg`, `kube`, `container`, `shell`, `net` |
-| **AI & Agents** | `llm`, `mcp`, `a2a` |
-| **Web** | `http`, `fetch`, `validate`, `netguard`, `sandbox`, `template` |
+| **AI & Agents** | `llm`, `mcp`, `a2a`, `accel` / `infer` (ONNX inference) |
+| **Web** | `http`, `fetch`, `validate`, `template` |
 | **Config & Ops** | `env`, `must`, `cli`, `semver`, `obs`, `retry`, `ctx`, `datetime`, `concurrent` |
-| **Output** | `table` (terminal tables: plain, box, markdown) |
-| **Errors & Testing** | `errors`, `test`, `input` |
+| **Output** | `table` (terminal tables: plain, box, markdown), `input` (interactive prompts) |
+| **Errors & Testing** | `errors`, `test` |
 
 See the full [Stdlib Reference](stdlib/AGENTS.md).
 

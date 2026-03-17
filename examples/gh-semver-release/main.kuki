@@ -45,7 +45,7 @@ func warn(msg string)
 
 # nextTag computes the next semver tag from the current one, falling back to initialTag
 func nextTag(current string, bump string, initialTag string) (string, error)
-    if current == ""
+    if current equals ""
         return initialTag, empty
     v := semver.Parse(current) onerr return "", error "{error}"
     return v |> semver.Bump(bump) |> semver.Format(), empty
@@ -60,7 +60,7 @@ func highestSemverTag(repo string) (string, error)
 
     tags := raw |> string.Lines()
     best, err := semver.Highest(tags)
-    if err != empty
+    if err not equals empty
         return "", empty
     return best, empty
 
@@ -128,7 +128,7 @@ func listReposWhereICommitted(org string) (list of string, error)
         |> slice.Unique()
         |> sort.Strings()
 
-    if org != ""
+    if org not equals ""
         repos = repos |> slice.Filter((r string) => r |> string.HasPrefix("{org}/"))
 
     return repos, empty
@@ -162,14 +162,14 @@ func doList(args cli.Args, initialTag string)
         print("\"repo\",\"current_tag\",\"next_tag\"")
         for entry in entries
             display := entry.current
-            if display == ""
+            if display equals ""
                 display = "<none>"
             print("\"{entry.name}\",\"{display}\",\"{entry.next}\"")
     else
         t := table.New(list of string{"repo", "current_tag", "next_tag"})
         for entry in entries
             display := entry.current
-            if display == ""
+            if display equals ""
                 display = "<none>"
             t = t |> table.AddRow(list of string{entry.name, display, entry.next})
         t |> table.Print()
@@ -182,10 +182,10 @@ func doRelease(args cli.Args, initialTag string)
     draft := cli.GetBool(args, "draft")
     generateNotes := env.GetBoolOrDefault(GenerateNotesEnv, true)
 
-    if repo == ""
+    if repo equals ""
         fatal("release requires --repo OWNER/REPO")
 
-    if org != "" and not (repo |> string.HasPrefix("{org}/"))
+    if org not equals "" and not (repo |> string.HasPrefix("{org}/"))
         fatal("Repo '{repo}' is not under org '{org}'")
 
     # Verify repo exists
@@ -211,14 +211,14 @@ func doRelease(args cli.Args, initialTag string)
 
     # Display summary
     displayCurrent := current
-    if displayCurrent == ""
+    if displayCurrent equals ""
         displayCurrent = "<none>"
 
     print("Repo:           {repo}")
     print("Current tag:    {displayCurrent}")
     print("Next tag:       {next}")
     print("Default branch: {branch}")
-    if org != ""
+    if org not equals ""
         print("Org filter:     {org}")
     if tagAlreadyExists
         print("Tag exists:     yes")
@@ -277,7 +277,7 @@ func doPick(args cli.Args, initialTag string)
     labels := list of string{}
     for entry in entries
         displayCurrent := entry.current
-        if displayCurrent == ""
+        if displayCurrent equals ""
             displayCurrent = "<none>"
         line := string.PadRight(entry.name, 40) + "  " + string.PadRight(displayCurrent, 12) + "  →  " + entry.next
         labels = append(labels, line)
