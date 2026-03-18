@@ -1,0 +1,222 @@
+# Git Package Tests
+# Network-dependent tests require gh CLI and authentication.
+# Tests that need network access check for gh availability first.
+
+petiole git_test
+
+import "os/exec"
+import "stdlib/git"
+import "stdlib/shell"
+import "stdlib/string"
+import "stdlib/test"
+import "testing"
+
+# --- Helper ---
+
+func ghAvailable() bool
+    _, err := exec.LookPath("gh")
+    if err not equals empty
+        return false
+    result := shell.New("gh", "auth", "status") |> shell.Execute()
+    return shell.Success(result)
+
+# --- TestFilterBlankInternal ---
+# Tests the internal filterBlank behavior via ListTags with empty results
+type PreviewReleaseCase
+    name string
+    repo string
+    tag string
+    opts git.ReleaseOptions
+    expectContains string
+
+func TestPreviewRelease(t reference testing.T)
+    cases := list of PreviewReleaseCase{
+        PreviewReleaseCase{
+            name: "basic release",
+            repo: "owner/repo",
+            tag: "v1.0.0",
+            opts: git.ReleaseOptions{},
+            expectContains: "gh release create v1.0.0 --repo owner/repo --title v1.0.0",
+        },
+        PreviewReleaseCase{
+            name: "with draft",
+            repo: "owner/repo",
+            tag: "v2.0.0",
+            opts: git.ReleaseOptions{Draft: true},
+            expectContains: "--draft",
+        },
+        PreviewReleaseCase{
+            name: "with target",
+            repo: "owner/repo",
+            tag: "v1.0.0",
+            opts: git.ReleaseOptions{Target: "main"},
+            expectContains: "--target main",
+        },
+        PreviewReleaseCase{
+            name: "with generate notes",
+            repo: "owner/repo",
+            tag: "v1.0.0",
+            opts: git.ReleaseOptions{GenerateNotes: true},
+            expectContains: "--generate-notes",
+        },
+        PreviewReleaseCase{
+            name: "custom title",
+            repo: "owner/repo",
+            tag: "v1.0.0",
+            opts: git.ReleaseOptions{Title: "Release 1.0"},
+            expectContains: "--title Release 1.0",
+        },
+        PreviewReleaseCase{
+            name: "all options",
+            repo: "myorg/myrepo",
+            tag: "v3.0.0",
+            opts: git.ReleaseOptions{Title: "Big Release", Target: "release-branch", Draft: true, GenerateNotes: true},
+            expectContains: "gh release create v3.0.0 --repo myorg/myrepo",
+        },
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            got := git.PreviewRelease(tc.repo, tc.tag, tc.opts)
+            test.AssertTrue(t, string.Contains(got, tc.expectContains))
+        )
+
+# --- TestPreviewReleaseAllFlags ---
+type PreviewReleaseAllFlagsCase
+    name string
+
+func TestPreviewReleaseAllFlags(t reference testing.T)
+    cases := list of PreviewReleaseAllFlagsCase{
+        PreviewReleaseAllFlagsCase{name: "all flags present"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            opts := git.ReleaseOptions{Title: "My Release", Target: "main", Draft: true, GenerateNotes: true}
+            got := git.PreviewRelease("owner/repo", "v1.0.0", opts)
+            test.AssertTrue(t, string.Contains(got, "--target main"))
+            test.AssertTrue(t, string.Contains(got, "--generate-notes"))
+            test.AssertTrue(t, string.Contains(got, "--draft"))
+            test.AssertTrue(t, string.Contains(got, "--title My Release"))
+        )
+
+# --- TestPreviewReleaseNoFlags ---
+type PreviewReleaseNoFlagsCase
+    name string
+
+func TestPreviewReleaseNoFlags(t reference testing.T)
+    cases := list of PreviewReleaseNoFlagsCase{
+        PreviewReleaseNoFlagsCase{name: "no optional flags"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            opts := git.ReleaseOptions{}
+            got := git.PreviewRelease("owner/repo", "v1.0.0", opts)
+            test.AssertFalse(t, string.Contains(got, "--target"))
+            test.AssertFalse(t, string.Contains(got, "--generate-notes"))
+            test.AssertFalse(t, string.Contains(got, "--draft"))
+            test.AssertEqual(t, got, "gh release create v1.0.0 --repo owner/repo --title v1.0.0")
+        )
+
+# --- TestCurrentBranch ---
+type CurrentBranchCase
+    name string
+
+func TestCurrentBranch(t reference testing.T)
+    cases := list of CurrentBranchCase{
+        CurrentBranchCase{name: "returns a branch name"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            branch, err := git.CurrentBranch()
+            test.AssertNoError(t, err)
+            test.AssertTrue(t, len(branch) > 0)
+        )
+
+# --- TestListTags (network) ---
+type ListTagsCase
+    name string
+
+func TestListTags(t reference testing.T)
+    if not ghAvailable()
+        t.Skip("gh CLI not available or not authenticated")
+
+    cases := list of ListTagsCase{
+        ListTagsCase{name: "list tags from public repo"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            tags, err := git.ListTags("cli/cli")
+            test.AssertNoError(t, err)
+            test.AssertTrue(t, len(tags) > 0)
+        )
+
+# --- TestDefaultBranch (network) ---
+type DefaultBranchCase
+    name string
+
+func TestDefaultBranch(t reference testing.T)
+    if not ghAvailable()
+        t.Skip("gh CLI not available or not authenticated")
+
+    cases := list of DefaultBranchCase{
+        DefaultBranchCase{name: "default branch of cli/cli"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            branch, err := git.DefaultBranch("cli/cli")
+            test.AssertNoError(t, err)
+            test.AssertEqual(t, branch, "trunk")
+        )
+
+# --- TestCurrentUser (network) ---
+type CurrentUserCase
+    name string
+
+func TestCurrentUser(t reference testing.T)
+    if not ghAvailable()
+        t.Skip("gh CLI not available or not authenticated")
+
+    cases := list of CurrentUserCase{
+        CurrentUserCase{name: "returns authenticated user"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            user, err := git.CurrentUser()
+            test.AssertNoError(t, err)
+            test.AssertTrue(t, len(user) > 0)
+        )
+
+# --- TestTagExists (network) ---
+type TagExistsCase
+    name string
+
+func TestTagExists(t reference testing.T)
+    if not ghAvailable()
+        t.Skip("gh CLI not available or not authenticated")
+
+    cases := list of TagExistsCase{
+        TagExistsCase{name: "existing tag"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            exists, err := git.TagExists("cli/cli", "v2.0.0")
+            test.AssertNoError(t, err)
+            test.AssertTrue(t, exists)
+        )
+
+# --- TestRepoExists (network) ---
+type RepoExistsCase
+    name string
+
+func TestRepoExists(t reference testing.T)
+    if not ghAvailable()
+        t.Skip("gh CLI not available or not authenticated")
+
+    cases := list of RepoExistsCase{
+        RepoExistsCase{name: "existing repo"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            exists, err := git.RepoExists("cli/cli")
+            test.AssertNoError(t, err)
+            test.AssertTrue(t, exists)
+        )

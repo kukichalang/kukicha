@@ -24,6 +24,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/errors` | Error wrapping and inspection | Wrap, Opaque, Is, Unwrap, New, Join, NewPublic, Public |
 | `stdlib/fetch` | HTTP client (Builder, Auth, Sessions, Safe URL helpers, Retry) | Get, SafeGet, Post, Json, Decode, URLTemplate, URLWithQuery, PathEscape, QueryEscape, New/Header/Timeout/Retry/MaxBodySize/Do, BearerAuth, BasicAuth, FormData, NewSession |
 | `stdlib/files` | File I/O operations | Read, Write, Append, Exists, Copy, Move, Delete, Watch |
+| `stdlib/git` | Git/GitHub operations via gh CLI | ListTags, TagExists, DefaultBranch, CurrentBranch, ReleaseExists, CreateRelease, PreviewRelease, RepoExists, CurrentUser, Clone, CloneShallow |
 | `stdlib/http` | HTTP response/request helpers + security | JSON, JSONError, JSONNotFound, ReadJSON, ReadJSONLimit, SafeURL, HTML, SafeHTML, Redirect, SafeRedirect, SetSecureHeaders, SecureHeaders; Constants: StatusOK/NotFound/etc, HeaderContentType, ContentJSON |
 | `stdlib/infer` | ONNX Runtime inference (CPU; Phase 1) | Init, InitWithPath, Cleanup, IsAvailable, Version, New/Threads/InterOpThreads/OptLevel/Load, Run, Close, Shape, NewFloat32, ZeroFloat32, NewInt64, ZeroInt64, GetFloat32, GetInt64, Destroy, Inspect |
 | `stdlib/input` | User input utilities | ReadLine, Prompt, Confirm, Choose |
@@ -337,6 +338,18 @@ cmd := shell.New("gh", "release", "create", "v1.0.0", "--repo", "org/repo")
 print("Running: {shell.Preview(cmd)}")
 result := cmd |> shell.Execute()
 
+# Git/GitHub operations (requires gh CLI)
+import "stdlib/git"
+tags := git.ListTags("owner/repo") onerr panic "{error}"
+branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
+exists, _ := git.TagExists("owner/repo", "v1.0.0")
+me := git.CurrentUser() onerr panic "{error}"
+# Create a release with options
+opts := git.ReleaseOptions{Title: "v1.0.0", Target: "main", Draft: true, GenerateNotes: true}
+git.CreateRelease("owner/repo", "v1.0.0", opts) onerr panic "{error}"
+# Dry-run: preview the command without executing
+print("Would run: {git.PreviewRelease("owner/repo", "v1.0.0", opts)}")
+
 # Regular expressions
 import "stdlib/regex"
 if regex.Match("\\d+", text)
@@ -517,7 +530,7 @@ result := template.HTMLRenderSimple(tmplStr, data) onerr return
 Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. No `_helper.go` or `_tool.go` files.
 
 All packages: `a2a`, `accel`, `cast`, `cli`, `concurrent`, `container`, `ctx`, `crypto`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`,
-`http`, `infer`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`,
+`git`, `http`, `infer`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`,
 `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`, `webinfer`
 
 ## Import Aliases

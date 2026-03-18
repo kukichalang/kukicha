@@ -1,0 +1,134 @@
+# Kukicha Standard Library - Git
+# Typed git/GitHub operations via the gh CLI.
+# Provides tags, branches, releases, and repo info without raw shell + jq.
+#
+# Requires: gh CLI installed and authenticated.
+#
+# Examples:
+#   tags := git.ListTags("owner/repo") onerr panic "{error}"
+#   branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
+#   git.CreateRelease("owner/repo", "v1.0.0", git.ReleaseOptions{draft: true}) onerr panic "{error}"
+
+petiole git
+
+import "fmt"
+import "stdlib/shell"
+import "stdlib/string"
+
+# ReleaseOptions configures a release created by CreateRelease
+type ReleaseOptions
+    Title string
+    Target string
+    Draft bool
+    GenerateNotes bool
+
+# --- Tags ---
+
+# ListTags returns all tag names for a remote GitHub repo
+# Example: tags := git.ListTags("owner/repo") onerr panic "{error}"
+func ListTags(repo string) (list of string, error)
+    raw := shell.Output("gh", "api", "repos/{repo}/tags", "--paginate", "--jq", ".[].name") onerr return list of string{}, error "failed to fetch tags for {repo}: {error}"
+    if raw |> string.IsBlank()
+        return list of string{}, empty
+    tags := raw |> string.Lines() |> filterBlank()
+    return tags, empty
+
+# TagExists checks whether a tag exists on a remote GitHub repo
+# Example: if git.TagExists("owner/repo", "v1.0.0") onerr false
+func TagExists(repo string, tag string) (bool, error)
+    result := shell.New("gh", "api", "repos/{repo}/git/ref/tags/{tag}") |> shell.Execute()
+    return shell.Success(result), empty
+
+# --- Branches ---
+
+# DefaultBranch returns the default branch name for a remote GitHub repo
+# Example: branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
+func DefaultBranch(repo string) (string, error)
+    branch := shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name") onerr return "", error "failed to get default branch for {repo}: {error}"
+    return branch |> string.TrimSpace(), empty
+
+# CurrentBranch returns the current local branch name
+# Example: branch := git.CurrentBranch() onerr panic "{error}"
+func CurrentBranch() (string, error)
+    branch := shell.Output("git", "rev-parse", "--abbrev-ref", "HEAD") onerr return "", error "failed to get current branch: {error}"
+    return branch |> string.TrimSpace(), empty
+
+# --- Releases ---
+
+# ReleaseExists checks whether a release exists for a tag on a remote GitHub repo
+# Example: if git.ReleaseExists("owner/repo", "v1.0.0") onerr false
+func ReleaseExists(repo string, tag string) (bool, error)
+    result := shell.New("gh", "release", "view", tag, "--repo", repo) |> shell.Execute()
+    return shell.Success(result), empty
+
+# CreateRelease creates a GitHub release for the given tag
+# Use ReleaseOptions to control title, target branch, draft status, and release notes
+# Example: git.CreateRelease("owner/repo", "v1.0.0", git.ReleaseOptions{draft: true, generateNotes: true}) onerr panic "{error}"
+func CreateRelease(repo string, tag string, opts ReleaseOptions) error
+    title := opts.Title
+    if title equals ""
+        title = tag
+
+    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title)
+        |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target)
+        |> shell.FlagIf(opts.GenerateNotes, "--generate-notes")
+        |> shell.FlagIf(opts.Draft, "--draft")
+
+    result := cmd |> shell.Execute()
+    if not shell.Success(result)
+        errStr := shell.GetError(result) as string
+        return error "release creation failed: {errStr}"
+    return empty
+
+# PreviewRelease returns the gh command that CreateRelease would run, without executing it
+# Useful for dry-run output
+# Example: print("Command: {git.PreviewRelease("owner/repo", "v1.0.0", opts)}")
+func PreviewRelease(repo string, tag string, opts ReleaseOptions) string
+    title := opts.Title
+    if title equals ""
+        title = tag
+
+    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title)
+        |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target)
+        |> shell.FlagIf(opts.GenerateNotes, "--generate-notes")
+        |> shell.FlagIf(opts.Draft, "--draft")
+
+    return shell.Preview(cmd)
+
+# --- Repository Info ---
+
+# RepoExists checks whether a GitHub repo is accessible
+# Example: if git.RepoExists("owner/repo") onerr false
+func RepoExists(repo string) (bool, error)
+    result := shell.New("gh", "repo", "view", repo) |> shell.Execute()
+    return shell.Success(result), empty
+
+# CurrentUser returns the authenticated GitHub username
+# Example: me := git.CurrentUser() onerr panic "{error}"
+func CurrentUser() (string, error)
+    login := shell.Output("gh", "api", "user", "--jq", ".login") onerr return "", error "failed to get current user: {error}"
+    return login |> string.TrimSpace(), empty
+
+# --- Local Git Operations ---
+
+# Clone clones a repository to a local path
+# Example: git.Clone("https://github.com/owner/repo.git", "./repo") onerr panic "{error}"
+func Clone(url string, path string) error
+    _ := shell.Output("git", "clone", url, path) onerr return error "clone failed: {error}"
+    return empty
+
+# CloneShallow clones a repository with limited history
+# Example: git.CloneShallow("https://github.com/owner/repo.git", "./repo", 1) onerr panic "{error}"
+func CloneShallow(url string, path string, depth int) error
+    depthStr := fmt.Sprintf("%d", depth)
+    _ := shell.Output("git", "clone", "--depth", depthStr, url, path) onerr return error "shallow clone failed: {error}"
+    return empty
+
+# --- Internal helpers ---
+
+func filterBlank(lines list of string) list of string
+    result := list of string{}
+    for line in lines
+        if not string.IsBlank(line)
+            result = append(result, line)
+    return result
