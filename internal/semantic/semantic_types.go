@@ -17,6 +17,7 @@ func (a *Analyzer) validateTypeAnnotation(typeAnn ast.TypeAnnotation) {
 			"any":         true,
 			"any2":        true, // Placeholder for second generic type parameter
 			"ordered":     true, // Placeholder for cmp.Ordered type parameter
+			"result":      true, // Placeholder for unconstrained second type parameter (transform output)
 			"error":       true,
 			"byte":        true,
 			"rune":        true,
@@ -138,7 +139,7 @@ func (a *Analyzer) isReferenceType(t *TypeInfo) bool {
 	case TypeKindReference, TypeKindList, TypeKindMap, TypeKindChannel, TypeKindFunction, TypeKindInterface:
 		return true
 	case TypeKindNamed:
-		if t.Name == "any" || t.Name == "any2" || t.Name == "ordered" || t.Name == "error" || t.Name == "interface{}" {
+		if t.Name == "any" || t.Name == "any2" || t.Name == "ordered" || t.Name == "result" || t.Name == "error" || t.Name == "interface{}" {
 			return true
 		}
 		

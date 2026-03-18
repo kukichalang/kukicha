@@ -18,8 +18,9 @@ func TestResponseHelpers(t reference testing.T)
     resp := jsonRec.Result()
     if resp.StatusCode != 200
         t.Errorf("Expected 200, got {resp.StatusCode}")
-    if resp.Header.Get("Content-Type") != "application/json"
-        t.Errorf("Expected JSON content type, got {resp.Header.Get(\"Content-Type\")}")
+    ct := resp.Header.Get("Content-Type")
+    if ct != "application/json"
+        t.Errorf("Expected JSON content type, got {ct}")
 
     textRec := httptest.NewRecorder()
     err2 := httphelper.TextStatus(textRec, "bye", 201)

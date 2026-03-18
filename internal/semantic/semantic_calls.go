@@ -72,7 +72,7 @@ func (a *Analyzer) resolveExpectedLambdaParams(
 			hasAny := false
 			for j, gt := range innerTypes {
 				switch {
-				case gt.Kind == TypeKindNamed && (gt.Name == "any" || gt.Name == "any2" || gt.Name == "ordered"):
+				case gt.Kind == TypeKindNamed && (gt.Name == "any" || gt.Name == "any2" || gt.Name == "ordered" || gt.Name == "result"):
 					if elementType != nil {
 						result[j] = elementType
 						hasAny = true
