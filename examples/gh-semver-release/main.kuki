@@ -124,12 +124,12 @@ func listReposWhereICommitted(org string) (list of string, error)
 
     repos := raw
         |> string.Lines()
-        |> slice.Filter((r string) => not string.IsBlank(r))
+        |> slice.Filter(r => not string.IsBlank(r))
         |> slice.Unique()
         |> sort.Strings()
 
     if org not equals ""
-        repos = repos |> slice.Filter((r string) => r |> string.HasPrefix("{org}/"))
+        repos = repos |> slice.Filter(r => r |> string.HasPrefix("{org}/"))
 
     return repos, empty
 
@@ -156,7 +156,7 @@ func doList(args cli.Args, initialTag string)
 
         entries = append(entries, RepoEntry{name: repo, current: current, next: next})
 
-    entries = entries |> sort.ByKey((e RepoEntry) => e.name)
+    entries = entries |> sort.ByKey(e => e.name)
 
     if csv
         print("\"repo\",\"current_tag\",\"next_tag\"")
@@ -320,7 +320,7 @@ func main()
         |> cli.Command("pick", "Interactively choose a repo to release")
         |> cli.CommandFlag("pick", "dry-run", "Show what would happen", "false")
         |> cli.CommandFlag("pick", "draft", "Create draft release", "true")
-        |> cli.CommandAction("list", (a cli.Args) => doList(a, initialTag))
-        |> cli.CommandAction("release", (a cli.Args) => doRelease(a, initialTag))
-        |> cli.CommandAction("pick", (a cli.Args) => doPick(a, initialTag))
+        |> cli.CommandAction("list", a => doList(a, initialTag))
+        |> cli.CommandAction("release", a => doRelease(a, initialTag))
+        |> cli.CommandAction("pick", a => doPick(a, initialTag))
         |> cli.RunApp() onerr fatal("{error}")

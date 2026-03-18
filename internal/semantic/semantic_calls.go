@@ -21,6 +21,167 @@ func init() {
 	}
 }
 
+// hasUntypedParams reports whether the lambda has at least one parameter with no type annotation.
+func hasUntypedParams(lambda *ast.ArrowLambda) bool {
+	for _, param := range lambda.Parameters {
+		if param.Type == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// extractQualifiedName returns "pkg.Func" for a MethodCallExpr, or the identifier
+// value for a plain Identifier.
+func extractQualifiedName(fn ast.Expression) string {
+	switch f := fn.(type) {
+	case *ast.MethodCallExpr:
+		if objID, ok := f.Object.(*ast.Identifier); ok {
+			return objID.Value + "." + f.Method.Value
+		}
+	case *ast.Identifier:
+		return f.Value
+	}
+	return ""
+}
+
+// resolveExpectedLambdaParams returns the expected []*TypeInfo for the j-th
+// parameter of the lambda that appears at paramIdx in the calling function's
+// signature. Three inference cases are handled:
+//
+//   - Case A: user-defined function with TypeKindFunction at paramIdx — uses
+//     funcType.Params[paramIdx].Params directly.
+//   - Cases B & C: Kukicha stdlib registry with ParamFuncParams entry for
+//     paramIdx — substitutes placeholder names ("any", "any2", "ordered")
+//     with elementType, and uses concrete names (e.g. "cli.Args") as-is.
+func (a *Analyzer) resolveExpectedLambdaParams(
+	qualName string, paramIdx int, funcType *TypeInfo, elementType *TypeInfo,
+) []*TypeInfo {
+	// Case A: user-defined function with a known func-typed parameter
+	if funcType != nil && funcType.Kind == TypeKindFunction && paramIdx < len(funcType.Params) {
+		paramType := funcType.Params[paramIdx]
+		if paramType != nil && paramType.Kind == TypeKindFunction && len(paramType.Params) > 0 {
+			return paramType.Params
+		}
+	}
+
+	// Cases B & C: look up in the Kukicha stdlib registry
+	if entry, ok := generatedStdlibRegistry[qualName]; ok && len(entry.ParamFuncParams) > 0 {
+		if innerTypes, ok := entry.ParamFuncParams[paramIdx]; ok {
+			result := make([]*TypeInfo, len(innerTypes))
+			hasAny := false
+			for j, gt := range innerTypes {
+				switch {
+				case gt.Kind == TypeKindNamed && (gt.Name == "any" || gt.Name == "any2" || gt.Name == "ordered"):
+					if elementType != nil {
+						result[j] = elementType
+						hasAny = true
+					}
+				case gt.Kind != TypeKindUnknown:
+					result[j] = &TypeInfo{Kind: gt.Kind, Name: gt.Name}
+					hasAny = true
+				}
+			}
+			if hasAny {
+				return result
+			}
+		}
+	}
+
+	return nil
+}
+
+// inferLambdaParamTypes records inferred parameter types in exprTypes for untyped
+// arrow lambda parameters appearing in a CallExpr's argument list.
+// This enables codegen to emit typed Go func signatures without requiring the
+// user to annotate every lambda parameter.
+func (a *Analyzer) inferLambdaParamTypes(
+	expr *ast.CallExpr,
+	funcType *TypeInfo,
+	providedArgTypes []*TypeInfo,
+	pipedArg *TypeInfo,
+	hasPlaceholder bool,
+) {
+	qualName := extractQualifiedName(expr.Function)
+
+	// Resolve element type T (for generic Case B / list-element substitution)
+	var elementType *TypeInfo
+	if pipedArg != nil && !hasPlaceholder && pipedArg.ElementType != nil {
+		elementType = pipedArg.ElementType
+	} else if len(providedArgTypes) > 0 && providedArgTypes[0] != nil && providedArgTypes[0].ElementType != nil {
+		elementType = providedArgTypes[0].ElementType
+	}
+
+	argOffset := 0
+	if pipedArg != nil && !hasPlaceholder {
+		argOffset = 1 // piped arg occupies parameter index 0
+	}
+
+	for i, arg := range expr.Arguments {
+		lambda, ok := arg.(*ast.ArrowLambda)
+		if !ok || !hasUntypedParams(lambda) {
+			continue
+		}
+		paramIdx := i + argOffset
+
+		inferredParamTypes := a.resolveExpectedLambdaParams(qualName, paramIdx, funcType, elementType)
+		for j, param := range lambda.Parameters {
+			if param.Type == nil && j < len(inferredParamTypes) && inferredParamTypes[j] != nil {
+				a.recordType(param.Name, inferredParamTypes[j])
+			}
+		}
+	}
+}
+
+// inferLambdaParamTypesMethod records inferred parameter types for untyped arrow
+// lambda parameters in a MethodCallExpr's argument list.
+func (a *Analyzer) inferLambdaParamTypesMethod(expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+	qualName := ""
+	if objID, ok := expr.Object.(*ast.Identifier); ok {
+		qualName = objID.Value + "." + expr.Method.Value
+	}
+	if qualName == "" {
+		return
+	}
+
+	// Resolve element type from pipedArg, or from the first non-lambda arg in exprTypes
+	var elementType *TypeInfo
+	if pipedArg != nil && pipedArg.ElementType != nil {
+		elementType = pipedArg.ElementType
+	} else {
+		for _, arg := range expr.Arguments {
+			if _, ok := arg.(*ast.ArrowLambda); ok {
+				continue
+			}
+			if ti, ok := a.exprTypes[arg]; ok && ti != nil && ti.ElementType != nil {
+				elementType = ti.ElementType
+				break
+			}
+		}
+	}
+
+	argOffset := 0
+	if pipedArg != nil {
+		argOffset = 1 // piped arg occupies parameter index 0
+	}
+
+	for i, arg := range expr.Arguments {
+		lambda, ok := arg.(*ast.ArrowLambda)
+		if !ok || !hasUntypedParams(lambda) {
+			continue
+		}
+		paramIdx := i + argOffset
+
+		// funcType is unknown for stdlib method calls, so only Cases B & C apply
+		inferredParamTypes := a.resolveExpectedLambdaParams(qualName, paramIdx, nil, elementType)
+		for j, param := range lambda.Parameters {
+			if param.Type == nil && j < len(inferredParamTypes) && inferredParamTypes[j] != nil {
+				a.recordType(param.Name, inferredParamTypes[j])
+			}
+		}
+	}
+}
+
 func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*TypeInfo {
 	// Check for known Go stdlib functions (parsed as direct Identifier, e.g. os.LookupEnv)
 	if id, ok := expr.Function.(*ast.Identifier); ok {
@@ -84,6 +245,11 @@ func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*Ty
 		}
 		providedArgTypes = append(providedArgTypes, a.analyzeExpression(arg))
 	}
+
+	// Infer lambda param types from calling context (for untyped arrow lambda params).
+	// Must run after providedArgTypes is built so elementType can be derived from
+	// the piped/first argument. Runs before validation so it covers all call shapes.
+	a.inferLambdaParamTypes(expr, funcType, providedArgTypes, pipedArg, hasPlaceholder)
 
 	// Validate usage of named arguments
 	if len(expr.NamedArguments) > 0 {
@@ -226,6 +392,9 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 	for _, arg := range expr.Arguments {
 		a.analyzeExpression(arg)
 	}
+
+	// Infer lambda param types for untyped arrow lambda args in method calls.
+	a.inferLambdaParamTypesMethod(expr, pipedArg)
 
 	// Handle known stdlib method return types
 	methodName := expr.Method.Value

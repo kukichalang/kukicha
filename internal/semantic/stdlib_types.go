@@ -11,10 +11,11 @@ type goStdlibType struct {
 // return count, per-position type info, and optional parameter names.
 // Used by both the Go stdlib and Kukicha stdlib registries.
 type goStdlibEntry struct {
-	Count         int
-	Types         []goStdlibType
-	ParamNames    []string // Parameter names (populated for Kukicha stdlib; nil for Go stdlib)
-	DefaultValues []string // Go expression strings for default parameter values; "" = no default
+	Count           int
+	Types           []goStdlibType
+	ParamNames      []string         // Parameter names (populated for Kukicha stdlib; nil for Go stdlib)
+	DefaultValues   []string         // Go expression strings for default parameter values; "" = no default
+	ParamFuncParams map[int][]goStdlibType // func-typed param index → inner param types (for lambda inference)
 }
 
 // GetStdlibEntry returns the Kukicha stdlib registry entry for the given

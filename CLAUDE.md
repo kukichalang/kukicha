@@ -257,11 +257,19 @@ user.Role |> switch
 
 ### Arrow Lambdas
 ```kukicha
-# Expression lambda (auto-return)
+# Expression lambda — type annotations are OPTIONAL for stdlib calls (inferred):
+repos |> slice.Filter(r => r.Stars > 100)           # r inferred as Repo
+entries |> sort.ByKey(e => e.name)                  # e inferred as Entry
+app |> cli.CommandAction("list", a => doList(a))    # a inferred as cli.Args
+
+# Explicit type annotation still works when you prefer it
 repos |> slice.Filter((r Repo) => r.Stars > 100)
 
-# Single untyped param (no parens)
+# Single untyped param — no parens needed
 numbers |> slice.Filter(n => n > 0)
+
+# Multiple untyped params (each inferred as the element type)
+sort.By(items, (a, b) => a.score < b.score)
 
 # Zero params
 button.OnClick(() => print("clicked"))

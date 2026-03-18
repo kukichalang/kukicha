@@ -29,8 +29,9 @@ Kukicha accepts English-word aliases for two common keywords:
 |-----------|--------------|-------------|
 | `func`    | `function`   | Beginner-facing code and tutorials |
 | `var`     | `variable`   | Top-level variable declarations in beginner-facing code |
+| `const`   | `constant`   | Beginner-facing const declarations |
 
-Both forms compile identically. Use `func`/`var` in idiomatic/production code, and `function`/`variable` when writing beginner tutorials or agent-generated code aimed at non-programmers.
+All forms compile identically. Use `func`/`var`/`const` in idiomatic/production code, and `function`/`variable`/`constant` when writing beginner tutorials or agent-generated code aimed at non-programmers.
 
 ```kukicha
 # These are identical to the compiler:
@@ -40,10 +41,14 @@ function Add(a int, b int) int
 # Top-level variable (file scope):
 var AppName string = "myapp"
 variable AppName string = "myapp"
+
+# Constants:
+const MaxRetries = 5
+constant MaxRetries = 5
 ```
 
-**For AI agents generating beginner-facing code:** prefer `function` and `variable`.
-**For all other code generation:** use `func` and `var`.
+**For AI agents generating beginner-facing code:** prefer `function`, `variable`, and `constant`.
+**For all other code generation:** use `func`, `var`, and `const`.
 
 ## Generic Type Placeholders (stdlib authoring only)
 
@@ -252,11 +257,19 @@ user.Role |> switch
 
 ### Arrow Lambdas
 ```kukicha
-# Expression lambda (auto-return)
+# Expression lambda — type annotations are OPTIONAL for stdlib calls (inferred):
+repos |> slice.Filter(r => r.Stars > 100)           # r inferred as Repo
+entries |> sort.ByKey(e => e.name)                  # e inferred as Entry
+app |> cli.CommandAction("list", a => doList(a))    # a inferred as cli.Args
+
+# Explicit type annotation still works when you prefer it
 repos |> slice.Filter((r Repo) => r.Stars > 100)
 
-# Single untyped param (no parens)
+# Single untyped param — no parens needed
 numbers |> slice.Filter(n => n > 0)
+
+# Multiple untyped params (each inferred as the element type)
+sort.By(items, (a, b) => a.score < b.score)
 
 # Zero params
 button.OnClick(() => print("clicked"))

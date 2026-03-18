@@ -390,6 +390,22 @@ This prevents `empty |> iterator.Values()` from silently becoming `iterator.Valu
 
 Arrow lambdas do **not** support an implicit `it` parameter. This feature was removed — lambdas must declare their parameters explicitly. If you see `() => print(it)`, that's a bug; it should be `(it SomeType) => print(it)`. The removed code lived in `codegen_walk.go` (`exprHasItIdentifier`, `blockHasItIdentifier`) and `semantic_expressions.go` (`arrowLambdaHasIt`).
 
+### Arrow lambda parameter type inference
+
+When arrow lambda parameters have no type annotation, the semantic analyzer infers them from the calling function's signature and records the result in `exprTypes[param.Name]`. `generateArrowLambda` checks `exprTypes` before emitting a bare parameter name.
+
+Three inference cases handled in `semantic_calls.go`:
+
+| Case | Trigger | Source |
+|------|---------|--------|
+| A — user-defined | `funcType.Kind == TypeKindFunction` | `funcType.Params[paramIdx].Params[j]` |
+| B — generic stdlib | `generatedStdlibRegistry[qualName].ParamFuncParams[paramIdx]` contains `"any"` | element type of the piped/first list argument |
+| C — non-generic stdlib | `ParamFuncParams[paramIdx]` with concrete type | `goStdlibEntry.ParamFuncParams` (e.g. `cli.Args`) |
+
+`goStdlibEntry.ParamFuncParams map[int][]goStdlibType` is populated by `genstdlibregistry` from `func(...)` parameter types in `.kuki` sources. Unqualified named types are prefixed with the package name at generation time (`"Args"` → `"cli.Args"`); placeholder names (`any`, `any2`, `ordered`, `error`) are left as-is for runtime substitution.
+
+`inferLambdaParamTypes` is called in `analyzeCallExpr` after `providedArgTypes` is built; `inferLambdaParamTypesMethod` is called in `analyzeMethodCallExpr`. Both record inferred types in `a.exprTypes` so codegen can emit fully typed Go func literals.
+
 ### Generics via placeholders
 
 When `isStdlibIter` is true (or per-function for `stdlib/slice` and `stdlib/sort`), the generator detects `any`/`any2`/`ordered` placeholders in type annotations and:

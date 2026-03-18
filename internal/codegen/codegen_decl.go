@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/duber000/kukicha/internal/ast"
+	"github.com/duber000/kukicha/internal/semantic"
 )
 
 func (g *Generator) generateTypeDecl(decl *ast.TypeDecl) {
@@ -298,10 +299,11 @@ func (g *Generator) generateArrowLambda(lambda *ast.ArrowLambda) string {
 	for _, param := range lambda.Parameters {
 		if param.Type != nil {
 			paramParts = append(paramParts, param.Name.Value+" "+g.generateTypeAnnotation(param.Type))
+		} else if ti, ok := g.exprTypes[param.Name]; ok && ti != nil && ti.Kind != semantic.TypeKindUnknown && ti.Kind != semantic.TypeKindNil {
+			// Inferred type from semantic analysis — emit the resolved Go type.
+			paramParts = append(paramParts, param.Name.Value+" "+g.typeInfoToGoString(ti))
 		} else {
-			// Untyped parameter — type must be inferred from context.
-			// For now, we emit as-is; the Go compiler will catch type errors.
-			// Full contextual inference is a semantic analysis extension.
+			// No type info — emit bare name; the Go compiler will catch type errors.
 			paramParts = append(paramParts, param.Name.Value)
 		}
 	}

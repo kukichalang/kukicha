@@ -50,10 +50,11 @@ func main() {
 
 // registryEntry holds the full signature info for a stdlib function.
 type registryEntry struct {
-	count         int
-	types         []typeRepr   // per-position return types
-	paramNames    []string     // parameter names (for named argument support)
-	defaultValues []string     // Go expression strings for default values; "" = no default
+	count           int
+	types           []typeRepr        // per-position return types
+	paramNames      []string          // parameter names (for named argument support)
+	defaultValues   []string          // Go expression strings for default values; "" = no default
+	paramFuncParams map[int][]typeRepr // func-typed param index → inner param types (for lambda inference)
 }
 
 // typeRepr is the generator's representation of a type, emitted as goStdlibType.
@@ -192,15 +193,38 @@ func scanRegistry(paths []string) (scanResult, []error) {
 				types[i] = typeAnnotationToRepr(ret)
 			}
 
-			// Extract parameter names and default values
+			// Extract parameter names, default values, and func-typed param inner types
 			paramNames := make([]string, len(fd.Parameters))
 			defaultValues := make([]string, len(fd.Parameters))
 			hasDefaults := false
+			var paramFuncParams map[int][]typeRepr
 			for i, param := range fd.Parameters {
 				paramNames[i] = param.Name.Value
 				if param.DefaultValue != nil {
 					defaultValues[i] = defaultValueToGo(param.DefaultValue)
 					hasDefaults = true
+				}
+				// Detect function-typed parameters and extract their inner param types.
+				// This enables lambda parameter type inference at the call site.
+				// Placeholder names ("any", "any2", "ordered") are kept as-is for
+				// substitution at inference time; other unqualified named types are
+				// prefixed with the package name so codegen emits "cli.Args" etc.
+				if ft, ok := param.Type.(*ast.FunctionType); ok && len(ft.Parameters) > 0 {
+					innerTypes := make([]typeRepr, len(ft.Parameters))
+					for j, innerParam := range ft.Parameters {
+						tr := typeAnnotationToRepr(innerParam)
+						// Qualify unqualified named types with the package name.
+						if tr.kind == "TypeKindNamed" && tr.name != "" &&
+							!strings.Contains(tr.name, ".") &&
+							tr.name != "any" && tr.name != "any2" && tr.name != "ordered" && tr.name != "error" {
+							tr.name = pkgName + "." + tr.name
+						}
+						innerTypes[j] = tr
+					}
+					if paramFuncParams == nil {
+						paramFuncParams = make(map[int][]typeRepr)
+					}
+					paramFuncParams[i] = innerTypes
 				}
 			}
 			if !hasDefaults {
@@ -209,10 +233,11 @@ func scanRegistry(paths []string) (scanResult, []error) {
 
 			if existing, exists := result.registry[key]; !exists || returnCount > existing.count {
 				result.registry[key] = registryEntry{
-					count:         returnCount,
-					types:         types,
-					paramNames:    paramNames,
-					defaultValues: defaultValues,
+					count:           returnCount,
+					types:           types,
+					paramNames:      paramNames,
+					defaultValues:   defaultValues,
+					paramFuncParams: paramFuncParams,
 				}
 			}
 		}
@@ -364,17 +389,36 @@ func formatRegistry(result scanResult) []byte {
 			defaultsLiteral = strings.Join(defaultParts, ", ")
 		}
 
-		if defaultsLiteral != "" {
-			entries = append(entries, fmt.Sprintf(
-				"\t%q: {Count: %d, Types: []goStdlibType{%s}, ParamNames: []string{%s}, DefaultValues: []string{%s}},",
-				k, v.count, typesLiteral, paramsLiteral, defaultsLiteral,
-			))
-		} else {
-			entries = append(entries, fmt.Sprintf(
-				"\t%q: {Count: %d, Types: []goStdlibType{%s}, ParamNames: []string{%s}},",
-				k, v.count, typesLiteral, paramsLiteral,
-			))
+		// Build the ParamFuncParams map literal (only if any param is func-typed)
+		paramFuncLiteral := ""
+		if len(v.paramFuncParams) > 0 {
+			// Sort keys for deterministic output
+			pfpKeys := make([]int, 0, len(v.paramFuncParams))
+			for idx := range v.paramFuncParams {
+				pfpKeys = append(pfpKeys, idx)
+			}
+			sort.Ints(pfpKeys)
+			var pfpEntries []string
+			for _, idx := range pfpKeys {
+				innerTypes := v.paramFuncParams[idx]
+				innerParts := make([]string, len(innerTypes))
+				for j, tr := range innerTypes {
+					innerParts[j] = formatTypeRepr(tr)
+				}
+				pfpEntries = append(pfpEntries, fmt.Sprintf("%d: {%s}", idx, strings.Join(innerParts, ", ")))
+			}
+			paramFuncLiteral = strings.Join(pfpEntries, ", ")
 		}
+
+		entry := fmt.Sprintf("{Count: %d, Types: []goStdlibType{%s}, ParamNames: []string{%s}", v.count, typesLiteral, paramsLiteral)
+		if defaultsLiteral != "" {
+			entry += fmt.Sprintf(", DefaultValues: []string{%s}", defaultsLiteral)
+		}
+		if paramFuncLiteral != "" {
+			entry += fmt.Sprintf(", ParamFuncParams: map[int][]goStdlibType{%s}", paramFuncLiteral)
+		}
+		entry += "}"
+		entries = append(entries, fmt.Sprintf("\t%q: %s,", k, entry))
 	}
 	sort.Strings(entries)
 
