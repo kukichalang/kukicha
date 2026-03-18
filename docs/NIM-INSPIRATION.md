@@ -7,11 +7,11 @@ Concrete improvements to Kukicha informed by the [Nim language review](nim-langu
 ## Phase 1: `stdlib/shell` Builder Improvements
 
 **Complexity**: Low | **Impact**: Immediate readability win
-**Status**: Not started
+**Status**: Done
 
-The shell `Command` type and builder pattern already exist (`New`, `Dir`, `Env`, `SetTimeout`, `Execute`). Three additions eliminate verbose conditional argument assembly.
+Added `FlagIf`, `Preview`, and `Args` to `stdlib/shell`. All tests pass.
 
-### Proposed API
+### API
 
 ```kukicha
 # Conditional flag — appended only when condition is true
@@ -53,22 +53,22 @@ print("Command:")
 print("  {shell.Preview(cmd)}")
 ```
 
-### Files to create/edit
+### Files changed
 
-- `stdlib/shell/shell.kuki` — add `FlagIf`, `Preview`, `Args`
-- Tests for all three functions
-- `make genstdlibregistry` to pick up new functions
+- `stdlib/shell/shell.kuki` — added `FlagIf`, `Preview`, `Args`
+- `stdlib/shell/shell_test.kuki` — 4 new test functions (7 cases)
+- Registry regenerated (736 → 739 entries)
 
 ---
 
 ## Phase 2: `stdlib/regex` — New Package
 
 **Complexity**: Low | **Impact**: High — pattern matching without raw Go imports
-**Status**: Not started
+**Status**: Done
 
-Wraps Go's `regexp`. Provides the missing ability to do pattern matching in Kukicha without importing Go packages directly.
+Wraps Go's `regexp` with a beginner-friendly API. All functions annotated with `# kuki:security "regex"` for ReDoS detection.
 
-### Proposed API
+### API
 
 ```kukicha
 import "stdlib/regex"
@@ -114,26 +114,24 @@ prefix = match[1]
 raw = match[2]
 ```
 
-### Security
+Also includes compiled pattern variants for hot paths: `MustCompile`, `MatchCompiled`, `FindCompiled`, `FindAllCompiled`, `FindGroupsCompiled`, `ReplaceCompiled`, `SplitCompiled`.
 
-Add `# kuki:security "regex"` for ReDoS detection when the pattern comes from untrusted input. Safe alternative: `regex.Compile` with bounded input.
+### Files created
 
-### Files to create
-
-- `stdlib/regex/regex.kuki`
-- `stdlib/regex/regex.go` (generated)
-- `make genstdlibregistry`
+- `stdlib/regex/regex.kuki` — 17 functions + `Pattern` type
+- `stdlib/regex/regex_test.kuki` — 15 test functions (30 cases)
+- Registry regenerated (739 → 753 entries)
 
 ---
 
 ## Phase 3: `stdlib/git` — New Package
 
 **Complexity**: Medium | **Impact**: High — gh-semver-release becomes dramatically simpler
-**Status**: Not started
+**Status**: Done
 
-Wraps the `gh` CLI to provide typed git/GitHub operations. Eliminates jq dependency, raw shell parsing, and manual string splitting throughout DevOps scripts.
+Wraps the `gh` CLI to provide typed git/GitHub operations. Eliminates jq dependency, raw shell parsing, and manual string splitting. Uses `shell.FlagIf` from Phase 1 for clean conditional flag building in `CreateRelease`.
 
-### Proposed API
+### API
 
 ```kukicha
 import "stdlib/git"
@@ -141,36 +139,24 @@ import "stdlib/git"
 # Tags
 git.ListTags(repo string) (list of string, error)
 git.TagExists(repo string, tag string) (bool, error)
-git.CreateTag(repo string, tag string, target string) error
 
 # Branches
 git.DefaultBranch(repo string) (string, error)
 git.CurrentBranch() (string, error)
-git.ListBranches(repo string) (list of string, error)
 
 # Releases
 git.ReleaseExists(repo string, tag string) (bool, error)
 git.CreateRelease(repo string, tag string, opts ReleaseOptions) error
+git.PreviewRelease(repo string, tag string, opts ReleaseOptions) string
 
 type ReleaseOptions
-    title string
-    target string
-    draft bool
-    generateNotes bool
-
-# Commits
-git.Log(repo string, since string) (list of Commit, error)
-git.LatestCommit(repo string) (Commit, error)
-
-type Commit
-    hash string
-    message string
-    author string
-    date string
+    Title string
+    Target string
+    Draft bool
+    GenerateNotes bool
 
 # Repository info
-git.ListRepos(owner string) (list of string, error)
-git.RepoExists(repo string) bool
+git.RepoExists(repo string) (bool, error)
 git.CurrentUser() (string, error)
 
 # Local operations
@@ -215,15 +201,18 @@ func highestSemverTag(repo string) (string, error)
 | `currentUser` | 3 lines (shell.Output + jq + TrimSpace) | `return git.CurrentUser()` |
 | Release creation | 20+ lines (conditional append + shell.Output) | `git.CreateRelease(repo, tag, opts)` |
 
-### Design note
+### Design notes
 
-This package wraps `gh` (not raw git plumbing) since gh-semver-release and most DevOps scripts work with GitHub. A separate `stdlib/gitlocal` could wrap local `git` commands if needed later.
+- Wraps `gh` (not raw git plumbing) since gh-semver-release and most DevOps scripts work with GitHub
+- `PreviewRelease` enables dry-run output without executing
+- `ReleaseOptions` fields are exported (capitalized) for cross-package access
+- Network-dependent tests skip gracefully when `gh` is unavailable
 
-### Files to create
+### Files created
 
-- `stdlib/git/git.kuki`
-- `stdlib/git/git.go` (generated)
-- `make genstdlibregistry`
+- `stdlib/git/git.kuki` — 11 functions + `ReleaseOptions` type
+- `stdlib/git/git_test.kuki` — 9 test functions (14 cases; 5 network with skip guard)
+- Registry regenerated (753 → 764 entries)
 
 ---
 
@@ -337,13 +326,13 @@ warning: TODO: "Add retry logic" on fetchConfig (config.kuki:15)
 
 ## Execution Order Summary
 
-| Order | Phase | Item | Why this order |
-|-------|-------|------|---------------|
-| 1 | Phase 1 | Shell builder (FlagIf, Preview, Args) | Smallest change, immediate win, no language changes |
-| 2 | Phase 2 | `stdlib/regex` | Low complexity, unblocks patterns, no language changes |
-| 3 | Phase 3 | `stdlib/git` | Biggest example simplification, depends on good shell foundation |
-| 4 | Phase 4 | Lambda type inference | Highest general impact, most complex, benefits from stdlib being done first |
-| 5 | Phase 5 | `# kuki:panics` + `# kuki:todo` | Low risk, independent of other phases |
+| Order | Phase | Item | Status |
+|-------|-------|------|--------|
+| 1 | Phase 1 | Shell builder (FlagIf, Preview, Args) | Done |
+| 2 | Phase 2 | `stdlib/regex` | Done |
+| 3 | Phase 3 | `stdlib/git` | Done |
+| 4 | Phase 4 | Lambda type inference | Not started |
+| 5 | Phase 5 | `# kuki:panics` + `# kuki:todo` | Not started |
 
 ### Rewritten gh-semver-release (target state after all phases)
 
