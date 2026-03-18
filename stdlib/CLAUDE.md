@@ -41,6 +41,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/parse` | Data format parsing | Csv, CsvWithHeader, Yaml, YamlPretty, Json, JsonLines, JsonPretty |
 | `stdlib/pg` | PostgreSQL client via pgx | Connect, New/MaxConns/MinConns/Retry/Open, Query, QueryRow, Exec, Begin, Commit, Rollback, ScanRow, CollectRows |
 | `stdlib/random` | Random number generation | Int, IntRange, Float, String, Choice |
+| `stdlib/regex` | Regular expression matching and replacement | Match, Find, FindAll, FindGroups, Replace, ReplaceFunc, Split, IsValid, Compile, MustCompile |
 | `stdlib/retry` | Retry with backoff | New, Attempts, Delay, Sleep |
 | `stdlib/sandbox` | os.Root filesystem sandboxing | New, Read, Write, List, Exists, Delete |
 | `stdlib/semver` | Semantic versioning (parse, bump, compare) | Parse, Bump, Format, Valid, Compare, Greater, Highest |
@@ -336,6 +337,18 @@ cmd := shell.New("gh", "release", "create", "v1.0.0", "--repo", "org/repo")
 print("Running: {shell.Preview(cmd)}")
 result := cmd |> shell.Execute()
 
+# Regular expressions
+import "stdlib/regex"
+if regex.Match("\\d+", text)
+    print("contains a number")
+groups := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", tag) onerr panic "{error}"
+prefix := groups[1]
+version := groups[2]
+cleaned := regex.Replace("\\s+", " ", messy)
+# Compiled patterns for hot paths
+p := regex.MustCompile("\\d+")
+nums := regex.FindAllCompiled(p, "a1 b2 c3")
+
 # Error wrapping and inspection
 import "stdlib/errors"
 err := errors.Wrap(originalErr, "loading config")
@@ -505,7 +518,7 @@ Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` gene
 
 All packages: `a2a`, `accel`, `cast`, `cli`, `concurrent`, `container`, `ctx`, `crypto`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`,
 `http`, `infer`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`,
-`random`, `retry`, `sandbox`, `semver`, `shell`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`, `webinfer`
+`random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`, `webinfer`
 
 ## Import Aliases
 

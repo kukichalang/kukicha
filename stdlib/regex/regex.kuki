@@ -1,0 +1,162 @@
+# Kukicha Standard Library - Regex
+# Regular expression matching, replacement, and splitting.
+# Wraps Go's regexp package with a beginner-friendly API.
+#
+# Examples:
+#   if regex.Match(`\d+`, text)
+#       print("contains a number")
+#
+#   groups := regex.FindGroups(`^(v?)(\d+\.\d+\.\d+)$`, tag) onerr panic "{error}"
+#   prefix := groups[1]
+#
+#   cleaned := regex.Replace(`\s+`, " ", messy)
+
+petiole regex
+
+import "regexp"
+
+# Type for compiled patterns (hot-path reuse)
+type Pattern
+    re reference regexp.Regexp
+
+# --- Core Matching ---
+
+# Match reports whether text contains any match of the pattern
+# Example: if regex.Match(`\d+`, text)
+# kuki:security "regex"
+func Match(pattern string, text string) bool
+    re := regexp.MustCompile(pattern)
+    return re.MatchString(text)
+
+# Find returns the first match of the pattern in text
+# Returns an error if no match is found
+# Example: num := regex.Find(`\d+`, "abc123def") onerr panic "{error}"
+# kuki:security "regex"
+func Find(pattern string, text string) (string, error)
+    re := regexp.MustCompile(pattern)
+    result := re.FindString(text)
+    if result equals ""
+        return "", error "no match found"
+    return result, empty
+
+# FindAll returns all non-overlapping matches of the pattern in text
+# Example: nums := regex.FindAll(`\d+`, "a1 b2 c3")
+# kuki:security "regex"
+func FindAll(pattern string, text string) list of string
+    re := regexp.MustCompile(pattern)
+    matches := re.FindAllString(text, -1)
+    if matches equals empty
+        return list of string{}
+    return matches
+
+# FindGroups returns the first match and its capture groups
+# Index 0 is the full match, 1+ are capture groups
+# Returns an error if no match is found
+# Example: groups := regex.FindGroups(`^(v?)(\d+)$`, "v42") onerr panic "{error}"
+# kuki:security "regex"
+func FindGroups(pattern string, text string) (list of string, error)
+    re := regexp.MustCompile(pattern)
+    matches := re.FindStringSubmatch(text)
+    if matches equals empty
+        return list of string{}, error "no match found"
+    return matches, empty
+
+# FindAllGroups returns all matches with their capture groups
+# Each element is a list where index 0 is the full match and 1+ are groups
+# Example: all := regex.FindAllGroups(`(\w+)=(\w+)`, "a=1 b=2") onerr panic "{error}"
+# kuki:security "regex"
+func FindAllGroups(pattern string, text string) (list of list of string, error)
+    re := regexp.MustCompile(pattern)
+    matches := re.FindAllStringSubmatch(text, -1)
+    if matches equals empty
+        return list of list of string{}, error "no matches found"
+    return matches, empty
+
+# --- Replacement ---
+
+# Replace replaces all matches of pattern in text with replacement
+# Use $1, $2 in replacement to reference capture groups
+# Example: cleaned := regex.Replace(`\s+`, " ", "too   many   spaces")
+# kuki:security "regex"
+func Replace(pattern string, replacement string, text string) string
+    re := regexp.MustCompile(pattern)
+    return re.ReplaceAllString(text, replacement)
+
+# ReplaceFunc replaces all matches using a function
+# The function receives each match and returns its replacement
+# Example: upper := regex.ReplaceFunc(`[a-z]+`, string.ToUpper, text)
+# kuki:security "regex"
+func ReplaceFunc(pattern string, replacer func(string) string, text string) string
+    re := regexp.MustCompile(pattern)
+    return re.ReplaceAllStringFunc(text, replacer)
+
+# --- Splitting ---
+
+# Split splits text around matches of the pattern
+# Example: parts := regex.Split(`[,;]\s*`, "a, b; c")
+# kuki:security "regex"
+func Split(pattern string, text string) list of string
+    re := regexp.MustCompile(pattern)
+    return re.Split(text, -1)
+
+# --- Validation ---
+
+# IsValid checks whether a pattern string is a valid regular expression
+# Example: if regex.IsValid(userPattern)
+func IsValid(pattern string) bool
+    _, err := regexp.Compile(pattern)
+    return err equals empty
+
+# --- Compiled Patterns ---
+
+# Compile compiles a pattern for repeated use (avoids re-compilation per call)
+# Example: p := regex.Compile(`\d+`) onerr panic "{error}"
+func Compile(pattern string) (Pattern, error)
+    re := regexp.Compile(pattern) onerr return Pattern{}, error "invalid pattern: {error}"
+    return Pattern{re: re}, empty
+
+# MustCompile compiles a pattern, panicking on invalid input
+# Use for known-good patterns initialized at startup
+# Example: p := regex.MustCompile(`\d+`)
+func MustCompile(pattern string) Pattern
+    re := regexp.MustCompile(pattern)
+    return Pattern{re: re}
+
+# MatchCompiled reports whether text contains any match of the compiled pattern
+# Example: if regex.MatchCompiled(p, text)
+func MatchCompiled(p Pattern, text string) bool
+    return p.re.MatchString(text)
+
+# FindCompiled returns the first match of the compiled pattern in text
+# Example: num := regex.FindCompiled(p, "abc123") onerr panic "{error}"
+func FindCompiled(p Pattern, text string) (string, error)
+    result := p.re.FindString(text)
+    if result equals ""
+        return "", error "no match found"
+    return result, empty
+
+# FindAllCompiled returns all matches of the compiled pattern in text
+# Example: nums := regex.FindAllCompiled(p, "a1 b2 c3")
+func FindAllCompiled(p Pattern, text string) list of string
+    matches := p.re.FindAllString(text, -1)
+    if matches equals empty
+        return list of string{}
+    return matches
+
+# FindGroupsCompiled returns the first match and capture groups of the compiled pattern
+# Example: groups := regex.FindGroupsCompiled(p, "v42") onerr panic "{error}"
+func FindGroupsCompiled(p Pattern, text string) (list of string, error)
+    matches := p.re.FindStringSubmatch(text)
+    if matches equals empty
+        return list of string{}, error "no match found"
+    return matches, empty
+
+# ReplaceCompiled replaces all matches of the compiled pattern in text
+# Example: cleaned := regex.ReplaceCompiled(p, " ", text)
+func ReplaceCompiled(p Pattern, replacement string, text string) string
+    return p.re.ReplaceAllString(text, replacement)
+
+# SplitCompiled splits text around matches of the compiled pattern
+# Example: parts := regex.SplitCompiled(p, text)
+func SplitCompiled(p Pattern, text string) list of string
+    return p.re.Split(text, -1)
