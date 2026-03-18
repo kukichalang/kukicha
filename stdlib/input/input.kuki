@@ -22,6 +22,7 @@ func ReadLine(prompt string) (string, error)
 
 # Prompt is a helper that prints a prompt and reads a line
 # Panics if reading fails - useful for simple scripts
+# kuki:panics "if reading from stdin fails"
 func Prompt(prompt string) string
     result := ReadLine(prompt) onerr panic "{error}"
     return result

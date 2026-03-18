@@ -27,6 +27,7 @@ type Analyzer struct {
 	inPipedSwitch       bool                   // True while analyzing piped switch case bodies (suppresses return-count checks)
 	deprecatedFuncs     map[string]string      // Function name → deprecation message (from # kuki:deprecated directives)
 	deprecatedTypes     map[string]string      // Type name → deprecation message
+	panickedFuncs       map[string]string      // Function name → panic message (from # kuki:panics directives)
 }
 
 // New creates a new semantic analyzer
@@ -67,6 +68,7 @@ func (a *Analyzer) Analyze() []error {
 	a.exprTypes = make(map[ast.Expression]*TypeInfo)
 	a.deprecatedFuncs = make(map[string]string)
 	a.deprecatedTypes = make(map[string]string)
+	a.panickedFuncs = make(map[string]string)
 
 	// Check package name for collisions with Go stdlib
 	a.checkPackageName()
@@ -74,8 +76,8 @@ func (a *Analyzer) Analyze() []error {
 	// Validate skill declaration if present
 	a.checkSkillDecl()
 
-	// Pre-pass: collect deprecation directives from declarations
-	a.collectDeprecations()
+	// Pre-pass: collect directives from declarations
+	a.collectDirectives()
 
 	// First pass: Collect all type and interface declarations
 	a.collectDeclarations()
@@ -86,35 +88,47 @@ func (a *Analyzer) Analyze() []error {
 	return a.errors
 }
 
-// collectDeprecations scans all declarations for # kuki:deprecated directives
-// and populates the deprecatedFuncs/deprecatedTypes maps.
-func (a *Analyzer) collectDeprecations() {
+// collectDirectives scans all declarations for # kuki:deprecated, # kuki:panics, and # kuki:todo directives.
+// It populates the corresponding maps and emits warnings for TODOs immediately.
+func (a *Analyzer) collectDirectives() {
 	for _, decl := range a.program.Declarations {
 		switch d := decl.(type) {
 		case *ast.FunctionDecl:
-			if msg := deprecatedMessage(d.Directives); msg != "" {
+			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
+				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
+			}
+			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
 				a.deprecatedFuncs[d.Name.Value] = msg
 			}
+			if msg := directiveMessage(d.Directives, "panics"); msg != "" {
+				a.panickedFuncs[d.Name.Value] = msg
+			}
 		case *ast.TypeDecl:
-			if msg := deprecatedMessage(d.Directives); msg != "" {
+			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
+				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
+			}
+			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
 				a.deprecatedTypes[d.Name.Value] = msg
 			}
 		case *ast.InterfaceDecl:
-			if msg := deprecatedMessage(d.Directives); msg != "" {
+			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
+				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
+			}
+			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
 				a.deprecatedTypes[d.Name.Value] = msg
 			}
 		}
 	}
 }
 
-// deprecatedMessage returns the message from a # kuki:deprecated directive, or "".
-func deprecatedMessage(dirs []ast.Directive) string {
+// directiveMessage returns the message from a specific directive, or "".
+func directiveMessage(dirs []ast.Directive, name string) string {
 	for _, d := range dirs {
-		if d.Name == "deprecated" {
+		if d.Name == name {
 			if len(d.Args) > 0 {
 				return d.Args[0]
 			}
-			return "deprecated"
+			return name
 		}
 	}
 	return ""

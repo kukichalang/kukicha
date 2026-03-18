@@ -783,6 +783,12 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 // deprecation messages. Populated from # kuki:deprecated directives in stdlib .kuki files.
 var generatedStdlibDeprecated = map[string]string{}
 
+// generatedStdlibPanics maps qualified Kukicha stdlib function names to their
+// panic messages. Populated from # kuki:panics directives in stdlib .kuki files.
+var generatedStdlibPanics = map[string]string{
+	"input.Prompt": "if reading from stdin fails",
+}
+
 // generatedSecurityFunctions maps qualified stdlib function names to their
 // security check category. Populated from # kuki:security directives in .kuki files.
 // Categories: "sql", "html", "fetch", "files", "redirect", "shell"

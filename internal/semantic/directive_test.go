@@ -170,3 +170,73 @@ func Process(h OldHandler) string
 		t.Errorf("expected deprecation warning for OldHandler usage, got warnings: %v", warnings)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5: # kuki:panics and # kuki:todo warnings
+// ---------------------------------------------------------------------------
+
+func TestTodoWarningFunction(t *testing.T) {
+	input := `# kuki:todo "implement retry"
+func fetchData() string
+    return "data"
+
+func main()
+    print("hello")
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "TODO:") && strings.Contains(w.Error(), "implement retry") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected todo warning, got warnings: %v", warnings)
+	}
+}
+
+func TestTodoWarningType(t *testing.T) {
+	input := `# kuki:todo "add status field"
+type Task
+    id int
+
+func main()
+    print("hello")
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "TODO:") && strings.Contains(w.Error(), "add status field") && strings.Contains(w.Error(), "Task") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected todo warning, got warnings: %v", warnings)
+	}
+}
+
+func TestPanicsWarning(t *testing.T) {
+	input := `# kuki:panics "when negative"
+func squareRoot(n int) int
+    if n < 0
+        panic "negative"
+    return n * n
+
+func main()
+    result := squareRoot(-1)
+    print(result)
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "squareRoot may panic") && strings.Contains(w.Error(), "when negative") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected panics warning for squareRoot usage, got warnings: %v", warnings)
+	}
+}

@@ -70,6 +70,7 @@ type scanResult struct {
 	genericClass map[string]string // qualified name → generic class ("T", "K", or "TK")
 	security     map[string]string // qualified name → security category (sql, html, fetch, files, redirect, shell)
 	interfaces   map[string]bool   // qualified interface names (e.g., "mcp.Server")
+	panics       map[string]string // qualified name → panics message
 }
 
 // scanRegistry reads and parses all .kuki files in paths, returning a map of
@@ -83,6 +84,7 @@ func scanRegistry(paths []string) (scanResult, []error) {
 		genericClass: map[string]string{},
 		security:     map[string]string{},
 		interfaces:   map[string]bool{},
+		panics:       map[string]string{},
 	}
 	var errs []error
 
@@ -158,6 +160,12 @@ func scanRegistry(paths []string) (scanResult, []error) {
 					if len(dir.Args) > 0 {
 						result.security[key] = dir.Args[0]
 					}
+				case "panics":
+					msg := "panics"
+					if len(dir.Args) > 0 {
+						msg = dir.Args[0]
+					}
+					result.panics[key] = msg
 				}
 			}
 
@@ -443,6 +451,12 @@ func formatRegistry(result scanResult) []byte {
 	}
 	sort.Strings(depEntries)
 
+	panicsEntries := make([]string, 0, len(result.panics))
+	for k, v := range result.panics {
+		panicsEntries = append(panicsEntries, fmt.Sprintf("\t%q: %q,", k, v))
+	}
+	sort.Strings(panicsEntries)
+
 	ifaceEntries := make([]string, 0, len(result.interfaces))
 	for k := range result.interfaces {
 		ifaceEntries = append(ifaceEntries, fmt.Sprintf("\t%q: true,", k))
@@ -471,6 +485,12 @@ var generatedStdlibDeprecated = map[string]string{
 %s
 }
 
+// generatedStdlibPanics maps qualified Kukicha stdlib function names to their
+// panic messages. Populated from # kuki:panics directives in stdlib .kuki files.
+var generatedStdlibPanics = map[string]string{
+%s
+}
+
 // generatedSecurityFunctions maps qualified stdlib function names to their
 // security check category. Populated from # kuki:security directives in .kuki files.
 // Categories: "sql", "html", "fetch", "files", "redirect", "shell"
@@ -495,7 +515,7 @@ var generatedSliceGenericClass = map[string]string{
 var generatedStdlibInterfaces = map[string]bool{
 %s
 }
-`, strings.Join(entries, "\n"), strings.Join(depEntries, "\n"), strings.Join(securityEntries, "\n"), strings.Join(genericEntries, "\n"), strings.Join(ifaceEntries, "\n"))
+`, strings.Join(entries, "\n"), strings.Join(depEntries, "\n"), strings.Join(panicsEntries, "\n"), strings.Join(securityEntries, "\n"), strings.Join(genericEntries, "\n"), strings.Join(ifaceEntries, "\n"))
 
 	formatted, fmtErr := format.Source([]byte(src))
 	if fmtErr != nil {

@@ -205,7 +205,18 @@ func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*Ty
 	}
 
 	// Check for deprecated function calls
-	a.checkDeprecatedCall(expr)
+	if id, ok := expr.Function.(*ast.Identifier); ok {
+		a.checkDeprecated(expr, id.Value, "")
+		a.checkPanics(expr, id.Value, "")
+	} else if methodCall, ok := expr.Function.(*ast.MethodCallExpr); ok {
+		// Handles things like obj.method()() if that ever occurs, 
+		// though typically pkg.Func() parses directly to MethodCallExpr
+		if objID, ok := methodCall.Object.(*ast.Identifier); ok {
+			qualifiedName := objID.Value + "." + methodCall.Method.Value
+			a.checkDeprecated(expr, methodCall.Method.Value, qualifiedName)
+			a.checkPanics(expr, methodCall.Method.Value, qualifiedName)
+		}
+	}
 
 	funcType := a.analyzeExpression(expr.Function)
 
@@ -423,6 +434,9 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 
 		// Check generated Go stdlib registry first (has full type info)
 		if entry, ok := generatedGoStdlib[qualifiedName]; ok {
+			a.checkDeprecated(expr, methodName, qualifiedName)
+			a.checkPanics(expr, methodName, qualifiedName)
+
 			types := goStdlibEntryToTypeInfos(entry)
 			a.recordReturnCount(expr, entry.Count)
 			return types
@@ -430,6 +444,9 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 
 		// Fall back to Kukicha stdlib registry (now has per-position type info)
 		if entry, ok := generatedStdlibRegistry[qualifiedName]; ok {
+			a.checkDeprecated(expr, methodName, qualifiedName)
+			a.checkPanics(expr, methodName, qualifiedName)
+
 			types := goStdlibEntryToTypeInfos(entry)
 			a.recordReturnCount(expr, entry.Count)
 			return types
@@ -439,6 +456,10 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 	// Check generated Go stdlib registry for method calls
 	if objType != nil && (objType.Kind == TypeKindNamed || objType.Kind == TypeKindReference) && objType.Name != "" {
 		qualifiedMethodName := objType.Name + "." + methodName
+		
+		a.checkDeprecated(expr, methodName, qualifiedMethodName)
+		a.checkPanics(expr, methodName, qualifiedMethodName)
+
 		if entry, ok := generatedGoStdlib[qualifiedMethodName]; ok {
 			types := goStdlibEntryToTypeInfos(entry)
 			a.recordReturnCount(expr, entry.Count)
@@ -448,6 +469,15 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 
 	// Method call on user-defined type: look up method signature
 	if objType != nil {
+		if objType.Kind == TypeKindNamed || objType.Kind == TypeKindStruct {
+			qualifiedMethodName := objType.Name + "." + methodName
+			a.checkDeprecated(expr, methodName, qualifiedMethodName)
+			a.checkPanics(expr, methodName, qualifiedMethodName)
+		} else {
+			a.checkDeprecated(expr, methodName, "")
+			a.checkPanics(expr, methodName, "")
+		}
+
 		methodType := a.resolveMethodType(objType, methodName)
 		if methodType != nil && len(methodType.Returns) > 0 {
 			a.recordReturnCount(expr, len(methodType.Returns))
@@ -478,32 +508,34 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 	return &TypeInfo{Kind: TypeKindUnknown}
 }
 
-// checkDeprecatedCall emits a warning if the called function is marked # kuki:deprecated.
-func (a *Analyzer) checkDeprecatedCall(expr *ast.CallExpr) {
-	var name, qualifiedName string
-	switch fn := expr.Function.(type) {
-	case *ast.Identifier:
-		name = fn.Value
-	case *ast.MethodCallExpr:
-		name = fn.Method.Value
-		// Build qualified name for stdlib lookup (e.g., "slice.Filter")
-		if objID, ok := fn.Object.(*ast.Identifier); ok {
-			qualifiedName = objID.Value + "." + fn.Method.Value
-		}
-	default:
-		return
-	}
-
+// checkDeprecated emits a warning if the called function is marked # kuki:deprecated.
+func (a *Analyzer) checkDeprecated(node ast.Node, name string, qualifiedName string) {
 	// Check local deprecated functions (from same-file directives)
 	if msg, ok := a.deprecatedFuncs[name]; ok {
-		a.warn(expr.Pos(), fmt.Sprintf("'%s' is deprecated: %s", name, msg))
+		a.warn(node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", name, msg))
 		return
 	}
 
 	// Check stdlib deprecated functions (from generated registry)
 	if qualifiedName != "" {
 		if msg, ok := generatedStdlibDeprecated[qualifiedName]; ok {
-			a.warn(expr.Pos(), fmt.Sprintf("'%s' is deprecated: %s", qualifiedName, msg))
+			a.warn(node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", qualifiedName, msg))
+		}
+	}
+}
+
+// checkPanics emits a warning if the called function is marked # kuki:panics.
+func (a *Analyzer) checkPanics(node ast.Node, name string, qualifiedName string) {
+	// Check local panicking functions (from same-file directives)
+	if msg, ok := a.panickedFuncs[name]; ok {
+		a.warn(node.Pos(), fmt.Sprintf("%s may panic: %q", name, msg))
+		return
+	}
+
+	// Check stdlib panicking functions (from generated registry)
+	if qualifiedName != "" {
+		if msg, ok := generatedStdlibPanics[qualifiedName]; ok {
+			a.warn(node.Pos(), fmt.Sprintf("%s may panic: %q", qualifiedName, msg))
 		}
 	}
 }
