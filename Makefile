@@ -29,8 +29,8 @@ gengostdlib:
 	go run ./cmd/gengostdlib
 
 # Regenerate all stdlib .go files from .kuki sources.
-# Runs genstdlibregistry first so the semantic registry stays in sync,
-# then rebuilds the compiler with the fresh registry, then transpiles stdlib.
+# Rebuilds the compiler (which runs genstdlibregistry via go generate),
+# then transpiles stdlib .kuki files to .go.
 # Ignores go build errors (stdlib packages aren't standalone binaries).
 generate: build generate-tests
 	@for f in $(KUKI_MAIN); do \
