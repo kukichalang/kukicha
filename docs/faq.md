@@ -159,6 +159,10 @@ Most packages use only Go's standard library. The exceptions are packages that w
 
 `go mod tidy` pulls in the relevant dependency when you import one of these packages.
 
+### Which languages which this inspired by
+
+Besides go, so far Python, Elixir and Nim
+
 ### Why bother making an AI Agent friendly language? In the future we won't be able read what they generate anyway
 
 Yes, applications will become specialized neural micro-models whose weights encode behavior; vector embeddings will replace rigid syntax, control flow is differentiable and self-adjusting, and correctness is ensured through formal mathematical proofs instead of tests.
