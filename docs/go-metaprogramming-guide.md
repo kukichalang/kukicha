@@ -154,11 +154,10 @@ Where Go's *syntax* (not just its library) creates friction, Kukicha adds target
 
 ### What Kukicha deliberately does NOT do
 
-- **No macros.** You cannot define syntactic transformations.
-- **No user-facing metaprogramming.** No compile-time code generation accessible to application authors.
-- **No implicit behavior.** Every `onerr` is written explicitly. There's no hidden control flow.
+- **No user-defined transformations.** The set of expansions is fixed in the compiler. Users cannot create new `onerr`-like constructs. This prevents dialect fragmentation but means the language designer picks winners.
+- **No AST-level metaprogramming.** No quasiquoting, no compile-time reflection, no code-as-data.
 
-The compiler uses internal code generation (`go generate` to build the stdlib registry, transpilation of `.kuki` → `.go`), but this is build infrastructure — not something application authors interact with.
+The bet Kukicha makes: a **closed, curated set** of compiler-integrated transformations avoids the fragmentation and complexity problems of user-extensible macros, while still meaningfully reducing friction. The risk is that if the built-in set doesn't cover a user's case, they have no escape hatch — they're stuck writing verbose Go-style code in Kukicha, or dropping down to raw Go.
 
 ---
 
@@ -169,8 +168,72 @@ The compiler uses internal code generation (`go generate` to build the stdlib re
 | **Metaprogramming** | Generating code at compile time | High — new mental model, opaque errors | Rejected (except `go generate` as build tool) | Not exposed to users |
 | **Macros** | Syntactic shorthand that expands to longer code | Medium to high — two-language problem | Rejected entirely | Rejected entirely |
 | **Rich stdlib** | Pre-built functions for common tasks | Low — just function calls | Primary strategy | Primary strategy, plus pipes to compose them |
-| **Syntactic sugar** | Simpler spelling of common patterns | Low — if the sugar is obvious | Minimal (Go prefers explicitness) | Targeted: `onerr`, `and`/`or`/`not`, `\|>`, etc. |
+| **Syntactic sugar** (renaming) | Simpler spelling of the same construct | Low — 1:1 mapping | Minimal (Go prefers explicitness) | `and`/`or`/`not`, `list of T`, `empty` |
+| **Compiler-integrated transforms** | Fixed expansions baked into the compiler | Medium — hidden code generation | N/A (Go doesn't do this) | `onerr`, `\|>`, pipeline error threading |
 
-Go's philosophy is that the cost of verbosity is lower than the cost of magic. Kukicha agrees with the "no magic" principle but argues that some of Go's verbosity isn't load-bearing — it doesn't teach anything, it just creates friction. `onerr return` is just as explicit as `if err != nil { return err }` about what happens on error — it's just shorter.
+---
 
-The guiding principle: **reduce ceremony, not clarity.**
+## The Honest Part: Where the Lines Blur
+
+The table above draws clean boundaries. In practice, they're fuzzy — and Kukicha should be upfront about where it sits in the gray areas.
+
+### `onerr` is a macro in everything but name
+
+When you write:
+
+```kukicha
+data := fetchData() onerr return
+```
+
+The compiler generates:
+
+```go
+data, err := fetchData()
+if err != nil {
+    return "", err  // zero values inferred per return signature
+}
+```
+
+Multiple statements from a single expression. Zero values the user never mentioned. A return with an arity they didn't specify. By any academic definition, that's a macro expansion.
+
+This is functionally identical to Rust's `?` operator, which is widely acknowledged as a macro-like language feature. The Go team rejected `?` for Go (the [`try` proposal](https://github.com/golang/go/issues/32437), 2019) — so Kukicha is genuinely **disagreeing** with Go here, not just adding a library on top.
+
+### What's the actual distinction?
+
+Not "sugar vs. metaprogramming" — it's between **user-defined** and **compiler-fixed** transformations:
+
+| | User-defined (true macros) | Compiler-fixed (Kukicha's approach) |
+|---|---|---|
+| **Who writes the rule?** | Library or application author | Language designer |
+| **How many rules exist?** | Unbounded — every library adds more | Fixed set, documented once |
+| **Can it surprise you?** | Yes — must learn each library's macros | Only if you haven't read the language spec |
+| **Tooling impact** | Breaks tools that don't understand the macro | Tools are built to understand the sugar |
+
+And here's how each specific feature honestly classifies:
+
+| Feature | Surface appearance | What actually happens | Honest classification |
+|---------|-------------------|----------------------|----------------------|
+| `and`/`or`/`not` | Keyword rename | 1:1 token swap | Genuine sugar |
+| `list of string` | Type syntax | 1:1 mapping to `[]string` | Genuine sugar |
+| `onerr return` | Error shorthand | Generates if-nil-return with inferred zero values | Compiler-integrated transformation |
+| `onerr explain "msg"` | Error wrapping | Generates `fmt.Errorf("msg: %w", err)` + return | Compiler-integrated transformation |
+| `x \|> f() \|> g()` | Composition | Introduces temporaries, reorders evaluation, threads error checks | Compiler-integrated transformation |
+| Pipeline `onerr` | Error catch-all | Wraps entire chain in error-checked sequence | Compiler-integrated transformation |
+
+### The compromises, stated plainly
+
+1. **`onerr` hides control flow.** `onerr return` inserts a `return` the user didn't type. Go's objection to `try` was exactly this — hidden returns make it harder to reason about what a function does. Kukicha's counterargument: the word `return` is visually present on the line where it happens, unlike a macro that might bury a return inside an unrelated call. Go purists would say that's not enough.
+
+2. **The pipe operator rewrites argument order.** `x |> f(a, _)` becomes `f(a, x)`. The reader has to mentally undo a positional transformation. For long chains this is a net win (left-to-right data flow); for one-off calls, `f(a, x)` is arguably clearer.
+
+3. **`list of string` trades brevity for readability.** It's three tokens instead of Go's two (`[]string`). More readable for English speakers, more to type for experienced programmers. This is a deliberate bet on the beginner audience.
+
+4. **The transpiler is itself metaprogramming.** Kukicha-the-language says "no user-facing metaprogramming," but Kukicha-the-tool is a code generator that produces Go. Users don't see the generated Go unless they look, which means they're trusting a transformation they can't easily inspect. Go's `go generate` philosophy is that generated code should be committed and reviewed — Kukicha's generated `.go` is an ephemeral build artifact.
+
+### Where Kukicha draws the line
+
+The compromises above are all **fixed and finite**. There are exactly N syntactic transformations in Kukicha, all documented, all baked into the compiler. No library author can add new ones. No application developer can define a custom `onerr`-like construct.
+
+This is the real commitment: not "no transformations" (that would be Go), but **no user-extensible transformations**. The language can surprise you, but only in ways that fit on one reference card. Whether that's an acceptable trade-off depends on what you value more — Go's principle that even the language shouldn't hide control flow, or Kukicha's principle that fixed, well-documented sugar is a net win for beginners even if it isn't "pure."
+
+Reasonable people disagree. Go chose one side. Kukicha chose the other. Both are internally consistent.
