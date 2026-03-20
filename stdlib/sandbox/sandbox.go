@@ -21,7 +21,8 @@ func New(path string) (Root, error) {
 	r, err_1 := os.OpenRoot(path)
 	if err_1 != nil {
 		err_1 = fmt.Errorf("sandbox open: %w", err_1)
-		return *new(Root), err_1
+		var _zero0 Root
+		return _zero0, err_1
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:30
 	return Root{root: r, path: path}, nil

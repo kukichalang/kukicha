@@ -88,12 +88,12 @@ func Choose(prompt string, options []string) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/input/input.kuki:60
 	val, err_5 := strconv.Atoi(trimmed)
 	if err_5 != nil {
-		return -1, errors.New(fmt.Sprintf("invalid selection: %v", trimmed))
+		return -1, fmt.Errorf("invalid selection: %v", trimmed)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/input/input.kuki:61
 	if (val < 1) || (val > len(options)) {
 //line /Users/tluker/repos/go/kukicha/stdlib/input/input.kuki:62
-		return -1, errors.New(fmt.Sprintf("selection out of range: %v", val))
+		return -1, fmt.Errorf("selection out of range: %v", val)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/input/input.kuki:64
 	return (val - 1), nil

@@ -37,27 +37,27 @@ func Parse(tag string) (Version, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:36
 	if len(parts) != 3 {
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:37
-		return Version{}, errors.New(fmt.Sprintf("invalid semver: %v", tag))
+		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:39
 	major, err_1 := cast.Atoi(parts[0])
 	if err_1 != nil {
-		return Version{}, errors.New(fmt.Sprintf("invalid semver: %v", tag))
+		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:40
 	minor, err_2 := cast.Atoi(parts[1])
 	if err_2 != nil {
-		return Version{}, errors.New(fmt.Sprintf("invalid semver: %v", tag))
+		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:41
 	patch, err_3 := cast.Atoi(parts[2])
 	if err_3 != nil {
-		return Version{}, errors.New(fmt.Sprintf("invalid semver: %v", tag))
+		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:43
 	if ((major < 0) || (minor < 0)) || (patch < 0) {
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:44
-		return Version{}, errors.New(fmt.Sprintf("invalid semver: %v", tag))
+		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:46
 	return Version{major: major, minor: minor, patch: patch, prefix: prefix}, nil

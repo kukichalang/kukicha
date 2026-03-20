@@ -3,7 +3,6 @@
 package git
 
 import (
-	"errors"
 	"fmt"
 	"github.com/duber000/kukicha/stdlib/shell"
 	kukistring "github.com/duber000/kukicha/stdlib/string"
@@ -22,7 +21,7 @@ func ListTags(repo string) ([]string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:30
 	raw, err_1 := shell.Output("gh", "api", fmt.Sprintf("repos/%v/tags", repo), "--paginate", "--jq", ".[].name")
 	if err_1 != nil {
-		return []string{}, errors.New(fmt.Sprintf("failed to fetch tags for %v: %v", repo, err_1))
+		return []string{}, fmt.Errorf("failed to fetch tags for %v: %v", repo, err_1)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:31
 	if kukistring.IsBlank(raw) {
@@ -48,7 +47,7 @@ func DefaultBranch(repo string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:47
 	branch, err_2 := shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name")
 	if err_2 != nil {
-		return "", errors.New(fmt.Sprintf("failed to get default branch for %v: %v", repo, err_2))
+		return "", fmt.Errorf("failed to get default branch for %v: %v", repo, err_2)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:48
 	return kukistring.TrimSpace(branch), nil
@@ -59,7 +58,7 @@ func CurrentBranch() (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:53
 	branch, err_3 := shell.Output("git", "rev-parse", "--abbrev-ref", "HEAD")
 	if err_3 != nil {
-		return "", errors.New(fmt.Sprintf("failed to get current branch: %v", err_3))
+		return "", fmt.Errorf("failed to get current branch: %v", err_3)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:54
 	return kukistring.TrimSpace(branch), nil
@@ -91,7 +90,7 @@ func CreateRelease(repo string, tag string, opts ReleaseOptions) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:79
 		errStr := string(shell.GetError(result))
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:80
-		return errors.New(fmt.Sprintf("release creation failed: %v", errStr))
+		return fmt.Errorf("release creation failed: %v", errStr)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:81
 	return nil
@@ -125,7 +124,7 @@ func CurrentUser() (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:109
 	login, err_4 := shell.Output("gh", "api", "user", "--jq", ".login")
 	if err_4 != nil {
-		return "", errors.New(fmt.Sprintf("failed to get current user: %v", err_4))
+		return "", fmt.Errorf("failed to get current user: %v", err_4)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:110
 	return kukistring.TrimSpace(login), nil
@@ -136,7 +135,7 @@ func Clone(url string, path string) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:117
 	_, err_5 := shell.Output("git", "clone", url, path)
 	if err_5 != nil {
-		return errors.New(fmt.Sprintf("clone failed: %v", err_5))
+		return fmt.Errorf("clone failed: %v", err_5)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
 	return nil
@@ -149,7 +148,7 @@ func CloneShallow(url string, path string, depth int) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:124
 	_, err_6 := shell.Output("git", "clone", "--depth", depthStr, url, path)
 	if err_6 != nil {
-		return errors.New(fmt.Sprintf("shallow clone failed: %v", err_6))
+		return fmt.Errorf("shallow clone failed: %v", err_6)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/git/git.kuki:125
 	return nil

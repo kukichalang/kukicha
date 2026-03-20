@@ -732,7 +732,8 @@ func executeRaw(c Client) (Completion, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:644
 	resp, err_2 := fetch.Do(req)
 	if err_2 != nil {
-		return *new(Completion), err_2
+		var _zero0 Completion
+		return _zero0, err_2
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:646
 	defer resp.Body.Close()
@@ -741,17 +742,18 @@ func executeRaw(c Client) (Completion, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:649
 		errBody, err_3 := fetch.Bytes(resp)
 		if err_3 != nil {
-			return Completion{}, errors.New(fmt.Sprintf("API request failed with status %v", resp.StatusCode))
+			return Completion{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:650
-		return Completion{}, errors.New(fmt.Sprintf("API request failed (%v): %v", resp.StatusCode, string(errBody)))
+		return Completion{}, fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:652
 	comp := Completion{}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:653
 	err_4 := json.UnmarshalRead(resp.Body, &comp)
 	if err_4 != nil {
-		return *new(Completion), err_4
+		var _zero0 Completion
+		return _zero0, err_4
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:655
 	return comp, nil
@@ -788,10 +790,10 @@ func executeStream(c Client) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:679
 		errBody, err_6 := fetch.Bytes(resp)
 		if err_6 != nil {
-			return "", errors.New(fmt.Sprintf("API request failed with status %v", resp.StatusCode))
+			return "", fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:680
-		return "", errors.New(fmt.Sprintf("API request failed (%v): %v", resp.StatusCode, string(errBody)))
+		return "", fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:683
 	fullContent := ""
@@ -840,7 +842,7 @@ func executeStream(c Client) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:709
 	err_8 := scanner.Err()
 	if err_8 != nil {
-		return fullContent, errors.New(fmt.Sprintf("%v", err_8))
+		return fullContent, fmt.Errorf("%v", err_8)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:711
 	return fullContent, nil
@@ -1682,7 +1684,8 @@ func rExecuteRaw(c ResponseClient) (Response, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1304
 	resp, err_10 := fetch.Do(req)
 	if err_10 != nil {
-		return *new(Response), err_10
+		var _zero0 Response
+		return _zero0, err_10
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1306
 	defer resp.Body.Close()
@@ -1691,17 +1694,18 @@ func rExecuteRaw(c ResponseClient) (Response, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1309
 		errBody, err_11 := fetch.Bytes(resp)
 		if err_11 != nil {
-			return Response{}, errors.New(fmt.Sprintf("API request failed with status %v", resp.StatusCode))
+			return Response{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1310
-		return Response{}, errors.New(fmt.Sprintf("API request failed (%v): %v", resp.StatusCode, string(errBody)))
+		return Response{}, fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1312
 	result := Response{}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1313
 	err_12 := json.UnmarshalRead(resp.Body, &result)
 	if err_12 != nil {
-		return *new(Response), err_12
+		var _zero0 Response
+		return _zero0, err_12
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1315
 	return result, nil
@@ -1738,10 +1742,10 @@ func rExecuteStream(c ResponseClient) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1339
 		errBody, err_14 := fetch.Bytes(resp)
 		if err_14 != nil {
-			return "", errors.New(fmt.Sprintf("API request failed with status %v", resp.StatusCode))
+			return "", fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1340
-		return "", errors.New(fmt.Sprintf("API request failed (%v): %v", resp.StatusCode, string(errBody)))
+		return "", fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1348
 	fullContent := ""
@@ -1808,7 +1812,7 @@ func rExecuteStream(c ResponseClient) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1386
 	err_16 := scanner.Err()
 	if err_16 != nil {
-		return fullContent, errors.New(fmt.Sprintf("%v", err_16))
+		return fullContent, fmt.Errorf("%v", err_16)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1388
 	return fullContent, nil
@@ -2485,7 +2489,8 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1901
 	resp, err_18 := fetch.Do(req)
 	if err_18 != nil {
-		return *new(AnthropicResponse), err_18
+		var _zero0 AnthropicResponse
+		return _zero0, err_18
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1903
 	defer resp.Body.Close()
@@ -2494,17 +2499,18 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1906
 		errBody, err_19 := fetch.Bytes(resp)
 		if err_19 != nil {
-			return AnthropicResponse{}, errors.New(fmt.Sprintf("Anthropic API request failed with status %v", resp.StatusCode))
+			return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1907
-		return AnthropicResponse{}, errors.New(fmt.Sprintf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody)))
+		return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1909
 	result := AnthropicResponse{}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1910
 	err_20 := json.UnmarshalRead(resp.Body, &result)
 	if err_20 != nil {
-		return *new(AnthropicResponse), err_20
+		var _zero0 AnthropicResponse
+		return _zero0, err_20
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1912
 	return result, nil
@@ -2543,10 +2549,10 @@ func mExecuteStream(c MessagesClient) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1947
 		errBody, err_22 := fetch.Bytes(resp)
 		if err_22 != nil {
-			return "", errors.New(fmt.Sprintf("Anthropic API request failed with status %v", resp.StatusCode))
+			return "", fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1948
-		return "", errors.New(fmt.Sprintf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody)))
+		return "", fmt.Errorf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1952
 	fullContent := ""
@@ -2601,7 +2607,7 @@ func mExecuteStream(c MessagesClient) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1983
 	err_24 := scanner.Err()
 	if err_24 != nil {
-		return fullContent, errors.New(fmt.Sprintf("%v", err_24))
+		return fullContent, fmt.Errorf("%v", err_24)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1984
 	return fullContent, nil

@@ -29,7 +29,7 @@ func MinLength(s string, n int) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:27
 	if len(s) < n {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:28
-		return s, errors.New(fmt.Sprintf("value must be at least %v characters", n))
+		return s, fmt.Errorf("value must be at least %v characters", n)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:29
 	return s, nil
@@ -40,7 +40,7 @@ func MaxLength(s string, n int) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:34
 	if len(s) > n {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:35
-		return s, errors.New(fmt.Sprintf("value must be at most %v characters", n))
+		return s, fmt.Errorf("value must be at most %v characters", n)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:36
 	return s, nil
@@ -51,7 +51,7 @@ func Length(s string, n int) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:41
 	if len(s) != n {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:42
-		return s, errors.New(fmt.Sprintf("value must be exactly %v characters", n))
+		return s, fmt.Errorf("value must be exactly %v characters", n)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:43
 	return s, nil
@@ -64,7 +64,7 @@ func LengthBetween(s string, min int, max int) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:49
 	if (length < min) || (length > max) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:50
-		return s, errors.New(fmt.Sprintf("value must be between %v and %v characters", min, max))
+		return s, fmt.Errorf("value must be between %v and %v characters", min, max)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:51
 	return s, nil
@@ -75,7 +75,7 @@ func Matches(s string, pattern string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:56
 	matched, err_1 := regexp.MatchString(pattern, s)
 	if err_1 != nil {
-		return s, errors.New(fmt.Sprintf("invalid pattern: %v", err_1))
+		return s, fmt.Errorf("invalid pattern: %v", err_1)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:57
 	if !matched {
@@ -109,7 +109,7 @@ func URL(s string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:75
 	parsed, err_3 := url.Parse(s)
 	if err_3 != nil {
-		return s, errors.New(fmt.Sprintf("invalid URL: %v", err_3))
+		return s, fmt.Errorf("invalid URL: %v", err_3)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:76
 	if (parsed.Scheme == "") || (parsed.Host == "") {
@@ -181,7 +181,7 @@ func StartsWith(s string, prefix string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:115
 	if !kukistring.HasPrefix(s, prefix) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:116
-		return s, errors.New(fmt.Sprintf("value must start with '%v'", prefix))
+		return s, fmt.Errorf("value must start with '%v'", prefix)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:117
 	return s, nil
@@ -192,7 +192,7 @@ func EndsWith(s string, suffix string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:122
 	if !kukistring.HasSuffix(s, suffix) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:123
-		return s, errors.New(fmt.Sprintf("value must end with '%v'", suffix))
+		return s, fmt.Errorf("value must end with '%v'", suffix)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:124
 	return s, nil
@@ -203,7 +203,7 @@ func Contains(s string, substr string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:129
 	if !kukistring.Contains(s, substr) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:130
-		return s, errors.New(fmt.Sprintf("value must contain '%v'", substr))
+		return s, fmt.Errorf("value must contain '%v'", substr)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:131
 	return s, nil
@@ -269,7 +269,7 @@ func InRange(n int, min int, max int) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:173
 	if (n < min) || (n > max) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:174
-		return n, errors.New(fmt.Sprintf("value must be between %v and %v", min, max))
+		return n, fmt.Errorf("value must be between %v and %v", min, max)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:175
 	return n, nil
@@ -280,7 +280,7 @@ func Min(n int, min int) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:180
 	if n < min {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:181
-		return n, errors.New(fmt.Sprintf("value must be at least %v", min))
+		return n, fmt.Errorf("value must be at least %v", min)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:182
 	return n, nil
@@ -291,7 +291,7 @@ func Max(n int, max int) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:187
 	if n > max {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:188
-		return n, errors.New(fmt.Sprintf("value must be at most %v", max))
+		return n, fmt.Errorf("value must be at most %v", max)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:189
 	return n, nil
@@ -313,7 +313,7 @@ func InRangeFloat(n float64, min float64, max float64) (float64, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:203
 	if (n < min) || (n > max) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:204
-		return n, errors.New(fmt.Sprintf("value must be between %v and %v", min, max))
+		return n, fmt.Errorf("value must be between %v and %v", min, max)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:205
 	return n, nil
@@ -324,7 +324,7 @@ func ParseInt(s string) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:212
 	val, err_4 := cast.Atoi(s)
 	if err_4 != nil {
-		return 0, errors.New(fmt.Sprintf("invalid integer: %v", s))
+		return 0, fmt.Errorf("invalid integer: %v", s)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:213
 	return val, nil
@@ -335,7 +335,7 @@ func ParsePositiveInt(s string) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:218
 	val, err_5 := cast.Atoi(s)
 	if err_5 != nil {
-		return 0, errors.New(fmt.Sprintf("invalid integer: %v", s))
+		return 0, fmt.Errorf("invalid integer: %v", s)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:219
 	if val <= 0 {
@@ -351,7 +351,7 @@ func ParseFloat(s string) (float64, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:226
 	val, err_6 := cast.ParseFloat(s, 64)
 	if err_6 != nil {
-		return 0.0, errors.New(fmt.Sprintf("invalid number: %v", s))
+		return 0.0, fmt.Errorf("invalid number: %v", s)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:227
 	return val, nil
@@ -372,7 +372,7 @@ func ParseBool(s string) (bool, error) {
 		return false, nil
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:238
-	return false, errors.New(fmt.Sprintf("invalid boolean: %v", s))
+	return false, fmt.Errorf("invalid boolean: %v", s)
 }
 
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:244
@@ -391,7 +391,7 @@ func ListMinLength(items []any, n int) ([]any, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:252
 	if len(items) < n {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:253
-		return items, errors.New(fmt.Sprintf("list must have at least %v elements", n))
+		return items, fmt.Errorf("list must have at least %v elements", n)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:254
 	return items, nil
@@ -402,7 +402,7 @@ func ListMaxLength(items []any, n int) ([]any, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:259
 	if len(items) > n {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:260
-		return items, errors.New(fmt.Sprintf("list must have at most %v elements", n))
+		return items, fmt.Errorf("list must have at most %v elements", n)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:261
 	return items, nil
@@ -413,7 +413,7 @@ func WithMessage(value string, err error, message string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:269
 	if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:270
-		return value, errors.New(fmt.Sprintf("%v", message))
+		return value, fmt.Errorf("%v", message)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:271
 	return value, nil
@@ -424,7 +424,7 @@ func Require(s string, fieldName string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:276
 	if kukistring.TrimSpace(s) == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:277
-		return "", errors.New(fmt.Sprintf("%v is required", fieldName))
+		return "", fmt.Errorf("%v is required", fieldName)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:278
 	return s, nil
@@ -473,7 +473,7 @@ func CompilePattern(pattern string) (*regexp.Regexp, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:312
 	val, err_7 := regexp.Compile(pattern)
 	if err_7 != nil {
-		return nil, errors.New(fmt.Sprintf("invalid pattern: %v", err_7))
+		return nil, fmt.Errorf("invalid pattern: %v", err_7)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:313
 	return val, nil

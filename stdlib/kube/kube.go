@@ -214,7 +214,8 @@ func Connect() (Cluster, error) {
 	home, err_1 := os.UserHomeDir()
 	if err_1 != nil {
 		err_1 = fmt.Errorf("kube connect: %w", err_1)
-		return *new(Cluster), err_1
+		var _zero0 Cluster
+		return _zero0, err_1
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:179
 	kubeconfig := filepath.Join(home, ".kube", "config")
@@ -222,13 +223,15 @@ func Connect() (Cluster, error) {
 	config, err_2 := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err_2 != nil {
 		err_2 = fmt.Errorf("kube connect: %w", err_2)
-		return *new(Cluster), err_2
+		var _zero0 Cluster
+		return _zero0, err_2
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:181
 	cs, err_3 := kubernetes.NewForConfig(config)
 	if err_3 != nil {
 		err_3 = fmt.Errorf("kube connect: %w", err_3)
-		return *new(Cluster), err_3
+		var _zero0 Cluster
+		return _zero0, err_3
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:182
 	return Cluster{client: cs, namespace: "default"}, nil
@@ -242,13 +245,15 @@ func openOnce(cfg Config) (Cluster, error) {
 		restConfig, err_4 := rest.InClusterConfig()
 		if err_4 != nil {
 			err_4 = fmt.Errorf("kube in-cluster: %w", err_4)
-			return *new(Cluster), err_4
+			var _zero0 Cluster
+			return _zero0, err_4
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:188
 		cs, err_5 := kubernetes.NewForConfig(restConfig)
 		if err_5 != nil {
 			err_5 = fmt.Errorf("kube open: %w", err_5)
-			return *new(Cluster), err_5
+			var _zero0 Cluster
+			return _zero0, err_5
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:189
 		return Cluster{client: cs, namespace: "default"}, nil
@@ -261,7 +266,8 @@ func openOnce(cfg Config) (Cluster, error) {
 		home, err_6 := os.UserHomeDir()
 		if err_6 != nil {
 			err_6 = fmt.Errorf("kube config: %w", err_6)
-			return *new(Cluster), err_6
+			var _zero0 Cluster
+			return _zero0, err_6
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:194
 		kubeconfig = filepath.Join(home, ".kube", "config")
@@ -279,13 +285,15 @@ func openOnce(cfg Config) (Cluster, error) {
 	restConfig, err_7 := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides).ClientConfig()
 	if err_7 != nil {
 		err_7 = fmt.Errorf("kube open: %w", err_7)
-		return *new(Cluster), err_7
+		var _zero0 Cluster
+		return _zero0, err_7
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:202
 	cs, err_8 := kubernetes.NewForConfig(restConfig)
 	if err_8 != nil {
 		err_8 = fmt.Errorf("kube open: %w", err_8)
-		return *new(Cluster), err_8
+		var _zero0 Cluster
+		return _zero0, err_8
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:203
 	return Cluster{client: cs, namespace: "default"}, nil
@@ -333,7 +341,8 @@ func ListPods(c Cluster) (PodList, error) {
 	pods, err_9 := clientset(c).CoreV1().Pods(c.namespace).List(ctx.Value(ctx.Background()), metav1.ListOptions{})
 	if err_9 != nil {
 		err_9 = fmt.Errorf("kube list pods: %w", err_9)
-		return *new(PodList), err_9
+		var _zero0 PodList
+		return _zero0, err_9
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:229
 	return PodList{items: pods}, nil
@@ -345,7 +354,8 @@ func ListPodsLabeled(c Cluster, selector string) (PodList, error) {
 	pods, err_10 := clientset(c).CoreV1().Pods(c.namespace).List(ctx.Value(ctx.Background()), metav1.ListOptions{LabelSelector: selector})
 	if err_10 != nil {
 		err_10 = fmt.Errorf("kube list pods labeled: %w", err_10)
-		return *new(PodList), err_10
+		var _zero0 PodList
+		return _zero0, err_10
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:234
 	return PodList{items: pods}, nil
@@ -357,7 +367,8 @@ func GetPod(c Cluster, name string) (Pod, error) {
 	p, err_11 := clientset(c).CoreV1().Pods(c.namespace).Get(ctx.Value(ctx.Background()), name, metav1.GetOptions{})
 	if err_11 != nil {
 		err_11 = fmt.Errorf("kube get pod: %w", err_11)
-		return *new(Pod), err_11
+		var _zero0 Pod
+		return _zero0, err_11
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:239
 	return Pod{pod: p}, nil
@@ -381,7 +392,8 @@ func ListDeployments(c Cluster) (DeploymentList, error) {
 	deps, err_13 := clientset(c).AppsV1().Deployments(c.namespace).List(ctx.Value(ctx.Background()), metav1.ListOptions{})
 	if err_13 != nil {
 		err_13 = fmt.Errorf("kube list deployments: %w", err_13)
-		return *new(DeploymentList), err_13
+		var _zero0 DeploymentList
+		return _zero0, err_13
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:251
 	return DeploymentList{items: deps}, nil
@@ -393,7 +405,8 @@ func GetDeployment(c Cluster, name string) (Deployment, error) {
 	dep, err_14 := clientset(c).AppsV1().Deployments(c.namespace).Get(ctx.Value(ctx.Background()), name, metav1.GetOptions{})
 	if err_14 != nil {
 		err_14 = fmt.Errorf("kube get deployment: %w", err_14)
-		return *new(Deployment), err_14
+		var _zero0 Deployment
+		return _zero0, err_14
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:256
 	return Deployment{dep: dep}, nil
@@ -488,7 +501,7 @@ func WaitDeploymentReady(c Cluster, name string, timeoutSeconds int64) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:294
 		if time.Now().After(deadline) {
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:295
-			return errors.New(fmt.Sprintf("kube wait deployment: timed out after %vs (ready=%v desired=%v updated=%v)", timeoutSeconds, dep.Status.ReadyReplicas, desired, dep.Status.UpdatedReplicas))
+			return fmt.Errorf("kube wait deployment: timed out after %vs (ready=%v desired=%v updated=%v)", timeoutSeconds, dep.Status.ReadyReplicas, desired, dep.Status.UpdatedReplicas)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:296
 		time.Sleep((2 * time.Second))
@@ -532,7 +545,7 @@ func WaitPodReady(c Cluster, name string, timeoutSeconds int64) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:313
 		if time.Now().After(deadline) {
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:314
-			return errors.New(fmt.Sprintf("kube wait pod: timed out after %vs", timeoutSeconds))
+			return fmt.Errorf("kube wait pod: timed out after %vs", timeoutSeconds)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:315
 		time.Sleep((1 * time.Second))
@@ -620,7 +633,8 @@ func ListServices(c Cluster) (ServiceList, error) {
 	svcs, err_25 := clientset(c).CoreV1().Services(c.namespace).List(ctx.Value(ctx.Background()), metav1.ListOptions{})
 	if err_25 != nil {
 		err_25 = fmt.Errorf("kube list services: %w", err_25)
-		return *new(ServiceList), err_25
+		var _zero0 ServiceList
+		return _zero0, err_25
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:350
 	return ServiceList{items: svcs}, nil
@@ -632,7 +646,8 @@ func GetService(c Cluster, name string) (Service, error) {
 	svc, err_26 := clientset(c).CoreV1().Services(c.namespace).Get(ctx.Value(ctx.Background()), name, metav1.GetOptions{})
 	if err_26 != nil {
 		err_26 = fmt.Errorf("kube get service: %w", err_26)
-		return *new(Service), err_26
+		var _zero0 Service
+		return _zero0, err_26
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:355
 	return Service{svc: svc}, nil
@@ -644,7 +659,8 @@ func ListNodes(c Cluster) (NodeList, error) {
 	nodes, err_27 := clientset(c).CoreV1().Nodes().List(ctx.Value(ctx.Background()), metav1.ListOptions{})
 	if err_27 != nil {
 		err_27 = fmt.Errorf("kube list nodes: %w", err_27)
-		return *new(NodeList), err_27
+		var _zero0 NodeList
+		return _zero0, err_27
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:362
 	return NodeList{items: nodes}, nil
@@ -656,7 +672,8 @@ func GetNode(c Cluster, name string) (Node, error) {
 	n, err_28 := clientset(c).CoreV1().Nodes().Get(ctx.Value(ctx.Background()), name, metav1.GetOptions{})
 	if err_28 != nil {
 		err_28 = fmt.Errorf("kube get node: %w", err_28)
-		return *new(Node), err_28
+		var _zero0 Node
+		return _zero0, err_28
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:367
 	return Node{node: n}, nil
@@ -668,7 +685,8 @@ func ListNamespaces(c Cluster) (NamespaceList, error) {
 	nsList, err_29 := clientset(c).CoreV1().Namespaces().List(ctx.Value(ctx.Background()), metav1.ListOptions{})
 	if err_29 != nil {
 		err_29 = fmt.Errorf("kube list namespaces: %w", err_29)
-		return *new(NamespaceList), err_29
+		var _zero0 NamespaceList
+		return _zero0, err_29
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/kube/kube.kuki:374
 	return NamespaceList{items: nsList}, nil

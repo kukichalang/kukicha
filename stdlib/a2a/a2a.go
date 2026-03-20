@@ -75,13 +75,15 @@ func Discover(url string) (Agent, error) {
 	card, err_1 := agentcard.DefaultResolver.Resolve(ctxpkg.Value(bg), url)
 	if err_1 != nil {
 		err_1 = fmt.Errorf("a2a discover: %w", err_1)
-		return *new(Agent), err_1
+		var _zero0 Agent
+		return _zero0, err_1
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:64
 	client, err_2 := a2aclient.NewFromCard(ctxpkg.Value(bg), card)
 	if err_2 != nil {
 		err_2 = fmt.Errorf("a2a client: %w", err_2)
-		return *new(Agent), err_2
+		var _zero0 Agent
+		return _zero0, err_2
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:65
 	return Agent{Card: card, Client: client}, nil
@@ -97,13 +99,15 @@ func DiscoverGuarded(url string, httpClient *http.Client) (Agent, error) {
 	card, err_3 := resolver.Resolve(ctxpkg.Value(bg), url)
 	if err_3 != nil {
 		err_3 = fmt.Errorf("a2a discover: %w", err_3)
-		return *new(Agent), err_3
+		var _zero0 Agent
+		return _zero0, err_3
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:72
 	client, err_4 := a2aclient.NewFromCard(ctxpkg.Value(bg), card, a2aclient.WithJSONRPCTransport(httpClient))
 	if err_4 != nil {
 		err_4 = fmt.Errorf("a2a client: %w", err_4)
-		return *new(Agent), err_4
+		var _zero0 Agent
+		return _zero0, err_4
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:73
 	return Agent{Card: card, Client: client}, nil
@@ -209,7 +213,8 @@ func Send(req Request) (Task, error) {
 		retry.Sleep(cfg, attempt)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:135
-	return *new(Task), lastErr
+	var _zero0 Task
+	return _zero0, lastErr
 }
 
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:138
@@ -240,7 +245,8 @@ func GetTask(agent Agent, taskID string) (Task, error) {
 	t, err_6 := agent.Client.GetTask(ctxpkg.Value(bg), &params)
 	if err_6 != nil {
 		err_6 = fmt.Errorf("a2a get task: %w", err_6)
-		return *new(Task), err_6
+		var _zero0 Task
+		return _zero0, err_6
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:151
 	return taskFromA2A(t), nil
@@ -256,7 +262,8 @@ func Cancel(agent Agent, taskID string) (Task, error) {
 	t, err_7 := agent.Client.CancelTask(ctxpkg.Value(bg), &params)
 	if err_7 != nil {
 		err_7 = fmt.Errorf("a2a cancel: %w", err_7)
-		return *new(Task), err_7
+		var _zero0 Task
+		return _zero0, err_7
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:158
 	return taskFromA2A(t), nil
@@ -279,7 +286,8 @@ func sendRequest(agent Agent, text string, contextID string) (Task, error) {
 	resp, err_8 := agent.Client.SendMessage(ctxpkg.Value(bg), &params)
 	if err_8 != nil {
 		err_8 = fmt.Errorf("a2a send: %w", err_8)
-		return *new(Task), err_8
+		var _zero0 Task
+		return _zero0, err_8
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:168
 	return resultToTask(resp), nil
@@ -305,7 +313,7 @@ func streamRequest(agent Agent, text string, contextID string, onText TextHandle
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:180
 		if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:181
-			return result, errors.New(fmt.Sprintf("a2a stream: %v", err))
+			return result, fmt.Errorf("a2a stream: %v", err)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:182
 		switch e := event.(type) {
@@ -377,7 +385,8 @@ func resultToTask(result a2a.SendMessageResult) Task {
 			return Task{ID: string(r.TaskID), ContextID: r.ContextID, Text: extractPartsText(r.Parts)}
 		default:
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:217
-			return *new(Task)
+			var _zero0 Task
+			return _zero0
 		}
 	}()
 //line /Users/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:218

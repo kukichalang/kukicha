@@ -3,7 +3,6 @@
 package http
 
 import (
-	"errors"
 	"fmt"
 	"github.com/duber000/kukicha/stdlib/cast"
 	"github.com/duber000/kukicha/stdlib/fetch"
@@ -241,12 +240,12 @@ func GetQueryInt(r *http.Request, key string) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:167
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:168
-		return 0, errors.New(fmt.Sprintf("query parameter '%v' is required", key))
+		return 0, fmt.Errorf("query parameter '%v' is required", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:169
 	val, err_1 := cast.Atoi(value)
 	if err_1 != nil {
-		return 0, errors.New(fmt.Sprintf("query parameter '%v' must be an integer", key))
+		return 0, fmt.Errorf("query parameter '%v' must be an integer", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:170
 	return val, nil
@@ -277,12 +276,12 @@ func GetQueryBool(r *http.Request, key string) (bool, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:188
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:189
-		return false, errors.New(fmt.Sprintf("query parameter '%v' is required", key))
+		return false, fmt.Errorf("query parameter '%v' is required", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:190
 	val, err_3 := validate.ParseBool(value)
 	if err_3 != nil {
-		return false, errors.New(fmt.Sprintf("query parameter '%v' must be a boolean", key))
+		return false, fmt.Errorf("query parameter '%v' must be a boolean", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:191
 	return val, nil
@@ -368,7 +367,7 @@ func SafeRedirect(w http.ResponseWriter, r *http.Request, redirectURL string, al
 		}
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:251
-	return errors.New(fmt.Sprintf("redirect to '%v' is not in the allowed hosts list", parsed.Host))
+	return fmt.Errorf("redirect to '%v' is not in the allowed hosts list", parsed.Host)
 }
 
 //line /Users/tluker/repos/go/kukicha/stdlib/http/http.kuki:257

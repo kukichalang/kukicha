@@ -88,6 +88,10 @@ func (g *Generator) generateOnErrHandler(names []*ast.Identifier, handler ast.Ex
 					parts = append(parts, g.zeroValueForType(ret))
 				}
 			}
+			preDecls, parts := replaceGenericZeroExprs(parts)
+			for _, pre := range preDecls {
+				g.writeLine(pre)
+			}
 			g.writeLine(fmt.Sprintf("return %s", strings.Join(parts, ", ")))
 		} else if len(names) > 0 {
 			g.writeLine(fmt.Sprintf("return %s, %s", names[0].Value, errExpr))

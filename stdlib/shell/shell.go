@@ -51,7 +51,7 @@ func Output(name string, args ...string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:44
 		errStr := string(GetError(result))
 //line /Users/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:45
-		return "", errors.New(fmt.Sprintf("%v", errStr))
+		return "", fmt.Errorf("%v", errStr)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:46
 	return string(GetOutput(result)), nil

@@ -74,11 +74,11 @@ func Process(path string) (string, error)
 	output := generateSource(t, input)
 
 	// {error} inside onerr should be substituted with the generated error variable
-	if !strings.Contains(output, "fmt.Sprintf") || !strings.Contains(output, "read failed:") {
-		t.Errorf("expected onerr error interpolation, got: %s", output)
+	if !strings.Contains(output, "fmt.Errorf") || !strings.Contains(output, "read failed:") {
+		t.Errorf("expected onerr error interpolation with fmt.Errorf, got: %s", output)
 	}
 	// Should NOT contain literal "error" as an argument (it should be the err variable)
-	if strings.Contains(output, `Sprintf("read failed: %v", error)`) {
+	if strings.Contains(output, `Errorf("read failed: %v", error)`) {
 		t.Errorf("expected error variable substitution, not literal 'error', got: %s", output)
 	}
 }

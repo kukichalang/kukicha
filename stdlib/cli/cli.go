@@ -263,7 +263,7 @@ func runWithSubcommands(app App) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:189
 		printHelp(app)
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:190
-		return errors.New(fmt.Sprintf("unknown command: %v", cmdName))
+		return fmt.Errorf("unknown command: %v", cmdName)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:192
 	cmd := app.subcommands[cmdIndex]
@@ -335,7 +335,7 @@ func runWithSubcommands(app App) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:232
 	if cmd.action == nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:233
-		return errors.New(fmt.Sprintf("no action defined for command: %v", cmdName))
+		return fmt.Errorf("no action defined for command: %v", cmdName)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:235
 	parsedArgs := Args{values: values}
@@ -462,7 +462,7 @@ func GetInt(args Args, name string) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:308
 	if strVal == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:309
-		return 0, errors.New(fmt.Sprintf("argument %v not found", name))
+		return 0, fmt.Errorf("argument %v not found", name)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:311
 	return cast.Atoi(strVal)

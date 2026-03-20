@@ -277,5 +277,6 @@ func Find[T any](seq iter.Seq[T], predicate func(T) bool) (T, bool) {
 		}
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/iterator/iterator.kuki:143
-	return *new(T), false
+	var _zero0 T
+	return _zero0, false
 }

@@ -46,9 +46,9 @@ func Process(path string) (string, error)
 		t.Errorf("expected err_1 error variable in output, got: %s", output)
 	}
 
-	// Should produce a multi-value return with errors.New
-	if !strings.Contains(output, `return "", errors.New`) {
-		t.Errorf("expected multi-value return with errors.New, got: %s", output)
+	// Should produce a multi-value return with fmt.Errorf (interpolated message)
+	if !strings.Contains(output, `return "", fmt.Errorf`) {
+		t.Errorf("expected multi-value return with fmt.Errorf, got: %s", output)
 	}
 }
 
@@ -93,8 +93,8 @@ func MakeHandler() func(string) (string, error)
 		t.Errorf("expected err_1 error variable in callback output, got: %s", output)
 	}
 
-	if !strings.Contains(output, `return "", errors.New`) {
-		t.Errorf("expected multi-value return with errors.New in callback, got: %s", output)
+	if !strings.Contains(output, `return "", fmt.Errorf`) {
+		t.Errorf("expected multi-value return with fmt.Errorf in callback, got: %s", output)
 	}
 }
 
@@ -164,7 +164,7 @@ func Process(path string) (int, error)
 		t.Errorf("error variable not substituted, got: %s", output)
 	}
 
-	if !strings.Contains(output, "return 0, errors.New") {
-		t.Errorf("expected return 0, errors.New(...) in output, got: %s", output)
+	if !strings.Contains(output, "return 0, fmt.Errorf") {
+		t.Errorf("expected return 0, fmt.Errorf(...) in output, got: %s", output)
 	}
 }

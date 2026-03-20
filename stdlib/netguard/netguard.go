@@ -4,7 +4,6 @@ package netguard
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/duber000/kukicha/stdlib/datetime"
 	netutil "github.com/duber000/kukicha/stdlib/net"
@@ -72,7 +71,8 @@ func NewAllow(cidrs []string) (Guard, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:59
 	nets, err_2 := parseCIDRs(cidrs)
 	if err_2 != nil {
-		return *new(Guard), err_2
+		var _zero0 Guard
+		return _zero0, err_2
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:60
 	return Guard{networks: nets, mode: "allow"}, nil
@@ -83,7 +83,8 @@ func NewBlock(cidrs []string) (Guard, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:64
 	nets, err_3 := parseCIDRs(cidrs)
 	if err_3 != nil {
-		return *new(Guard), err_3
+		var _zero0 Guard
+		return _zero0, err_3
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:65
 	return Guard{networks: nets, mode: "block"}, nil
@@ -145,7 +146,7 @@ func DialContext(g Guard, ctx context.Context, network string, addr string) (net
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:116
 	if !found {
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:117
-		return nil, errors.New(fmt.Sprintf("netguard: all resolved IPs for '%v' are blocked", host))
+		return nil, fmt.Errorf("netguard: all resolved IPs for '%v' are blocked", host)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:120
 	dialer := net.Dialer{Timeout: datetime.Seconds(30)}
@@ -158,7 +159,7 @@ func DialContext(g Guard, ctx context.Context, network string, addr string) (net
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:124
 		if (connIP != nil) && !checkIP(g, connIP) {
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:125
-			return errors.New(fmt.Sprintf("netguard: connection to %v blocked by policy", connHost))
+			return fmt.Errorf("netguard: connection to %v blocked by policy", connHost)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:126
 		return nil

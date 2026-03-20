@@ -103,7 +103,7 @@ func (l *Lowerer) lowerOnErrHandler(clause *ast.OnErrClause, names []string, err
 
 	if clause.ShorthandReturn {
 		// onerr return (bare) — propagate error with zero values
-		body.Add(l.buildReturnNode(errVar))
+		body.AddAll(l.buildReturnNode(errVar))
 		return body
 	}
 
@@ -127,7 +127,7 @@ func (l *Lowerer) lowerOnErrHandler(clause *ast.OnErrClause, names []string, err
 		})
 		if clause.Handler == nil {
 			// Standalone explain: emit return
-			body.Add(l.buildReturnNode(errVar))
+			body.AddAll(l.buildReturnNode(errVar))
 			return body
 		}
 	}
@@ -475,11 +475,14 @@ func (l *Lowerer) lowerOnErrWithExplicitErr(nameStrs []string, expr string, clau
 	return block
 }
 
-// buildReturnNode creates an ir.ReturnStmt with zero values for all
-// non-error return types, plus the given error variable.
-func (l *Lowerer) buildReturnNode(errVar string) *ir.ReturnStmt {
+// buildReturnNode creates an ir.Block with zero-value var declarations (if needed)
+// followed by an ir.ReturnStmt with those values and errVar in the last position.
+// Returns a block so that var _zeroN T declarations can precede the return statement.
+func (l *Lowerer) buildReturnNode(errVar string) *ir.Block {
+	block := &ir.Block{}
 	if len(l.gen.currentReturnTypes) == 0 {
-		return &ir.ReturnStmt{Values: []string{errVar}}
+		block.Add(&ir.ReturnStmt{Values: []string{errVar}})
+		return block
 	}
 
 	var parts []string
@@ -490,5 +493,12 @@ func (l *Lowerer) buildReturnNode(errVar string) *ir.ReturnStmt {
 			parts = append(parts, l.gen.zeroValueForType(ret))
 		}
 	}
-	return &ir.ReturnStmt{Values: parts}
+	preDecls, parts := replaceGenericZeroExprs(parts)
+	for _, typeDecl := range preDecls {
+		// typeDecl is "var <name> <type>" — split into components for the IR node
+		fields := strings.SplitN(typeDecl, " ", 3)
+		block.Add(&ir.VarDecl{Name: fields[1], Type: fields[2]})
+	}
+	block.Add(&ir.ReturnStmt{Values: parts})
+	return block
 }

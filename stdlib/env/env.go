@@ -17,7 +17,7 @@ func Get(key string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:16
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:17
-		return "", errors.New(fmt.Sprintf("environment variable %v is not set", key))
+		return "", fmt.Errorf("environment variable %v is not set", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:18
 	return value, nil
@@ -43,14 +43,14 @@ func GetInt(key string) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:34
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:35
-		return 0, errors.New(fmt.Sprintf("environment variable %v is not set", key))
+		return 0, fmt.Errorf("environment variable %v is not set", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:36
 	n, err := cast.Atoi(value)
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:37
 	if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:38
-		return 0, errors.New(fmt.Sprintf("environment variable %v is not a valid integer", key))
+		return 0, fmt.Errorf("environment variable %v is not a valid integer", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:39
 	return n, nil
@@ -70,7 +70,7 @@ func GetIntOr(key string, defaultValue int) (int, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:49
 	if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:50
-		return 0, errors.New(fmt.Sprintf("environment variable %v is not a valid integer", key))
+		return 0, fmt.Errorf("environment variable %v is not a valid integer", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:51
 	return n, nil
@@ -103,7 +103,7 @@ func GetBool(key string) (bool, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:71
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:72
-		return false, errors.New(fmt.Sprintf("environment variable %v is not set", key))
+		return false, fmt.Errorf("environment variable %v is not set", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:73
 	return parseBool(key, value)
@@ -149,14 +149,14 @@ func GetFloat(key string) (float64, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:101
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:102
-		return 0.0, errors.New(fmt.Sprintf("environment variable %v is not set", key))
+		return 0.0, fmt.Errorf("environment variable %v is not set", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:103
 	n, err := cast.ParseFloat(value, 64)
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:104
 	if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:105
-		return 0.0, errors.New(fmt.Sprintf("environment variable %v is not a valid number", key))
+		return 0.0, fmt.Errorf("environment variable %v is not a valid number", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:106
 	return n, nil
@@ -176,7 +176,7 @@ func GetFloatOr(key string, defaultValue float64) (float64, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:116
 	if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:117
-		return 0.0, errors.New(fmt.Sprintf("environment variable %v is not a valid number", key))
+		return 0.0, fmt.Errorf("environment variable %v is not a valid number", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:118
 	return n, nil
@@ -189,7 +189,7 @@ func GetList(key string, separator string) ([]string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:125
 	if value == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:126
-		return []string{}, errors.New(fmt.Sprintf("environment variable %v is not set", key))
+		return []string{}, fmt.Errorf("environment variable %v is not set", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:127
 	return splitAndTrim(value, separator), nil
@@ -304,7 +304,7 @@ func parseBool(key string, value string) (bool, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:199
 	if err != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:200
-		return false, errors.New(fmt.Sprintf("environment variable %v is not a valid boolean", key))
+		return false, fmt.Errorf("environment variable %v is not a valid boolean", key)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/env/env.kuki:201
 	return result, nil

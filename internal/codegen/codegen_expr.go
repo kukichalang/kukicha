@@ -167,8 +167,11 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 	case *ast.DiscardExpr:
 		return "_"
 	case *ast.ErrorExpr:
-		message := g.exprToString(e.Message)
-		return fmt.Sprintf("errors.New(%s)", message)
+		if strLit, ok := e.Message.(*ast.StringLiteral); ok {
+			return g.generateErrorExpr(strLit)
+		}
+		g.addImport("errors")
+		return fmt.Sprintf("errors.New(%s)", g.exprToString(e.Message))
 	case *ast.ReturnExpr:
 		return g.generateReturnExpr(e)
 	case *ast.MakeExpr:
@@ -419,6 +422,28 @@ func (g *Generator) escapeString(s string) string {
 		}
 	}
 	return result.String()
+}
+
+// generateErrorExpr emits a Go error-construction expression for a string literal message.
+// Uses fmt.Errorf for interpolated strings (avoids errors.New(fmt.Sprintf(...))),
+// and errors.New for plain strings.
+func (g *Generator) generateErrorExpr(strLit *ast.StringLiteral) string {
+	isInterpolated := strLit.Interpolated || strings.ContainsRune(strLit.Value, '\uE002')
+	if !isInterpolated {
+		g.addImport("errors")
+		return fmt.Sprintf("errors.New(\"%s\")", g.escapeString(strLit.Value))
+	}
+	if len(strLit.Parts) == 0 {
+		// \sep-only string with no expression parts — fall back to errors.New
+		g.addImport("errors")
+		return fmt.Sprintf("errors.New(%s)", g.generateStringLiteral(strLit))
+	}
+	format, args := g.parseStringPartsOrInterpolation(strLit)
+	g.addImport("fmt")
+	if len(args) == 0 {
+		return fmt.Sprintf("fmt.Errorf(\"%s\")", format)
+	}
+	return fmt.Sprintf("fmt.Errorf(\"%s\", %s)", format, strings.Join(args, ", "))
 }
 
 func (g *Generator) generateStringLiteral(lit *ast.StringLiteral) string {

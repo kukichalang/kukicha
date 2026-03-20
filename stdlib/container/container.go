@@ -389,7 +389,8 @@ func Inspect(engine Engine, containerID string) (ContainerInfo, error) {
 	info, err_10 := engine.cli.ContainerInspect(ctxpkg.Value(bg), containerID)
 	if err_10 != nil {
 		err_10 = fmt.Errorf("container inspect: %w", err_10)
-		return *new(ContainerInfo), err_10
+		var _zero0 ContainerInfo
+		return _zero0, err_10
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:287
 	names := make([]string, 0)
@@ -468,7 +469,7 @@ func Exec(engine Engine, containerID string, cmd []string, handles ...ctxpkg.Han
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:329
 	if inspectResult.ExitCode != 0 {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:330
-		return combined, errors.New(fmt.Sprintf("container exec exit %v", inspectResult.ExitCode))
+		return combined, fmt.Errorf("container exec exit %v", inspectResult.ExitCode)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:331
 	return combined, nil
@@ -504,7 +505,7 @@ func WaitCtx(engine Engine, h ctxpkg.Handle, containerID string) (int64, error) 
 			return -1, errors.New("container wait: unknown wait error")
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:352
-		return -1, errors.New(fmt.Sprintf("container wait: %v", err))
+		return -1, fmt.Errorf("container wait: %v", err)
 	case res := <-waitCh:
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:354
 		return res.StatusCode, nil
@@ -550,7 +551,7 @@ func eventsWithContext(engine Engine, h ctxpkg.Handle) ([]ContainerEvent, error)
 				return events, nil
 			}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:385
-			return events, errors.New(fmt.Sprintf("container events: %v", err))
+			return events, fmt.Errorf("container events: %v", err)
 		case msg, ok := <-msgCh:
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:387
 			if !ok {
@@ -727,12 +728,12 @@ func loadDockerAuth(serverAddress string) (string, string, string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:476
 	if !ok {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:477
-		return "", "", "", errors.New(fmt.Sprintf("container auth: no credentials found for %v", serverAddress))
+		return "", "", "", fmt.Errorf("container auth: no credentials found for %v", serverAddress)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:478
 	if authEntry.Auth == "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:479
-		return "", "", "", errors.New(fmt.Sprintf("container auth: empty credentials for %v", serverAddress))
+		return "", "", "", fmt.Errorf("container auth: empty credentials for %v", serverAddress)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:480
 	decoded, err_24 := base64.StdEncoding.DecodeString(authEntry.Auth)
@@ -745,7 +746,7 @@ func loadDockerAuth(serverAddress string) (string, string, string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:482
 	if len(parts) != 2 {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:483
-		return "", "", "", errors.New(fmt.Sprintf("container auth: invalid credential format for %v", serverAddress))
+		return "", "", "", fmt.Errorf("container auth: invalid credential format for %v", serverAddress)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:484
 	return parts[0], parts[1], serverAddress, nil
@@ -756,7 +757,8 @@ func LoginFromConfig(server string) (Auth, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:488
 	username, password, addr, err_25 := loadDockerAuth(server)
 	if err_25 != nil {
-		return *new(Auth), err_25
+		var _zero0 Auth
+		return _zero0, err_25
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:489
 	return Auth{username: username, password: password, serverAddress: addr}, nil
@@ -802,7 +804,8 @@ func Connect() (Engine, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:516
 	cli, err_27 := newClient(host)
 	if err_27 != nil {
-		return *new(Engine), err_27
+		var _zero0 Engine
+		return _zero0, err_27
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:517
 	return Engine{cli: cli}, nil
@@ -813,7 +816,8 @@ func ConnectRemote(host string) (Engine, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:521
 	cli, err_28 := newClient(host)
 	if err_28 != nil {
-		return *new(Engine), err_28
+		var _zero0 Engine
+		return _zero0, err_28
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:522
 	return Engine{cli: cli}, nil
@@ -837,7 +841,8 @@ func Open(cfg Config) (Engine, error) {
 	cli, err_29 := client.NewClientWithOpts(opts...)
 	if err_29 != nil {
 		err_29 = fmt.Errorf("container open: %w", err_29)
-		return *new(Engine), err_29
+		var _zero0 Engine
+		return _zero0, err_29
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:532
 	return Engine{cli: cli}, nil
@@ -924,7 +929,7 @@ func buildImage(cli *client.Client, contextPath string, tag string) (string, str
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:570
 	if walkErr != nil {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:571
-		return "", "", errors.New(fmt.Sprintf("container build context: %v", walkErr))
+		return "", "", fmt.Errorf("container build context: %v", walkErr)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:572
 	err_31 := tw.Close()
@@ -966,7 +971,7 @@ func buildImage(cli *client.Client, contextPath string, tag string) (string, str
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:589
 		if msg.Error != "" {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:590
-			return "", output.String(), errors.New(fmt.Sprintf("container build: %v", msg.Error))
+			return "", output.String(), fmt.Errorf("container build: %v", msg.Error)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:591
 		if msg.Aux.ID != "" {
@@ -989,7 +994,8 @@ func Build(engine Engine, path string, tag string) (BuildOutput, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:598
 	imageID, output, err_35 := buildImage(engine.cli, path, tag)
 	if err_35 != nil {
-		return *new(BuildOutput), err_35
+		var _zero0 BuildOutput
+		return _zero0, err_35
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:599
 	return BuildOutput{imageID: imageID, output: output}, nil
@@ -1022,7 +1028,7 @@ func extractTar(reader io.Reader, destPath string) error {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:613
 		if !kukistring.HasPrefix(target, (cleanDest+string(filepath.Separator))) && (filepath.Clean(target) != cleanDest) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:614
-			return errors.New(fmt.Sprintf("invalid archive path: %v", header.Name))
+			return fmt.Errorf("invalid archive path: %v", header.Name)
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:615
 		switch header.Typeflag {
@@ -1049,7 +1055,7 @@ func extractTar(reader io.Reader, destPath string) error {
 				//line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:622
 				f.Close()
 				//line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:623
-				return errors.New(fmt.Sprintf("%v", err_39))
+				return fmt.Errorf("%v", err_39)
 			}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:624
 			err_40 := f.Close()
@@ -1058,10 +1064,10 @@ func extractTar(reader io.Reader, destPath string) error {
 			}
 		case tar.TypeSymlink, tar.TypeLink:
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:626
-			return errors.New(fmt.Sprintf("archive contains unsupported link entry: %v", header.Name))
+			return fmt.Errorf("archive contains unsupported link entry: %v", header.Name)
 		default:
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:628
-			return errors.New(fmt.Sprintf("archive contains unsupported entry type %v: %v", header.Typeflag, header.Name))
+			return fmt.Errorf("archive contains unsupported entry type %v: %v", header.Typeflag, header.Name)
 		}
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:629
@@ -1085,7 +1091,7 @@ func createTarFromPath(sourcePath string) (io.Reader, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:638
 	if info.Mode().Type() == os.ModeSymlink {
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:639
-		return nil, errors.New(fmt.Sprintf("container copy to: source path is a symlink: %v", absSourcePath))
+		return nil, fmt.Errorf("container copy to: source path is a symlink: %v", absSourcePath)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/container/container.kuki:640
 	buf := bytes.Buffer{}

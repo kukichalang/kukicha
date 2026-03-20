@@ -231,7 +231,7 @@ func Do(req Request) (*http.Response, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:174
 			resp.Body.Close()
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:175
-			lastErr = errors.New(fmt.Sprintf("request failed: status %v", resp.StatusCode))
+			lastErr = fmt.Errorf("request failed: status %v", resp.StatusCode)
 		} else {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:178
 			lastErr = err
@@ -302,7 +302,7 @@ func CheckStatus(resp *http.Response) (*http.Response, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:232
 	if resp.StatusCode >= 400 {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:233
-		return nil, errors.New(fmt.Sprintf("request failed: %v", resp.Status))
+		return nil, fmt.Errorf("request failed: %v", resp.Status)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:234
 	return resp, nil
@@ -344,7 +344,8 @@ func Json[T any](resp *http.Response, sample T) (T, error) {
 	err_12 := json.UnmarshalRead(resp.Body, &data)
 	if err_12 != nil {
 		err_12 = fmt.Errorf("failed to decode response json: %w", err_12)
-		return *new(T), err_12
+		var _zero0 T
+		return _zero0, err_12
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:258
 	return data, nil
@@ -384,7 +385,7 @@ func URLTemplate(tmpl string, params map[string]string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:289
 	if kukistring.Contains(result, "{") || kukistring.Contains(result, "}") {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:290
-		return "", errors.New(fmt.Sprintf("unresolved URL template placeholders: %v", result))
+		return "", fmt.Errorf("unresolved URL template placeholders: %v", result)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:291
 	return result, nil
@@ -395,7 +396,7 @@ func URLWithQuery(baseURL string, params map[string]string) (string, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:297
 	parsed, err_13 := url.Parse(baseURL)
 	if err_13 != nil {
-		return "", errors.New(fmt.Sprintf("%v", err_13))
+		return "", fmt.Errorf("%v", err_13)
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/fetch/fetch.kuki:298
 	query := parsed.Query()

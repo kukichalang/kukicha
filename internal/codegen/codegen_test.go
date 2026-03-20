@@ -226,8 +226,8 @@ func ZeroDuration() time.Duration
 	if !strings.Contains(output, "return 0") {
 		t.Errorf("expected zero int return, got: %s", output)
 	}
-	if !strings.Contains(output, "return *new(time.Duration)") {
-		t.Errorf("expected zero time.Duration return, got: %s", output)
+	if !strings.Contains(output, "var _zero0 time.Duration") || !strings.Contains(output, "return _zero0") {
+		t.Errorf("expected var _zero0 time.Duration + return _zero0 for named type zero value, got: %s", output)
 	}
 }
 

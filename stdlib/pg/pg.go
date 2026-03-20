@@ -57,7 +57,8 @@ func Connect(url string) (Pool, error) {
 	pool, err_1 := pgxpool.New(ctxpkg.Value(bg), url)
 	if err_1 != nil {
 		err_1 = fmt.Errorf("pg connect: %w", err_1)
-		return *new(Pool), err_1
+		var _zero0 Pool
+		return _zero0, err_1
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:67
 	return Pool{pool: pool}, nil
@@ -117,7 +118,8 @@ func Open(cfg Config) (Pool, error) {
 	poolCfg, err_2 := pgxpool.ParseConfig(cfg.url)
 	if err_2 != nil {
 		err_2 = fmt.Errorf("pg config: %w", err_2)
-		return *new(Pool), err_2
+		var _zero0 Pool
+		return _zero0, err_2
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:105
 	if cfg.maxConns > 0 {
@@ -147,7 +149,8 @@ func Open(cfg Config) (Pool, error) {
 		pool, err_3 := pgxpool.NewWithConfig(ctxpkg.Value(bg), poolCfg)
 		if err_3 != nil {
 			err_3 = fmt.Errorf("pg open: %w", err_3)
-			return *new(Pool), err_3
+			var _zero0 Pool
+			return _zero0, err_3
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:117
 		return Pool{pool: pool}, nil
@@ -173,7 +176,7 @@ func Open(cfg Config) (Pool, error) {
 			return Pool{pool: pool}, nil
 		}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:128
-		lastErr = errors.New(fmt.Sprintf("pg open: %v", openErr))
+		lastErr = fmt.Errorf("pg open: %v", openErr)
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:129
 		retry.Sleep(retryCfg, attempt)
 	}
@@ -189,7 +192,8 @@ func Query(p Pool, sql string, args ...any) (Rows, error) {
 	rows, err_4 := p.pool.Query(ctxpkg.Value(bg), sql, args...)
 	if err_4 != nil {
 		err_4 = fmt.Errorf("pg query: %w", err_4)
-		return *new(Rows), err_4
+		var _zero0 Rows
+		return _zero0, err_4
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:137
 	return Rows{rows: rows}, nil
@@ -213,7 +217,8 @@ func Exec(p Pool, sql string, args ...any) (Result, error) {
 	tag, err_5 := p.pool.Exec(ctxpkg.Value(bg), sql, args...)
 	if err_5 != nil {
 		err_5 = fmt.Errorf("pg exec: %w", err_5)
-		return *new(Result), err_5
+		var _zero0 Result
+		return _zero0, err_5
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:151
 	return Result{tag: tag}, nil
@@ -389,7 +394,8 @@ func Begin(p Pool) (Tx, error) {
 	tx, err_15 := p.pool.Begin(ctxpkg.Value(bg))
 	if err_15 != nil {
 		err_15 = fmt.Errorf("pg begin: %w", err_15)
-		return *new(Tx), err_15
+		var _zero0 Tx
+		return _zero0, err_15
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:229
 	return Tx{tx: tx}, nil
@@ -405,7 +411,8 @@ func TxQuery(t Tx, sql string, args ...any) (Rows, error) {
 	rows, err_16 := tx.Query(ctxpkg.Value(bg), sql, args...)
 	if err_16 != nil {
 		err_16 = fmt.Errorf("pg tx query: %w", err_16)
-		return *new(Rows), err_16
+		var _zero0 Rows
+		return _zero0, err_16
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:237
 	return Rows{rows: rows}, nil
@@ -433,7 +440,8 @@ func TxExec(t Tx, sql string, args ...any) (Result, error) {
 	tag, err_17 := tx.Exec(ctxpkg.Value(bg), sql, args...)
 	if err_17 != nil {
 		err_17 = fmt.Errorf("pg tx exec: %w", err_17)
-		return *new(Result), err_17
+		var _zero0 Result
+		return _zero0, err_17
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/pg/pg.kuki:253
 	return Result{tag: tag}, nil

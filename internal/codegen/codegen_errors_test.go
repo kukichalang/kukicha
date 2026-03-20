@@ -43,12 +43,12 @@ func TestErrorInterpolationAutoImportsFmt(t *testing.T) {
 		t.Errorf("expected auto-import of fmt for interpolated error in return, got: %s", output)
 	}
 
-	if !strings.Contains(output, "fmt.Sprintf") {
-		t.Errorf("expected fmt.Sprintf for interpolated error message, got: %s", output)
+	if !strings.Contains(output, "fmt.Errorf") {
+		t.Errorf("expected fmt.Errorf for interpolated error message, got: %s", output)
 	}
 
-	if !strings.Contains(output, `"errors"`) {
-		t.Errorf("expected auto-import of errors, got: %s", output)
+	if strings.Contains(output, `"errors"`) {
+		t.Errorf("interpolated error should not import errors (uses fmt.Errorf), got: %s", output)
 	}
 }
 

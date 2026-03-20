@@ -7,6 +7,25 @@ import (
 	"github.com/duber000/kukicha/internal/ast"
 )
 
+// replaceGenericZeroExprs post-processes a slice of return-value expression strings.
+// Any expression matching *new(X) (produced by generic zero-value generation) is replaced
+// with a named variable "_zeroN" and a corresponding "var _zeroN X" pre-declaration is
+// returned. This produces idiomatic Go (var zero T; return zero) instead of *new(T).
+func replaceGenericZeroExprs(exprs []string) (preDecls []string, replaced []string) {
+	replaced = make([]string, len(exprs))
+	for i, expr := range exprs {
+		if strings.HasPrefix(expr, "*new(") && strings.HasSuffix(expr, ")") {
+			typeParam := expr[5 : len(expr)-1]
+			varName := fmt.Sprintf("_zero%d", i)
+			preDecls = append(preDecls, fmt.Sprintf("var %s %s", varName, typeParam))
+			replaced[i] = varName
+		} else {
+			replaced[i] = expr
+		}
+	}
+	return
+}
+
 func (g *Generator) generateBlock(block *ast.BlockStmt) {
 	for _, stmt := range block.Statements {
 		g.generateStatement(stmt)
@@ -211,6 +230,10 @@ func (g *Generator) generateReturnStmt(stmt *ast.ReturnStmt) {
 	}
 
 	g.currentReturnIndex = -1
+	preDecls, values := replaceGenericZeroExprs(values)
+	for _, pre := range preDecls {
+		g.writeLine(pre)
+	}
 	g.writeLine(fmt.Sprintf("return %s", strings.Join(values, ", ")))
 }
 

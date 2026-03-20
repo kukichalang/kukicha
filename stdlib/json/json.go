@@ -136,7 +136,8 @@ func DecodeRead[T any](reader io.Reader, sample T) (T, error) {
 	err_1 := decoder.Decode(&data)
 	if err_1 != nil {
 		err_1 = fmt.Errorf("failed to decode json: %w", err_1)
-		return *new(T), err_1
+		var _zero0 T
+		return _zero0, err_1
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/json/json.kuki:116
 	return data, nil

@@ -66,7 +66,8 @@ func ParseInLocation(value string, format string, location string) (time.Time, e
 //line /Users/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:46
 	loc, err_1 := time.LoadLocation(location)
 	if err_1 != nil {
-		return *new(time.Time), err_1
+		var _zero0 time.Time
+		return _zero0, err_1
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:47
 	return time.ParseInLocation(layout, value, loc)
@@ -375,7 +376,8 @@ func InLocation(t time.Time, location string) (time.Time, error) {
 //line /Users/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:308
 	loc, err_2 := time.LoadLocation(location)
 	if err_2 != nil {
-		return *new(time.Time), err_2
+		var _zero0 time.Time
+		return _zero0, err_2
 	}
 //line /Users/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:309
 	return t.In(loc), nil

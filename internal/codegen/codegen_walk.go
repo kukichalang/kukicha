@@ -816,11 +816,21 @@ func (g *Generator) needsPrintBuiltin() bool {
 	})
 }
 
-// needsErrorsPackage returns true if any error() expression (which generates a
-// call to errors.New) is used in the program.
+// needsErrorsPackage returns true if any error() expression that generates a call
+// to errors.New is used in the program. Interpolated error expressions use
+// fmt.Errorf instead, so they do not require the errors package.
 func (g *Generator) needsErrorsPackage() bool {
 	return g.walkProgram(func(e ast.Expression) bool {
-		_, ok := e.(*ast.ErrorExpr)
-		return ok
+		errExpr, ok := e.(*ast.ErrorExpr)
+		if !ok {
+			return false
+		}
+		// Interpolated string → generateErrorExpr will use fmt.Errorf, not errors.New
+		if strLit, ok := errExpr.Message.(*ast.StringLiteral); ok {
+			if (strLit.Interpolated || strings.ContainsRune(strLit.Value, '\uE002')) && len(strLit.Parts) > 0 {
+				return false
+			}
+		}
+		return true
 	})
 }

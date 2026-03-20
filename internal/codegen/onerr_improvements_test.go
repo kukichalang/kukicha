@@ -86,9 +86,9 @@ func Process(path string) (string, error)
 	}
 	t.Logf("Generated output:\n%s", output)
 
-	// Verbose form wraps with errors.New.
-	if !strings.Contains(output, "errors.New") {
-		t.Errorf("verbose onerr return should still produce errors.New; got: %s", output)
+	// Interpolated form uses fmt.Errorf directly.
+	if !strings.Contains(output, "fmt.Errorf") {
+		t.Errorf("verbose onerr return with interpolation should produce fmt.Errorf; got: %s", output)
 	}
 }
 
