@@ -168,3 +168,7 @@ Besides go, so far Python, Elixir and Nim
 Yes, applications will become specialized neural micro-models whose weights encode behavior; vector embeddings will replace rigid syntax, control flow is differentiable and self-adjusting, and correctness is ensured through formal mathematical proofs instead of tests.
 
 But in the meantime let's try and keep a human in the loop!
+
+### Will Kukicha add macros or metaprogramming?
+
+No. Kukicha deliberately avoids macros, compile-time code generation, and metaprogramming. The generated Go code should be predictable — what you write is what you get, with no hidden transformations. Macros add a layer of indirection that makes code harder to read, debug, and review, which directly contradicts the goal of keeping a human in the loop. If you need compile-time customization, write a Go generator or use `go generate` — Kukicha's output is standard Go, so the entire Go toolchain is available.
