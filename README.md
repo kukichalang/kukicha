@@ -190,7 +190,7 @@ func main()
 
 Parse semver tags, sort repos, and display a formatted table — all with stdlib pipes. See the full [gh-semver-release](examples/gh-semver-release/main.kuki) example.
 
-**More examples:** [AI commit messages](docs/tutorials/data-scripting-tutorial.md), [Concurrent URL health checker](docs/tutorials/concurrent-url-health-checker.md), [REST API link shortener](docs/tutorials/web-app-tutorial.md), [CLI repo explorer](docs/tutorials/cli-explorer-tutorial.md), [Semver release tool](examples/gh-semver-release/main.kuki)
+**More examples:** [AI commit messages](docs/tutorials/data-scripting-tutorial.md), [Concurrent URL health checker](docs/tutorials/concurrent-url-health-checker.md), [REST API link shortener](docs/tutorials/web-app-tutorial.md), [CLI repo explorer](docs/tutorials/cli-explorer-tutorial.md)
 
 ---
 
@@ -233,7 +233,7 @@ Every Kukicha concept maps 1:1 to Go and Python — see the [Quick Reference](do
 | **Logic** | `slice`, `maps`, `string`, `math`, `sort` (custom comparators, ByKey), `iterator` (lazy iter.Seq pipelines), `random` |
 | **Security** | `crypto` (SHA-256, HMAC, secure random), `netguard`, `sandbox` |
 | **Infrastructure** | `pg`, `kube`, `container`, `shell`, `net` |
-| **AI & Agents** | `llm`, `mcp`, `a2a`, `accel` / `infer` (ONNX inference) |
+| **AI & Agents** | `llm`, `mcp`, `a2a` |
 | **Web** | `http`, `fetch`, `validate`, `template` |
 | **Config & Ops** | `env`, `must`, `cli`, `semver`, `obs`, `retry`, `ctx`, `datetime`, `concurrent` |
 | **Output** | `table` (terminal tables: plain, box, markdown), `input` (interactive prompts) |
