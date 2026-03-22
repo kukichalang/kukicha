@@ -143,7 +143,7 @@ func (a *Analyzer) inferLambdaParamTypes(
 func (a *Analyzer) inferLambdaParamTypesMethod(expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
 	qualName := ""
 	if objID, ok := expr.Object.(*ast.Identifier); ok {
-		qualName = objID.Value + "." + expr.Method.Value
+		qualName = a.resolveQualifiedName(objID.Value + "." + expr.Method.Value)
 	}
 	if qualName == "" {
 		return
@@ -516,7 +516,7 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 
 	// Known package-level functions parsed as MethodCallExpr (e.g., os.LookupEnv, fetch.Get)
 	if objID, ok := expr.Object.(*ast.Identifier); ok {
-		qualifiedName := objID.Value + "." + methodName
+		qualifiedName := a.resolveQualifiedName(objID.Value + "." + methodName)
 
 		// Security: detect string interpolation in SQL query arguments
 		a.checkSQLInterpolation(qualifiedName, expr, pipedArg)

@@ -28,6 +28,7 @@ type Analyzer struct {
 	deprecatedFuncs     map[string]string      // Function name → deprecation message (from # kuki:deprecated directives)
 	deprecatedTypes     map[string]string      // Type name → deprecation message
 	panickedFuncs       map[string]string      // Function name → panic message (from # kuki:panics directives)
+	importAliases       map[string]string      // alias → base package name (e.g., "strpkg" → "string")
 }
 
 // New creates a new semantic analyzer

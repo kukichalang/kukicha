@@ -152,6 +152,22 @@ func Foo()
 	}
 }
 
+func TestUntypedLambda_AliasedImportPipeChain(t *testing.T) {
+	src := `petiole main
+import "stdlib/slice"
+import "stdlib/string" as strpkg
+
+func Foo()
+    raw := "a,b,c"
+    result := raw |> strpkg.Split(",") |> slice.Filter(t => t != "b")
+    _ = result
+`
+	out := pipelineLambda(t, src)
+	if !strings.Contains(out, "func(t string)") {
+		t.Errorf("expected 'func(t string)' in output, got:\n%s", out)
+	}
+}
+
 func TestUntypedLambda_DirectCall_SliceFilter(t *testing.T) {
 	src := `petiole main
 import "stdlib/slice"

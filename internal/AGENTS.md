@@ -411,6 +411,8 @@ Three inference cases handled in `semantic_calls.go`:
 
 `inferLambdaParamTypes` is called in `analyzeCallExpr`; `inferLambdaParamTypesMethod` in `analyzeMethodCallExpr`. Both record inferred types in `a.exprTypes` so codegen can emit fully typed Go func literals.
 
+**Import alias resolution:** Registry keys use base package names (e.g., `string.Split`), but user code may use aliases (e.g., `strpkg.Split`). The `importAliases map[string]string` field (populated during `collectDeclarations`) maps alias → base name. `resolveQualifiedName()` in `semantic_helpers.go` rewrites aliased qualified names before registry lookups in both `analyzeMethodCallExpr` and `inferLambdaParamTypesMethod`.
+
 **Analysis ordering:** Non-lambda arguments are analyzed first, then lambda param types are inferred, then lambda bodies are analyzed. This ensures lambda parameters have their inferred types in the symbol table when the body is analyzed.
 
 ### Generics via placeholders

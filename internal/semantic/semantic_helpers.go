@@ -29,7 +29,12 @@ func (a *Analyzer) extractPackageName(imp *ast.ImportDecl) string {
 	if imp.Alias != nil {
 		return imp.Alias.Value
 	}
+	return extractBasePackageName(imp)
+}
 
+// extractBasePackageName returns the package name derived from the import path,
+// ignoring any alias. Used to build the alias→baseName map for registry lookups.
+func extractBasePackageName(imp *ast.ImportDecl) string {
 	// Extract package name from path
 	path := strings.Trim(imp.Path.Value, "\"")
 
@@ -64,6 +69,24 @@ func (a *Analyzer) extractPackageName(imp *ast.ImportDecl) string {
 	}
 
 	return name
+}
+
+// resolveQualifiedName converts an alias-qualified name (e.g., "strpkg.Split")
+// to the registry-qualified form (e.g., "string.Split") using importAliases.
+// Returns the name unchanged if no alias mapping exists.
+func (a *Analyzer) resolveQualifiedName(qualName string) string {
+	if a.importAliases == nil {
+		return qualName
+	}
+	dotIdx := strings.IndexByte(qualName, '.')
+	if dotIdx < 0 {
+		return qualName
+	}
+	pkg := qualName[:dotIdx]
+	if baseName, ok := a.importAliases[pkg]; ok {
+		return baseName + qualName[dotIdx:]
+	}
+	return qualName
 }
 
 func isExported(name string) bool {

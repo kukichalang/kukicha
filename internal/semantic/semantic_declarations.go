@@ -92,14 +92,25 @@ func isBasicSemver(v string) bool {
 func (a *Analyzer) collectDeclarations() {
 	// Collect imports
 	for _, imp := range a.program.Imports {
+		name := a.extractPackageName(imp)
 		err := a.symbolTable.Define(&Symbol{
-			Name:    a.extractPackageName(imp),
+			Name:    name,
 			Kind:    SymbolVariable, // Treat as variable for now
 			Type:    &TypeInfo{Kind: TypeKindUnknown},
 			Defined: imp.Pos(),
 		})
 		if err != nil {
 			a.error(imp.Pos(), err.Error())
+		}
+		// Track aliased imports so registry lookups can resolve aliases
+		if imp.Alias != nil {
+			baseName := extractBasePackageName(imp)
+			if baseName != name {
+				if a.importAliases == nil {
+					a.importAliases = make(map[string]string)
+				}
+				a.importAliases[name] = baseName
+			}
 		}
 	}
 

@@ -189,6 +189,83 @@ func Foo()
 	_ = a // typed param — inference not needed, test just verifies no errors
 }
 
+func TestInferLambdaParam_MultiStepPipeChain(t *testing.T) {
+	src := `petiole main
+import "stdlib/slice"
+import "stdlib/string" as strpkg
+
+func Foo()
+    raw := "a,b,c"
+    result := raw |> strpkg.Split(",") |> slice.Filter(t => t != "b")
+    _ = result
+`
+	a, errs := analyzeSource(t, src)
+	if len(errs) > 0 {
+		t.Fatalf("unexpected semantic errors: %v", errs)
+	}
+
+	ti := findLambdaParamType(a, "t")
+	if ti == nil {
+		t.Fatal("expected type inferred for lambda param 't', got nil")
+	}
+	if ti.Kind != TypeKindString {
+		t.Errorf("expected TypeKindString for 't', got %v", ti.Kind)
+	}
+}
+
+// TestInferLambdaParam_AliasedImport verifies that lambda type inference
+// works when the piped value comes from a function called through an
+// aliased import (e.g., import "stdlib/string" as strpkg).
+func TestInferLambdaParam_AliasedImport(t *testing.T) {
+	src := `petiole main
+import "stdlib/slice"
+import "stdlib/string" as strpkg
+
+func Foo()
+    parts := strpkg.Split("a,b,c", ",")
+    result := parts |> slice.Filter(t => t != "b")
+    _ = result
+`
+	a, errs := analyzeSource(t, src)
+	if len(errs) > 0 {
+		t.Fatalf("unexpected semantic errors: %v", errs)
+	}
+
+	ti := findLambdaParamType(a, "t")
+	if ti == nil {
+		t.Fatal("expected type inferred for lambda param 't', got nil")
+	}
+	if ti.Kind != TypeKindString {
+		t.Errorf("expected TypeKindString for 't', got %v", ti.Kind)
+	}
+}
+
+// TestInferLambdaParam_NonAliasedPipeChain verifies that lambda type inference
+// works through a pipe chain when imports are NOT aliased (control test).
+func TestInferLambdaParam_NonAliasedPipeChain(t *testing.T) {
+	src := `petiole main
+import "stdlib/slice"
+import "stdlib/string"
+
+func Foo()
+    raw := "a,b,c"
+    result := raw |> string.Split(",") |> slice.Filter(t => t != "b")
+    _ = result
+`
+	a, errs := analyzeSource(t, src)
+	if len(errs) > 0 {
+		t.Fatalf("unexpected semantic errors: %v", errs)
+	}
+
+	ti := findLambdaParamType(a, "t")
+	if ti == nil {
+		t.Fatal("expected type inferred for lambda param 't', got nil")
+	}
+	if ti.Kind != TypeKindString {
+		t.Errorf("expected TypeKindString for 't', got %v", ti.Kind)
+	}
+}
+
 func TestInferLambdaParam_DirectCall_SliceFilter(t *testing.T) {
 	src := `petiole main
 import "stdlib/slice"
