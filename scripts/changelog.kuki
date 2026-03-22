@@ -16,6 +16,7 @@
 import "fmt"
 import "os"
 import "stdlib/cli"
+import "stdlib/datetime"
 import "stdlib/files"
 import "stdlib/json" as jsonpkg
 import "stdlib/llm"
@@ -33,7 +34,7 @@ func printJSON(v any)
     bytes := jsonpkg.MarshalPretty(v) onerr
         fmt.Fprintln(os.Stderr, "json marshal error: {error}")
         os.Exit(1)
-    fmt.Println(string(bytes))
+    fmt.Println(bytes as string)
 
 func main()
     _ = cli.New("changelog")
@@ -53,9 +54,10 @@ func run(args cli.Args)
 func generateChangelog(version string, jsonOut bool)
     # Get sorted tag list and find the previous release tag using semver
     tagsRaw := shell.Output("git", "tag", "-l") onerr ""
-    tagsRaw = strpkg.Trim(tagsRaw, "\n")
-    tagLines := strpkg.Split(tagsRaw, "\n")
-        |> slice.Filter((t string) => semver.Valid(t))
+    tagLines := tagsRaw
+        |> strpkg.TrimSpace()
+        |> strpkg.Split("\n")
+        |> slice.Filter(t => semver.Valid(t))
 
     # Sort by semver to find the two most recent tags
     lastTag := ""
@@ -63,7 +65,7 @@ func generateChangelog(version string, jsonOut bool)
         best := semver.Highest(tagLines) onerr ""
         if best == version and len(tagLines) > 1
             # Current version tag already exists — find the one before it
-            remaining := tagLines |> slice.Filter((t string) => t != best)
+            remaining := tagLines |> slice.Filter(t => t != best)
             if slice.IsNotEmpty(remaining)
                 lastTag = semver.Highest(remaining) onerr ""
         else
@@ -77,7 +79,7 @@ func generateChangelog(version string, jsonOut bool)
     else
         gitLog = shell.Output("git", "log", "--oneline", "--no-merges", "-50") onerr panic "git log failed: {error}"
 
-    gitLog = strpkg.Trim(gitLog, "\n")
+    gitLog = gitLog |> strpkg.TrimSpace()
     if gitLog == ""
         if jsonOut
             printJSON(map of string to string{"error": "no new commits since {lastTag}"})
@@ -91,12 +93,11 @@ func generateChangelog(version string, jsonOut bool)
     releaseDate := ""
     if version != "Unreleased"
         tagDate := shell.Output("git", "log", "-1", "--format=%cs", version) onerr ""
-        tagDate = strpkg.Trim(tagDate, "\n")
+        tagDate = tagDate |> strpkg.TrimSpace()
         if tagDate != ""
             releaseDate = tagDate
     if releaseDate == ""
-        sysDate := shell.Output("date", "-u", "+%Y-%m-%d") onerr ""
-        releaseDate = strpkg.Trim(sysDate, "\n")
+        releaseDate = datetime.Now() |> datetime.InUTC() |> datetime.Format("date")
 
     # Show what we're working with (suppressed in JSON mode)
     if not jsonOut
