@@ -25,9 +25,6 @@ linters:
       - editors
       - examples
       - genstdlibregistry
-      - cmd/ku-diag  # Generated from .kuki sources
-      - cmd/ku-k8s   # Generated from .kuki sources
-      - cmd/ku-sys   # Generated from .kuki sources
 
     rules:
       # Parser methods (p.error, p.consume) return values that are
