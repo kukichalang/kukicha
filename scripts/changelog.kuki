@@ -50,7 +50,7 @@ func generateChangelog(version string, jsonOut bool)
     tagLines := tagsRaw
         |> strpkg.TrimSpace()
         |> strpkg.Split("\n")
-        |> slice.Filter(t => semver.Valid(t))
+        |> slice.Filter((t string) => semver.Valid(t))
 
     # Sort by semver to find the two most recent tags
     lastTag := ""
@@ -58,7 +58,7 @@ func generateChangelog(version string, jsonOut bool)
         best := semver.Highest(tagLines) onerr ""
         if best == version and len(tagLines) > 1
             # Current version tag already exists — find the one before it
-            remaining := tagLines |> slice.Filter(t => t != best)
+            remaining := tagLines |> slice.Filter((t string) => t != best)
             if slice.IsNotEmpty(remaining)
                 lastTag = semver.Highest(remaining) onerr ""
         else

@@ -33,28 +33,13 @@ Replace all with the new version.
 
 ### 4. Regenerate and rebuild
 
-> **Important:** `make generate` uses `--if-changed` and skips `.kuki` files whose
-> source hasn't changed. A version bump alone doesn't touch `.kuki` sources, so most
-> `.go` files will keep their old version header. After `make generate`, force-regenerate
-> all stdlib files without `--if-changed`:
+Generated `.go` headers no longer contain the version number, so a version-only bump does not require force-regenerating stdlib files. Just regenerate the registry files and rebuild:
 
 ```bash
 make generate && make build
-
-# Force-regenerate ALL stdlib .go files (updates version headers):
-for f in stdlib/*/*.kuki; do
-    [[ "$f" == *_test.kuki ]] && continue
-    [[ "$f" == stdlib/test/test.kuki ]] && continue
-    ./kukicha build --skip-build "$f"
-done
-for f in stdlib/*/*_test.kuki; do
-    ./kukicha build --skip-build "$f"
-done
-
-make build   # re-embed the updated .go files
 ```
 
-This regenerates `internal/semantic/stdlib_registry_gen.go`, all `stdlib/*/*.go`, all `stdlib/*/*_test.go`, then rebuilds the compiler with the updated files embedded.
+This regenerates `internal/semantic/stdlib_registry_gen.go` and `go_stdlib_gen.go`, then rebuilds the compiler.
 
 ### 5. Run tests, lint, vet, and modernize
 
@@ -72,11 +57,10 @@ All tests must pass, lint/vet must be clean, and `make modernize` must find no o
 Stage and commit in a single commit (per the contributing guide — do NOT split into multiple commits):
 
 ```bash
-git add README.md internal/version/version.go stdlib/ internal/semantic/stdlib_registry_gen.go
+git add README.md CLAUDE.md AGENTS.md internal/version/version.go internal/semantic/stdlib_registry_gen.go
 git commit -m "chore: release vX.X.X
 
-Bump version constant, update README install snippets, and regenerate
-all stdlib .go and *_test.go files with the new version header."
+Bump version constant and update doc install snippets."
 ```
 
 ### 7. Tag and confirm before pushing
@@ -107,6 +91,6 @@ git push origin vX.X.X
 - [ ] `make lint` — zero issues
 - [ ] `make vet` — zero issues (covers stdlib, which golangci-lint excludes)
 - [ ] `make modernize` — no outdated Go patterns in generated code
-- [ ] Single commit with all generated + doc changes
+- [ ] Single commit with all changes
 - [ ] Tag created and pushed
 - [ ] `git ls-remote --tags origin` confirms tag is present

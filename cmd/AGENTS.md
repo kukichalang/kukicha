@@ -24,7 +24,7 @@ Key internal functions in `main.go`:
 - **`compile()`** — Shared pipeline: resolve path → parse → analyze → detect target → codegen → gofmt. Returns `compileResult` used by `build`, `run`, and `pack`.
 - **`loadAndAnalyze()`** — Parse + semantic analysis, returns AST + return counts + expr types.
 - **`rewriteGoErrors()`** — Replaces generated `.go` file paths in Go compiler stderr with original `.kuki` paths.
-- **`stripFirstLine()`** — Strips version header for `--if-changed` body comparison.
+- **`stripFirstLine()`** — Strips first line (header comment) for `--if-changed` body comparison.
 
 Key internal functions in `stdlib.go`:
 
@@ -87,4 +87,4 @@ Test files and what they cover:
 
 ## Release Process
 
-Version bumps touch `internal/version/version.go`. After bumping, all stdlib `.go` files need force-regeneration to update their version headers (see the release skill at `.claude/skills/release/SKILL.md` and `docs/contributing.md` for the full checklist).
+Version bumps touch `internal/version/version.go`. Generated `.go` headers no longer contain the version number, so version-only bumps do not require force-regenerating stdlib files. See the release skill at `.claude/skills/release/SKILL.md` and `docs/contributing.md` for the full checklist.
