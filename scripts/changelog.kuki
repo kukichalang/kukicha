@@ -31,7 +31,7 @@ type ChangelogResult
 
 func main()
     _ = cli.New("changelog")
-        |> cli.Description("Generate CHANGELOG.md entries from git history using an LLM")
+        |> cli.Description("Generate CHANGELOG.md entries from git history using an LLM, don't mention changes to the CHANGELOG itself")
         |> cli.Arg("version", "Release version (e.g. v0.5.0). Defaults to 'Unreleased'")
         |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of progress prose", "false")
         |> cli.Action(run)
