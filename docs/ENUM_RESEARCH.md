@@ -297,6 +297,10 @@ Add `case *ast.EnumDecl:` to print enum declarations with proper indentation.
 
 Even if Go eventually adds enums, they will almost certainly generate `const`+`iota` patterns under the hood. Kukicha's generated Go code would just need codegen updates — the Kukicha syntax itself wouldn't need to change. Go has shown a strong preference for backward compatibility, so existing `const` patterns will remain valid.
 
+### Medium Risk: Zero Value Safety
+
+Integer enums always have `0` as the zero value of uninitialized variables. If no enum case maps to `0`, struct fields and function parameters of that enum type start in an invalid state with no compile-time detection. This is mitigated by warning at declaration time (see Open Design Question 4), but it cannot be fully eliminated without changing how Go initializes values.
+
 ### Medium Risk: Premature Design
 
 If Go adds **data-carrying variants** (Rust-style `enum Result { Ok(T), Err(E) }`), Kukicha's simple value enums would need extension. However:
@@ -368,7 +372,40 @@ enum Port int
 
 **Recommendation:** Start with inference only. The inferred type covers most cases. Explicit types can be added later if needed (e.g., for `int32` or `uint8`).
 
-### 4. String Representation
+### 4. Zero Value Safety
+
+**Problem:** Since integer enums generate `type Status int`, any uninitialized variable or struct field has value `Status(0)`. If no case maps to `0`, this is a silently invalid state:
+
+```kukicha
+type Response
+    status Status   # zero value is Status(0) — invalid if no case = 0
+    body string
+
+resp := Response{body: "hello"}
+# resp.status is Status(0), which matches no case
+```
+
+This is the core safety concern with Go's iota enums and applies equally to Kukicha's proposal.
+
+**Options:**
+
+1. **Require a sentinel case at value `0`** — semantic analysis rejects integer enums where no case equals `0`. Users must add an explicit unknown/unset case:
+
+```kukicha
+enum Status
+    Unknown = 0
+    OK = 200
+    NotFound = 404
+    Error = 500
+```
+
+2. **Warn at declaration** — emit a compiler warning when no case maps to `0`, without requiring a fix.
+
+3. **String enums sidestep the problem** — string enums have `""` as their zero value, which is also not a valid case, so the problem is symmetric. However, the empty string is at least obviously invalid in logs and JSON output, unlike `0`.
+
+**Recommendation:** Warn when no integer enum case maps to `0`, and suggest adding an explicit `Unknown = 0` or `Unset = 0` case. Do not make it a hard error — there are legitimate enums where `0` is intentionally unused (e.g., HTTP status codes).
+
+### 5. String Representation
 
 Should enums have an automatic `String()` method?
 
@@ -378,7 +415,16 @@ print(Status.OK)  # Should this print "OK" or "200"?
 
 **Recommendation:** Generate a `String()` method that returns the case name. This matches user expectations and is more useful for debugging than the raw value. The raw value is still accessible since the enum is a typed constant.
 
-### 5. Enum Methods
+**Conflict with user-defined methods:** If the user also writes:
+
+```kukicha
+func String on s Status string
+    return "custom"
+```
+
+The generated Go will have a duplicate `String()` method — a compile error. The codegen must check whether the enum type has a user-defined `String` method and skip generation if so. This requires a post-collection pass in semantic or codegen after all methods are registered.
+
+### 6. Enum Methods
 
 Should users be able to define methods on enum types?
 
@@ -389,7 +435,31 @@ func IsClientError on s Status bool
 
 **Recommendation:** Yes — since enums generate a named type (`type Status int`), Go methods on that type work naturally. No special handling needed beyond what Kukicha already does for methods on named types.
 
-### 6. JSON Serialization
+### 7. Cross-Package Enum Usage
+
+The research doc describes per-file declaration collection but does not address importing enums from other Kukicha packages. When a package exports an enum, consumers need to:
+
+1. Resolve `Status` as an enum type (not a struct, not a package name) during semantic analysis
+2. Validate `Status.OK` as a known case of that enum
+3. Emit `StatusOK` (not `Status.OK`) in codegen
+
+This requires the stdlib/package registry to encode enum metadata (case names and values) alongside function signatures. The current `goStdlibEntry` / `TypeInfo` structures do not have an enum case map.
+
+**Recommendation:** Add an `EnumCases map[string]any` field to `TypeInfo` for enum types. Populate it during `collectDeclarations()` so cross-file and cross-package resolution works the same as struct field resolution. This is required before enums can be used in any non-trivial multi-file program.
+
+### 8. `EnumType.Case` vs Package Access Disambiguation
+
+`Status.OK` and `json.Marshal` parse identically as field access expressions. The semantic analyzer must distinguish three cases for `x.y`:
+
+1. `x` is a package name → method/function access
+2. `x` is an enum type name → case access, emit `StatusOK`
+3. `x` is a value of enum type → invalid (enum cases are not fields on instances)
+
+Currently, `x` being a type name (not a value) in a field access position is not a pattern the semantic analyzer handles. Package names are tracked separately from the symbol table. Enum type names live in the symbol table as type symbols.
+
+**Implementation note:** In `analyzeExpression` for `FieldAccessExpr`, check if the object resolves to a type symbol with `TypeKindNamed` where the named type is an enum — before falling through to struct field resolution or package access. Emit a clear error for case 3 (`myStatus.OK` where `myStatus` is a value, not the type itself).
+
+### 9. JSON Serialization
 
 Should enums serialize as their value or their name?
 
