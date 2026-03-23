@@ -1,0 +1,225 @@
+# Kukicha Standard Library - Game (Ebitengine wrapper)
+# A beginner-friendly 2D game library for browser-based tutorials.
+
+petiole game
+
+import "image/color"
+import "math"
+import "math/rand"
+import "strings"
+import "github.com/hajimehoshi/ebiten/v2"
+import "github.com/hajimehoshi/ebiten/v2/vector"
+import "github.com/hajimehoshi/ebiten/v2/inpututil"
+import "github.com/hajimehoshi/ebiten/v2/ebitenutil"
+
+# ── Types ──
+
+# Color represents an RGBA color
+type Color
+    R int
+    G int
+    B int
+    A int
+
+# Position represents an X,Y coordinate
+type Position
+    X float64
+    Y float64
+
+# Size represents a width and height
+type Size
+    Width float64
+    Height float64
+
+# Rect represents a rectangle for drawing and collision detection
+type Rect
+    X float64
+    Y float64
+    Width float64
+    Height float64
+
+# Circle represents a circle for drawing and collision detection
+type Circle
+    X float64
+    Y float64
+    Radius float64
+
+# Screen wraps the Ebitengine draw target
+type Screen
+    img reference ebiten.Image
+
+# App holds the game configuration and callbacks
+type App
+    title string
+    width int
+    height int
+    setupFn func()
+    updateFn func()
+    drawFn func(Screen)
+
+# ── Internal state ──
+
+# global frame counter
+var globalFrameCount int64
+
+# ── Internal game bridge ──
+
+# gameAdapter implements ebiten.Game, bridging to user callbacks
+type gameAdapter
+    app App
+
+func Update on g reference gameAdapter () error
+    globalFrameCount = globalFrameCount + 1
+    if g.app.updateFn != empty
+        g.app.updateFn()
+    return empty
+
+func Draw on g reference gameAdapter (screen reference ebiten.Image)
+    if g.app.drawFn != empty
+        g.app.drawFn(Screen{img: screen})
+
+func Layout on g reference gameAdapter (outsideWidth int, outsideHeight int) (int, int)
+    return g.app.width, g.app.height
+
+# ── Color Constants ──
+
+var Red Color = Color{R: 255, G: 0, B: 0, A: 255}
+var Green Color = Color{R: 0, G: 200, B: 0, A: 255}
+var Blue Color = Color{R: 0, G: 0, B: 255, A: 255}
+var White Color = Color{R: 255, G: 255, B: 255, A: 255}
+var Black Color = Color{R: 0, G: 0, B: 0, A: 255}
+var Yellow Color = Color{R: 255, G: 255, B: 0, A: 255}
+var Orange Color = Color{R: 255, G: 165, B: 0, A: 255}
+var Purple Color = Color{R: 128, G: 0, B: 128, A: 255}
+var Gray Color = Color{R: 128, G: 128, B: 128, A: 255}
+
+# ── Key Constants ──
+
+var KeyLeft ebiten.Key = ebiten.KeyArrowLeft
+var KeyRight ebiten.Key = ebiten.KeyArrowRight
+var KeyUp ebiten.Key = ebiten.KeyArrowUp
+var KeyDown ebiten.Key = ebiten.KeyArrowDown
+var KeySpace ebiten.Key = ebiten.KeySpace
+var KeyEnter ebiten.Key = ebiten.KeyEnter
+var KeyEscape ebiten.Key = ebiten.KeyEscape
+
+# ── Builder Functions ──
+
+# Window creates a new game App with a title and dimensions
+func Window(title string, width int, height int) App
+    return App{title: title, width: width, height: height}
+
+# OnSetup registers a function called once before the game starts
+func OnSetup(app App, fn func()) App
+    app.setupFn = fn
+    return app
+
+# OnUpdate registers a function called every frame for game logic
+func OnUpdate(app App, fn func()) App
+    app.updateFn = fn
+    return app
+
+# OnDraw registers a function called every frame for rendering
+func OnDraw(app App, fn func(Screen)) App
+    app.drawFn = fn
+    return app
+
+# Run starts the game loop
+func Run(app App) error
+    ebiten.SetWindowTitle(app.title)
+    ebiten.SetWindowSize(app.width, app.height)
+    if app.setupFn != empty
+        app.setupFn()
+    adapter := reference of gameAdapter{app: app}
+    return ebiten.RunGame(adapter)
+
+# ── Drawing Functions ──
+
+# Clear fills the screen with a solid color
+func Clear(screen Screen, c Color)
+    screen.img.Fill(toColor(c))
+
+# DrawRect draws a filled rectangle
+func DrawRect(screen Screen, x float64, y float64, w float64, h float64, c Color)
+    vector.DrawFilledRect(screen.img, x as float32, y as float32, w as float32, h as float32, toColor(c), true)
+
+# DrawCircle draws a filled circle
+func DrawCircle(screen Screen, x float64, y float64, radius float64, c Color)
+    vector.DrawFilledCircle(screen.img, x as float32, y as float32, radius as float32, toColor(c), true)
+
+# DrawLine draws a line between two points
+func DrawLine(screen Screen, x1 float64, y1 float64, x2 float64, y2 float64, c Color)
+    vector.StrokeLine(screen.img, x1 as float32, y1 as float32, x2 as float32, y2 as float32, 2, toColor(c), true)
+
+# DrawText draws debug text at the given position (uses Ebitengine's built-in debug font)
+func DrawText(screen Screen, msg string, x int, y int, c Color)
+    lines := strings.Split(msg, "\n")
+    for i, line in lines
+        ebitenutil.DebugPrintAt(screen.img, line, x, y + i * 16)
+    _ = c
+
+# ── Input Functions ──
+
+# IsKeyDown returns true if the given key is currently pressed
+func IsKeyDown(key ebiten.Key) bool
+    return ebiten.IsKeyPressed(key)
+
+# IsKeyPressed returns true if the key was just pressed this frame
+func IsKeyPressed(key ebiten.Key) bool
+    return inpututil.IsKeyJustPressed(key)
+
+# MousePosition returns the current mouse cursor position
+func MousePosition() (float64, float64)
+    x, y := ebiten.CursorPosition()
+    return x as float64, y as float64
+
+# MouseClicked returns true if the left mouse button was just clicked
+func MouseClicked() bool
+    return inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
+
+# ── Collision Functions ──
+
+# Overlaps returns true if two rectangles overlap
+func Overlaps(a Rect, b Rect) bool
+    return a.X < b.X + b.Width and a.X + a.Width > b.X and a.Y < b.Y + b.Height and a.Y + a.Height > b.Y
+
+# OverlapsCircle returns true if two circles overlap
+func OverlapsCircle(a Circle, b Circle) bool
+    dx := a.X - b.X
+    dy := a.Y - b.Y
+    dist := math.Sqrt(dx * dx + dy * dy)
+    return dist < a.Radius + b.Radius
+
+# CircleOverlapsRect returns true if a circle and rectangle overlap
+func CircleOverlapsRect(c Circle, r Rect) bool
+    closestX := math.Max(r.X, math.Min(c.X, r.X + r.Width))
+    closestY := math.Max(r.Y, math.Min(c.Y, r.Y + r.Height))
+    dx := c.X - closestX
+    dy := c.Y - closestY
+    return (dx * dx + dy * dy) < (c.Radius * c.Radius)
+
+# ── Utility Functions ──
+
+# MakeColor creates a Color from RGBA values (0-255)
+func MakeColor(r int, g int, b int, a int) Color
+    return Color{R: r, G: g, B: b, A: a}
+
+# Random returns a random integer between min (inclusive) and max (exclusive)
+func Random(min int, max int) int
+    if min >= max
+        return min
+    return min + rand.Intn(max - min)
+
+# RandomFloat returns a random float64 between min and max
+func RandomFloat(min float64, max float64) float64
+    return min + rand.Float64() * (max - min)
+
+# FrameCount returns the number of frames since the game started
+func FrameCount() int64
+    return globalFrameCount
+
+# ── Internal Helpers ──
+
+# toColor converts a game.Color to an image/color.RGBA
+func toColor(c Color) color.RGBA
+    return color.RGBA{R: c.R as uint8, G: c.G as uint8, B: c.B as uint8, A: c.A as uint8}

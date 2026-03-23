@@ -23,6 +23,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/errors` | Error wrapping and inspection | Wrap, Opaque, Is, Unwrap, New, Join, NewPublic, Public |
 | `stdlib/fetch` | HTTP client (Builder, Auth, Sessions, Safe URL helpers, Retry) | Get, SafeGet, Post, Json, Decode, Text, Bytes, CheckStatus, URLTemplate, URLWithQuery, PathEscape, QueryEscape, New/Header/Timeout/Retry/MaxBodySize/Transport/Do, BearerAuth, BasicAuth, FormData, NewSession, DownloadTo |
 | `stdlib/files` | File I/O operations | Read, ReadBytes, Write, WriteString, Append, AppendString, Exists, IsDir, IsFile, Copy, Move, Delete, DeleteAll, List, ListRecursive, MkDir, MkDirAll, TempFile, TempDir, Size, ModTime, Basename, Dirname, Extension, Join, Abs, UseWith, Watch |
+| `stdlib/game` | 2D game library (Ebitengine wrapper, WASM-ready) | Window, OnSetup, OnUpdate, OnDraw, Run, Clear, DrawRect, DrawCircle, DrawLine, DrawText, DrawSprite, IsKeyDown, IsKeyPressed, MousePosition, MouseClicked, Overlaps, OverlapsCircle, CircleOverlapsRect, MakeColor, Random, RandomFloat, FrameCount; Types: Color, Position, Size, Rect, Circle, Screen, App; Constants: Red/Green/Blue/White/Black/Yellow/Orange/Purple/Gray, KeyLeft/Right/Up/Down/Space/Enter/Escape |
 | `stdlib/git` | Git/GitHub operations via gh CLI | ListTags, TagExists, DefaultBranch, CurrentBranch, ReleaseExists, CreateRelease, PreviewRelease, RepoExists, CurrentUser, Clone, CloneShallow |
 | `stdlib/http` | HTTP response/request helpers + security | JSON, JSONStatus, JSONCreated, JSONError, JSONBadRequest, JSONNotFound, Text, HTML, SafeHTML, ReadJSON, ReadJSONLimit, Redirect, SafeRedirect, SafeURL, SetSecureHeaders, SecureHeaders, WithCSRF, Serve, MethodNotAllowed, IsGet/IsPost/IsPut/IsDelete/IsPatch, GetQueryParam, GetHeader; Constants: StatusOK/NotFound/etc, HeaderContentType, ContentJSON |
 | `stdlib/input` | User input utilities | ReadLine, Prompt, Confirm, Choose |
@@ -548,7 +549,7 @@ result := template.HTMLRenderSimple(tmplStr, data) onerr return
 Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. No `_helper.go` or `_tool.go` files.
 
 All packages: `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`,
-`git`, `http`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`,
+`game`, `git`, `http`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`,
 `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
 
 ## Import Aliases

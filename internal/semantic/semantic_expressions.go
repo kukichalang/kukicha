@@ -310,6 +310,9 @@ func (a *Analyzer) analyzeBinaryExpr(expr *ast.BinaryExpr) *TypeInfo {
 		if leftType.Kind == TypeKindFloat || rightType.Kind == TypeKindFloat {
 			return &TypeInfo{Kind: TypeKindFloat}
 		}
+		if leftType.Kind == TypeKindUnknown || rightType.Kind == TypeKindUnknown {
+			return &TypeInfo{Kind: TypeKindUnknown}
+		}
 		return &TypeInfo{Kind: TypeKindInt}
 
 	case "-", "*", "/", "%":
@@ -329,6 +332,9 @@ func (a *Analyzer) analyzeBinaryExpr(expr *ast.BinaryExpr) *TypeInfo {
 		// Result type is the wider of the two
 		if leftType.Kind == TypeKindFloat || rightType.Kind == TypeKindFloat {
 			return &TypeInfo{Kind: TypeKindFloat}
+		}
+		if leftType.Kind == TypeKindUnknown || rightType.Kind == TypeKindUnknown {
+			return &TypeInfo{Kind: TypeKindUnknown}
 		}
 		return &TypeInfo{Kind: TypeKindInt}
 

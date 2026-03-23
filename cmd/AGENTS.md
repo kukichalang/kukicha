@@ -10,7 +10,7 @@ The primary `kukicha` binary. Subcommands:
 
 | Command | File | Description |
 |---------|------|-------------|
-| `build` | `main.go` | Transpile `.kuki` to `.go`, then `go build`. Flags: `--target`, `--skip-build`, `--if-changed`, `--vulncheck` |
+| `build` | `main.go` | Transpile `.kuki` to `.go`, then `go build`. Flags: `--target`, `--skip-build`, `--if-changed`, `--vulncheck`, `--wasm` |
 | `run` | `main.go` | Transpile to a temp `.go` file and `go run` it. Passes extra args to the script |
 | `check` | `main.go` | Parse + semantic analysis only (no codegen). Flag: `--strict-onerr` |
 | `fmt` | `fmt.go` | Format `.kuki` files (tabs→spaces, trailing whitespace, brace conversion). Flags: `-w`, `--check` |
@@ -25,6 +25,8 @@ Key internal functions in `main.go`:
 - **`loadAndAnalyze()`** — Parse + semantic analysis, returns AST + return counts + expr types.
 - **`rewriteGoErrors()`** — Replaces generated `.go` file paths in Go compiler stderr with original `.kuki` paths.
 - **`stripFirstLine()`** — Strips first line (header comment) for `--if-changed` body comparison.
+- **`wasmScaffold()`** — Copies `wasm_exec.js` from Go installation and generates `index.html` for `--wasm` builds.
+- **`setEnvVar()`** — Sets or replaces an environment variable in an env slice (used for WASM cross-compilation).
 
 Key internal functions in `stdlib.go`:
 

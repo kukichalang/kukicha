@@ -38,16 +38,17 @@ func main() {
 		skipBuild := buildFlags.Bool("skip-build", false, "Skip go build step (for test files)")
 		ifChanged := buildFlags.Bool("if-changed", false, "Skip writing output if Go body (excluding generated header) is unchanged")
 		vulncheck := buildFlags.Bool("vulncheck", false, "Run govulncheck after successful build")
+		wasm := buildFlags.Bool("wasm", false, "Build for WebAssembly (GOOS=js GOARCH=wasm)")
 		if err := buildFlags.Parse(args); err != nil {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] <file.kuki>")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] <file.kuki>")
 			os.Exit(1)
 		}
 		buildArgs := buildFlags.Args()
 		if len(buildArgs) < 1 {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] <file.kuki>")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] <file.kuki>")
 			os.Exit(1)
 		}
-		buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck)
+		buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck, *wasm)
 	case "run":
 		runFlags := flag.NewFlagSet("run", flag.ContinueOnError)
 		runFlags.SetOutput(os.Stderr)
@@ -123,7 +124,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "Kukicha - A transpiler that compiles Kukicha to Go")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] [--vulncheck] <file.kuki>  Compile Kukicha file to Go")
+	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] [--vulncheck] [--wasm] <file.kuki>  Compile Kukicha file to Go")
 	fmt.Fprintln(os.Stderr, "  kukicha run [--target t] <file.kuki>   Transpile and execute Kukicha file")
 	fmt.Fprintln(os.Stderr, "  kukicha check <file.kuki>   Type check Kukicha file")
 	fmt.Fprintln(os.Stderr, "  kukicha audit [--json] [--warn-only] [dir]  Check dependencies for vulnerabilities")
@@ -307,7 +308,7 @@ func stripFirstLine(b []byte) []byte {
 	return b
 }
 
-func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool) {
+func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool, wasm bool) {
 	cr := compile(filename, targetFlag, "")
 
 	// Write Go file
@@ -332,13 +333,18 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 
 	// Determine the output binary name. When cross-compiling for Windows
 	// (GOOS=windows), append .exe so the binary is recognised as executable.
+	// WASM builds produce a .wasm file instead.
 	binaryName := strings.TrimSuffix(filepath.Base(cr.absFile), ".kuki")
-	targetOS := os.Getenv("GOOS")
-	if targetOS == "" {
-		targetOS = runtime.GOOS
-	}
-	if targetOS == "windows" {
-		binaryName += ".exe"
+	if wasm {
+		binaryName += ".wasm"
+	} else {
+		targetOS := os.Getenv("GOOS")
+		if targetOS == "" {
+			targetOS = runtime.GOOS
+		}
+		if targetOS == "windows" {
+			binaryName += ".exe"
+		}
 	}
 	binaryPath := filepath.Join(cr.projectDir, binaryName)
 
@@ -347,7 +353,12 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 	if !skipBuild {
 		cmd := exec.Command("go", "build", "-mod=mod", "-o", binaryPath, outputFile)
 		cmd.Dir = cr.projectDir
-		cmd.Env = os.Environ()
+		env := os.Environ()
+		if wasm {
+			env = setEnvVar(env, "GOOS", "js")
+			env = setEnvVar(env, "GOARCH", "wasm")
+		}
+		cmd.Env = env
 		cmd.Stdout = os.Stdout
 		var stderrBuf bytes.Buffer
 		cmd.Stderr = &stderrBuf
@@ -361,12 +372,73 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 		}
 
 		fmt.Printf("Successfully built binary: %s\n", binaryName)
+
+		if wasm {
+			wasmScaffold(cr.projectDir, strings.TrimSuffix(filepath.Base(cr.absFile), ".kuki"))
+		}
 	}
 
 	if vulncheck {
 		code := runAudit(AuditOptions{Dir: cr.projectDir})
 		if code != 0 {
 			os.Exit(code)
+		}
+	}
+}
+
+// setEnvVar sets or replaces an environment variable in the env slice.
+func setEnvVar(env []string, key, value string) []string {
+	prefix := key + "="
+	for i, e := range env {
+		if strings.HasPrefix(e, prefix) {
+			env[i] = prefix + value
+			return env
+		}
+	}
+	return append(env, prefix+value)
+}
+
+// wasmScaffold copies wasm_exec.js and generates index.html alongside the .wasm file.
+func wasmScaffold(projectDir, name string) {
+	// Copy wasm_exec.js from Go installation
+	gorootBytes, err := exec.Command("go", "env", "GOROOT").Output()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not determine GOROOT: %v\n", err)
+		return
+	}
+	goroot := strings.TrimSpace(string(gorootBytes))
+	wasmExecSrc := filepath.Join(goroot, "lib", "wasm", "wasm_exec.js")
+	wasmExecDst := filepath.Join(projectDir, "wasm_exec.js")
+
+	if data, err := os.ReadFile(wasmExecSrc); err == nil {
+		if err := os.WriteFile(wasmExecDst, data, 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not write wasm_exec.js: %v\n", err)
+		} else {
+			fmt.Printf("Copied wasm_exec.js\n")
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "Warning: could not read wasm_exec.js from %s: %v\n", wasmExecSrc, err)
+		fmt.Fprintf(os.Stderr, "You may need to copy it manually from $(go env GOROOT)/lib/wasm/wasm_exec.js\n")
+	}
+
+	// Generate index.html if it doesn't already exist
+	indexPath := filepath.Join(projectDir, "index.html")
+	if _, err := os.Stat(indexPath); err != nil {
+		html := fmt.Sprintf(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>%s</title>
+<style>body { margin: 0; padding: 0; background: #000; }</style>
+</head><body>
+<script src="wasm_exec.js"></script>
+<script>
+const go = new Go();
+WebAssembly.instantiateStreaming(fetch("%s.wasm"), go.importObject).then(r => go.run(r.instance));
+</script>
+</body></html>
+`, name, name)
+		if err := os.WriteFile(indexPath, []byte(html), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not write index.html: %v\n", err)
+		} else {
+			fmt.Printf("Generated index.html\n")
 		}
 	}
 }

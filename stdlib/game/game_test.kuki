@@ -1,0 +1,106 @@
+# Tests for Kukicha Standard Library - Game Package
+# Tests collision detection and utility functions (no window needed)
+
+petiole game_test
+
+import "stdlib/game"
+import "stdlib/test"
+import "testing"
+
+# --- TestOverlaps ---
+type OverlapsCase
+    name string
+    a game.Rect
+    b game.Rect
+    want bool
+
+func TestOverlaps(t reference testing.T)
+    cases := list of OverlapsCase{
+        OverlapsCase{name: "overlapping", a: game.Rect{X: 0, Y: 0, Width: 10, Height: 10}, b: game.Rect{X: 5, Y: 5, Width: 10, Height: 10}, want: true},
+        OverlapsCase{name: "not overlapping", a: game.Rect{X: 0, Y: 0, Width: 10, Height: 10}, b: game.Rect{X: 20, Y: 20, Width: 10, Height: 10}, want: false},
+        OverlapsCase{name: "touching edges", a: game.Rect{X: 0, Y: 0, Width: 10, Height: 10}, b: game.Rect{X: 10, Y: 0, Width: 10, Height: 10}, want: false},
+        OverlapsCase{name: "contained", a: game.Rect{X: 0, Y: 0, Width: 20, Height: 20}, b: game.Rect{X: 5, Y: 5, Width: 5, Height: 5}, want: true},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            result := game.Overlaps(tc.a, tc.b)
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestOverlapsCircle ---
+type OverlapsCircleCase
+    name string
+    a game.Circle
+    b game.Circle
+    want bool
+
+func TestOverlapsCircle(t reference testing.T)
+    cases := list of OverlapsCircleCase{
+        OverlapsCircleCase{name: "overlapping", a: game.Circle{X: 0, Y: 0, Radius: 10}, b: game.Circle{X: 15, Y: 0, Radius: 10}, want: true},
+        OverlapsCircleCase{name: "not overlapping", a: game.Circle{X: 0, Y: 0, Radius: 5}, b: game.Circle{X: 20, Y: 0, Radius: 5}, want: false},
+        OverlapsCircleCase{name: "concentric", a: game.Circle{X: 5, Y: 5, Radius: 10}, b: game.Circle{X: 5, Y: 5, Radius: 3}, want: true},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            result := game.OverlapsCircle(tc.a, tc.b)
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestCircleOverlapsRect ---
+type CircleRectCase
+    name string
+    c game.Circle
+    r game.Rect
+    want bool
+
+func TestCircleOverlapsRect(t reference testing.T)
+    cases := list of CircleRectCase{
+        CircleRectCase{name: "overlapping", c: game.Circle{X: 5, Y: 5, Radius: 5}, r: game.Rect{X: 0, Y: 0, Width: 10, Height: 10}, want: true},
+        CircleRectCase{name: "not overlapping", c: game.Circle{X: 50, Y: 50, Radius: 5}, r: game.Rect{X: 0, Y: 0, Width: 10, Height: 10}, want: false},
+        CircleRectCase{name: "circle inside rect", c: game.Circle{X: 5, Y: 5, Radius: 2}, r: game.Rect{X: 0, Y: 0, Width: 20, Height: 20}, want: true},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            result := game.CircleOverlapsRect(tc.c, tc.r)
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestMakeColor ---
+type MakeColorCase
+    name string
+    r int
+    g int
+    b int
+    a int
+
+func TestMakeColor(t reference testing.T)
+    cases := list of MakeColorCase{
+        MakeColorCase{name: "red", r: 255, g: 0, b: 0, a: 255},
+        MakeColorCase{name: "transparent", r: 0, g: 0, b: 0, a: 0},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            c := game.MakeColor(tc.r, tc.g, tc.b, tc.a)
+            test.AssertEqual(t, c.R, tc.r)
+            test.AssertEqual(t, c.G, tc.g)
+            test.AssertEqual(t, c.B, tc.b)
+            test.AssertEqual(t, c.A, tc.a)
+        )
+
+# --- TestRandom ---
+type RandomCase
+    name string
+
+func TestRandom(t reference testing.T)
+    cases := list of RandomCase{
+        RandomCase{name: "range"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            r := game.Random(5, 10)
+            test.AssertTrue(t, r >= 5)
+            test.AssertTrue(t, r < 10)
+
+            same := game.Random(7, 7)
+            test.AssertEqual(t, same, 7)
+        )

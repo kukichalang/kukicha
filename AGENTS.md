@@ -387,6 +387,7 @@ make genstdlibregistry    # Regenerate only internal/semantic/stdlib_registry_ge
 make gengostdlib          # Regenerate only internal/semantic/go_stdlib_gen.go
 kukicha check file.kuki   # Validate syntax without compiling
 kukicha build file.kuki   # Transpile and compile to binary
+kukicha build --wasm file.kuki       # Build for WebAssembly (GOOS=js GOARCH=wasm)
 kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run
 kukicha fmt -w file.kuki  # Format in place
@@ -417,9 +418,11 @@ stdlib/                   # Standard library (.kuki source files)
   fetch/                  # HTTP client (Auth, Sessions)
   files/                  # File I/O
   shell/                  # Command execution
+  game/                   # 2D game library (Ebitengine wrapper, WASM-ready)
   ...
 examples/                 # Example programs
 docs/                     # Documentation
+  tutorials/game/         # 8-lesson game tutorial series (WASM)
 editors/
   vscode/                 # VS Code extension (syntax highlighting, LSP client)
   zed/                    # Zed extension (tree-sitter grammar, LSP client)
