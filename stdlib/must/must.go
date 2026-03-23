@@ -4,8 +4,8 @@ package must
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cast"
-	"github.com/duber000/kukicha/stdlib/env"
+	"github.com/kukichalang/kukicha/stdlib/cast"
+	"github.com/kukichalang/kukicha/stdlib/env"
 )
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:14

@@ -1,8 +1,8 @@
 package codegen
 
 import (
-	"github.com/duber000/kukicha/internal/parser"
-	"github.com/duber000/kukicha/internal/semantic"
+	"github.com/kukichalang/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/semantic"
 	"strings"
 	"testing"
 )

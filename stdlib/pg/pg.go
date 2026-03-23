@@ -5,8 +5,8 @@ package pg
 import (
 	"errors"
 	"fmt"
-	ctxpkg "github.com/duber000/kukicha/stdlib/ctx"
-	"github.com/duber000/kukicha/stdlib/retry"
+	ctxpkg "github.com/kukichalang/kukicha/stdlib/ctx"
+	"github.com/kukichalang/kukicha/stdlib/retry"
 	pgx "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"

@@ -6,7 +6,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"os"
 	"strconv"
 )

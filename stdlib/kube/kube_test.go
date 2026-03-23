@@ -3,7 +3,7 @@
 package kube_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/kube"
+	"github.com/kukichalang/kukicha/stdlib/kube"
 	"testing"
 )
 

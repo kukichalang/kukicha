@@ -3,8 +3,8 @@
 package game_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/game"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/game"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

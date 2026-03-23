@@ -32,7 +32,7 @@ Key internal functions in `stdlib.go`:
 
 - **`ensureStdlib()`** — Extracts embedded stdlib to `.kukicha/stdlib/`, version-stamped to avoid redundant extraction.
 - **`ensureGoMod()`** — Adds `require` + `replace` directives for the stdlib module to the project's `go.mod`.
-- **`needsStdlib()`** — Checks if generated Go code imports any `github.com/duber000/kukicha/stdlib/` packages (skips if inside the kukicha repo itself).
+- **`needsStdlib()`** — Checks if generated Go code imports any `github.com/kukichalang/kukicha/stdlib/` packages (skips if inside the kukicha repo itself).
 - **`extractAgentDocs()`** — Upserts Kukicha skill section into `AGENTS.md` and appends `@AGENTS.md` to `CLAUDE.md`.
 
 `stdlib.go` also contains `stdlibGoMod` and `stdlibGoSum` constants — the `go.mod`/`go.sum` for the extracted stdlib module. Update these when adding or upgrading stdlib dependencies.

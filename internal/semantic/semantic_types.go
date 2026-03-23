@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // validateTypeAnnotation checks that a type annotation is valid

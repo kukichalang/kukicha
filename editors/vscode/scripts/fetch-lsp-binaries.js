@@ -5,7 +5,7 @@ const zlib = require('zlib');
 const tar = require('tar');
 
 const { kukichaVersion: KUKICHA_VERSION } = require('../package.json');
-const GITHUB_RELEASES_URL = 'https://github.com/duber000/kukicha/releases/download';
+const GITHUB_RELEASES_URL = 'https://github.com/kukichalang/kukicha/releases/download';
 
 const PLATFORMS = {
     'win32-x64': {

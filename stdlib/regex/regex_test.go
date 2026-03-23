@@ -4,8 +4,8 @@ package regex_test
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/regex"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/regex"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

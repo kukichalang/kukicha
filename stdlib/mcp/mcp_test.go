@@ -3,7 +3,7 @@
 package mcp_test
 
 import (
-	mcppkg "github.com/duber000/kukicha/stdlib/mcp"
+	mcppkg "github.com/kukichalang/kukicha/stdlib/mcp"
 	"testing"
 )
 

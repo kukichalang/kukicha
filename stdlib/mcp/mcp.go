@@ -4,8 +4,8 @@ package mcp
 
 import (
 	"context"
-	ctxpkg "github.com/duber000/kukicha/stdlib/ctx"
-	"github.com/duber000/kukicha/stdlib/json"
+	ctxpkg "github.com/kukichalang/kukicha/stdlib/ctx"
+	"github.com/kukichalang/kukicha/stdlib/json"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

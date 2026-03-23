@@ -13,7 +13,7 @@ func TestExtractPkgName(t *testing.T) {
 		{"fmt", "fmt"},
 		{"encoding/json", "json"},
 		{"net/http", "http"},
-		{"github.com/duber000/kukicha/stdlib/json", "json"},
+		{"github.com/kukichalang/kukicha/stdlib/json", "json"},
 		{"gopkg.in/yaml.v3", "yaml"},
 		{"encoding/json/v2", "json"},
 		{"github.com/jackc/pgx/v5", "pgx"},
@@ -40,12 +40,12 @@ func TestRewriteStdlibImport(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"stdlib/json", "github.com/duber000/kukicha/stdlib/json"},
-		{"stdlib/slice", "github.com/duber000/kukicha/stdlib/slice"},
-		{"stdlib/fetch", "github.com/duber000/kukicha/stdlib/fetch"},
+		{"stdlib/json", "github.com/kukichalang/kukicha/stdlib/json"},
+		{"stdlib/slice", "github.com/kukichalang/kukicha/stdlib/slice"},
+		{"stdlib/fetch", "github.com/kukichalang/kukicha/stdlib/fetch"},
 		{"encoding/json", "encoding/json"},
 		{"fmt", "fmt"},
-		{`"stdlib/json"`, "github.com/duber000/kukicha/stdlib/json"},
+		{`"stdlib/json"`, "github.com/kukichalang/kukicha/stdlib/json"},
 	}
 
 	for _, tt := range tests {
@@ -74,7 +74,7 @@ func main()
 
 	output := generateSource(t, input)
 
-	if !strings.Contains(output, `kukijson "github.com/duber000/kukicha/stdlib/json"`) {
+	if !strings.Contains(output, `kukijson "github.com/kukichalang/kukicha/stdlib/json"`) {
 		t.Errorf("expected kukijson alias for stdlib/json collision, got:\n%s", output)
 	}
 	if !strings.Contains(output, `"encoding/json"`) {

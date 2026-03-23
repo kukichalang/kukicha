@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ir"
+	"github.com/kukichalang/kukicha/internal/ir"
 )
 
 // emitIR walks an IR block and emits Go source via the generator's writeLine.

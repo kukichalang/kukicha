@@ -6,8 +6,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cast"
-	"github.com/duber000/kukicha/stdlib/mcp"
+	"github.com/kukichalang/kukicha/stdlib/cast"
+	"github.com/kukichalang/kukicha/stdlib/mcp"
 	"os"
 )
 

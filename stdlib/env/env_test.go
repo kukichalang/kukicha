@@ -3,8 +3,8 @@
 package env_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/env"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/env"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"os"
 	"testing"
 )

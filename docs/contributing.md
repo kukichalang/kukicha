@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Kukicha! This document provides g
 
 ```bash
 # Clone the repository
-git clone https://github.com/duber000/kukicha.git
+git clone https://github.com/kukichalang/kukicha.git
 cd kukicha
 
 # Build the compiler

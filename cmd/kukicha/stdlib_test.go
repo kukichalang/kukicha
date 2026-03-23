@@ -18,11 +18,11 @@ func main() { fmt.Println("ok") }
 
 func TestNeedsStdlib_RespectsProjectDirModule(t *testing.T) {
 	goCode := `package main
-import _ "github.com/duber000/kukicha/stdlib/json"
+import _ "github.com/kukichalang/kukicha/stdlib/json"
 `
 
 	kukichaRepoLike := t.TempDir()
-	if err := os.WriteFile(filepath.Join(kukichaRepoLike, "go.mod"), []byte("module github.com/duber000/kukicha\n\ngo 1.26.1\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(kukichaRepoLike, "go.mod"), []byte("module github.com/kukichalang/kukicha\n\ngo 1.26.1\n"), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
 	if needsStdlib(goCode, kukichaRepoLike) {

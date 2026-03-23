@@ -3,9 +3,9 @@
 package parse_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/parse"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/parse"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

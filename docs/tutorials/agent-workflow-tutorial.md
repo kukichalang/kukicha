@@ -13,7 +13,7 @@ Describe what you want. AI writes the code. You can read it.
 
 1. **Kukicha compiler installed**
 ```bash
-go install github.com/duber000/kukicha/cmd/kukicha@latest
+go install github.com/kukichalang/kukicha/cmd/kukicha@latest
 kukicha version
 ```
 

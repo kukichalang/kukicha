@@ -6,10 +6,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/env"
-	"github.com/duber000/kukicha/stdlib/fetch"
-	"github.com/duber000/kukicha/stdlib/json"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/env"
+	"github.com/kukichalang/kukicha/stdlib/fetch"
+	"github.com/kukichalang/kukicha/stdlib/json"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 )
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:127

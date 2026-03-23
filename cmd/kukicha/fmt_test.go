@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/duber000/kukicha/internal/formatter"
+	"github.com/kukichalang/kukicha/internal/formatter"
 )
 
 func TestCheckFile_FormattedFile(t *testing.T) {

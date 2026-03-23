@@ -3,7 +3,7 @@
 package validate_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/validate"
+	"github.com/kukichalang/kukicha/stdlib/validate"
 	"testing"
 )
 

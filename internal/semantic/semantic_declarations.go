@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 func (a *Analyzer) checkPackageName() {

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/ir"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ir"
 )
 
 func newTestGenerator() *Generator {

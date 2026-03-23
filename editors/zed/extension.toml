@@ -4,10 +4,10 @@ version = "0.2.0"
 schema_version = 1
 authors = ["Kukicha Contributors"]
 description = "Kukicha language support with LSP - a beginner-friendly language that compiles to Go"
-repository = "https://github.com/duber000/kukicha"
+repository = "https://github.com/kukichalang/kukicha"
 
 [grammars.kukicha]
-repository = "https://github.com/duber000/kukicha"
+repository = "https://github.com/kukichalang/kukicha"
 path = "editors/zed/grammars/kukicha"
 rev = "c8069aeaea34a0a54c1d1cc0f317da07763c88eb"
 

@@ -4,17 +4,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cli"
-	"github.com/duber000/kukicha/stdlib/concurrent"
-	"github.com/duber000/kukicha/stdlib/env"
-	"github.com/duber000/kukicha/stdlib/git"
-	"github.com/duber000/kukicha/stdlib/input"
-	"github.com/duber000/kukicha/stdlib/semver"
-	"github.com/duber000/kukicha/stdlib/shell"
-	"github.com/duber000/kukicha/stdlib/slice"
-	"github.com/duber000/kukicha/stdlib/sort"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
-	"github.com/duber000/kukicha/stdlib/table"
+	"github.com/kukichalang/kukicha/stdlib/cli"
+	"github.com/kukichalang/kukicha/stdlib/concurrent"
+	"github.com/kukichalang/kukicha/stdlib/env"
+	"github.com/kukichalang/kukicha/stdlib/git"
+	"github.com/kukichalang/kukicha/stdlib/input"
+	"github.com/kukichalang/kukicha/stdlib/semver"
+	"github.com/kukichalang/kukicha/stdlib/shell"
+	"github.com/kukichalang/kukicha/stdlib/slice"
+	"github.com/kukichalang/kukicha/stdlib/sort"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/table"
 	"os"
 )
 

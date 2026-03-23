@@ -4,10 +4,10 @@ package shell_test
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/shell"
-	"github.com/duber000/kukicha/stdlib/slice"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/shell"
+	"github.com/kukichalang/kukicha/stdlib/slice"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

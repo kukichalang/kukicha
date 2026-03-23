@@ -3,7 +3,7 @@ package codegen
 import (
 	"testing"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 func TestNeedsPrintBuiltin(t *testing.T) {

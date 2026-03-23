@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"encoding/csv"
 	"errors"
-	"github.com/duber000/kukicha/stdlib/json"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/json"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"gopkg.in/yaml.v3"
 )
 

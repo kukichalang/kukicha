@@ -8,9 +8,9 @@ import (
 	"github.com/a2aproject/a2a-go/a2a"
 	"github.com/a2aproject/a2a-go/a2aclient"
 	"github.com/a2aproject/a2a-go/a2aclient/agentcard"
-	ctxpkg "github.com/duber000/kukicha/stdlib/ctx"
-	"github.com/duber000/kukicha/stdlib/retry"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	ctxpkg "github.com/kukichalang/kukicha/stdlib/ctx"
+	"github.com/kukichalang/kukicha/stdlib/retry"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"net/http"
 )
 

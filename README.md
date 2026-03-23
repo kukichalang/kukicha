@@ -71,12 +71,12 @@ function main()
 
 **Option A — Binary download (no Go toolchain needed after install):**
 
-Download a pre-built binary from [GitHub Releases](https://github.com/duber000/kukicha/releases).
+Download a pre-built binary from [GitHub Releases](https://github.com/kukichalang/kukicha/releases).
 
 **Option B — Install with Go:**
 
 ```bash
-go install github.com/duber000/kukicha/cmd/kukicha@v0.0.21
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.21
 kukicha version
 ```
 
@@ -189,7 +189,7 @@ See the full [Stdlib Reference](stdlib/AGENTS.md).
 
 ## Editor Support
 
-**VS Code:** Search `kukicha-lang` in extensions, or download the `.vsix` from [GitHub Releases](https://github.com/duber000/kukicha/releases). See [`editors/vscode/README.md`](editors/vscode/README.md).
+**VS Code:** Search `kukicha-lang` in extensions, or download the `.vsix` from [GitHub Releases](https://github.com/kukichalang/kukicha/releases). See [`editors/vscode/README.md`](editors/vscode/README.md).
 
 **Zed:** Open Zed → `zed: install dev extension` → point to `editors/zed/` in this repo.
 

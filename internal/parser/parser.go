@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/lexer"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/lexer"
 )
 
 // Parser parses tokens into an AST using recursive descent.

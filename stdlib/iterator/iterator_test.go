@@ -3,8 +3,8 @@
 package iterator_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/iterator"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/iterator"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

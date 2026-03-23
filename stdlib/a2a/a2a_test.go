@@ -3,7 +3,7 @@
 package a2a_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/a2a"
+	"github.com/kukichalang/kukicha/stdlib/a2a"
 	"testing"
 )
 

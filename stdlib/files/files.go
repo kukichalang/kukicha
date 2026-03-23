@@ -3,7 +3,7 @@
 package files
 
 import (
-	"github.com/duber000/kukicha/stdlib/json"
+	"github.com/kukichalang/kukicha/stdlib/json"
 	"io"
 	"os"
 	"path/filepath"

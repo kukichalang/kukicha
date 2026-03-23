@@ -5,9 +5,9 @@ package kube
 import (
 	"errors"
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/ctx"
-	"github.com/duber000/kukicha/stdlib/retry"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/ctx"
+	"github.com/kukichalang/kukicha/stdlib/retry"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

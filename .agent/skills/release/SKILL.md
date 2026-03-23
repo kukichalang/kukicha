@@ -23,7 +23,7 @@ const Version = "0.0.X"   # new version
 ### 3. Update version references in docs
 
 **README.md** — exactly two occurrences (grep for the old version to confirm):
-- `go install github.com/duber000/kukicha/cmd/kukicha@vOLD`
+- `go install github.com/kukichalang/kukicha/cmd/kukicha@vOLD`
 - `**Version:** OLD — Ready for testing`
 
 **CLAUDE.md** and **AGENTS.md** — one occurrence each near the top (must stay in sync):

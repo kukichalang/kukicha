@@ -5,8 +5,8 @@ package netguard
 import (
 	"context"
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/datetime"
-	netutil "github.com/duber000/kukicha/stdlib/net"
+	"github.com/kukichalang/kukicha/stdlib/datetime"
+	netutil "github.com/kukichalang/kukicha/stdlib/net"
 	"net"
 	"net/http"
 	"syscall"

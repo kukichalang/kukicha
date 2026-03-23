@@ -5,8 +5,8 @@ package env
 import (
 	"errors"
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cast"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/cast"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"os"
 )
 

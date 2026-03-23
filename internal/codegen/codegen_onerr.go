@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // generateOnErrVarDecl handles variable declarations with onerr

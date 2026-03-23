@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/formatter"
+	"github.com/kukichalang/kukicha/internal/formatter"
 )
 
 func fmtCommand(args []string) {

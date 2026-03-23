@@ -4,7 +4,7 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/json"
+	"github.com/kukichalang/kukicha/stdlib/json"
 	"io/fs"
 	"os"
 )

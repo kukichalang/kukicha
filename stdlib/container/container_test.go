@@ -3,7 +3,7 @@
 package container_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/container"
+	"github.com/kukichalang/kukicha/stdlib/container"
 	"testing"
 )
 

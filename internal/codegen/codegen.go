@@ -3,9 +3,9 @@ package codegen
 import (
 	"fmt"
 	"strings"
-	"github.com/duber000/kukicha/internal/semantic"
+	"github.com/kukichalang/kukicha/internal/semantic"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // TypeParameter represents a type parameter for stdlib special transpilation
@@ -40,7 +40,7 @@ type FuncDefaults struct {
 // defaultStdlibModuleBase is the module path prefix used to rewrite "stdlib/X"
 // imports to their full Go module paths. Override with Generator.SetStdlibModule
 // when the kukicha module is forked or vendored under a different path.
-const defaultStdlibModuleBase = "github.com/duber000/kukicha"
+const defaultStdlibModuleBase = "github.com/kukichalang/kukicha"
 
 type Generator struct {
 	program              *ast.Program
@@ -108,7 +108,7 @@ func (g *Generator) childGenerator(extraIndent int) *Generator {
 }
 
 // SetStdlibModule overrides the base module path used when rewriting "stdlib/X"
-// imports to full Go module paths. The default is "github.com/duber000/kukicha".
+// imports to full Go module paths. The default is "github.com/kukichalang/kukicha".
 // Set this when building a fork or vendoring the kukicha stdlib under a different module name.
 func (g *Generator) SetStdlibModule(base string) {
 	g.stdlibModuleBase = base

@@ -17,7 +17,7 @@
     "license": "Apache-2.0",
     "description": "Tree-sitter grammar for Kukicha",
     "links": {
-      "repository": "https://github.com/duber000/kukicha"
+      "repository": "https://github.com/kukichalang/kukicha"
     }
   },
   "bindings": {

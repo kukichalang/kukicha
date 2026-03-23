@@ -4,8 +4,8 @@ package git
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/shell"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/shell"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 )
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:19

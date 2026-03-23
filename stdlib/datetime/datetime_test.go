@@ -4,8 +4,8 @@ package datetime_test
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/datetime"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/datetime"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 	"time"
 )

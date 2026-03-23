@@ -3,8 +3,8 @@
 package llm_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/llm"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/llm"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

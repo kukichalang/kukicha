@@ -3,8 +3,8 @@
 package cli_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/cli"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/cli"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

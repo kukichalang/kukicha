@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/parser"
 )
 
 func writeKukiFile(t *testing.T, dir, name, content string) string {

@@ -1,7 +1,7 @@
 package codegen
 
 import (
-	"github.com/duber000/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/parser"
 	"strings"
 	"testing"
 )

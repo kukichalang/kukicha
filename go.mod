@@ -1,4 +1,4 @@
-module github.com/duber000/kukicha
+module github.com/kukichalang/kukicha
 
 go 1.26.1
 

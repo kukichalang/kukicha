@@ -3,8 +3,8 @@ package formatter
 import (
 	"testing"
 
-	"github.com/duber000/kukicha/internal/lexer"
-	"github.com/duber000/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/lexer"
+	"github.com/kukichalang/kukicha/internal/parser"
 )
 
 // helper: lex source, extract comments

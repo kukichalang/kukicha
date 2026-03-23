@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/lexer"
-	"github.com/duber000/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/lexer"
+	"github.com/kukichalang/kukicha/internal/parser"
 )
 
 // FormatOptions contains options for formatting

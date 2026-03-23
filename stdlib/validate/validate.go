@@ -5,9 +5,9 @@ package validate
 import (
 	"errors"
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cast"
-	"github.com/duber000/kukicha/stdlib/slice"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/cast"
+	"github.com/kukichalang/kukicha/stdlib/slice"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"net/url"
 	"regexp"
 	"unicode"

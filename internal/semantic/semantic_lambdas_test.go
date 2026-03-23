@@ -3,7 +3,7 @@ package semantic
 import (
 	"testing"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // findLambdaParam walks the analyzed exprTypes map looking for a param identifier

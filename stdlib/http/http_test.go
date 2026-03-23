@@ -3,8 +3,8 @@
 package http_test
 
 import (
-	httphelper "github.com/duber000/kukicha/stdlib/http"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	httphelper "github.com/kukichalang/kukicha/stdlib/http"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"net/http"
 	"net/http/httptest"
 	"net/url"

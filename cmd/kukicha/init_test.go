@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/duber000/kukicha/internal/version"
+	"github.com/kukichalang/kukicha/internal/version"
 )
 
 func TestEnsureStdlib_ExtractsFiles(t *testing.T) {
@@ -140,7 +140,7 @@ func TestEnsureGoMod_AddsRequireAndReplace(t *testing.T) {
 	}
 
 	content := string(result)
-	if !strings.Contains(content, "github.com/duber000/kukicha/stdlib") {
+	if !strings.Contains(content, "github.com/kukichalang/kukicha/stdlib") {
 		t.Error("expected go.mod to contain stdlib require")
 	}
 	if !strings.Contains(content, "replace") {

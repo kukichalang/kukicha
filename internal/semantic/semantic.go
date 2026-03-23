@@ -3,7 +3,7 @@ package semantic
 import (
 	"fmt"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // Analyzer performs semantic analysis on the AST

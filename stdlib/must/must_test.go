@@ -3,9 +3,9 @@
 package must_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/must"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/must"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"os"
 	"testing"
 )

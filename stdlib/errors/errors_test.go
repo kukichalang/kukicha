@@ -4,8 +4,8 @@ package errors_test
 
 import (
 	goerrors "errors"
-	"github.com/duber000/kukicha/stdlib/errors"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/errors"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

@@ -3,8 +3,8 @@
 package files_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/files"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/files"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"os"
 	"path/filepath"
 	"testing"

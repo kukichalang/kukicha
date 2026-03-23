@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/ir"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ir"
 )
 
 // Lowerer transforms high-level AST constructs (pipes, onerr) into IR nodes.

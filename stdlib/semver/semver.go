@@ -5,10 +5,10 @@ package semver
 import (
 	"errors"
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cast"
-	"github.com/duber000/kukicha/stdlib/slice"
-	"github.com/duber000/kukicha/stdlib/sort"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/cast"
+	"github.com/kukichalang/kukicha/stdlib/slice"
+	"github.com/kukichalang/kukicha/stdlib/sort"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 )
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:19

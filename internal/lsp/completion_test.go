@@ -3,7 +3,7 @@ package lsp
 import (
 	"testing"
 
-	"github.com/duber000/kukicha/internal/lexer"
+	"github.com/kukichalang/kukicha/internal/lexer"
 	"github.com/sourcegraph/go-lsp"
 )
 

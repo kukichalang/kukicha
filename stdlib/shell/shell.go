@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	ctxpkg "github.com/duber000/kukicha/stdlib/ctx"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
+	ctxpkg "github.com/kukichalang/kukicha/stdlib/ctx"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"os"
 	"os/exec"
 )

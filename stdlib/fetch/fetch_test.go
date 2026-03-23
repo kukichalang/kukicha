@@ -4,8 +4,8 @@ package fetch_test
 
 import (
 	"encoding/json"
-	"github.com/duber000/kukicha/stdlib/fetch"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/fetch"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"net/http"
 	"net/http/httptest"
 	"testing"

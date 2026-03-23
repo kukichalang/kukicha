@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/duber000/kukicha/internal/lexer"
+import "github.com/kukichalang/kukicha/internal/lexer"
 
 // Node is the base interface for all AST nodes
 type Node interface {

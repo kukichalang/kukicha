@@ -3,7 +3,7 @@ package parser
 import (
 	"testing"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 func mustParseProgram(t *testing.T, input string) *ast.Program {

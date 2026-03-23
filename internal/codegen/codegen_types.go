@@ -3,7 +3,7 @@ package codegen
 import (
 	"strings"
 
-	"github.com/duber000/kukicha/internal/semantic"
+	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 func (g *Generator) typeInfoToGoString(ti *semantic.TypeInfo) string {

@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // collectReservedNames walks the AST and collects all user-declared variable

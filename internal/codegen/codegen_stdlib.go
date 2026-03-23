@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/semantic"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 // Package-level lookup maps — allocated once to avoid per-call allocation.

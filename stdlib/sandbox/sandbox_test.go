@@ -3,8 +3,8 @@
 package sandbox_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/sandbox"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/sandbox"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"os"
 	"testing"
 )

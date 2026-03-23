@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/duber000/kukicha/internal/lsp"
+	"github.com/kukichalang/kukicha/internal/lsp"
 )
 
 func main() {

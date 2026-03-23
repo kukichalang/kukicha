@@ -137,4 +137,4 @@ Check the Output panel → "Kukicha Language Server" for error messages.
 - [VS Code Extension API Documentation](https://code.visualstudio.com/api)
 - [Language Server Protocol Specification](https://microsoft.github.io/language-server-protocol/)
 - [vscode-languageclient Documentation](https://github.com/microsoft/vscode-languageserver-node)
-- [Main Kukicha Repository](https://github.com/duber000/kukicha)
+- [Main Kukicha Repository](https://github.com/kukichalang/kukicha)

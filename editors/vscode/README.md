@@ -1,6 +1,6 @@
 # Kukicha Language Support for VS Code
 
-Full language support for [Kukicha](https://github.com/duber000/kukicha) - a beginner-friendly programming language that transpiles to Go.
+Full language support for [Kukicha](https://github.com/kukichalang/kukicha) - a beginner-friendly programming language that transpiles to Go.
 
 ## Features
 
@@ -25,7 +25,7 @@ Full language support for [Kukicha](https://github.com/duber000/kukicha) - a beg
 
 ### From VSIX
 
-1. Download the latest `.vsix` file from [GitHub Releases](https://github.com/duber000/kukicha/releases)
+1. Download the latest `.vsix` file from [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 2. In VS Code, open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 3. Select "Extensions: Install from VSIX"
 4. Choose the downloaded `.vsix` file
@@ -177,7 +177,7 @@ The bundled LSP server provides:
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a PR on the [main Kukicha repository](https://github.com/duber000/kukicha).
+Contributions are welcome! Please open an issue or submit a PR on the [main Kukicha repository](https://github.com/kukichalang/kukicha).
 
 ## License
 

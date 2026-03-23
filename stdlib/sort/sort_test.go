@@ -3,8 +3,8 @@
 package sort_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/sort"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/sort"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

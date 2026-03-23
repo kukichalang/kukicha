@@ -4,7 +4,7 @@ package cast_test
 
 import (
 	"encoding/json"
-	"github.com/duber000/kukicha/stdlib/cast"
+	"github.com/kukichalang/kukicha/stdlib/cast"
 	"testing"
 )
 

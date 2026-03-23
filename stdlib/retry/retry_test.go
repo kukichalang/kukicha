@@ -3,7 +3,7 @@
 package retry_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/retry"
+	"github.com/kukichalang/kukicha/stdlib/retry"
 	"testing"
 )
 

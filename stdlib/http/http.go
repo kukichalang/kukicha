@@ -4,12 +4,12 @@ package http
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/cast"
-	"github.com/duber000/kukicha/stdlib/fetch"
-	"github.com/duber000/kukicha/stdlib/json"
-	"github.com/duber000/kukicha/stdlib/slice"
-	kukistring "github.com/duber000/kukicha/stdlib/string"
-	"github.com/duber000/kukicha/stdlib/validate"
+	"github.com/kukichalang/kukicha/stdlib/cast"
+	"github.com/kukichalang/kukicha/stdlib/fetch"
+	"github.com/kukichalang/kukicha/stdlib/json"
+	"github.com/kukichalang/kukicha/stdlib/slice"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
+	"github.com/kukichalang/kukicha/stdlib/validate"
 	"html"
 	"io"
 	"net/http"

@@ -3,7 +3,7 @@ package semantic
 import (
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 func isValidIdentifier(name string) bool {
@@ -44,7 +44,7 @@ func extractBasePackageName(imp *ast.ImportDecl) string {
 		if path == "stdlib/iter" {
 			path = "stdlib/iterator"
 		}
-		path = "github.com/duber000/kukicha/" + path
+		path = "github.com/kukichalang/kukicha/" + path
 	}
 
 	parts := strings.Split(path, "/")

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	kukiparser "github.com/duber000/kukicha/internal/parser"
-	"github.com/duber000/kukicha/internal/semantic"
+	kukiparser "github.com/kukichalang/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 // pipelineLambda runs lex→parse→semantic→codegen for lambda inference tests.

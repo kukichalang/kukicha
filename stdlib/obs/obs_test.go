@@ -3,7 +3,7 @@
 package obs_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/obs"
+	"github.com/kukichalang/kukicha/stdlib/obs"
 	"testing"
 )
 

@@ -3,7 +3,7 @@
 package net_test
 
 import (
-	netutil "github.com/duber000/kukicha/stdlib/net"
+	netutil "github.com/kukichalang/kukicha/stdlib/net"
 	"testing"
 )
 

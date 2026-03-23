@@ -4,8 +4,8 @@ package skills_test
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/skills"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/skills"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"os"
 	"path/filepath"
 	"testing"

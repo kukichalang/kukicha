@@ -3,8 +3,8 @@
 package concurrent_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/concurrent"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/concurrent"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

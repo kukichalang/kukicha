@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/ir"
-	"github.com/duber000/kukicha/internal/semantic"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ir"
+	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 func TestLowererUniqueId(t *testing.T) {

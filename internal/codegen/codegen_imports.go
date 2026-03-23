@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/duber000/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/ast"
 )
 
 // addImport adds an auto-import
@@ -166,7 +166,7 @@ type importSpec struct {
 
 // extractPkgName returns the Go package name from an import path.
 // e.g., "encoding/json" -> "json", "net/http" -> "http",
-// "github.com/duber000/kukicha/stdlib/json" -> "json",
+// "github.com/kukichalang/kukicha/stdlib/json" -> "json",
 // "gopkg.in/yaml.v3" -> "yaml"
 func extractPkgName(importPath string) string {
 	parts := strings.Split(importPath, "/")

@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	kukicha "github.com/duber000/kukicha"
-	"github.com/duber000/kukicha/internal/version"
+	kukicha "github.com/kukichalang/kukicha"
+	"github.com/kukichalang/kukicha/internal/version"
 	"golang.org/x/mod/modfile"
 )
 
@@ -20,7 +20,7 @@ const stdlibVersionFile = "KUKICHA_VERSION"
 // stdlibGoMod is the go.mod content for the extracted stdlib module.
 // This declares the stdlib as a standalone Go module so user projects can
 // reference it via a replace directive.
-const stdlibGoMod = `module github.com/duber000/kukicha/stdlib
+const stdlibGoMod = `module github.com/kukichalang/kukicha/stdlib
 
 go 1.26.1
 
@@ -279,7 +279,7 @@ func ensureGoMod(projectDir, stdlibPath string) error {
 		relStdlib = stdlibPath
 	}
 
-	const stdlibModule = "github.com/duber000/kukicha/stdlib"
+	const stdlibModule = "github.com/kukichalang/kukicha/stdlib"
 	const stdlibVersion = "v0.0.0"
 
 	// Add require if missing
@@ -307,7 +307,7 @@ func ensureGoMod(projectDir, stdlibPath string) error {
 // Returns false if the target project is inside the kukicha repo itself
 // (where stdlib source is already available).
 func needsStdlib(goCode string, projectDir string) bool {
-	if !strings.Contains(goCode, "github.com/duber000/kukicha/stdlib/") {
+	if !strings.Contains(goCode, "github.com/kukichalang/kukicha/stdlib/") {
 		return false
 	}
 	// Don't extract stdlib if we're inside the kukicha repo itself.
@@ -324,7 +324,7 @@ func needsStdlib(goCode string, projectDir string) bool {
 
 	for _, imp := range file.Imports {
 		path := strings.Trim(imp.Path.Value, "\"")
-		if strings.HasPrefix(path, "github.com/duber000/kukicha/stdlib/") {
+		if strings.HasPrefix(path, "github.com/kukichalang/kukicha/stdlib/") {
 			return true
 		}
 	}
@@ -341,7 +341,7 @@ func hasRequire(mod *modfile.File, path string) bool {
 }
 
 // isKukichaRepo checks if startDir is inside the kukicha repo.
-// This is detected by checking if go.mod declares module github.com/duber000/kukicha.
+// This is detected by checking if go.mod declares module github.com/kukichalang/kukicha.
 func isKukichaRepo(startDir string) bool {
 	if startDir == "" {
 		cwd, err := os.Getwd()
@@ -364,8 +364,8 @@ func isKukichaRepo(startDir string) bool {
 		}
 		// Check if this is the kukicha repo's go.mod
 		content := string(data)
-		if strings.Contains(content, "module github.com/duber000/kukicha\n") ||
-			strings.Contains(content, "module github.com/duber000/kukicha\r\n") {
+		if strings.Contains(content, "module github.com/kukichalang/kukicha\n") ||
+			strings.Contains(content, "module github.com/kukichalang/kukicha\r\n") {
 			return true
 		}
 		// Found a go.mod but it's not the kukicha repo

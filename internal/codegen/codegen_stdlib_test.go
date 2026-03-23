@@ -7,8 +7,8 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/duber000/kukicha/internal/ast"
-	"github.com/duber000/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/ast"
+	"github.com/kukichalang/kukicha/internal/parser"
 )
 
 // TestConcurrentCodeGeneration tests that multiple code generators can run
@@ -230,7 +230,7 @@ func main()
     cfg.Name = "test"
     data, _ := json.Marshal(cfg)
 `,
-			expectedImport: `"github.com/duber000/kukicha/stdlib/json"`,
+			expectedImport: `"github.com/kukichalang/kukicha/stdlib/json"`,
 			shouldContain:  "json.Marshal",
 		},
 		{
@@ -240,7 +240,7 @@ func main()
 func main()
     req := fetch.New("https://example.com")
 `,
-			expectedImport: `"github.com/duber000/kukicha/stdlib/fetch"`,
+			expectedImport: `"github.com/kukichalang/kukicha/stdlib/fetch"`,
 			shouldContain:  "fetch.New",
 		},
 		{
@@ -254,7 +254,7 @@ func main()
     d := Data{}
     j.Marshal(d)
 `,
-			expectedImport: `j "github.com/duber000/kukicha/stdlib/json"`,
+			expectedImport: `j "github.com/kukichalang/kukicha/stdlib/json"`,
 			shouldContain:  "j.Marshal",
 		},
 		{
@@ -270,7 +270,7 @@ func main()
     data, _ := json.Marshal(u)
     fmt.Println(data)
 `,
-			expectedImport: `"github.com/duber000/kukicha/stdlib/json"`,
+			expectedImport: `"github.com/kukichalang/kukicha/stdlib/json"`,
 			shouldContain:  "json.Marshal",
 		},
 		{

@@ -3,8 +3,8 @@
 package pg_test
 
 import (
-	"github.com/duber000/kukicha/stdlib/pg"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/pg"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 

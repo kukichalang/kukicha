@@ -4,8 +4,8 @@ package semver_test
 
 import (
 	"fmt"
-	"github.com/duber000/kukicha/stdlib/semver"
-	"github.com/duber000/kukicha/stdlib/test"
+	"github.com/kukichalang/kukicha/stdlib/semver"
+	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
 )
 
