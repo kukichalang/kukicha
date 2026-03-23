@@ -54,6 +54,11 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Stash the generated changelog, switch to latest main, then apply
+          cp CHANGELOG.md /tmp/CHANGELOG.md
+          git checkout main
+          git pull origin main
+          cp /tmp/CHANGELOG.md CHANGELOG.md
           git add CHANGELOG.md
           git diff --cached --quiet || git commit -m "chore: update CHANGELOG.md for ${{ steps.vars.outputs.version }}"
-          git push origin HEAD:main
+          git push origin main
