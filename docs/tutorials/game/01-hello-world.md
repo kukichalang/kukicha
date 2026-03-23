@@ -38,9 +38,34 @@ function draw(screen game.Screen)
 ```bash
 kukicha build --wasm hello-game.kuki
 # Produces: hello-game.wasm, wasm_exec.js, index.html
-python3 -m http.server
-# Open http://localhost:8000 in your browser
 ```
+
+The browser can't load `.wasm` files from the filesystem directly — you need a
+small HTTP server. Create `serve.kuki` in the same directory:
+
+```kukicha
+# serve.kuki — a tiny web server to run your game in the browser
+
+import "net/http"
+import "fmt"
+
+function main()
+    # Print the address so you know where to go
+    fmt.Println("Open http://localhost:8080 in your browser")
+
+    # Serve every file in the current folder on port 8080
+    # This lets the browser load your .wasm, wasm_exec.js, and index.html
+    http.ListenAndServe(":8080", http.FileServer(http.Dir("."))) onerr panic "{error}"
+```
+
+Then:
+
+```bash
+kukicha run serve.kuki
+# Open http://localhost:8080 in your browser
+```
+
+> **Tip:** You only need one `serve.kuki` — reuse it for every tutorial.
 
 ## Try it
 
