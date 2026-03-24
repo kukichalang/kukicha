@@ -9,6 +9,21 @@ Your first Kukicha game — a window with colored text.
 - Pipes (`|>`) to chain function calls
 - `game.Window`, `game.OnDraw`, `game.Clear`, `game.DrawText`, `game.Run`
 
+## Project setup
+
+Create a new directory and initialize a Kukicha project:
+
+```bash
+mkdir hello-game && cd hello-game
+kukicha init
+```
+
+This extracts the standard library and sets up your `go.mod`. Since Kukicha uses Go's package system under the hood, you can install any Go package with `go get`. The game library lives in its own module, so add it:
+
+```bash
+go get github.com/kukichalang/game@latest
+```
+
 ## The code
 
 ```kukicha
