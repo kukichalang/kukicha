@@ -191,7 +191,10 @@ func extractPkgName(importPath string) string {
 // externalStdlibPackages maps stdlib package names to external module paths.
 // Packages listed here live in separate repos outside the main kukicha module.
 var externalStdlibPackages = map[string]string{
-	"game": "github.com/kukichalang/game",
+	"game":     "github.com/kukichalang/game",
+	"infer":    "github.com/kukichalang/infer",
+	"ort":      "github.com/kukichalang/infer/ort",
+	"webinfer": "github.com/kukichalang/infer/webinfer",
 }
 
 // rewriteStdlibImport rewrites stdlib/ import paths to full module paths
