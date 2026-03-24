@@ -590,9 +590,14 @@ func resolveBaseURL(c Client) string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:568
 		return "http://localhost:11434"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:571
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:569
+	if c.provider == "fastflowlm" || c.provider == "flm" {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:570
+		return "http://localhost:52625"
+	}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:573
 	envURL := env.GetOr("LLM_BASE_URL", "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:572
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:574
 	if envURL != "" {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:573
 		return envURL
@@ -1531,7 +1536,12 @@ func rResolveBaseURL(c ResponseClient) string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1220
 		return "http://localhost:11434"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1223
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1221
+	if c.provider == "fastflowlm" || c.provider == "flm" {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1222
+		return "http://localhost:52625"
+	}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1225
 	envURL := env.GetOr("LLM_BASE_URL", "")
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1224
 	if envURL != "" {
