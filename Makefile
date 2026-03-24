@@ -6,7 +6,7 @@
 
 KUKICHA := ./kukicha
 KUKI_SOURCES := $(wildcard stdlib/*/*.kuki)
-KUKI_MAIN := $(filter-out %_test.kuki stdlib/test/test.kuki stdlib/game/game.kuki,$(KUKI_SOURCES))
+KUKI_MAIN := $(filter-out %_test.kuki stdlib/test/test.kuki stdlib/game/game.kuki stdlib/infer/infer.kuki stdlib/ort/ort.kuki stdlib/webinfer/webinfer.kuki,$(KUKI_SOURCES))
 KUKI_TESTS := $(filter %_test.kuki,$(KUKI_SOURCES))
 
 .PHONY: all build lsp generate generate-tests genstdlibregistry gengostdlib test lint vet modernize check-generate check-test-staleness check-main-staleness clean install-lsp install-hooks
