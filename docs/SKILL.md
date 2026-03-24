@@ -485,17 +485,6 @@ reply := llm.NewMessages("claude-opus-4-6")
     |> llm.MAsk("Summarize this") onerr panic "{error}"
 ```
 
-**stdlib/pg** — PostgreSQL
-
-```kukicha
-pool := pg.Connect(url) onerr panic "db: {error}"
-defer pg.ClosePool(pool)
-rows := pg.Query(pool, "SELECT name FROM users WHERE active = $1", true) onerr panic "{error}"
-defer pg.Close(rows)
-for pg.Next(rows)
-    name := pg.ScanString(rows) onerr continue
-```
-
 **stdlib/http** (`import "stdlib/http" as httphelper`) — HTTP helpers + security
 
 ```kukicha
@@ -538,11 +527,11 @@ clean  := strpkg.Replace(raw, "\t", " ")
 ```kukicha
 import "stdlib/errors" as errs
 wrapped := errs.Wrap(err, "loading config")   # preserves Is/As chain
-opaque  := errs.Opaque(pgErr, "db connect")   # breaks chain at boundaries
+opaque  := errs.Opaque(originalErr, "db connect")   # breaks chain at boundaries
 if errs.Is(err, io.EOF)
     return
 # Dual-message: internal detail + user-safe message
-e := errs.NewPublic("pg: refused 10.0.0.1", "database unavailable")
+e := errs.NewPublic("db: refused 10.0.0.1", "database unavailable")
 print(errs.Public(e))   # "database unavailable"
 ```
 
@@ -658,7 +647,6 @@ The compiler **rejects** these patterns as errors (not warnings):
 
 | Pattern | Error | Fix |
 |---------|-------|-----|
-| `pg.Query(pool, "... {var}")` | SQL injection | `pg.Query(pool, "... $1", val)` |
 | `httphelper.HTML(w, nonLiteral)` | XSS risk | `httphelper.SafeHTML(w, content)` |
 | `fetch.Get(url)` in HTTP handler | SSRF risk | `fetch.SafeGet(url)` |
 | `files.Read(path)` in HTTP handler | Path traversal | `sandbox.Read(box, path)` |
@@ -788,7 +776,7 @@ Assertions: `test.AssertEqual`, `test.AssertNotEqual`, `test.AssertTrue`, `test.
 
 ---
 
-**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`, `git`, `http`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
+**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
 
 ---
 

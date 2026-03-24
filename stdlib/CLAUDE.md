@@ -29,7 +29,6 @@ Import with: `import "stdlib/slice"`
 | `stdlib/input` | User input utilities | ReadLine, Prompt, Confirm, Choose |
 | `stdlib/iterator` | Functional iteration (Go 1.23 iter.Seq) | Values, Filter, Map, FlatMap, Take, Skip, Enumerate, Chunk, Zip, Reduce, Collect, Any, All, Find |
 | `stdlib/json` | encoding/json wrapper | Marshal, MarshalPretty, Unmarshal, MarshalWrite, UnmarshalRead, DecodeRead, NewEncoder, NewDecoder, Encode, Decode, WithDeterministic, WithIndent, WriteOutput |
-| `stdlib/kube` | Kubernetes client via client-go | Connect, New/Kubeconfig/Context/InCluster/Retry/Open, Namespace, ListPods, ListPodsLabeled, GetPod, DeletePod, PodLogs, PodLogsTail, ListDeployments, GetDeployment, ScaleDeployment, RolloutRestart, DeleteDeployment, WaitDeploymentReady/WaitDeploymentReadyCtx, WaitPodReady/WaitPodReadyCtx, WatchPods/WatchPodsCtx, ListServices, ListNodes, ListNamespaces |
 | `stdlib/llm` | Large language model client (Chat Completions, OpenResponses, Anthropic; Retry) | New/Ask/Send/SendRaw/Complete, NewResponse/RAsk/RSend/Respond, NewMessages/MAsk/MSend/AnthropicComplete, Retry/RRetry/MRetry, Stream/RStream/MStream |
 | `stdlib/maps` | Map utilities | Keys, Values, Contains, Has, Merge, SortedKeys |
 | `stdlib/mcp` | Model Context Protocol server | New, Serve, Tool, Prop, Schema, Required, TextResult, ErrorResult |
@@ -38,7 +37,6 @@ Import with: `import "stdlib/slice"`
 | `stdlib/netguard` | Network restriction & SSRF protection | NewSSRFGuard, NewAllow, NewBlock, Check, DialContext, HTTPTransport, HTTPClient |
 | `stdlib/obs` | Structured observability helpers | New, Component, WithCorrelation, NewCorrelationID, Debug, Info, Warn, Error, Log, Start, Stop, Fail |
 | `stdlib/parse` | Data format parsing | Json, JsonLines, JsonPretty, Csv, CsvWithHeader, Yaml, YamlPretty |
-| `stdlib/pg` | PostgreSQL client via pgx | Connect, New/MaxConns/MinConns/MaxConnLifetime/MaxConnIdleTime/Retry/Open, Query, QueryRow, Exec, Begin, Commit, Rollback, Scan, ScanString, ScanInt, ScanInt64, ScanBool, ScanFloat64, ScanRow, CollectRows, Next, Close, ClosePool, RowsAffected |
 | `stdlib/random` | Random string generation | String, Alphanumeric |
 | `stdlib/regex` | Regular expression matching and replacement | Match, Find, FindAll, FindGroups, FindAllGroups, Replace, ReplaceFunc, Split, IsValid, Compile, MustCompile + compiled variants |
 | `stdlib/retry` | Retry with backoff | New, Attempts, Delay, Linear, Sleep |
@@ -158,7 +156,6 @@ defer ctx.Cancel(c)
 if ctx.Done(c)
     print("request canceled: {ctx.Err(c)}")
 # Use ctx-enabled operations for cancellable waits/streams
-kube.WaitDeploymentReadyCtx(cluster, c, "api") onerr panic "{error}"
 container.EventsCtx(engine, c) onerr panic "{error}"
 
 # HTTP responses
@@ -173,28 +170,6 @@ datetime.Format(t, datetime.Date)      # "2006-01-02"
 datetime.Format(t, "iso8601")          # String names still work
 timeout := datetime.Seconds(30)
 
-# PostgreSQL
-import "stdlib/pg"
-pool := pg.Connect(url) onerr panic "db: {error}"
-defer pg.ClosePool(pool)
-rows := pg.Query(pool, "SELECT name FROM users WHERE active = $1", true) onerr panic "{error}"
-defer pg.Close(rows)
-for pg.Next(rows)
-    name := pg.ScanString(rows) onerr continue
-
-# Kubernetes
-import "stdlib/kube"
-cluster := kube.Connect() onerr panic "k8s: {error}"
-pods := kube.Namespace(cluster, "default") |> kube.ListPods() onerr panic "{error}"
-for pod in kube.Pods(pods)
-    print("{kube.PodName(pod)}: {kube.PodStatus(pod)}")
-# Collect pod events for 20 seconds
-events := kube.WatchPods(kube.Namespace(cluster, "default"), 20) onerr panic "{error}"
-for event in events
-    print("{kube.PodEventType(event)} {kube.PodEventName(event)} ready={kube.PodEventReady(event)}")
-# For apply/patch workflows, prefer GitOps tools (e.g., Argo CD) and use kube stdlib
-# for operational reads, rollout actions, and watches.
-
 # Retry on transient failures (fetch: 429/503 + network errors)
 import "stdlib/fetch"
 resp := fetch.New(url) |> fetch.BearerAuth(token) |> fetch.Retry(3, 500) |> fetch.Do() onerr panic "{error}"
@@ -205,14 +180,6 @@ import "stdlib/llm"
 reply := llm.New("openai:gpt-4o-mini") |> llm.Retry(3, 2000) |> llm.Ask("Hello!") onerr panic "{error}"
 # Anthropic with retry
 reply := llm.NewMessages("claude-opus-4-6") |> llm.MRetry(3, 2000) |> llm.MAsk("Hello!") onerr panic "{error}"
-
-# PostgreSQL with startup retry (database may not be ready yet)
-import "stdlib/pg"
-pool := pg.New(url) |> pg.Retry(5, 500) |> pg.Open() onerr panic "db: {error}"
-
-# Kubernetes with startup retry
-import "stdlib/kube"
-cluster := kube.New() |> kube.Retry(5, 1000) |> kube.Open() onerr panic "k8s: {error}"
 
 # Concurrent map — transform every element in parallel, ordered results
 import "stdlib/concurrent"
@@ -375,12 +342,12 @@ if errors.Is(err, io.EOF)
 
 # Opaque wrap — breaks errors.Is/As chain at subsystem boundaries
 # Use when crossing DB/infra boundaries to prevent internal type leakage
-dbErr := errors.Opaque(pgxErr, "pg connect")  # callers cannot errors.As into pgx
+dbErr := errors.Opaque(originalErr, "db connect")  # callers cannot errors.As into internals
 
 # Dual-message errors — separate internal detail from user-safe message
 # Log e.Error() internally; return errors.Public(e) in HTTP responses
-e := errors.NewPublic("pg: connection refused to 10.0.0.1:5432", "database unavailable")
-print(e.Error())           # "pg: connection refused to 10.0.0.1:5432" — log this
+e := errors.NewPublic("db: connection refused to 10.0.0.1:5432", "database unavailable")
+print(e.Error())           # "db: connection refused to 10.0.0.1:5432" — log this
 print(errors.Public(e))    # "database unavailable" — safe to return to users
 # Falls back to "an error occurred" for non-PublicError errors
 print(errors.Public(plainErr))  # "an error occurred"
@@ -464,7 +431,6 @@ The compiler enforces several security checks. Use the safe alternatives below t
 | Category | Unsafe (compiler error) | Safe alternative |
 |----------|------------------------|------------------|
 | **XSS** | `http.HTML(w, userInput)` | `http.SafeHTML(w, userInput)` or `template.HTMLRenderSimple(...)` |
-| **SQL Injection** | `pg.Query(pool, "... '{name}'")` | `pg.Query(pool, "... $1", name)` |
 | **SSRF** | `fetch.Get(url)` (in HTTP handler) | `fetch.SafeGet(url)` |
 | **Open Redirect** | `http.Redirect(w, r, userURL)` | `http.SafeRedirect(w, r, url, "example.com")` |
 | **Path Traversal** | `files.Read(userInput)` (in HTTP handler) | `sandbox.New("/var/data")` + `sandbox.Read(box, userInput)` |
@@ -479,14 +445,6 @@ httphelper.HTML(w, userInput)  # XSS risk: http.HTML with non-literal content �
 
 # SAFE — HTML-escapes content before writing
 httphelper.SafeHTML(w, userInput)
-
-# --- SQL Injection Prevention ---
-import "stdlib/pg"
-# UNSAFE — string interpolation before parameterization
-pg.Query(pool, "SELECT * FROM users WHERE name = '{name}'")  # compiler error
-
-# SAFE — $N parameters
-pg.Query(pool, "SELECT * FROM users WHERE name = $1", name)
 
 # --- SSRF Prevention (inside HTTP handlers) ---
 # UNSAFE — triggers compiler error inside any HTTP handler
@@ -549,7 +507,7 @@ result := template.HTMLRenderSimple(tmplStr, data) onerr return
 Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. No `_helper.go` or `_tool.go` files.
 
 All packages: `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`,
-`game`, `git`, `http`, `input`, `iterator`, `json`, `kube`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `pg`,
+`game`, `git`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`,
 `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
 
 ## Import Aliases
@@ -570,7 +528,6 @@ When a package's last path segment collides with a local variable name, use `as`
 import "stdlib/ctx" as ctxpkg          # avoids clash with local 'ctx' variables
 import "stdlib/errors" as errs         # avoids clash with local 'err' / 'errors' variables
 import "stdlib/json" as jsonpkg        # avoids clash with 'encoding/json'
-import "github.com/jackc/pgx/v5" as pgx
 ```
 
 ## Vulnerability Auditing

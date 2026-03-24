@@ -10,58 +10,6 @@ import (
 // boundary conditions NOT covered by semantic_test.go.
 // =============================================================================
 
-// --- SQL injection: piped variant and Tx functions ---
-
-func TestSQLInterpolation_PipedCallShiftsArgIndex(t *testing.T) {
-	// When the pool is piped in, the SQL string is at index 0 (not 1).
-	source := `import "stdlib/pg"
-
-func Bad(pool pg.Pool, id int)
-    rows := pool |> pg.Query("SELECT * FROM users WHERE id = {id}") onerr return
-    _ = rows
-`
-	assertSecurityError(t, source, "SQL injection risk")
-}
-
-func TestSQLInterpolation_TxQueryRejected(t *testing.T) {
-	source := `import "stdlib/pg"
-
-func Bad(tx pg.Tx, id int)
-    rows := pg.TxQuery(tx, "SELECT * FROM t WHERE id = {id}") onerr return
-    _ = rows
-`
-	assertSecurityError(t, source, "SQL injection risk")
-}
-
-func TestSQLInterpolation_TxQueryRowRejected(t *testing.T) {
-	source := `import "stdlib/pg"
-
-func Bad(tx pg.Tx, id int)
-    row := pg.TxQueryRow(tx, "SELECT name FROM t WHERE id = {id}") onerr return
-    _ = row
-`
-	assertSecurityError(t, source, "SQL injection risk")
-}
-
-func TestSQLInterpolation_NonSQLFunctionIgnored(t *testing.T) {
-	// Calling a non-pg function with interpolation must NOT flag SQL injection.
-	source := `func Format(name string) string
-    return "Hello {name}"
-`
-	assertNoSecurityError(t, source, "SQL injection")
-}
-
-func TestSQLInterpolation_NoArgs(t *testing.T) {
-	// Edge case: pg.Query with too few arguments should not panic.
-	source := `import "stdlib/pg"
-
-func Bad(pool pg.Pool)
-    rows := pg.Query(pool) onerr return
-    _ = rows
-`
-	analyzeIgnoringNonSecurity(t, source, "SQL injection")
-}
-
 // --- XSS: piped variant ---
 
 func TestHTMLNonLiteral_PipedResponseWriter(t *testing.T) {
