@@ -423,9 +423,10 @@ stdlib/                   # Standard library (.kuki source files)
 examples/                 # Example programs
 docs/                     # Documentation
   tutorials/game/         # 8-lesson game tutorial series (WASM)
-editors/
-  vscode/                 # VS Code extension (syntax highlighting, LSP client)
-  zed/                    # Zed extension (tree-sitter grammar, LSP client)
+# Editor extensions (separate repos):
+# kukichalang/vscode-kukicha  — VS Code extension
+# kukichalang/zed-kukicha     — Zed extension
+# kukichalang/tree-sitter-kukicha — Tree-sitter grammar
 ```
 
 ## Imports

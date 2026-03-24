@@ -189,9 +189,9 @@ See the full [Stdlib Reference](stdlib/AGENTS.md).
 
 ## Editor Support
 
-**VS Code:** Search `kukicha-lang` in extensions, or download the `.vsix` from [GitHub Releases](https://github.com/kukichalang/kukicha/releases). See [`editors/vscode/README.md`](editors/vscode/README.md).
+**VS Code:** Search `kukicha-lang` in extensions, or see [kukichalang/vscode-kukicha](https://github.com/kukichalang/vscode-kukicha).
 
-**Zed:** Open Zed → `zed: install dev extension` → point to `editors/zed/` in this repo.
+**Zed:** See [kukichalang/zed-kukicha](https://github.com/kukichalang/zed-kukicha).
 
 **Other editors:** `make install-lsp` and configure your editor to run `kukicha-lsp` for `.kuki` files.
 
