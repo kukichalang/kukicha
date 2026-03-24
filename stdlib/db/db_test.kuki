@@ -1,0 +1,274 @@
+# Tests for Kukicha Standard Library - DB Package
+# Uses glebarez/go-sqlite (pure Go SQLite) for in-memory testing.
+
+petiole db_test
+
+import "stdlib/db"
+import "stdlib/test"
+import "testing"
+import "github.com/glebarez/go-sqlite" as _
+
+type User
+    Id int64 as "id"
+    Name string as "name"
+    Email string as "email"
+
+func setupTestDB(t reference testing.T) db.Pool
+    pool := db.Open("sqlite", ":memory:") onerr panic "open failed: {error}"
+    db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)") onerr panic "create failed: {error}"
+    db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 1, "Alice", "alice@example.com") onerr panic "insert failed: {error}"
+    db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 2, "Bob", "bob@example.com") onerr panic "insert failed: {error}"
+    db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 3, "Charlie", "charlie@example.com") onerr panic "insert failed: {error}"
+    return pool
+
+# --- TestOpenAndClose ---
+type OpenCloseCase
+    name string
+
+func TestOpenAndClose(t reference testing.T)
+    cases := list of OpenCloseCase{
+        OpenCloseCase{name: "open and close in-memory"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := db.Open("sqlite", ":memory:") onerr panic "open: {error}"
+            err := db.Ping(pool)
+            test.AssertNoError(t, err)
+            err = db.Close(pool)
+            test.AssertNoError(t, err)
+        )
+
+# --- TestOpenInvalidDriver ---
+type OpenInvalidCase
+    name string
+    driver string
+    connStr string
+
+func TestOpenInvalidDriver(t reference testing.T)
+    cases := list of OpenInvalidCase{
+        OpenInvalidCase{name: "unknown driver", driver: "nosuchdriver", connStr: ""},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            _, err := db.Open(tc.driver, tc.connStr)
+            test.AssertError(t, err)
+        )
+
+# --- TestExec ---
+type ExecCase
+    name string
+    query string
+    wantAffected int64
+
+func TestExec(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of ExecCase{
+        ExecCase{name: "update one row", query: "UPDATE users SET name = 'Alice2' WHERE id = 1", wantAffected: 1},
+        ExecCase{name: "delete one row", query: "DELETE FROM users WHERE id = 2", wantAffected: 1},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            affected := db.Exec(pool, tc.query) onerr panic "exec: {error}"
+            test.AssertEqual(t, affected, tc.wantAffected)
+        )
+
+# --- TestScanAll ---
+type ScanAllCase
+    name string
+    query string
+    wantLen int
+
+func TestScanAll(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of ScanAllCase{
+        ScanAllCase{name: "all users", query: "SELECT id, name, email FROM users ORDER BY id", wantLen: 3},
+        ScanAllCase{name: "filtered", query: "SELECT id, name, email FROM users WHERE id = 1", wantLen: 1},
+        ScanAllCase{name: "no results", query: "SELECT id, name, email FROM users WHERE id = 999", wantLen: 0},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            rows := db.Query(pool, tc.query) onerr panic "query: {error}"
+            users := db.ScanAll(rows, list of User{}) onerr panic "scan: {error}"
+            result := users.(list of User)
+            test.AssertEqual(t, len(result), tc.wantLen)
+        )
+
+# --- TestScanAllValues ---
+type ScanAllValuesCase
+    name string
+
+func TestScanAllValues(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of ScanAllValuesCase{
+        ScanAllValuesCase{name: "verify field values"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            rows := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1") onerr panic "query: {error}"
+            users := db.ScanAll(rows, list of User{}) onerr panic "scan: {error}"
+            result := users.(list of User)
+            test.AssertEqual(t, len(result), 1)
+            test.AssertEqual(t, result[0].Id, 1 as int64)
+            test.AssertEqual(t, result[0].Name, "Alice")
+            test.AssertEqual(t, result[0].Email, "alice@example.com")
+        )
+
+# --- TestScanOne ---
+type ScanOneCase
+    name string
+    query string
+    wantErr bool
+
+func TestScanOne(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of ScanOneCase{
+        ScanOneCase{name: "one row", query: "SELECT id, name, email FROM users WHERE id = 1", wantErr: false},
+        ScanOneCase{name: "no rows", query: "SELECT id, name, email FROM users WHERE id = 999", wantErr: true},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            rows := db.Query(pool, tc.query) onerr panic "query: {error}"
+            result, err := db.ScanOne(rows, User{})
+            if tc.wantErr
+                test.AssertError(t, err)
+            else
+                test.AssertNoError(t, err)
+                user := result.(User)
+                test.AssertEqual(t, user.Id, 1 as int64)
+                test.AssertEqual(t, user.Name, "Alice")
+        )
+
+# --- TestScanRow ---
+type ScanRowCase
+    name string
+
+func TestScanRow(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of ScanRowCase{
+        ScanRowCase{name: "single row via QueryRow"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            row := db.QueryRow(pool, "SELECT id, name, email FROM users WHERE id = 1")
+            result := db.ScanRow(row, User{}) onerr panic "scan: {error}"
+            user := result.(User)
+            test.AssertEqual(t, user.Name, "Alice")
+        )
+
+# --- TestTransaction ---
+type TransactionCase
+    name string
+
+func txInsertDiana(tx db.Tx) error
+    _, err := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com")
+    return err
+
+func txInsertAndFail(tx db.Tx) error
+    _, err := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com")
+    if err != empty
+        return err
+    return error "deliberate rollback"
+
+func TestTransaction(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of TransactionCase{
+        TransactionCase{name: "commit on success"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            err := db.Transaction(pool, txInsertDiana)
+            test.AssertNoError(t, err)
+
+            found := db.Exists(pool, "SELECT 1 FROM users WHERE id = 4") onerr panic "exists: {error}"
+            test.AssertTrue(t, found)
+        )
+
+# --- TestTransactionRollback ---
+type TransactionRollbackCase
+    name string
+
+func TestTransactionRollback(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of TransactionRollbackCase{
+        TransactionRollbackCase{name: "rollback on error"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            err := db.Transaction(pool, txInsertAndFail)
+            test.AssertError(t, err)
+
+            found := db.Exists(pool, "SELECT 1 FROM users WHERE id = 5") onerr panic "exists: {error}"
+            test.AssertFalse(t, found)
+        )
+
+# --- TestCount ---
+type CountCase
+    name string
+    query string
+    wantCount int64
+
+func TestCount(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of CountCase{
+        CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3},
+        CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            n := db.Count(pool, tc.query) onerr panic "count: {error}"
+            test.AssertEqual(t, n, tc.wantCount)
+        )
+
+# --- TestExists ---
+type ExistsCase
+    name string
+    query string
+    wantExists bool
+
+func TestExists(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+    cases := list of ExistsCase{
+        ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true},
+        ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            found := db.Exists(pool, tc.query) onerr panic "exists: {error}"
+            test.AssertEqual(t, found, tc.wantExists)
+        )
+
+# --- TestNullHandling ---
+type NullUser
+    Id int64 as "id"
+    Name string as "name"
+    Bio string as "bio"
+
+type NullCase
+    name string
+
+func TestNullHandling(t reference testing.T)
+    pool := db.Open("sqlite", ":memory:") onerr panic "open: {error}"
+    defer db.Close(pool)
+    db.Exec(pool, "CREATE TABLE null_test (id INTEGER PRIMARY KEY, name TEXT, bio TEXT)") onerr panic "create: {error}"
+    db.Exec(pool, "INSERT INTO null_test (id, name) VALUES (?, ?)", 1, "Alice") onerr panic "insert: {error}"
+
+    cases := list of NullCase{
+        NullCase{name: "null becomes zero value"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            row := db.QueryRow(pool, "SELECT id, name, bio FROM null_test WHERE id = 1")
+            result := db.ScanRow(row, NullUser{}) onerr panic "scan: {error}"
+            user := result.(NullUser)
+            test.AssertEqual(t, user.Name, "Alice")
+            test.AssertEqual(t, user.Bio, "")
+        )

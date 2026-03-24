@@ -13,10 +13,14 @@ func securityCategory(qualifiedName string) string {
 	if cat := GetSecurityCategory(qualifiedName); cat != "" {
 		return cat
 	}
-	// Handle aliases: httphelper.X → http.X
+	// Handle aliases: httphelper.X → http.X, dbpkg.X → db.X
 	if strings.HasPrefix(qualifiedName, "httphelper.") {
 		suffix := qualifiedName[len("httphelper."):]
 		return GetSecurityCategory("http." + suffix)
+	}
+	if strings.HasPrefix(qualifiedName, "dbpkg.") {
+		suffix := qualifiedName[len("dbpkg."):]
+		return GetSecurityCategory("db." + suffix)
 	}
 	return ""
 }

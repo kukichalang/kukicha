@@ -17,6 +17,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/container` | Docker/Podman client via Docker SDK | Connect, ConnectRemote, New/Host/APIVersion/Open, ListContainers, ListImages, Pull, PullAuth, LoginFromConfig, Run, Stop, Remove, Build, Logs, LogsTail, Inspect, Wait/WaitCtx, Exec, Events/EventsCtx, CopyFrom, CopyTo |
 | `stdlib/crypto` | Hashing, HMAC, and secure random (Go stdlib only) | SHA256, SHA256Bytes, HMAC, HMACBytes, RandomToken, RandomBytes, Equal |
 | `stdlib/ctx` | Context timeout/cancellation helpers | Background, WithTimeout, WithTimeoutMs, WithDeadlineUnix, Cancel, Done, Err, Value |
+| `stdlib/db` | SQL database (raw SQL + struct scanning, zero external deps) | Open, Close, Ping, Query, QueryRow, Exec, ScanAll, ScanOne, ScanRow, CloseRows, Transaction, TransactionWith, TxQuery, TxQueryRow, TxExec, Count, Exists; Types: Pool, Row, Rows, Tx, TxOptions |
 | `stdlib/datetime` | Named formats, duration helpers, arithmetic, comparison | Format, Parse, Now, Today, AddDays, IsBefore, Unix, Sleep; Constants: ISO8601, RFC3339, Date, Time, DateTime |
 | `stdlib/encoding` | Base64 and hex encoding/decoding | Base64Encode, Base64Decode, Base64URLEncode, Base64URLDecode, Base64RawEncode, Base64RawURLEncode, HexEncode, HexDecode |
 | `stdlib/env` | Typed env vars with onerr | Get, GetOr, GetInt, GetIntOrDefault, GetBool, GetBoolOrDefault, GetFloat, GetList, Set, Unset, IsSet, All |
@@ -92,6 +93,29 @@ func TestFirst(t reference testing.T)
 ## Common Patterns
 
 ```kukicha
+# SQL database (raw SQL + typed struct scanning)
+import "stdlib/db"
+pool := db.Open("postgres", "postgres://localhost/mydb") onerr panic "{error}"
+defer db.Close(pool)
+
+# Query + typed scanning
+rows := db.Query(pool, "SELECT id, name, email FROM users WHERE active = $1", true) onerr panic "{error}"
+users := db.ScanAll(rows, list of User{}) onerr panic "{error}"
+
+# Single row
+row := db.QueryRow(pool, "SELECT id, name FROM users WHERE id = $1", userID)
+user := db.ScanRow(row, User{}) onerr panic "{error}"
+
+# INSERT/UPDATE/DELETE
+affected := db.Exec(pool, "DELETE FROM sessions WHERE expired < $1", cutoff) onerr panic "{error}"
+
+# Transactions (auto-commit/rollback)
+db.Transaction(pool, transferFunds) onerr panic "transfer failed: {error}"
+
+# Convenience
+n := db.Count(pool, "SELECT COUNT(*) FROM users") onerr panic "{error}"
+found := db.Exists(pool, "SELECT 1 FROM users WHERE email = $1", email) onerr panic "{error}"
+
 # Semver (parse, bump, compare)
 import "stdlib/semver"
 v := semver.Parse("v1.2.3") onerr panic "{error}"
@@ -430,6 +454,7 @@ The compiler enforces several security checks. Use the safe alternatives below t
 
 | Category | Unsafe (compiler error) | Safe alternative |
 |----------|------------------------|------------------|
+| **SQL Injection** | `db.Query(pool, "SELECT * FROM t WHERE name = '{name}'")` | `db.Query(pool, "SELECT * FROM t WHERE name = $1", name)` |
 | **XSS** | `http.HTML(w, userInput)` | `http.SafeHTML(w, userInput)` or `template.HTMLRenderSimple(...)` |
 | **SSRF** | `fetch.Get(url)` (in HTTP handler) | `fetch.SafeGet(url)` |
 | **Open Redirect** | `http.Redirect(w, r, userURL)` | `http.SafeRedirect(w, r, url, "example.com")` |
@@ -506,7 +531,7 @@ result := template.HTMLRenderSimple(tmplStr, data) onerr return
 
 Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. No `_helper.go` or `_tool.go` files.
 
-All packages: `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`,
+All packages: `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`,
 `game`, `git`, `http`, `infer`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `ort`, `parse`,
 `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`, `webinfer`
 
@@ -517,6 +542,7 @@ When a package's last path segment collides with a local variable name, use `as`
 | Package | Standard alias | Reason |
 |---------|----------------|--------|
 | `stdlib/ctx` | `ctxpkg` | Clashes with local `ctx` variable |
+| `stdlib/db` | `dbpkg` | Clashes with local `db` variable |
 | `stdlib/errors` | `errs` | Clashes with local `err` / `errors` |
 | `stdlib/json` | `jsonpkg` | Clashes with `encoding/json` |
 | `stdlib/string` | `strpkg` | Clashes with `string` type name |
