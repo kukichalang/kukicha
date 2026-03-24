@@ -62,9 +62,13 @@ small HTTP server. Create `serve.kuki` in the same directory:
 # serve.kuki — a tiny web server to run your game in the browser
 
 import "net/http"
+import "mime"
 import "fmt"
 
 function main()
+    # Register the WebAssembly MIME type so browsers accept .wasm files
+    mime.AddExtensionType(".wasm", "application/wasm") onerr panic "{error}"
+
     # Print the address so you know where to go
     fmt.Println("Open http://localhost:8080 in your browser")
 
