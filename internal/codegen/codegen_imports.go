@@ -188,15 +188,25 @@ func extractPkgName(importPath string) string {
 	return name
 }
 
+// externalStdlibPackages maps stdlib package names to external module paths.
+// Packages listed here live in separate repos outside the main kukicha module.
+var externalStdlibPackages = map[string]string{
+	"game": "github.com/kukichalang/game",
+}
+
 // rewriteStdlibImport rewrites stdlib/ import paths to full module paths
 // e.g., "stdlib/json" → "<stdlibModuleBase>/stdlib/json"
+// External packages (e.g., game) are mapped to their own module paths.
 // Note: Returns path without quotes (quotes are added by generateImports)
 func (g *Generator) rewriteStdlibImport(path string) string {
 	// Remove quotes to check the path
 	cleanPath := strings.Trim(path, "\"")
 
 	// Rewrite stdlib/ prefix to full module path
-	if strings.HasPrefix(cleanPath, "stdlib/") {
+	if pkgName, ok := strings.CutPrefix(cleanPath, "stdlib/"); ok {
+		if extPath, found := externalStdlibPackages[pkgName]; found {
+			return extPath
+		}
 		return g.stdlibModuleBase + "/" + cleanPath
 	}
 

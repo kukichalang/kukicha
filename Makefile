@@ -6,7 +6,7 @@
 
 KUKICHA := ./kukicha
 KUKI_SOURCES := $(wildcard stdlib/*/*.kuki)
-KUKI_MAIN := $(filter-out %_test.kuki stdlib/test/test.kuki,$(KUKI_SOURCES))
+KUKI_MAIN := $(filter-out %_test.kuki stdlib/test/test.kuki stdlib/game/game.kuki,$(KUKI_SOURCES))
 KUKI_TESTS := $(filter %_test.kuki,$(KUKI_SOURCES))
 
 .PHONY: all build lsp generate generate-tests genstdlibregistry gengostdlib test lint vet modernize check-generate check-test-staleness check-main-staleness clean install-lsp install-hooks
@@ -87,23 +87,21 @@ check-main-staleness:
 		exit 1; \
 	fi
 
-# Run all tests (exclude stdlib/game which requires platform-specific graphics headers)
+# Run all tests
 test: check-test-staleness check-main-staleness
-	go test $$(go list ./... | grep -v /stdlib/game)
+	go test ./...
 
 # Run linter (requires golangci-lint: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest)
 lint:
 	golangci-lint run ./internal/... ./cmd/...
 
 # Run go vet on the entire codebase including stdlib (golangci-lint excludes stdlib/)
-# Excludes stdlib/game which requires platform-specific graphics headers
 vet:
-	go vet $$(go list ./... | grep -v /stdlib/game)
+	go vet ./...
 
 # Check for outdated Go patterns (fails if go fix finds anything to modernize)
-# Excludes stdlib/game which requires platform-specific graphics headers
 modernize:
-	@output=$$(go fix -diff $$(go list ./... | grep -v /stdlib/game) 2>&1); \
+	@output=$$(go fix -diff ./... 2>&1); \
 	if [ -n "$$output" ]; then \
 		echo "$$output"; \
 		echo ""; \

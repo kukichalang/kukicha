@@ -418,7 +418,7 @@ stdlib/                   # Standard library (.kuki source files)
   fetch/                  # HTTP client (Auth, Sessions)
   files/                  # File I/O
   shell/                  # Command execution
-  game/                   # 2D game library (Ebitengine wrapper, WASM-ready)
+  game/                   # Registry stub only — impl at kukichalang/game
   ...
 examples/                 # Example programs
 docs/                     # Documentation

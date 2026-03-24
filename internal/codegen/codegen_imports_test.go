@@ -43,9 +43,11 @@ func TestRewriteStdlibImport(t *testing.T) {
 		{"stdlib/json", "github.com/kukichalang/kukicha/stdlib/json"},
 		{"stdlib/slice", "github.com/kukichalang/kukicha/stdlib/slice"},
 		{"stdlib/fetch", "github.com/kukichalang/kukicha/stdlib/fetch"},
+		{"stdlib/game", "github.com/kukichalang/game"},
 		{"encoding/json", "encoding/json"},
 		{"fmt", "fmt"},
 		{`"stdlib/json"`, "github.com/kukichalang/kukicha/stdlib/json"},
+		{`"stdlib/game"`, "github.com/kukichalang/game"},
 	}
 
 	for _, tt := range tests {
