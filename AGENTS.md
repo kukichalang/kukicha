@@ -419,6 +419,9 @@ stdlib/                   # Standard library (.kuki source files)
   files/                  # File I/O
   shell/                  # Command execution
   game/                   # Registry stub only — impl at kukichalang/game
+  infer/                  # Registry stub only — impl at kukichalang/infer
+  ort/                    # Registry stub only — impl at kukichalang/infer/ort
+  webinfer/               # Registry stub only — impl at kukichalang/infer/webinfer
   ...
 examples/                 # Example programs
 docs/                     # Documentation
