@@ -76,7 +76,7 @@ Download a pre-built binary from [GitHub Releases](https://github.com/kukichalan
 **Option B — Install with Go:**
 
 ```bash
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.21
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.22
 kukicha version
 ```
 
@@ -228,6 +228,6 @@ See [Contributing Guide](docs/contributing.md) for development setup, tests, and
 
 ## Status
 
-**Version:** 0.0.21 — Ready for testing
+**Version:** 0.0.22 — Ready for testing
 **Go:** 1.26.1+ required
 **License:** See [LICENSE](LICENSE)
