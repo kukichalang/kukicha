@@ -62,6 +62,23 @@ function handleHome(w http.ResponseWriter, r reference http.Request)
 | `defer f()` | `defer f()` (same keyword) |
 | 4-space indentation | `{ }` braces |
 
+### Keyword Aliases
+
+`func`, `var`, and `const` have English-word aliases that compile identically:
+
+```kukicha
+func Add(a int, b int) int       # idiomatic
+function Add(a int, b int) int   # beginner-friendly — same output
+
+var AppName string = "myapp"
+variable AppName string = "myapp"
+
+const MaxRetries = 5
+constant MaxRetries = 5
+```
+
+When generating beginner-facing code, prefer `function`, `variable`, and `constant`.
+
 ### Variables and Functions
 
 ```kukicha
@@ -180,6 +197,16 @@ for i from 0 to 10        # 0..9 (exclusive)
 for i from 0 through 10   # 0..10 (inclusive)
 for i from 10 through 0   # 10..0 (descending)
 
+for                        # bare loop (infinite — use break to exit)
+    msg := receive from ch
+    if msg equals "quit"
+        break
+    process(msg)
+
+# If with init statement
+if val, ok := cache[key]; ok
+    return val
+
 switch command
     when "fetch", "pull"
         fetchRepos()
@@ -259,6 +286,13 @@ result, ok := value.(string)          # safe (two-value)
 s := value.(string)                   # panics if wrong type
 ```
 
+### Multi-Value Destructuring
+
+```kukicha
+data, err := os.ReadFile(path)                  # 2-value
+_, ipNet, err := net.ParseCIDR("192.168.0.0/16") # 3-value
+```
+
 ### Concurrency
 
 ```kukicha
@@ -288,7 +322,13 @@ select
 ### Defer
 
 ```kukicha
-defer resource.Close()                # runs when enclosing function exits
+defer resource.Close()                # single call — runs when function exits
+
+# Block form — multiple statements (emits defer func() { ... }())
+defer
+    if r := recover(); r != empty
+        tx.Rollback()
+        panic(r)
 ```
 
 ### Imports and Canonical Aliases
@@ -454,6 +494,98 @@ if not shell.Success(result)
 logger := obs.New("myapp", "prod") |> obs.Component("worker")
 logger |> obs.Info("starting", map of string to any{"job": "build"})
 logger |> obs.Error("failed",  map of string to any{"err": err})
+```
+
+**stdlib/db** — SQL database (raw SQL + struct scanning)
+
+```kukicha
+pool := db.Open("postgres", "postgres://localhost/mydb") onerr panic "{error}"
+defer db.Close(pool)
+
+# Query + typed scanning
+rows := db.Query(pool, "SELECT id, name, email FROM users WHERE active = $1", true) onerr panic "{error}"
+users := db.ScanAll(rows, list of User{}) onerr panic "{error}"
+
+# Single row
+row := db.QueryRow(pool, "SELECT id, name FROM users WHERE id = $1", userID)
+user := db.ScanRow(row, User{}) onerr panic "{error}"
+
+# INSERT/UPDATE/DELETE
+affected := db.Exec(pool, "DELETE FROM sessions WHERE expired < $1", cutoff) onerr panic "{error}"
+
+# Transactions (auto-commit on success, rollback on error)
+db.Transaction(pool, transferFunds) onerr panic "transfer failed: {error}"
+
+# Convenience
+n     := db.Count(pool, "SELECT COUNT(*) FROM users") onerr panic "{error}"
+found := db.Exists(pool, "SELECT 1 FROM users WHERE email = $1", email) onerr panic "{error}"
+```
+
+**stdlib/regex** — Regular expressions
+
+```kukicha
+if regex.Match("\\d+", text)
+    print("contains a number")
+
+groups := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", tag) onerr panic "{error}"
+cleaned := regex.Replace("\\s+", " ", messy)
+parts   := regex.Split(",\\s*", line)
+
+# Compiled patterns for hot paths
+p    := regex.MustCompile("\\d+")
+nums := regex.FindAllCompiled(p, "a1 b2 c3")
+```
+
+**stdlib/table** — Terminal tables (plain, box, markdown)
+
+```kukicha
+tbl := table.New(list of string{"Name", "Stars"})
+tbl  = tbl |> table.AddRow(list of string{"go", "115000"})
+tbl  = tbl |> table.AddRow(list of string{"rust", "97000"})
+table.Print(tbl)                        # plain output
+table.PrintWithStyle(tbl, "markdown")   # markdown table
+table.PrintWithStyle(tbl, "box")        # box-drawing style
+```
+
+**stdlib/semver** — Semantic versioning
+
+```kukicha
+v    := semver.Parse("v1.2.3") onerr panic "{error}"
+next := v |> semver.Bump("minor") |> semver.Format()   # "v1.3.0"
+best := semver.Highest(tags) onerr panic "{error}"
+if semver.Valid("v2.0.0")
+    print("valid")
+```
+
+**stdlib/container** (import as `docker`) — Docker/Podman client
+
+```kukicha
+import "stdlib/container" as docker
+engine := docker.Connect() onerr panic "{error}"
+defer docker.Close(engine)
+
+images := engine |> docker.ListImages() onerr panic "{error}"
+docker.Pull(engine, "alpine:latest") onerr panic "{error}"
+id   := docker.Run(engine, "alpine:latest", list of string{"echo", "hello"}) onerr panic "{error}"
+logs := docker.Logs(engine, id) onerr panic "{error}"
+code := docker.Wait(engine, id, 60) onerr panic "{error}"
+docker.Remove(engine, id) onerr discard
+```
+
+**stdlib/git** — Git/GitHub operations (requires `gh` CLI)
+
+```kukicha
+tags   := git.ListTags("owner/repo") onerr panic "{error}"
+branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
+me     := git.CurrentUser() onerr panic "{error}"
+exists, _ := git.TagExists("owner/repo", "v1.0.0")
+
+# Create a release
+opts := git.ReleaseOptions{Title: "v1.0.0", Target: "main", Draft: true, GenerateNotes: true}
+git.CreateRelease("owner/repo", "v1.0.0", opts) onerr panic "{error}"
+
+# Dry-run: preview command without executing
+print("Would run: {git.PreviewRelease("owner/repo", "v1.0.0", opts)}")
 ```
 
 **stdlib/validate** — Input validation
@@ -777,6 +909,67 @@ Assertions: `test.AssertEqual`, `test.AssertNotEqual`, `test.AssertTrue`, `test.
 ---
 
 **All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
+
+---
+
+## Common Pitfalls
+
+Patterns that look correct but introduce subtle bugs.
+
+**WaitGroups in goroutines — always use `defer wg.Done()`**
+
+```kukicha
+# WRONG — hangs if task() panics, wg.Wait() blocks forever
+go func()
+    task()
+    wg.Done()
+()
+
+# CORRECT — defer fires even on panic
+go func()
+    defer wg.Done()
+    task()
+()
+```
+
+**Context cancel lifetime — defer in the function that uses the resource**
+
+```kukicha
+# WRONG — cancel fires when buildCmd returns, before the resource is used
+func buildCmd(cmd Command) reference exec.Cmd
+    h := ctxpkg.WithTimeout(ctxpkg.Background(), 30)
+    defer ctxpkg.Cancel(h)     # fires here — context already dead
+    return exec.CommandContext(ctxpkg.Value(h), cmd.name, many cmd.args)
+
+# CORRECT — defer in Execute, which owns the resource's lifetime
+func Execute(cmd Command) Result
+    h := ctxpkg.WithTimeout(ctxpkg.Background(), 30)
+    defer ctxpkg.Cancel(h)     # fires after Run() completes
+    execCmd := exec.CommandContext(ctxpkg.Value(h), cmd.name, many cmd.args)
+    ...
+```
+
+**Never use `io.NopCloser` on a live response body**
+
+`io.NopCloser` replaces `Close()` with a no-op — the TCP connection leaks. When capping reads with `io.LimitReader`, preserve the original closer:
+
+```kukicha
+# WRONG — Close() never reaches the connection
+resp.Body = io.NopCloser(io.LimitReader(resp.Body, maxSize))
+
+# CORRECT — wrap with a type that delegates both Read and Close
+type limitReadCloser
+    r io.Reader
+    c io.Closer
+
+func Read on b reference limitReadCloser (p list of byte) (int, error)
+    return b.r.Read(p)
+
+func Close on b reference limitReadCloser () error
+    return b.c.Close()
+
+resp.Body = reference of limitReadCloser{r: io.LimitReader(resp.Body, maxSize), c: resp.Body}
+```
 
 ---
 

@@ -1,5 +1,4 @@
 # Kukicha Standard Library - Parse (Data Format Parsing)
-# Simplified version compatible with current Kukicha compiler limitations
 
 petiole parse
 
