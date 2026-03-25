@@ -359,8 +359,7 @@ func WaitCtx(engine Engine, h ctxpkg.Handle, containerID string) (int64, error)
 func convertEvent(msg dockerevents.Message) ContainerEvent
     ts := time.Unix(msg.Time, 0).UTC().Format(time.RFC3339)
     actor := msg.Actor.ID
-    name, ok := msg.Actor.Attributes["name"]
-    if ok and name != ""
+    if name, ok := msg.Actor.Attributes["name"]; ok and name != ""
         actor = name
     return ContainerEvent{
         id: msg.ID,

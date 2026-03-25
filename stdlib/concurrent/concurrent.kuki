@@ -12,10 +12,9 @@ func Parallel(many tasks func())
     wg.Add(len(tasks))
     for task in tasks
         t := task
-        go func()
+        go
             defer wg.Done()
             t()
-        ()
     wg.Wait()
 
 # ParallelWithLimit executes functions with a maximum concurrency limit
@@ -28,11 +27,10 @@ func ParallelWithLimit(limit int, many tasks func())
     for task in tasks
         send 1 to semaphore
         t := task
-        go func()
+        go
             defer wg.Done()
             t()
             receive from semaphore
-        ()
     wg.Wait()
 
 # Map runs fn on every element of items concurrently.
@@ -46,10 +44,9 @@ func Map(items list of any, fn func(any) result) list of result
     for i, item in items
         idx := i
         it := item
-        go func()
+        go
             defer wg.Done()
             results[idx] = fn(it)
-        ()
     wg.Wait()
     return results
 
@@ -64,11 +61,10 @@ func MapWithLimit(items list of any, limit int, fn func(any) result) list of res
         idx := i
         it := item
         send 1 to semaphore
-        go func()
+        go
             defer wg.Done()
             results[idx] = fn(it)
             receive from semaphore
-        ()
     wg.Wait()
     return results
 

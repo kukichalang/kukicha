@@ -19,8 +19,7 @@ type Skill
 # Example: skills := skills.Discover(".agent/skills") onerr panic "{error}"
 func Discover(dir string) (list of Skill, error)
     result := make(list of Skill, 0)
-    _, statErr := os.Stat(dir)
-    if statErr != empty
+    if _, statErr := os.Stat(dir); statErr != empty
         return result, empty
     filepath.Walk(dir, func(filePath string, info os.FileInfo, err error) error
         if err != empty

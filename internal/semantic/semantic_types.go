@@ -258,6 +258,11 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 		if !strings.Contains(t1.Name, ".") || !strings.Contains(t2.Name, ".") {
 			return unqualifiedName(t1.Name) == unqualifiedName(t2.Name)
 		}
+		// Both qualified — resolve import aliases before comparing
+		// (e.g., "ctxpkg.Handle" and "ctx.Handle" are the same type)
+		if a.resolveQualifiedName(t1.Name) == a.resolveQualifiedName(t2.Name) {
+			return true
+		}
 		return false
 	default:
 		return true

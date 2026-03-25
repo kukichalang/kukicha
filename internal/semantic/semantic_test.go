@@ -343,3 +343,26 @@ func Process(w string, data string) error
 		t.Error("expected _ placeholder to be typed as string from WriteJSON's second parameter")
 	}
 }
+
+func TestImportAliasTypeCompatibility(t *testing.T) {
+	// Regression: when a package is imported with an alias (e.g., "as ctxpkg"),
+	// types inferred from its functions (ctx.Handle) must be compatible with
+	// types referenced via the alias (ctxpkg.Handle) in assignments and calls.
+	input := `import "stdlib/ctx" as ctxpkg
+
+type Handle
+    value int
+
+func UseAlias(h ctxpkg.Handle) ctxpkg.Handle
+    x := ctxpkg.Background()
+    x = h
+    return x
+`
+
+	_, errors := analyzeSource(t, input)
+	for _, err := range errors {
+		if strings.Contains(err.Error(), "cannot assign") {
+			t.Fatalf("alias type mismatch: %v", err)
+		}
+	}
+}
