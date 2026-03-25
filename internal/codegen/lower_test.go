@@ -574,6 +574,75 @@ func TestLowerPipedSwitchStmt(t *testing.T) {
 	}
 }
 
+func TestVarMapPopulatedByPipeChain(t *testing.T) {
+	// Build: a() |> b()
+	aCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "fetchData"},
+		Arguments: []ast.Expression{},
+	}
+	bCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "process"},
+		Arguments: []ast.Expression{},
+	}
+	pipe := &ast.PipeExpr{Left: aCall, Right: bCall}
+
+	gen := New(&ast.Program{})
+	l := newLowerer(gen)
+	block, _ := l.lowerPipeChain(pipe)
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+
+	// Should have entries for both pipe variables
+	if len(gen.varMap) != 2 {
+		t.Errorf("expected 2 varMap entries, got %d: %v", len(gen.varMap), gen.varMap)
+	}
+	// pipe_1 should describe fetchData
+	if desc, ok := gen.varMap["pipe_1"]; !ok {
+		t.Error("expected pipe_1 in varMap")
+	} else if !strings.Contains(desc, "fetchData") {
+		t.Errorf("expected pipe_1 desc to mention fetchData, got: %s", desc)
+	}
+	// pipe_2 should describe process
+	if desc, ok := gen.varMap["pipe_2"]; !ok {
+		t.Error("expected pipe_2 in varMap")
+	} else if !strings.Contains(desc, "process") {
+		t.Errorf("expected pipe_2 desc to mention process, got: %s", desc)
+	}
+}
+
+func TestVarMapPopulatedByOnErrPipeChain(t *testing.T) {
+	aCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "getData"},
+		Arguments: []ast.Expression{},
+	}
+	bCall := &ast.CallExpr{
+		Function:  &ast.Identifier{Value: "parse"},
+		Arguments: []ast.Expression{},
+	}
+	pipe := &ast.PipeExpr{Left: aCall, Right: bCall}
+
+	gen := New(&ast.Program{})
+	gen.exprReturnCounts = map[ast.Expression]int{aCall: 2}
+
+	clause := &ast.OnErrClause{
+		Handler: &ast.PanicExpr{Message: &ast.StringLiteral{Value: "fail"}},
+	}
+
+	l := newLowerer(gen)
+	block, _ := l.lowerOnErrPipeChain(pipe, clause, []string{}, "")
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+
+	// pipe_1 should describe getData (the multi-return base)
+	if desc, ok := gen.varMap["pipe_1"]; !ok {
+		t.Error("expected pipe_1 in varMap")
+	} else if !strings.Contains(desc, "getData") {
+		t.Errorf("expected pipe_1 desc to mention getData, got: %s", desc)
+	}
+}
+
 func TestLowerOnErrAssignNonWalrus(t *testing.T) {
 	gen := New(&ast.Program{})
 	l := newLowerer(gen)

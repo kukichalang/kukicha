@@ -8,6 +8,15 @@ type Node interface {
 	irNode()
 }
 
+// SourcePos records an optional source location for an IR node.
+// When Line > 0 and File != "", the emitter generates a //line directive
+// so that Go compiler errors, panics, and stack traces reference the
+// original .kuki source instead of the generated .go file.
+type SourcePos struct {
+	Line int
+	File string
+}
+
 // Block is an ordered sequence of IR nodes.
 type Block struct {
 	Nodes []Node
@@ -32,6 +41,7 @@ type Assign struct {
 	Names  []string // Left-hand side variable names
 	Expr   string   // Right-hand side expression (pre-rendered)
 	Walrus bool     // true for :=, false for =
+	Pos    SourcePos
 }
 
 func (*Assign) irNode() {}
@@ -41,6 +51,7 @@ type VarDecl struct {
 	Name  string
 	Type  string
 	Value string // Empty if no initializer
+	Pos   SourcePos
 }
 
 func (*VarDecl) irNode() {}
@@ -49,6 +60,7 @@ func (*VarDecl) irNode() {}
 type IfErrCheck struct {
 	ErrVar string // The error variable to check
 	Body   *Block // Statements inside the if block
+	Pos    SourcePos
 }
 
 func (*IfErrCheck) irNode() {}
@@ -78,6 +90,7 @@ func (*ScopedBlock) irNode() {}
 // Used for constructs the lowerer doesn't handle yet.
 type RawStmt struct {
 	Code string
+	Pos  SourcePos
 }
 
 func (*RawStmt) irNode() {}
@@ -85,6 +98,7 @@ func (*RawStmt) irNode() {}
 // ReturnStmt represents a return statement: return val1, val2, ...
 type ReturnStmt struct {
 	Values []string // Pre-rendered return value expressions (empty for bare return)
+	Pos    SourcePos
 }
 
 func (*ReturnStmt) irNode() {}
@@ -92,6 +106,7 @@ func (*ReturnStmt) irNode() {}
 // ExprStmt represents a standalone expression statement (e.g., panic(...), continue, break).
 type ExprStmt struct {
 	Expr string // Pre-rendered expression
+	Pos  SourcePos
 }
 
 func (*ExprStmt) irNode() {}

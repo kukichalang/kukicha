@@ -67,6 +67,7 @@ type Generator struct {
 	currentReturnIndex   int                      // Index of return value being generated (-1 if not in return)
 	stdlibModuleBase     string                   // Base module path for rewriting "stdlib/X" imports (default: defaultStdlibModuleBase)
 	reservedNames        map[string]bool          // User-declared identifiers — uniqueId skips these to avoid collisions
+	varMap               map[string]string        // Maps generated temp variable names to source descriptions (for debugging)
 }
 
 // New creates a new code generator
@@ -79,7 +80,14 @@ func New(program *ast.Program) *Generator {
 		funcDefaults:       make(map[string]*FuncDefaults),
 		stdlibModuleBase:   defaultStdlibModuleBase,
 		currentReturnIndex: -1,
+		varMap:             make(map[string]string),
 	}
+}
+
+// VarMap returns the mapping from generated temp variable names to source
+// descriptions. Used by the CLI to annotate panic output and error messages.
+func (g *Generator) VarMap() map[string]string {
+	return g.varMap
 }
 
 // childGenerator creates a temporary Generator that shares the parent's semantic
@@ -239,7 +247,7 @@ func (g *Generator) indentStr() string {
 // the .kuki file instead of the generated .go file.
 func (g *Generator) emitLineDirective(pos ast.Position) {
 	if pos.Line > 0 && pos.File != "" {
-		g.output.WriteString(fmt.Sprintf("//line %s:%d\n", pos.File, pos.Line))
+		fmt.Fprintf(&g.output, "//line %s:%d\n", pos.File, pos.Line)
 	}
 }
 

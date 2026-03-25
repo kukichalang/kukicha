@@ -24,6 +24,7 @@ Key internal functions in `main.go`:
 - **`compile()`** — Shared pipeline: resolve path → parse → analyze → detect target → codegen → gofmt. Returns `compileResult` used by `build`, `run`, and `pack`.
 - **`loadAndAnalyze()`** — Parse + semantic analysis, returns AST + return counts + expr types.
 - **`rewriteGoErrors()`** — Replaces generated `.go` file paths in Go compiler stderr with original `.kuki` paths.
+- **`rewriteVarNames()`** — Scans stderr for generated temp variable names (`pipe_N`, `err_N`) and appends a "variable hints" section mapping them to source descriptions from `compileResult.varMap`.
 - **`stripFirstLine()`** — Strips first line (header comment) for `--if-changed` body comparison.
 - **`wasmScaffold()`** — Copies `wasm_exec.js` from Go installation and generates `index.html` for `--wasm` builds.
 - **`setEnvVar()`** — Sets or replaces an environment variable in an env slice (used for WASM cross-compilation).
@@ -84,7 +85,7 @@ Test files and what they cover:
 | `kukicha/init_test.go` | `ensureStdlib` (extract, skip, re-extract), `ensureGoMod`, `upsertSkillSection`, `appendIfMissing`, `findProjectDir` |
 | `kukicha/pack_test.go` | `generateSkillMD` YAML output, `defaultValueToYAML` |
 | `kukicha/stdlib_test.go` | `needsStdlib` (no import, kukicha repo, user project) |
-| `kukicha/rewrite_errors_test.go` | `rewriteGoErrors` (basic, multi, empty, no-match, nil) |
+| `kukicha/rewrite_errors_test.go` | `rewriteGoErrors` (basic, multi, empty, no-match, nil), `rewriteVarNames` (matching, no-match, empty) |
 | `genstdlibregistry/main_test.go` | `scanRegistry` (exported, types, params, skips, deprecated), `formatRegistry`, `typeAnnotationToRepr` |
 
 ## Release Process

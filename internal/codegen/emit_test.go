@@ -217,6 +217,55 @@ func TestEmitComment(t *testing.T) {
 	}
 }
 
+func TestEmitLineDirectivesFromIR(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.Assign{
+		Names:  []string{"pipe_1"},
+		Expr:   "getData()",
+		Walrus: true,
+		Pos:    ir.SourcePos{Line: 10, File: "app.kuki"},
+	})
+	block.Add(&ir.Assign{
+		Names:  []string{"pipe_2", "err_1"},
+		Expr:   "parse(pipe_1)",
+		Walrus: true,
+		Pos:    ir.SourcePos{Line: 11, File: "app.kuki"},
+	})
+	errBody := &ir.Block{}
+	errBody.Add(&ir.ExprStmt{
+		Expr: `panic("fail")`,
+		Pos:  ir.SourcePos{Line: 11, File: "app.kuki"},
+	})
+	block.Add(&ir.IfErrCheck{
+		ErrVar: "err_1",
+		Body:   errBody,
+		Pos:    ir.SourcePos{Line: 11, File: "app.kuki"},
+	})
+
+	out := emitToString(t, block)
+
+	// Each IR node with a Pos should emit a //line directive
+	if !strings.Contains(out, "//line app.kuki:10") {
+		t.Errorf("expected //line app.kuki:10, got:\n%s", out)
+	}
+	if !strings.Contains(out, "//line app.kuki:11") {
+		t.Errorf("expected //line app.kuki:11, got:\n%s", out)
+	}
+	// The code should still be present
+	if !strings.Contains(out, "pipe_1 := getData()") {
+		t.Errorf("missing pipe_1 assign, got:\n%s", out)
+	}
+}
+
+func TestEmitNoDirectiveForZeroPos(t *testing.T) {
+	block := &ir.Block{}
+	block.Add(&ir.Assign{Names: []string{"x"}, Expr: "1", Walrus: true})
+	out := emitToString(t, block)
+	if strings.Contains(out, "//line") {
+		t.Errorf("should not emit //line for zero pos, got:\n%s", out)
+	}
+}
+
 func TestEmitCompositeIR(t *testing.T) {
 	// Simulate a lowered pipe chain with onerr:
 	// pipe_1 := getData()

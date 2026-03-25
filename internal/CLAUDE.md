@@ -334,6 +334,12 @@ The IR package defines Go-level imperative nodes used between AST lowering and c
 
 The IR is intentionally thin — it models only the constructs needed by the onerr/pipe lowering passes. Other codegen paths still emit Go text directly.
 
+### Source positions on IR nodes
+
+`SourcePos{Line, File}` is an optional field on code-emitting IR nodes (`Assign`, `VarDecl`, `IfErrCheck`, `RawStmt`, `ReturnStmt`, `ExprStmt`). When populated (Line > 0, File non-empty), the emitter writes a `//line file.kuki:N` directive before the node's Go output. This maps generated pipe-chain and onerr code back to the original `.kuki` source for accurate stack traces, panics, and debugger breakpoints.
+
+The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `clausePos(clause)` (onerr clause positions).
+
 ---
 
 ## Codegen (`codegen/`)
@@ -377,6 +383,7 @@ The IR is intentionally thin — it models only the constructs needed by the one
 | `stdlibModuleBase string` | Base module path for rewriting `"stdlib/X"` imports |
 | `mcpTarget bool` | True if targeting MCP (Model Context Protocol) — affects main function generation |
 | `processingReturnType bool` | True while processing a return type annotation (prevents placeholder expansion loops) |
+| `varMap map[string]string` | Maps generated temp variable names (e.g., `pipe_1`) to source descriptions for debugging |
 
 ### onerr code generation (Lowerer + IR)
 

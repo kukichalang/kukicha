@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ast"
@@ -177,6 +178,7 @@ type compileResult struct {
 	program    *ast.Program
 	goCode     string
 	formatted  []byte
+	varMap     map[string]string // Maps generated temp var names to source descriptions
 }
 
 // compile runs the shared pipeline: resolve path, parse, analyze, detect target,
@@ -238,6 +240,7 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 		program:    program,
 		goCode:     goCode,
 		formatted:  formatted,
+		varMap:     gen.VarMap(),
 	}
 }
 
@@ -297,6 +300,41 @@ func rewriteGoErrors(stderr []byte, goFile, kukiFile string) []byte {
 	}
 	result := strings.ReplaceAll(string(stderr), goFile, kukiFile)
 	return []byte(result)
+}
+
+// rewriteVarNames scans stderr for generated temp variable names (pipe_N, err_N)
+// and appends a "Variable hints" section mapping them to their source descriptions.
+func rewriteVarNames(stderr []byte, varMap map[string]string) []byte {
+	if len(stderr) == 0 || len(varMap) == 0 {
+		return stderr
+	}
+	text := string(stderr)
+
+	// Collect temp vars that actually appear in the output.
+	var hints []string
+	for name, desc := range varMap {
+		if strings.Contains(text, name) {
+			hints = append(hints, fmt.Sprintf("  %s = %s", name, desc))
+		}
+	}
+	if len(hints) == 0 {
+		return stderr
+	}
+
+	// Sort for stable output.
+	sort.Strings(hints)
+
+	var b strings.Builder
+	b.WriteString(text)
+	if !strings.HasSuffix(text, "\n") {
+		b.WriteByte('\n')
+	}
+	b.WriteString("\nkukicha: variable hints:\n")
+	for _, h := range hints {
+		b.WriteString(h)
+		b.WriteByte('\n')
+	}
+	return []byte(b.String())
 }
 
 // stripFirstLine removes the first line (including its newline) from b.
@@ -484,7 +522,9 @@ func runCommand(filename string, targetFlag string, scriptArgs []string) {
 	cmd.Stdin = os.Stdin
 	err = cmd.Run()
 	if stderrBuf.Len() > 0 {
-		os.Stderr.Write(rewriteGoErrors(stderrBuf.Bytes(), tmpFile, cr.absFile))
+		rewritten := rewriteGoErrors(stderrBuf.Bytes(), tmpFile, cr.absFile)
+		rewritten = rewriteVarNames(rewritten, cr.varMap)
+		os.Stderr.Write(rewritten)
 	}
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {

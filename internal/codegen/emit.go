@@ -17,9 +17,16 @@ func (g *Generator) emitIR(block *ir.Block) {
 	}
 }
 
+func (g *Generator) emitIRPos(pos ir.SourcePos) {
+	if pos.Line > 0 && pos.File != "" {
+		fmt.Fprintf(&g.output, "//line %s:%d\n", pos.File, pos.Line)
+	}
+}
+
 func (g *Generator) emitIRNode(node ir.Node) {
 	switch n := node.(type) {
 	case *ir.Assign:
+		g.emitIRPos(n.Pos)
 		lhs := joinStrings(n.Names, ", ")
 		op := "="
 		if n.Walrus {
@@ -28,6 +35,7 @@ func (g *Generator) emitIRNode(node ir.Node) {
 		g.writeLine(fmt.Sprintf("%s %s %s", lhs, op, n.Expr))
 
 	case *ir.VarDecl:
+		g.emitIRPos(n.Pos)
 		if n.Value != "" {
 			g.writeLine(fmt.Sprintf("var %s %s = %s", n.Name, n.Type, n.Value))
 		} else {
@@ -35,6 +43,7 @@ func (g *Generator) emitIRNode(node ir.Node) {
 		}
 
 	case *ir.IfErrCheck:
+		g.emitIRPos(n.Pos)
 		g.writeLine(fmt.Sprintf("if %s != nil {", n.ErrVar))
 		g.indent++
 		g.emitIR(n.Body)
@@ -56,6 +65,7 @@ func (g *Generator) emitIRNode(node ir.Node) {
 		g.writeLine("}")
 
 	case *ir.RawStmt:
+		g.emitIRPos(n.Pos)
 		if strings.Contains(n.Code, "\n") {
 			for line := range strings.SplitSeq(n.Code, "\n") {
 				g.writeLine(line)
@@ -65,6 +75,7 @@ func (g *Generator) emitIRNode(node ir.Node) {
 		}
 
 	case *ir.ReturnStmt:
+		g.emitIRPos(n.Pos)
 		if len(n.Values) == 0 {
 			g.writeLine("return")
 		} else {
@@ -72,6 +83,7 @@ func (g *Generator) emitIRNode(node ir.Node) {
 		}
 
 	case *ir.ExprStmt:
+		g.emitIRPos(n.Pos)
 		g.writeLine(n.Expr)
 
 	case *ir.Comment:
