@@ -24,6 +24,12 @@ Let's start with a version that checks URLs one at a time. This gives us working
 
 Create `health.kuki`:
 
+> **Kukicha vs Go imports:** Imports starting with `stdlib/` are Kukicha's
+> standard library — designed to be beginner-friendly. Imports like `"time"`
+> come from Go's standard library. Since Kukicha compiles to Go,
+> you can use any Go package directly. You'll mostly use `stdlib/` packages,
+> but occasionally Go packages are handy when Kukicha doesn't wrap them yet.
+
 ```kukicha
 import "time"
 import "stdlib/fetch"

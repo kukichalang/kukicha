@@ -200,6 +200,12 @@ function GitDiff() (string, error)
 
 You can also check whether a specific error occurred deep in a call stack:
 
+> **Kukicha vs Go imports:** Imports starting with `stdlib/` are Kukicha's
+> standard library — designed to be beginner-friendly. Imports like `"io"`
+> come from Go's standard library. Since Kukicha compiles to Go,
+> you can use any Go package directly. You'll mostly use `stdlib/` packages,
+> but occasionally Go packages are handy when Kukicha doesn't wrap them yet.
+
 ```kukicha
 import "stdlib/errors"
 import "io"

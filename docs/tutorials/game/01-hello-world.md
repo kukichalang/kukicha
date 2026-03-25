@@ -58,6 +58,12 @@ kukicha build --wasm hello-game.kuki
 The browser can't load `.wasm` files from the filesystem directly — you need a
 small HTTP server. Create `serve.kuki` in the same directory:
 
+> **Kukicha vs Go imports:** Imports starting with `stdlib/` are Kukicha's
+> standard library — designed to be beginner-friendly. Imports like `"net/http"`
+> and `"fmt"` come from Go's standard library. Since Kukicha compiles to Go,
+> you can use any Go package directly. You'll mostly use `stdlib/` packages,
+> but occasionally Go packages are handy when Kukicha doesn't wrap them yet.
+
 ```kukicha
 # serve.kuki — a tiny web server to run your game in the browser
 
