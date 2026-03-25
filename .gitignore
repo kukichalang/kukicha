@@ -18,6 +18,7 @@ go.work
 /kukicha
 /hello
 /kukicha-lsp
+/kukicha-proxy
 
 # Zed extension build artifacts
 /editors/zed/target/
