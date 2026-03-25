@@ -1,0 +1,60 @@
+import "stdlib/slice"
+
+func Do(f func(string))
+    f("hello")
+
+func Risky(input string) (string, error)
+    return "", error "oops"
+
+func TestFeatures()
+    # 1. Slice filtering
+    users := list of string{"alice", "bob", "charlie"}
+    active := users |> slice.Filter(u => u != "bob")
+    
+    print("Filtered users:")
+    for user in active
+        print(user)
+    
+    print("\nCallback with explicit param:")
+    Do(s =>
+        print(s + " world!")
+    )
+    
+    # 2. Piped Control Flow (switch)
+    print("\nSelect an action:")
+    "hover" |> switch
+        when "click"
+            print("Action: clicked")
+        when "hover"
+            print("Action: hovered")
+        otherwise
+            print("Action: unknown")
+            
+    # 3. Pipe-Aware Iterators
+    print("\nIterating over piped filter:")
+    for user in users |> slice.Filter(u => u == "bob")
+        print("Found {user}")
+        
+    # 4. Pipeline-Level onerr
+    print("\nTesting onerr in pipes:")
+    res := "data" |> Risky() onerr "default"
+    print("Result: {res}")
+
+    # Testing block-style onerr
+    print("\nTesting block-style onerr:")
+    "" |> Risky() onerr as e
+        print("Caught expected error: {e}")
+
+    # 5. Piped Switch with onerr
+    print("\nTesting piped switch with onerr:")
+    res2 := "error" |> Risky() |> switch
+        when "default"
+            print("Switched on default value")
+            return "default"
+        otherwise
+            print("Switched on something else")
+            return "other"
+    onerr "default"
+    print("Piped Switch Result: {res2}")
+        
+    print("\nDone!")
