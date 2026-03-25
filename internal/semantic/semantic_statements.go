@@ -18,9 +18,15 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement) {
 	case *ast.VarDeclStmt:
 		a.analyzeVarDeclStmt(s)
 		a.analyzeOnErrClause(s.OnErr)
+		if s.OnErr == nil && len(s.Values) == 1 {
+			a.warnPipeDiscardedErrors(s.Values[0])
+		}
 	case *ast.AssignStmt:
 		a.analyzeAssignStmt(s)
 		a.analyzeOnErrClause(s.OnErr)
+		if s.OnErr == nil && len(s.Values) == 1 {
+			a.warnPipeDiscardedErrors(s.Values[0])
+		}
 	case *ast.ReturnStmt:
 		a.analyzeReturnStmt(s)
 	case *ast.IfStmt:
@@ -82,6 +88,9 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement) {
 	case *ast.ExpressionStmt:
 		a.analyzeExpression(s.Expression)
 		a.analyzeOnErrClause(s.OnErr)
+		if s.OnErr == nil {
+			a.warnPipeDiscardedErrors(s.Expression)
+		}
 	case *ast.ContinueStmt:
 		if a.loopDepth == 0 {
 			a.error(s.Pos(), "continue statement outside of loop")
@@ -93,18 +102,32 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement) {
 	}
 }
 
+// pipedSwitchConflict is a sentinel TypeInfo used to mark irreconcilable return
+// types across piped switch cases.  It is distinct from TypeKindUnknown (which
+// means "type not yet determined") so that a later case with a concrete type
+// can still refine an Unknown, but cannot overwrite a confirmed conflict.
+var pipedSwitchConflict = &TypeInfo{Kind: TypeKindNamed, Name: "any"}
+
 func (a *Analyzer) mergePipedSwitchReturnType(inferred, candidate *TypeInfo) *TypeInfo {
 	if candidate == nil {
 		return inferred
 	}
-	if inferred == nil || inferred.Kind == TypeKindUnknown {
+	if inferred == nil {
+		return candidate
+	}
+	// Once a conflict is detected, keep it — no further refinement possible.
+	if inferred == pipedSwitchConflict {
+		return inferred
+	}
+	// Unknown inferred can be refined by a concrete candidate.
+	if inferred.Kind == TypeKindUnknown {
 		return candidate
 	}
 	if candidate.Kind == TypeKindUnknown {
 		return inferred
 	}
 	if !a.typesCompatible(inferred, candidate) || !a.typesCompatible(candidate, inferred) {
-		return &TypeInfo{Kind: TypeKindUnknown}
+		return pipedSwitchConflict
 	}
 	return inferred
 }
@@ -151,15 +174,20 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 	defer func() { a.inPipedSwitch = prev }()
 
 	var inferred *TypeInfo
+	mergeBlock := func(body *ast.BlockStmt) {
+		candidate := a.collectReturnTypes(body)
+		inferred = a.mergePipedSwitchReturnType(inferred, candidate)
+	}
+
 	switch s := stmt.(type) {
 	case *ast.SwitchStmt:
 		for _, c := range s.Cases {
 			a.analyzeBlock(c.Body)
-			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(c.Body))
+			mergeBlock(c.Body)
 		}
 		if s.Otherwise != nil {
 			a.analyzeBlock(s.Otherwise.Body)
-			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(s.Otherwise.Body))
+			mergeBlock(s.Otherwise.Body)
 		}
 	case *ast.TypeSwitchStmt:
 		for _, c := range s.Cases {
@@ -172,7 +200,7 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 			}
 			a.symbolTable.Define(bindingSymbol)
 			a.analyzeBlock(c.Body)
-			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(c.Body))
+			mergeBlock(c.Body)
 			a.symbolTable.ExitScope()
 		}
 		if s.Otherwise != nil {
@@ -185,12 +213,16 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 			}
 			a.symbolTable.Define(bindingSymbol)
 			a.analyzeBlock(s.Otherwise.Body)
-			inferred = a.mergePipedSwitchReturnType(inferred, a.collectReturnTypes(s.Otherwise.Body))
+			mergeBlock(s.Otherwise.Body)
 			a.symbolTable.ExitScope()
 		}
 	}
 	if inferred == nil {
 		return &TypeInfo{Kind: TypeKindUnknown}
+	}
+	if inferred == pipedSwitchConflict {
+		pos := stmt.(ast.Node).Pos()
+		a.warn(pos, "piped switch cases return different types; result will be typed as 'any'")
 	}
 	return inferred
 }

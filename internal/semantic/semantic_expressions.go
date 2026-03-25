@@ -478,6 +478,65 @@ func (a *Analyzer) analyzePipeExprMulti(expr *ast.PipeExpr) []*TypeInfo {
 	}
 }
 
+// warnPipeDiscardedErrors walks a pipe chain and warns when an intermediate
+// step returns multiple values (typically (T, error)) but there is no onerr
+// clause to handle the error.  Call this from analyzeStatement only when the
+// enclosing statement has OnErr == nil.
+func (a *Analyzer) warnPipeDiscardedErrors(expr ast.Expression) {
+	pipe, ok := expr.(*ast.PipeExpr)
+	if !ok {
+		return
+	}
+
+	// Walk the left-spine of the pipe chain.
+	// For  a |> b() |> c()  the AST is  Pipe(Pipe(a, b()), c()).
+	// We check if any Left node has a recorded return count >= 2.
+	for cur := pipe; cur != nil; {
+		if count, recorded := a.exprReturnCounts[cur.Left]; recorded && count >= 2 {
+			name := pipeStepName(cur.Left)
+			a.warn(cur.Left.Pos(), fmt.Sprintf("pipe discards error from %s (add onerr to handle it)", name))
+		}
+		inner, ok := cur.Left.(*ast.PipeExpr)
+		if !ok {
+			break
+		}
+		cur = inner
+	}
+}
+
+// pipeStepName returns a short human-readable label for a pipe step expression.
+func pipeStepName(expr ast.Expression) string {
+	switch e := expr.(type) {
+	case *ast.CallExpr:
+		return callName(e.Function)
+	case *ast.MethodCallExpr:
+		if e.Object != nil {
+			return callName(e.Object) + "." + e.Method.Value + "()"
+		}
+		return e.Method.Value + "()"
+	case *ast.PipeExpr:
+		// The pipe as a whole — name the last step in the sub-chain.
+		return pipeStepName(e.Right)
+	default:
+		return expr.TokenLiteral()
+	}
+}
+
+// callName extracts a readable name from a function expression.
+func callName(expr ast.Expression) string {
+	switch e := expr.(type) {
+	case *ast.Identifier:
+		return e.Value + "()"
+	case *ast.FieldAccessExpr:
+		if e.Object != nil {
+			return callName(e.Object) + "." + e.Field.Value
+		}
+		return e.Field.Value
+	default:
+		return expr.TokenLiteral()
+	}
+}
+
 func (a *Analyzer) analyzeIndexExpr(expr *ast.IndexExpr) *TypeInfo {
 	leftType := a.analyzeExpression(expr.Left)
 	indexType := a.analyzeExpression(expr.Index)

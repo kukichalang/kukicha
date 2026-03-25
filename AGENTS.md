@@ -245,7 +245,10 @@ todo |> json.MarshalWrite(w, _)   # becomes: json.MarshalWrite(w, todo)
 # Bare identifier as pipe target (no parentheses needed)
 data |> print                     # becomes: fmt.Println(data)
 
-# Pipeline-level onerr — catches errors from any step in the chain
+# Pipeline-level onerr — catches errors from any step in the chain.
+# The handler runs independently for EACH error-returning step.
+# If step 1 fails, its handler fires and control exits;
+# if step 1 succeeds but step 2 fails, step 2's handler fires.
 processed := data
     |> parse.Json(list of User)
     |> fetch.EnrichWithDB()

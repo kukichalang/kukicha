@@ -1,6 +1,7 @@
 package codegen
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/kukichalang/kukicha/internal/ast"
@@ -33,4 +34,31 @@ func generateSource(t *testing.T, input string) string {
 	}
 
 	return output
+}
+
+// mustContainPattern asserts that output matches the given regex pattern.
+// Use `\d+` for temp variable suffixes to decouple tests from exact counter values.
+func mustContainPattern(t *testing.T, output, pattern, msg string) {
+	t.Helper()
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(output) {
+		t.Errorf("%s\npattern: %s\ngot:\n%s", msg, pattern, output)
+	}
+}
+
+// mustNotContainPattern asserts that output does NOT match the given regex pattern.
+func mustNotContainPattern(t *testing.T, output, pattern, msg string) {
+	t.Helper()
+	re := regexp.MustCompile(pattern)
+	if re.MatchString(output) {
+		t.Errorf("%s\npattern: %s\ngot:\n%s", msg, pattern, output)
+	}
+}
+
+// extractMatch returns the first match of the given regex in output, or "" if not found.
+// Useful for capturing a generated temp name and checking it's reused consistently.
+func extractMatch(output, pattern string) string {
+	re := regexp.MustCompile(pattern)
+	m := re.FindString(output)
+	return m
 }

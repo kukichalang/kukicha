@@ -272,6 +272,12 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 	// Only materialize to a temp if the base is multi-return (needs error check).
 	current := l.gen.exprToString(base)
 
+	stepNum := 0
+	addStepComment := func(block *ir.Block, expr ast.Expression) {
+		stepNum++
+		block.Add(&ir.Comment{Text: fmt.Sprintf("pipe step %d: %s", stepNum, summarizeExpr(expr))})
+	}
+
 	if count, ok := l.gen.inferReturnCount(base); ok && count >= 2 {
 		tempVar := l.uniqueId("pipe")
 		// If all steps are error-only (no error-returning steps), base is the
@@ -290,6 +296,7 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 		}
 		errVar := l.uniqueId("err")
 		l.recordVar(tempVar, base)
+		addStepComment(block, base)
 		block.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: current, Walrus: true, Pos: posOf(base)})
 		handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
 		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock, Pos: cp})
@@ -311,6 +318,7 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 			}
 			errVar := l.uniqueId("err")
 			l.recordVar(next, step)
+			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true, Pos: sp})
 			handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock, Pos: cp})
@@ -318,6 +326,7 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 		} else if l.gen.isErrorOnlyReturn(step) {
 			// Error-only step: check error, don't advance pipe value.
 			errVar := l.uniqueId("err")
+			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{errVar}, Expr: callExpr, Walrus: true, Pos: sp})
 			handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock, Pos: cp})
@@ -341,6 +350,12 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel s
 	block := &ir.Block{}
 	gotoErr := &ir.Block{Nodes: []ir.Node{&ir.Goto{Label: onErrLabel}}}
 
+	stepNum := 0
+	addStepComment := func(block *ir.Block, expr ast.Expression) {
+		stepNum++
+		block.Add(&ir.Comment{Text: fmt.Sprintf("pipe step %d: %s", stepNum, summarizeExpr(expr))})
+	}
+
 	// Start with the base as an expression, materialize only if multi-return.
 	current := l.gen.exprToString(base)
 
@@ -348,6 +363,7 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel s
 		tempVar := l.uniqueId("pipe")
 		errVar := l.uniqueId("err")
 		l.recordVar(tempVar, base)
+		addStepComment(block, base)
 		block.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: current, Walrus: true, Pos: posOf(base)})
 		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
 		current = tempVar
@@ -364,11 +380,13 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel s
 			next := l.uniqueId("pipe")
 			errVar := l.uniqueId("err")
 			l.recordVar(next, step)
+			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true, Pos: sp})
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
 			current = next
 		} else if l.gen.isErrorOnlyReturn(step) {
 			errVar := l.uniqueId("err")
+			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{errVar}, Expr: callExpr, Walrus: true, Pos: sp})
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
 		} else {
