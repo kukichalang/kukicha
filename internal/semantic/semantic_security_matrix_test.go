@@ -6,6 +6,118 @@ import (
 	"testing"
 )
 
+func TestSQLInterpolationDetection(t *testing.T) {
+	tests := []struct {
+		name      string
+		source    string
+		expectErr string // substring expected in error, empty = no error expected
+	}{
+		{
+			name: "interpolation in db.Query is rejected",
+			source: `import "stdlib/db"
+
+func Bad(pool db.Pool, id int)
+    rows, err := db.Query(pool, "SELECT * FROM users WHERE id = {id}")
+    _ = rows
+    _ = err
+`,
+			expectErr: "SQL injection risk",
+		},
+		{
+			name: "interpolation in db.Exec is rejected",
+			source: `import "stdlib/db"
+
+func Bad(pool db.Pool, name string)
+    n, err := db.Exec(pool, "INSERT INTO users (name) VALUES ('{name}')")
+    _ = n
+    _ = err
+`,
+			expectErr: "SQL injection risk",
+		},
+		{
+			name: "interpolation in db.QueryRow is rejected",
+			source: `import "stdlib/db"
+
+func Bad(pool db.Pool, id int)
+    row := db.QueryRow(pool, "SELECT name FROM users WHERE id = {id}")
+    _ = row
+`,
+			expectErr: "SQL injection risk",
+		},
+		{
+			name: "interpolation in db.TxExec is rejected",
+			source: `import "stdlib/db"
+
+func Bad(tx db.Tx, table string)
+    n, err := db.TxExec(tx, "DELETE FROM {table}")
+    _ = n
+    _ = err
+`,
+			expectErr: "SQL injection risk",
+		},
+		{
+			name: "parameterized db.Query is allowed",
+			source: `import "stdlib/db"
+
+func Good(pool db.Pool, id int)
+    rows, err := db.Query(pool, "SELECT * FROM users WHERE id = $1", id)
+    _ = rows
+    _ = err
+`,
+			expectErr: "",
+		},
+		{
+			name: "plain string literal db.Exec is allowed",
+			source: `import "stdlib/db"
+
+func Good(pool db.Pool)
+    n, err := db.Exec(pool, "DELETE FROM sessions WHERE expired = true")
+    _ = n
+    _ = err
+`,
+			expectErr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			p, err := parser.New(tt.source, "test.kuki")
+			if err != nil {
+				t.Fatalf("parser error: %v", err)
+			}
+
+			program, parseErrors := p.Parse()
+			if len(parseErrors) > 0 {
+				t.Fatalf("parse errors: %v", parseErrors)
+			}
+
+			analyzer := New(program)
+			errors := analyzer.Analyze()
+
+			if tt.expectErr == "" {
+				// Expect no SQL injection errors (other semantic errors are OK)
+				for _, e := range errors {
+					if strings.Contains(e.Error(), "SQL injection") {
+						t.Fatalf("unexpected SQL injection error: %v", e)
+					}
+				}
+			} else {
+				found := false
+				for _, e := range errors {
+					if strings.Contains(e.Error(), tt.expectErr) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatalf("expected error containing %q, got errors: %v", tt.expectErr, errors)
+				}
+			}
+		})
+	}
+}
+
 func TestHTMLNonLiteralDetection(t *testing.T) {
 	tests := []struct {
 		name      string

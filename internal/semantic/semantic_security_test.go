@@ -322,6 +322,69 @@ func Run(pool dbpkg.Pool, name string)
 	assertSecurityError(t, source, "SQL injection risk")
 }
 
+func TestSQLInterpolation_PipedCallShiftsArgIndex(t *testing.T) {
+	// When the pool is piped in, the SQL string is at index 0 (not 1).
+	source := `import "stdlib/db"
+
+func Bad(pool db.Pool, id int)
+    rows := pool |> db.Query("SELECT * FROM users WHERE id = {id}") onerr return
+    _ = rows
+`
+	assertSecurityError(t, source, "SQL injection risk")
+}
+
+func TestSQLInterpolation_TxQueryRejected(t *testing.T) {
+	source := `import "stdlib/db"
+
+func Bad(tx db.Tx, id int)
+    rows, err := db.TxQuery(tx, "SELECT * FROM t WHERE id = {id}")
+    _ = rows
+    _ = err
+`
+	assertSecurityError(t, source, "SQL injection risk")
+}
+
+func TestSQLInterpolation_TxQueryRowRejected(t *testing.T) {
+	source := `import "stdlib/db"
+
+func Bad(tx db.Tx, id int)
+    row := db.TxQueryRow(tx, "SELECT name FROM t WHERE id = {id}")
+    _ = row
+`
+	assertSecurityError(t, source, "SQL injection risk")
+}
+
+func TestSQLInterpolation_NonSQLFunctionIgnored(t *testing.T) {
+	// Calling a non-db function with interpolation must NOT flag SQL injection.
+	source := `func Format(name string) string
+    return "Hello {name}"
+`
+	assertNoSecurityError(t, source, "SQL injection")
+}
+
+func TestSQLInterpolation_NoArgs(t *testing.T) {
+	// Edge case: db.Query with too few arguments should not panic.
+	source := `import "stdlib/db"
+
+func Bad(pool db.Pool)
+    rows, err := db.Query(pool)
+    _ = rows
+    _ = err
+`
+	analyzeIgnoringNonSecurity(t, source, "SQL injection")
+}
+
+func TestSQLInterpolation_PlainLiteralAllowed(t *testing.T) {
+	source := `import "stdlib/db"
+
+func Good(pool db.Pool)
+    n, err := db.Exec(pool, "DELETE FROM sessions WHERE expired = true")
+    _ = n
+    _ = err
+`
+	assertNoSecurityError(t, source, "SQL injection risk")
+}
+
 // =============================================================================
 // Test helpers
 // =============================================================================
