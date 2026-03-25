@@ -89,10 +89,11 @@ func TestScanAll(t reference testing.T)
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            rows := db.Query(pool, tc.query) onerr panic "query: {error}"
-            users := db.ScanAll(rows, list of User{}) onerr panic "scan: {error}"
-            result := users.(list of User)
-            test.AssertEqual(t, len(result), tc.wantLen)
+            result := db.Query(pool, tc.query)
+                |> db.ScanAll(list of User{})
+                onerr panic "scan: {error}"
+            users := result.(list of User)
+            test.AssertEqual(t, len(users), tc.wantLen)
         )
 
 # --- TestScanAllValues ---
@@ -107,13 +108,14 @@ func TestScanAllValues(t reference testing.T)
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            rows := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1") onerr panic "query: {error}"
-            users := db.ScanAll(rows, list of User{}) onerr panic "scan: {error}"
-            result := users.(list of User)
-            test.AssertEqual(t, len(result), 1)
-            test.AssertEqual(t, result[0].Id, 1 as int64)
-            test.AssertEqual(t, result[0].Name, "Alice")
-            test.AssertEqual(t, result[0].Email, "alice@example.com")
+            result := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
+                |> db.ScanAll(list of User{})
+                onerr panic "scan: {error}"
+            users := result.(list of User)
+            test.AssertEqual(t, len(users), 1)
+            test.AssertEqual(t, users[0].Id, 1 as int64)
+            test.AssertEqual(t, users[0].Name, "Alice")
+            test.AssertEqual(t, users[0].Email, "alice@example.com")
         )
 
 # --- TestScanOne ---
@@ -131,8 +133,7 @@ func TestScanOne(t reference testing.T)
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            rows := db.Query(pool, tc.query) onerr panic "query: {error}"
-            result, err := db.ScanOne(rows, User{})
+            result, err := db.Query(pool, tc.query) |> db.ScanOne(User{})
             if tc.wantErr
                 test.AssertError(t, err)
             else
@@ -164,16 +165,6 @@ func TestScanRow(t reference testing.T)
 type TransactionCase
     name string
 
-func txInsertDiana(tx db.Tx) error
-    _, err := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com")
-    return err
-
-func txInsertAndFail(tx db.Tx) error
-    _, err := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com")
-    if err != empty
-        return err
-    return error "deliberate rollback"
-
 func TestTransaction(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
@@ -182,7 +173,10 @@ func TestTransaction(t reference testing.T)
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            err := db.Transaction(pool, txInsertDiana)
+            err := db.Transaction(pool, (tx db.Tx) =>
+                db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com") onerr return
+                return empty
+            )
             test.AssertNoError(t, err)
 
             found := db.Exists(pool, "SELECT 1 FROM users WHERE id = 4") onerr panic "exists: {error}"
@@ -201,7 +195,10 @@ func TestTransactionRollback(t reference testing.T)
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            err := db.Transaction(pool, txInsertAndFail)
+            err := db.Transaction(pool, (tx db.Tx) =>
+                db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com") onerr return
+                return error "deliberate rollback"
+            )
             test.AssertError(t, err)
 
             found := db.Exists(pool, "SELECT 1 FROM users WHERE id = 5") onerr panic "exists: {error}"

@@ -454,3 +454,59 @@ func TestOnErrBreak(t *testing.T) {
 		t.Errorf("expected error check, got: %s", output)
 	}
 }
+
+func TestDeferBlock(t *testing.T) {
+	input := `func Cleanup(f reference os.File)
+    defer
+        f.Sync()
+        f.Close()
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "defer func() {") {
+		t.Errorf("expected 'defer func() {', got: %s", output)
+	}
+	if !strings.Contains(output, "}()") {
+		t.Errorf("expected '}()' closing the deferred closure, got: %s", output)
+	}
+	if !strings.Contains(output, "f.Sync()") {
+		t.Errorf("expected f.Sync() in defer block, got: %s", output)
+	}
+	if !strings.Contains(output, "f.Close()") {
+		t.Errorf("expected f.Close() in defer block, got: %s", output)
+	}
+}
+
+func TestDeferBlockWithRecover(t *testing.T) {
+	input := `func SafeRun(fn func())
+    defer
+        r := recover()
+        if r != empty
+            print("recovered")
+    fn()
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "defer func() {") {
+		t.Errorf("expected 'defer func() {', got: %s", output)
+	}
+	if !strings.Contains(output, "recover()") {
+		t.Errorf("expected 'recover()' call, got: %s", output)
+	}
+}
+
+func TestIfInitStatement(t *testing.T) {
+	input := `func Lookup(m map of string to int, key string) int
+    if val, ok := m[key]; ok
+        return val
+    return 0
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "val, ok := m[key]") {
+		t.Errorf("expected init statement 'val, ok := m[key]', got: %s", output)
+	}
+	if !strings.Contains(output, "ok\t {") && !strings.Contains(output, "ok {") {
+		t.Errorf("expected if-init with ok condition, got: %s", output)
+	}
+}

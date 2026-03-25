@@ -535,7 +535,8 @@ func (s *ForConditionStmt) stmtNode() {}
 
 type DeferStmt struct {
 	Token lexer.Token // The 'defer' token
-	Call  Expression  // Can be CallExpr or MethodCallExpr
+	Call  Expression  // Optional (mutually exclusive with Block)
+	Block *BlockStmt  // Optional (mutually exclusive with Call)
 }
 
 func (s *DeferStmt) TokenLiteral() string { return s.Token.Lexeme }

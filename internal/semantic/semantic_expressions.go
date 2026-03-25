@@ -169,6 +169,35 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 				a.error(param.Name.Pos(), err.Error())
 			}
 		}
+		// If we have an expected signature (recorded by analyzeCallExpr/analyzeMethodCallExpr),
+		// set a.currentFunc for the duration of the body/block analysis so that
+		// return statements inside the lambda are validated against its returns.
+		savedFunc := a.currentFunc
+		if signature, ok := a.exprTypes[e]; ok && signature != nil && signature.Kind == TypeKindFunction {
+			syntheticFunc := &ast.FunctionDecl{
+				Returns: make([]ast.TypeAnnotation, len(signature.Returns)),
+			}
+			for i, ret := range signature.Returns {
+				// Create appropriate type annotation based on the kind
+				var dummy ast.TypeAnnotation
+				switch ret.Kind {
+				case TypeKindInt:
+					dummy = &ast.PrimitiveType{Name: "int"}
+				case TypeKindFloat:
+					dummy = &ast.PrimitiveType{Name: "float64"}
+				case TypeKindString:
+					dummy = &ast.PrimitiveType{Name: "string"}
+				case TypeKindBool:
+					dummy = &ast.PrimitiveType{Name: "bool"}
+				default:
+					// For named types, interfaces, etc., use NamedType
+					dummy = &ast.NamedType{Name: ret.Name}
+				}
+				syntheticFunc.Returns[i] = dummy
+			}
+			a.currentFunc = syntheticFunc
+		}
+
 		var bodyType *TypeInfo
 		if e.Body != nil {
 			bodyType = a.analyzeExpression(e.Body)
@@ -176,10 +205,18 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 		if e.Block != nil {
 			a.analyzeBlock(e.Block)
 		}
+
+		// Restore original function context
+		a.currentFunc = savedFunc
+
 		// Return a function type with the body's return type so callers can
 		// resolve generic placeholders (e.g., "result" in concurrent.MapWithLimit).
 		if bodyType != nil && bodyType.Kind != TypeKindUnknown {
 			return &TypeInfo{Kind: TypeKindFunction, Returns: []*TypeInfo{bodyType}}
+		}
+		// If it's a block lambda with an expected signature, use that.
+		if signature, ok := a.exprTypes[e]; ok && signature != nil {
+			return signature
 		}
 		return &TypeInfo{Kind: TypeKindUnknown}
 	case *ast.ReturnExpr:

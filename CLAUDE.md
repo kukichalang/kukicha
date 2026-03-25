@@ -353,6 +353,17 @@ select
         print("nothing ready")
 ```
 
+### Defer
+```kukicha
+defer f.Close()                    # Defer a single call
+
+# Defer block (multi-statement cleanup, emits defer func() { ... }())
+defer
+    if r := recover(); r != empty
+        tx.Rollback()
+        panic(r)
+```
+
 ## Compiler Directives
 
 Directives are special comments starting with `# kuki:` that annotate the next declaration.

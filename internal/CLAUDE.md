@@ -190,6 +190,18 @@ Always store the keyword's `lexer.Token` as the first field — it carries line/
 
 **Notable:** `VarDeclStmt` implements both `Statement` and `Declaration`.
 
+### DeferStmt
+
+`DeferStmt` has two mutually exclusive forms:
+- **Call form:** `defer f()` — `Call` field is set, `Block` is nil
+- **Block form:** `defer` + indented block — `Block` field is set, `Call` is nil. Codegen emits `defer func() { ... }()`.
+
+### IfStmt
+
+`IfStmt` supports optional init statements: `if x, ok := m[key]; ok`. The `Init` field holds the init statement (typically a `VarDeclStmt` or `AssignStmt`); it is nil for plain `if condition`. The parser uses a lookahead scan for `;` at the current nesting depth to decide whether an init statement is present. Semantic analysis enters a new scope before analyzing the init statement so that variables declared in the init are scoped to the if/else chain.
+
+**Known limitation:** `else if` branches with their own init statements do not codegen correctly — the init is dropped. Use early-return patterns or split into separate `if` blocks as a workaround.
+
 ### OnErrClause
 
 `OnErrClause` is **not** a standalone `Statement` or `Expression`. It is an optional field on `VarDeclStmt`, `AssignStmt`, and `ExpressionStmt`. The `Handler` field holds the parsed error handler expression (`PanicExpr`, `EmptyExpr`, `DiscardExpr`, `ReturnExpr`, or a default value expression). Shorthand forms use boolean flags instead of `Handler`: `ShorthandReturn`, `ShorthandContinue`, `ShorthandBreak`.
@@ -409,7 +421,13 @@ Three inference cases handled in `semantic_calls.go`:
 
 `goStdlibEntry.ParamFuncParams map[int][]goStdlibType` is populated by `genstdlibregistry`. Unqualified named types are prefixed with the package name (`"Args"` → `"cli.Args"`); placeholder names (`any`, `any2`, `ordered`, `error`) are left as-is for runtime substitution.
 
+`goStdlibEntry.ParamFuncReturns map[int][]goStdlibType` stores the return types of func-typed parameters. This enables lambda return scoping — when a block lambda is passed to a function, the semantic analyzer uses these return types to validate `return` statements inside the lambda against the lambda's expected return type, not the enclosing function's.
+
+`resolveExpectedLambdaSignature` (in `semantic_calls.go`) returns a full `*TypeInfo` with both `Params` and `Returns` for the expected lambda signature. The signature is recorded on the lambda node in `exprTypes`, and used by both semantic analysis (for return validation) and codegen (for block lambda return type annotation).
+
 `inferLambdaParamTypes` is called in `analyzeCallExpr`; `inferLambdaParamTypesMethod` in `analyzeMethodCallExpr`. Both record inferred types in `a.exprTypes` so codegen can emit fully typed Go func literals.
+
+**Lambda return scoping:** When analyzing a block lambda that has an expected signature (from `exprTypes`), `analyzeExpression` temporarily swaps `a.currentFunc` to a synthetic `FunctionDecl` with the lambda's return types. This makes `analyzeReturnStmt` validate against the lambda's returns, not the enclosing function's. The original `currentFunc` is restored after the lambda body is analyzed.
 
 **Import alias resolution:** Registry keys use base package names (e.g., `string.Split`), but user code may use aliases (e.g., `strpkg.Split`). The `importAliases map[string]string` field (populated during `collectDeclarations`) maps alias → base name. `resolveQualifiedName()` in `semantic_helpers.go` rewrites aliased qualified names before registry lookups in both `analyzeMethodCallExpr` and `inferLambdaParamTypesMethod`.
 

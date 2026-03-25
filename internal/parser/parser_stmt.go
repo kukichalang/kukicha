@@ -151,66 +151,34 @@ func (p *Parser) parseIfStmt() *ast.IfStmt {
 	token := p.advance() // consume 'if'
 
 	// Look ahead for if-init: if x := 1; x > 0
+	hasSemicolon := false
+	depth := 0
+	for i := p.pos; i < len(p.tokens); i++ {
+		t := p.tokens[i].Type
+		if t == lexer.TOKEN_NEWLINE || t == lexer.TOKEN_EOF || t == lexer.TOKEN_INDENT || t == lexer.TOKEN_DEDENT {
+			break
+		}
+		if t == lexer.TOKEN_LPAREN {
+			depth++
+		} else if t == lexer.TOKEN_RPAREN {
+			depth--
+		} else if t == lexer.TOKEN_SEMICOLON && depth == 0 {
+			hasSemicolon = true
+			break
+		}
+	}
+
 	var init ast.Statement
 	var condition ast.Expression
 
-	// We try to parse an expression or assignment.
-	// If it's followed by a semicolon, it's an init statement.
-	savePos := p.pos
-	saveDirectives := p.pendingDirectives
-
-	// Support both declarations (x := 1) and assignments (x = 1)
-	// parseExpressionOrAssignmentStmt is appropriate but it usually consumes the newline.
-	// Let's peek ahead for semicolon manually.
-
-	expr := p.parseExpression()
-
-	if p.match(lexer.TOKEN_SEMICOLON) {
-		// It's an init statement. Convert expr to a statement.
-		// If it's a binary expression with '=', it's an assignment.
-		// If it's a walrus, it's a declaration.
-		// But parseExpression already handled those?
-		// Actually assignment is a statement in Kukicha, not an expression.
-		// So parseExpression would have failed if it was an assignment.
-
-		// Let's try again with a more direct approach.
-		p.pos = savePos
-		p.pendingDirectives = saveDirectives
-
-		// We peek ahead for the semicolon to decide if we parse a statement first.
-		hasSemicolon := false
-		depth := 0
-		for i := p.pos; i < len(p.tokens); i++ {
-			t := p.tokens[i].Type
-			if t == lexer.TOKEN_NEWLINE || t == lexer.TOKEN_EOF || t == lexer.TOKEN_INDENT || t == lexer.TOKEN_DEDENT {
-				break
-			}
-			if t == lexer.TOKEN_LPAREN {
-				depth++
-			} else if t == lexer.TOKEN_RPAREN {
-				depth--
-			} else if t == lexer.TOKEN_SEMICOLON && depth == 0 {
-				hasSemicolon = true
-				break
-			}
+	if hasSemicolon {
+		init = p.parseExpressionOrAssignmentStmt()
+		if p.check(lexer.TOKEN_SEMICOLON) {
+			p.advance() // consume ';'
 		}
-
-		if hasSemicolon {
-			// Parse it as a statement, but WITHOUT consuming the newline/dedent
-			// We need a version of parseStatement that doesn't expect a newline if followed by ;
-			// For now, let's just parse the expressionOrAssignment and then the semicolon.
-			init = p.parseExpressionOrAssignmentStmt()
-			// parseExpressionOrAssignmentStmt doesn't consume the semicolon if it was treated as stmt separator
-			// But here it's an init separator.
-			if p.previousToken().Type != lexer.TOKEN_SEMICOLON {
-				p.match(lexer.TOKEN_SEMICOLON)
-			}
-			condition = p.parseExpression()
-		} else {
-			condition = expr
-		}
+		condition = p.parseExpression()
 	} else {
-		condition = expr
+		condition = p.parseExpression()
 	}
 
 	stmt := &ast.IfStmt{
@@ -569,6 +537,17 @@ func (p *Parser) parseForStmt() ast.Statement {
 
 func (p *Parser) parseDeferStmt() *ast.DeferStmt {
 	token := p.advance() // consume 'defer'
+	p.skipNewlines()
+
+	// Check for block form: defer NEWLINE INDENT ... DEDENT
+	if p.check(lexer.TOKEN_INDENT) {
+		block := p.parseBlock()
+		p.skipNewlines()
+		return &ast.DeferStmt{
+			Token: token,
+			Block: block,
+		}
+	}
 
 	expr := p.parseExpression()
 

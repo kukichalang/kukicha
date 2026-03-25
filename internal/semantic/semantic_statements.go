@@ -36,7 +36,12 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement) {
 	case *ast.ForConditionStmt:
 		a.analyzeForConditionStmt(s)
 	case *ast.DeferStmt:
-		a.analyzeExpression(s.Call)
+		if s.Call != nil {
+			a.analyzeExpression(s.Call)
+		}
+		if s.Block != nil {
+			a.analyzeBlock(s.Block)
+		}
 	case *ast.GoStmt:
 		if s.Call != nil {
 			a.analyzeExpression(s.Call)
@@ -505,10 +510,17 @@ func (a *Analyzer) analyzeReturnStmt(stmt *ast.ReturnStmt) {
 }
 
 func (a *Analyzer) analyzeIfStmt(stmt *ast.IfStmt) {
+	a.symbolTable.EnterScope()
+	defer a.symbolTable.ExitScope()
+
+	if stmt.Init != nil {
+		a.analyzeStatement(stmt.Init)
+	}
+
 	// Analyze condition
 	condType := a.analyzeExpression(stmt.Condition)
 	if condType.Kind != TypeKindBool && condType.Kind != TypeKindUnknown {
-		a.error(stmt.Pos(), "if condition must be boolean")
+		a.error(stmt.Condition.Pos(), "if condition must be boolean")
 	}
 
 	// Analyze consequence

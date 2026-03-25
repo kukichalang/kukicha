@@ -288,3 +288,37 @@ func Foo()
 		t.Errorf("expected TypeKindString for 'r', got %v", ti.Kind)
 	}
 }
+
+func TestBlockLambdaReturnScoping(t *testing.T) {
+	src := `petiole main
+
+func Run(fn func() error)
+    _ = fn()
+
+func Foo()
+    Run(() =>
+        return empty
+    )
+`
+	_, errs := analyzeSource(t, src)
+	if len(errs) > 0 {
+		t.Errorf("unexpected semantic errors: %v", errs)
+	}
+}
+
+func TestBlockLambdaReturnMismatch(t *testing.T) {
+	src := `petiole main
+
+func Run(fn func() int)
+    _ = fn()
+
+func Foo()
+    Run(() =>
+        return "not an int"
+    )
+`
+	_, errs := analyzeSource(t, src)
+	if len(errs) == 0 {
+		t.Fatal("expected semantic error for return type mismatch in block lambda, got none")
+	}
+}

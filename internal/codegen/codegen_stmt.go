@@ -58,7 +58,17 @@ func (g *Generator) generateStatement(stmt ast.Statement) {
 	case *ast.ForConditionStmt:
 		g.generateForConditionStmt(s)
 	case *ast.DeferStmt:
-		g.writeLine("defer " + g.exprToString(s.Call))
+		if s.Block != nil {
+			g.write(g.indentStr() + "defer func() {\n")
+			g.indent++
+			for _, stmt := range s.Block.Statements {
+				g.generateStatement(stmt)
+			}
+			g.indent--
+			g.writeLine("}()")
+		} else {
+			g.writeLine("defer " + g.exprToString(s.Call))
+		}
 	case *ast.GoStmt:
 		if s.Block != nil {
 			// Block form: go NEWLINE INDENT ... DEDENT

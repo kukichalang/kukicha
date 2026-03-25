@@ -338,7 +338,21 @@ func (g *Generator) generateArrowLambda(lambda *ast.ArrowLambda) string {
 
 	if lambda.Block != nil {
 		// Block lambda: generate as multi-line anonymous function
-		returnType := g.inferBlockReturnType(lambda.Block)
+		returnType := ""
+		if ti, ok := g.exprTypes[lambda]; ok && ti != nil && ti.Kind == semantic.TypeKindFunction && len(ti.Returns) > 0 {
+			var retParts []string
+			for _, ret := range ti.Returns {
+				retParts = append(retParts, g.typeInfoToGoString(ret))
+			}
+			if len(retParts) == 1 {
+				returnType = retParts[0]
+			} else {
+				returnType = "(" + strings.Join(retParts, ", ") + ")"
+			}
+		}
+		if returnType == "" {
+			returnType = g.inferBlockReturnType(lambda.Block)
+		}
 
 		// Generate body using child generator
 		child := g.childGenerator(1)

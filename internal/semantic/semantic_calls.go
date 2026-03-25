@@ -21,23 +21,17 @@ func init() {
 	}
 }
 
-// hasUntypedParams reports whether the lambda has at least one parameter with no type annotation.
-func hasUntypedParams(lambda *ast.ArrowLambda) bool {
-	for _, param := range lambda.Parameters {
-		if param.Type == nil {
-			return true
-		}
-	}
-	return false
-}
-
-// extractQualifiedName returns "pkg.Func" for a MethodCallExpr, or the identifier
+// extractQualifiedName returns "pkg.Func" for a MethodCallExpr or FieldAccessExpr, or the identifier
 // value for a plain Identifier.
 func extractQualifiedName(fn ast.Expression) string {
 	switch f := fn.(type) {
 	case *ast.MethodCallExpr:
 		if objID, ok := f.Object.(*ast.Identifier); ok {
 			return objID.Value + "." + f.Method.Value
+		}
+	case *ast.FieldAccessExpr:
+		if objID, ok := f.Object.(*ast.Identifier); ok {
+			return objID.Value + "." + f.Field.Value
 		}
 	case *ast.Identifier:
 		return f.Value
@@ -54,41 +48,61 @@ func extractQualifiedName(fn ast.Expression) string {
 //   - Cases B & C: Kukicha stdlib registry with ParamFuncParams entry for
 //     paramIdx — substitutes placeholder names ("any", "any2", "ordered")
 //     with elementType, and uses concrete names (e.g. "cli.Args") as-is.
-func (a *Analyzer) resolveExpectedLambdaParams(
+func (a *Analyzer) resolveExpectedLambdaSignature(
 	qualName string, paramIdx int, funcType *TypeInfo, elementType *TypeInfo,
-) []*TypeInfo {
+) *TypeInfo {
 	// Case A: user-defined function with a known func-typed parameter
 	if funcType != nil && funcType.Kind == TypeKindFunction && paramIdx < len(funcType.Params) {
 		paramType := funcType.Params[paramIdx]
-		if paramType != nil && paramType.Kind == TypeKindFunction && len(paramType.Params) > 0 {
-			return paramType.Params
+		if paramType != nil && paramType.Kind == TypeKindFunction {
+			return paramType
 		}
 	}
 
 	// Cases B & C: look up in the Kukicha stdlib registry
 	if entry, ok := generatedStdlibRegistry[qualName]; ok && len(entry.ParamFuncParams) > 0 {
 		if innerTypes, ok := entry.ParamFuncParams[paramIdx]; ok {
-			result := make([]*TypeInfo, len(innerTypes))
+			resultParams := make([]*TypeInfo, len(innerTypes))
 			hasAny := false
 			for j, gt := range innerTypes {
 				switch {
 				case gt.Kind == TypeKindNamed && gt.Name == "result":
-					// "result" placeholder represents transform output type,
-					// not element type. Skip here — it will be resolved after
-					// lambda body analysis via resolveGenericPlaceholders.
+					// "result" placeholder represents transform output type
 					hasAny = true
 				case gt.Kind == TypeKindNamed && (gt.Name == "any" || gt.Name == "any2" || gt.Name == "ordered"):
 					if elementType != nil {
-						result[j] = elementType
+						resultParams[j] = elementType
 						hasAny = true
 					}
 				case gt.Kind != TypeKindUnknown:
-					result[j] = &TypeInfo{Kind: gt.Kind, Name: gt.Name}
+					resultParams[j] = &TypeInfo{Kind: gt.Kind, Name: gt.Name}
 					hasAny = true
 				}
 			}
-			if hasAny {
-				return result
+
+			// For stdlib functions, we often know the return type (e.g., bool for Filter, result for Map)
+			var resultReturns []*TypeInfo
+			if entry.ParamFuncReturns != nil {
+				if retTypes, ok := entry.ParamFuncReturns[paramIdx]; ok {
+					resultReturns = make([]*TypeInfo, len(retTypes))
+					for j, rt := range retTypes {
+						if rt.Kind == TypeKindNamed && rt.Name == "result" {
+							// result placeholder will be resolved later
+							resultReturns[j] = &TypeInfo{Kind: rt.Kind, Name: rt.Name}
+						} else {
+							// Resolve other placeholders if needed, though they aren't common in returns
+							resultReturns[j] = &TypeInfo{Kind: rt.Kind, Name: rt.Name}
+						}
+					}
+				}
+			}
+
+			if hasAny || len(resultReturns) > 0 {
+				return &TypeInfo{
+					Kind:    TypeKindFunction,
+					Params:  resultParams,
+					Returns: resultReturns,
+				}
 			}
 		}
 	}
@@ -124,15 +138,18 @@ func (a *Analyzer) inferLambdaParamTypes(
 
 	for i, arg := range expr.Arguments {
 		lambda, ok := arg.(*ast.ArrowLambda)
-		if !ok || !hasUntypedParams(lambda) {
+		if !ok {
 			continue
 		}
 		paramIdx := i + argOffset
 
-		inferredParamTypes := a.resolveExpectedLambdaParams(qualName, paramIdx, funcType, elementType)
-		for j, param := range lambda.Parameters {
-			if param.Type == nil && j < len(inferredParamTypes) && inferredParamTypes[j] != nil {
-				a.recordType(param.Name, inferredParamTypes[j])
+		signature := a.resolveExpectedLambdaSignature(qualName, paramIdx, funcType, elementType)
+		if signature != nil {
+			a.recordType(lambda, signature)
+			for j, param := range lambda.Parameters {
+				if param.Type == nil && j < len(signature.Params) && signature.Params[j] != nil {
+					a.recordType(param.Name, signature.Params[j])
+				}
 			}
 		}
 	}
@@ -172,16 +189,19 @@ func (a *Analyzer) inferLambdaParamTypesMethod(expr *ast.MethodCallExpr, pipedAr
 
 	for i, arg := range expr.Arguments {
 		lambda, ok := arg.(*ast.ArrowLambda)
-		if !ok || !hasUntypedParams(lambda) {
+		if !ok {
 			continue
 		}
 		paramIdx := i + argOffset
 
 		// funcType is unknown for stdlib method calls, so only Cases B & C apply
-		inferredParamTypes := a.resolveExpectedLambdaParams(qualName, paramIdx, nil, elementType)
-		for j, param := range lambda.Parameters {
-			if param.Type == nil && j < len(inferredParamTypes) && inferredParamTypes[j] != nil {
-				a.recordType(param.Name, inferredParamTypes[j])
+		signature := a.resolveExpectedLambdaSignature(qualName, paramIdx, nil, elementType)
+		if signature != nil {
+			a.recordType(lambda, signature)
+			for j, param := range lambda.Parameters {
+				if param.Type == nil && j < len(signature.Params) && signature.Params[j] != nil {
+					a.recordType(param.Name, signature.Params[j])
+				}
 			}
 		}
 	}

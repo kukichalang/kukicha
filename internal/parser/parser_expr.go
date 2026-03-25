@@ -451,6 +451,11 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		return p.parsePanicExpr()
 	case lexer.TOKEN_RECOVER:
 		token := p.advance()
+		// Consume optional () so that recover() doesn't get parsed as a call on RecoverExpr
+		if p.check(lexer.TOKEN_LPAREN) {
+			p.advance()
+			p.consume(lexer.TOKEN_RPAREN, "expected ')' after 'recover('")
+		}
 		return &ast.RecoverExpr{Token: token}
 	case lexer.TOKEN_RECEIVE:
 		return p.parseReceiveExpr()

@@ -18,7 +18,8 @@ type goStdlibEntry struct {
 	Types           []goStdlibType
 	ParamNames      []string         // Parameter names (populated for Kukicha stdlib; nil for Go stdlib)
 	DefaultValues   []string         // Go expression strings for default parameter values; "" = no default
-	ParamFuncParams map[int][]goStdlibType // func-typed param index → inner param types (for lambda inference)
+	ParamFuncParams  map[int][]goStdlibType // func-typed param index → inner param types (for lambda parameter inference)
+	ParamFuncReturns map[int][]goStdlibType // func-typed param index → inner return types (for lambda return scoping)
 }
 
 // GetStdlibEntry returns the Kukicha stdlib registry entry for the given

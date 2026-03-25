@@ -177,7 +177,19 @@ func CloseRows(rows Rows) error
 #   ) onerr panic "transfer failed: {error}"
 func Transaction(pool Pool, fn func(Tx) error) error
     sqlTx := pool.conn.Begin() onerr return
-    return finishTx(sqlTx, fn)
+    tx := Tx{tx: sqlTx}
+
+    defer
+        if r := recover(); r != empty
+            sqlTx.Rollback()
+            panic(r)
+
+    err := fn(tx)
+    if err != empty
+        sqlTx.Rollback()
+        return err
+
+    return sqlTx.Commit()
 
 # TransactionWith executes fn within a transaction with custom options.
 # isolationLevel: "read_uncommitted", "read_committed", "repeatable_read", "serializable"
@@ -194,19 +206,20 @@ func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error
         txOpts.Isolation = sql.LevelSerializable
 
     sqlTx := pool.conn.BeginTx(context.Background(), reference of txOpts) onerr return
-    return finishTx(sqlTx, fn)
-
-# finishTx runs fn inside a transaction, handling commit/rollback.
-# Rollbacks on error from fn; commits on success.
-func finishTx(sqlTx reference sql.Tx, fn func(Tx) error) error
     tx := Tx{tx: sqlTx}
+
+    defer
+        if r := recover(); r != empty
+            sqlTx.Rollback()
+            panic(r)
+
     err := fn(tx)
     if err != empty
-        rbErr := sqlTx.Rollback()
-        if rbErr != empty
-            return error "tx rollback failed: {rbErr}; original: {err}"
+        sqlTx.Rollback()
         return err
+
     return sqlTx.Commit()
+
 
 # TxQuery executes a query within a transaction that returns rows.
 # Example: rows := db.TxQuery(tx, "SELECT * FROM users") onerr panic "{error}"
@@ -251,8 +264,7 @@ func Count(pool Pool, query string, many args any) (int64, error)
 func Exists(pool Pool, query string, many args any) (bool, error)
     row := pool.conn.QueryRow(query, many args)
     dummy := 0
-    err := row.Scan(reference of dummy)
-    if err != empty
+    if err := row.Scan(reference of dummy); err != empty
         if err == sql.ErrNoRows
             return false, empty
         return false, err
@@ -313,29 +325,21 @@ func structScanners(elem reflect.Value, elemType reflect.Type, columns list of s
     # Map each column to a null-safe scanner
     ptrs := make(list of any, len(columns))
     for ci, col in columns
-        lowerCol := strpkg.ToLower(col)
-        ptrs[ci] = matchColumnToScanner(elem, tagMap, nameMap, snakeMap, col, lowerCol)
+        ptrs[ci] = matchColumnToField(elem, col, tagMap, nameMap, snakeMap)
 
     return ptrs
 
-# matchColumnToScanner returns a null-safe scanner for the struct field matching a column name.
-func matchColumnToScanner(elem reflect.Value, tagMap map of string to int, nameMap map of string to int, snakeMap map of string to int, col string, lowerCol string) any
-    # Priority 1: json tag
-    idx, ok := tagMap[col]
-    if ok
+func matchColumnToField(elem reflect.Value, col string, tagMap map of string to int, nameMap map of string to int, snakeMap map of string to int) any
+    if idx, ok := tagMap[col]; ok
         return reference of nullSafeField{target: elem.Field(idx)}
 
-    # Priority 2: exact name (case-insensitive)
-    idx, ok = nameMap[lowerCol]
-    if ok
+    lowerCol := strpkg.ToLower(col)
+    if idx, ok := nameMap[lowerCol]; ok
         return reference of nullSafeField{target: elem.Field(idx)}
 
-    # Priority 3: snake_case match
-    idx, ok = snakeMap[lowerCol]
-    if ok
+    if idx, ok := snakeMap[lowerCol]; ok
         return reference of nullSafeField{target: elem.Field(idx)}
 
-    # No match: scan into a throwaway
     throwaway := ""
     return reference of throwaway
 
@@ -346,7 +350,7 @@ func camelToSnake(s string) string
         if unicode.IsUpper(r)
             if i > 0
                 result = result + "_"
-            result = result + strpkg.ToLower(fmt.Sprintf("%c", r))
+            result = result + (fmt.Sprintf("%c", r) |> strpkg.ToLower())
         else
             result = result + fmt.Sprintf("%c", r)
     return result

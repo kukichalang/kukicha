@@ -634,13 +634,15 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 	// Calculate Left expression first, handling multi-return values if needed
 	leftExpr := g.exprToString(expr.Left)
 	if count, ok := g.inferReturnCount(expr.Left); ok && count >= 2 {
-		// Wrap in a function call to only take the first return value
-		// e.g., func() any { val, _ := fetch.Get(...); return val }()
 		blanks := make([]string, count-1)
 		for i := range blanks {
 			blanks[i] = "_"
 		}
-		leftExpr = fmt.Sprintf("func() any { val, %s := %s; return val }()", strings.Join(blanks, ", "), leftExpr)
+		retType := g.inferExprType(expr.Left)
+		if retType == "" {
+			retType = "any"
+		}
+		leftExpr = fmt.Sprintf("func() %s { val, %s := %s; return val }()", retType, strings.Join(blanks, ", "), leftExpr)
 	}
 
 	// Right side can be a CallExpr or MethodCallExpr
