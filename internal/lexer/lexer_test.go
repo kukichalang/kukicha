@@ -705,6 +705,88 @@ func TestPipeContinuation(t *testing.T) {
 	}
 }
 
+func TestPipeContinuationRegression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []TokenType
+	}{
+		{
+			// Pipe inside a nested block — continuation indentation
+			// should not interfere with the enclosing block's INDENT/DEDENT.
+			name: "pipe inside nested if",
+			input: "func Test()\n    if true\n        x := data |>\n            transform()\n        print(x)\n",
+			expected: []TokenType{
+				TOKEN_FUNC, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_NEWLINE,
+				TOKEN_INDENT, TOKEN_IF, TOKEN_TRUE, TOKEN_NEWLINE,
+				TOKEN_INDENT, TOKEN_IDENTIFIER, TOKEN_WALRUS, TOKEN_IDENTIFIER, TOKEN_PIPE,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_NEWLINE,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_RPAREN, TOKEN_NEWLINE,
+				TOKEN_DEDENT, TOKEN_DEDENT, TOKEN_EOF,
+			},
+		},
+		{
+			// Dedented pipe should NOT be treated as continuation.
+			name: "dedented pipe is not continuation",
+			input: "func Test()\n    x := data\nprint(x)\n",
+			expected: []TokenType{
+				TOKEN_FUNC, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_NEWLINE,
+				TOKEN_INDENT, TOKEN_IDENTIFIER, TOKEN_WALRUS, TOKEN_IDENTIFIER, TOKEN_NEWLINE,
+				TOKEN_DEDENT, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_RPAREN, TOKEN_NEWLINE,
+				TOKEN_EOF,
+			},
+		},
+		{
+			// Multiple chained pipes each indented +4.
+			name: "deep chained continuation",
+			input: "x := data |>\n    f() |>\n        g() |>\n            h()\n",
+			expected: []TokenType{
+				TOKEN_IDENTIFIER, TOKEN_WALRUS, TOKEN_IDENTIFIER, TOKEN_PIPE,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_PIPE,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_PIPE,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_NEWLINE,
+				TOKEN_EOF,
+			},
+		},
+		{
+			// Pipe chain with onerr, all at same indentation.
+			name: "pipe chain same indent with onerr",
+			input: "func Test() string\n    x := data\n        |> parse()\n        |> validate()\n        onerr return \"\"\n    return x\n",
+			expected: []TokenType{
+				TOKEN_FUNC, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_IDENTIFIER, TOKEN_NEWLINE,
+				TOKEN_INDENT, TOKEN_IDENTIFIER, TOKEN_WALRUS, TOKEN_IDENTIFIER,
+				TOKEN_PIPE, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN,
+				TOKEN_PIPE, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN,
+				TOKEN_ONERR, TOKEN_RETURN, TOKEN_STRING, TOKEN_NEWLINE,
+				TOKEN_RETURN, TOKEN_IDENTIFIER, TOKEN_NEWLINE,
+				TOKEN_DEDENT, TOKEN_EOF,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lexer := NewLexer(tt.input, "test.kuki")
+			tokens, err := lexer.ScanTokens()
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			if len(tokens) != len(tt.expected) {
+				types := make([]string, len(tokens))
+				for i, tok := range tokens {
+					types[i] = tok.Type.String()
+				}
+				t.Fatalf("Expected %d tokens, got %d\nGot: %v", len(tt.expected), len(tokens), types)
+			}
+			for i, expected := range tt.expected {
+				if tokens[i].Type != expected {
+					t.Errorf("Token %d: expected %s, got %s", i, expected, tokens[i].Type)
+				}
+			}
+		})
+	}
+}
+
 func TestErrorCases(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -50,13 +50,16 @@ Kukicha is indentation-sensitive. The lexer converts 4-space indentation changes
 
 ### Line continuation
 
-`TOKEN_NEWLINE` is suppressed (continuation mode) when:
-- Previous token was `TOKEN_PIPE` (`|>`)
-- Next line starts with `|>` (checked by `isPipeAtStartOfNextLine`)
-- Next line starts with `onerr` (checked by `isOnErrAtStartOfNextLine`)
-- Inside `[]` or `{}` (`braceDepth > 0`)
+`TOKEN_NEWLINE` is suppressed (continuation mode) in two ways:
 
-`()` (parentheses) do NOT suppress newlines when inside a function literal body — closures need `INDENT/DEDENT` for their block structure.
+**Inline (during tokenization):** Inside `[]` or `{}` (`braceDepth > 0`), `TOKEN_NEWLINE` is suppressed and `continuationLine` is set so the next line's indentation is consumed without emitting INDENT/DEDENT. `()` (parentheses) do NOT suppress newlines when inside a function literal body — closures need `INDENT/DEDENT` for their block structure.
+
+**Post-pass (`mergeLineContinuations`):** Pipe continuation (`|>`) and `onerr` on continuation lines are handled after tokenization. The lexer emits NEWLINE/INDENT/DEDENT normally; the post-pass removes them around pipe chains. This decouples pipe handling from the indent stack. Three patterns are merged:
+1. Trailing pipe: `PIPE [COMMENT*] NEWLINE [INDENT*]` → remove NEWLINE and INDENTs
+2. Leading pipe: `NEWLINE [INDENT*] PIPE` → remove NEWLINE and INDENTs (no DEDENTs allowed)
+3. Leading onerr: `NEWLINE [INDENT*] ONERR` → same as (2), only in pipe chain context
+
+For each INDENT absorbed, a corresponding DEDENT is also absorbed later in the stream.
 
 ### Adding a new keyword
 

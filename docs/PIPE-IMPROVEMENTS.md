@@ -156,8 +156,8 @@ Each error-returning step in a pipeline onerr chain now gets a `// pipe step N: 
 
 **Files:** `internal/codegen/lower.go` (`lowerOnErrPipeChain`, `lowerOnErrPipeChainWithLabels`), `internal/codegen/codegen_pipes_test.go`
 
-### P3 — Decouple lexer line continuation from indent stack
+### P3 — Decouple lexer line continuation from indent stack (DONE)
 
-Refactor line continuation to a post-tokenization pass or separate state machine, reducing coupling to indent tracking.
+Pipe continuation (`|>` and `onerr` on continuation lines) is now handled by a post-tokenization pass (`mergeLineContinuations`) instead of being interleaved with the indent stack logic in `scanToken`. The lexer emits NEWLINE/INDENT/DEDENT tokens normally, and the post-pass removes them around pipe chains. Brace-depth continuation (`[]`, `{}`) remains inline since it is simple and well-understood.
 
-**Files:** `internal/lexer/lexer.go`
+**Files:** `internal/lexer/lexer.go` (`mergeLineContinuations`, removed `isPipeAtStartOfNextLine`/`isOnErrAtStartOfNextLine`/`nextNonWhitespaceWithIndent`/`lastTokenType`), `internal/lexer/lexer_test.go` (4 new regression tests)

@@ -33,15 +33,14 @@ type Lexer struct {
 	indentationHandled bool  // Whether indentation has been handled for the current line
 	errors             []error
 
-	// Pipe continuation support: a trailing |> at end of line suppresses the
-	// NEWLINE token and causes the next line's indentation to be consumed
-	// without emitting INDENT/DEDENT, so the pipe RHS is parsed as part of
-	// the same expression regardless of how it is indented.
-	lastTokenType     TokenType // last emitted token type (TOKEN_COMMENT excluded)
-	continuationLine  bool      // true when the next line is a |> continuation
-	braceDepth        int       // current nesting level of [], {} (used for continuations)
-	parenDepth        int       // current nesting level of () (used for closures)
-	inFunctionLiteral bool      // true when we've just seen 'func' and are parsing its body
+	// Brace continuation support: inside [] or {}, NEWLINE tokens are
+	// suppressed and indentation is consumed without emitting INDENT/DEDENT.
+	// Pipe continuation (|>) is handled separately by mergeLineContinuations
+	// as a post-tokenization pass, decoupling it from the indent stack.
+	continuationLine  bool // true when the next line is inside a brace continuation
+	braceDepth        int  // current nesting level of [], {} (used for continuations)
+	parenDepth        int  // current nesting level of () (used for closures)
+	inFunctionLiteral bool // true when we've just seen 'func' and are parsing its body
 
 	// String interpolation support: when scanning a string and encountering
 	// {expr}, the lexer emits TOKEN_STRING_HEAD, returns to normal tokenization
@@ -85,16 +84,18 @@ func (l *Lexer) ScanTokens() ([]Token, error) {
 		return nil, fmt.Errorf("lexer errors: %v", l.errors)
 	}
 
+	// Post-pass: merge pipe continuation lines. This removes NEWLINE/INDENT/
+	// DEDENT tokens around |> chains so the parser sees them as single
+	// expressions, without coupling to the indent stack logic above.
+	l.tokens = mergeLineContinuations(l.tokens)
+
 	return l.tokens, nil
 }
 
 // scanToken scans a single token
 func (l *Lexer) scanToken() {
-	// Pipe continuation: the previous line ended with |> so this line's
-	// leading whitespace is consumed without emitting INDENT/DEDENT.  The
-	// indent stack is left untouched; when the pipe chain ends and a normal
-	// NEWLINE is emitted the next line's indentation is compared against the
-	// unchanged stack and DEDENT tokens are emitted as usual.
+	// Brace continuation: the previous line was inside [] or {}, so this
+	// line's leading whitespace is consumed without emitting INDENT/DEDENT.
 	if l.atLineStart && l.continuationLine && !l.indentationHandled {
 		l.continuationLine = false
 		for !l.isAtEnd() && (l.peek() == ' ' || l.peek() == '\t') {
@@ -140,15 +141,9 @@ func (l *Lexer) scanToken() {
 			l.advance()
 		}
 	case '\n':
-		// Implicit continuation if:
-		// 1. We are inside non-paren braces (braceDepth > 0) AND not in a closure
-		// 2. The *previous* token was a pipe
-		// 3. The *next* token (on the new line) is a pipe
-		//
-		// NOTE: parenDepth > 0 does NOT suppress indentation when we're in a function
-		// literal (closure), because closures need INDENT/DEDENT tokens for their body.
-		isLineContinuation := (l.braceDepth > 0) || l.lastTokenType == TOKEN_PIPE || l.isPipeAtStartOfNextLine() || l.isOnErrAtStartOfNextLine()
-		if isLineContinuation {
+		// Implicit continuation inside [] or {} (braceDepth > 0).
+		// Pipe continuation (|>) is handled by mergeLineContinuations post-pass.
+		if l.braceDepth > 0 {
 			l.continuationLine = true
 		} else {
 			l.addToken(TOKEN_NEWLINE)
@@ -161,8 +156,7 @@ func (l *Lexer) scanToken() {
 		if l.peek() == '\n' {
 			l.advance()
 		}
-		isLineContinuation := (l.braceDepth > 0) || l.lastTokenType == TOKEN_PIPE || l.isPipeAtStartOfNextLine() || l.isOnErrAtStartOfNextLine()
-		if isLineContinuation {
+		if l.braceDepth > 0 {
 			l.continuationLine = true
 		} else {
 			l.addToken(TOKEN_NEWLINE)
@@ -852,12 +846,6 @@ func (l *Lexer) addTokenWithLexeme(tokenType TokenType, lexeme string) {
 		File:   l.file,
 	}
 	l.tokens = append(l.tokens, token)
-	// Track last emitted type for pipe-continuation logic.  Comments are
-	// excluded so that a comment on the same line as a trailing |> does not
-	// break the continuation (the parser already skips TOKEN_COMMENT).
-	if tokenType != TOKEN_COMMENT && tokenType != TOKEN_DIRECTIVE {
-		l.lastTokenType = tokenType
-	}
 }
 
 func (l *Lexer) error(message string) {
@@ -900,54 +888,88 @@ func IsKeyword(s string) bool {
 	return ok
 }
 
-// isPipeAtStartOfNextLine checks if the next non-whitespace characters
-// on the upcoming line form a pipe operator "|>".  Called from the '\n'
-// (or '\r') case after advance() has already consumed the newline, so
-// l.current points to the first character of the next line.
-func (l *Lexer) isPipeAtStartOfNextLine() bool {
-	idx, indent := l.nextNonWhitespaceWithIndent()
-	if indent < l.indentStack[len(l.indentStack)-1] {
-		return false
-	}
-	if idx+1 < len(l.source) && l.source[idx] == '|' && l.source[idx+1] == '>' {
-		return true
-	}
-	return false
-}
+// mergeLineContinuations removes NEWLINE/INDENT/DEDENT tokens around pipe
+// chains so the parser sees pipe expressions as single continuous lines.
+// This is a post-tokenization pass that decouples pipe continuation handling
+// from the indent stack logic in scanToken.
+//
+// Three patterns are handled:
+//  1. Trailing pipe: PIPE [COMMENT*] NEWLINE [INDENT*] → keep PIPE/COMMENTs, remove NEWLINE/INDENTs
+//  2. Leading pipe: NEWLINE [INDENT*] PIPE → remove NEWLINE/INDENTs (no DEDENTs allowed between)
+//  3. Leading onerr: NEWLINE [INDENT*] ONERR → same as (2), only when in a pipe chain context
+//
+// For each INDENT absorbed, a corresponding DEDENT is also absorbed later.
+func mergeLineContinuations(tokens []Token) []Token {
+	result := make([]Token, 0, len(tokens))
+	absorbedIndents := 0
+	inPipeChain := false
 
-func (l *Lexer) isOnErrAtStartOfNextLine() bool {
-	idx, indent := l.nextNonWhitespaceWithIndent()
-	if indent < l.indentStack[len(l.indentStack)-1] {
-		return false
-	}
-	if idx+5 <= len(l.source) && string(l.source[idx:idx+5]) == "onerr" {
-		if idx+5 == len(l.source) || !isAlpha(l.source[idx+5]) && !isDigit(l.source[idx+5]) {
-			return true
+	i := 0
+	for i < len(tokens) {
+		tok := tokens[i]
+
+		// Absorb DEDENTs that correspond to removed INDENTs.
+		if tok.Type == TOKEN_DEDENT && absorbedIndents > 0 {
+			absorbedIndents--
+			i++
+			continue
 		}
-	}
-	return false
-}
 
-func (l *Lexer) nextNonWhitespaceWithIndent() (int, int) {
-	idx := l.current
-	indent := 0
-	for idx < len(l.source) {
-		c := l.source[idx]
-		if c == ' ' {
-			indent++
-			idx++
-		} else if c == '\t' {
-			indent += 4
-			idx++
-		} else if c == '\n' || c == '\r' {
-			idx++
-			indent = 0
-			if c == '\r' && idx < len(l.source) && l.source[idx] == '\n' {
-				idx++
+		// Rule 1: Trailing pipe — PIPE [COMMENT*] NEWLINE [INDENT*]
+		if tok.Type == TOKEN_PIPE {
+			result = append(result, tok)
+			inPipeChain = true
+			i++
+			// Preserve comments after the pipe.
+			for i < len(tokens) && tokens[i].Type == TOKEN_COMMENT {
+				result = append(result, tokens[i])
+				i++
 			}
-		} else {
-			break
+			if i < len(tokens) && tokens[i].Type == TOKEN_NEWLINE {
+				// Look ahead past the NEWLINE for INDENTs.
+				j := i + 1
+				indents := 0
+				for j < len(tokens) && tokens[j].Type == TOKEN_INDENT {
+					indents++
+					j++
+				}
+				// Continuation only if no DEDENT follows (the next line
+				// is at the same or deeper indentation).
+				if j < len(tokens) && tokens[j].Type != TOKEN_DEDENT && tokens[j].Type != TOKEN_EOF {
+					absorbedIndents += indents
+					i = j // skip NEWLINE and INDENTs
+				}
+			}
+			continue
 		}
+
+		// Rule 2 & 3: Leading pipe/onerr — NEWLINE [INDENT*] PIPE|ONERR
+		if tok.Type == TOKEN_NEWLINE {
+			j := i + 1
+			indents := 0
+			for j < len(tokens) && tokens[j].Type == TOKEN_INDENT {
+				indents++
+				j++
+			}
+			if j < len(tokens) {
+				isPipe := tokens[j].Type == TOKEN_PIPE
+				isOnerr := tokens[j].Type == TOKEN_ONERR && inPipeChain
+				if isPipe || isOnerr {
+					absorbedIndents += indents
+					i = j // skip NEWLINE and INDENTs, next iteration picks up PIPE/ONERR
+					continue
+				}
+			}
+			// Not a continuation — emit NEWLINE and end the pipe chain.
+			result = append(result, tok)
+			inPipeChain = false
+			i++
+			continue
+		}
+
+		result = append(result, tok)
+		i++
 	}
-	return idx, indent
+
+	return result
 }
