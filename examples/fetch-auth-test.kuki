@@ -44,8 +44,7 @@ func startServer()
     )
 
     http.HandleFunc("/session", func(w http.ResponseWriter, r reference http.Request)
-        cookie, err := r.Cookie("mysession")
-        if err != empty
+        if cookie, err := r.Cookie("mysession"); err != empty
             # Cookie is not present, set it
             http.SetCookie(w, reference of http.Cookie{Name: "mysession", Value: "active"})
             w.Write("Cookie Set" as list of byte)

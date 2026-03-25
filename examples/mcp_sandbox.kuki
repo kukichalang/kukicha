@@ -22,8 +22,7 @@ func writeFileTool(box sandbox.Root, args map of string to any) (any, error)
 
 func listFilesTool(box sandbox.Root, args map of string to any) (any, error)
     path := "."
-    p, ok := args["path"].(string)
-    if ok
+    if p, ok := args["path"].(string); ok
         path = p
     names, listErr := sandbox.List(box, path)
     if listErr != empty
