@@ -107,6 +107,8 @@ func main() {
 			os.Exit(1)
 		}
 		auditCommand(auditFlags.Args(), *jsonFlag, *warnOnly)
+	case "proxy":
+		proxyCommand(args)
 	case "init":
 		initCommand(args)
 	case "version":
@@ -132,6 +134,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "    -w          Write result to file instead of stdout")
 	fmt.Fprintln(os.Stderr, "    --check     Check if files are formatted (exit 1 if not)")
 	fmt.Fprintln(os.Stderr, "  kukicha pack [--output dir] <skill.kuki>  Package skill for distribution")
+	fmt.Fprintln(os.Stderr, "  kukicha proxy <command>     Manage local caching proxy (start/stop/status)")
 	fmt.Fprintln(os.Stderr, "  kukicha init [module-name]  Initialize project (go mod init + extract stdlib)")
 	fmt.Fprintln(os.Stderr, "  kukicha version             Show version information")
 	fmt.Fprintln(os.Stderr, "  kukicha help                Show this help message")
@@ -358,6 +361,7 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 			env = setEnvVar(env, "GOOS", "js")
 			env = setEnvVar(env, "GOARCH", "wasm")
 		}
+		env = setEnvVar(env, "GOPROXY", buildProxyChain())
 		cmd.Env = env
 		cmd.Stdout = os.Stdout
 		var stderrBuf bytes.Buffer
@@ -477,7 +481,9 @@ func runCommand(filename string, targetFlag string, scriptArgs []string) {
 	goArgs := append([]string{"run", "-mod=mod", tmpFile}, scriptArgs...)
 	cmd := exec.Command("go", goArgs...)
 	cmd.Dir = cr.projectDir
-	cmd.Env = os.Environ()
+	runEnv := os.Environ()
+	runEnv = setEnvVar(runEnv, "GOPROXY", buildProxyChain())
+	cmd.Env = runEnv
 	cmd.Stdout = os.Stdout
 	var stderrBuf bytes.Buffer
 	cmd.Stderr = &stderrBuf

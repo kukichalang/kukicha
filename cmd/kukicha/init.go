@@ -63,6 +63,11 @@ func initCommand(args []string) {
 	fmt.Println("  AGENTS.md updated with Kukicha language reference.")
 	fmt.Println("  CLAUDE.md updated with @AGENTS.md reference (if present).")
 	fmt.Println()
+	fmt.Println()
+	fmt.Println("Supply chain protection enabled.")
+	fmt.Printf("  Dependencies resolved via: %s (7-day cooldown)\n", hostedProxyURL)
+	fmt.Println("  For local caching: kukicha proxy start")
+	fmt.Println()
 	fmt.Println("Commit AGENTS.md. Add .kukicha/ to your .gitignore:")
 	fmt.Println("  echo '.kukicha/' >> .gitignore")
 }
