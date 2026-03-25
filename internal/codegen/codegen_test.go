@@ -510,3 +510,21 @@ func TestIfInitStatement(t *testing.T) {
 		t.Errorf("expected if-init with ok condition, got: %s", output)
 	}
 }
+
+func TestElseIfInitStatement(t *testing.T) {
+	input := `func Match(a map of string to int, b map of string to int, key string) int
+    if v, ok := a[key]; ok
+        return v
+    else if v, ok := b[key]; ok
+        return v
+    return -1
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "v, ok := a[key]; ok") {
+		t.Errorf("expected if-init for first branch, got: %s", output)
+	}
+	if !strings.Contains(output, "v, ok := b[key]; ok") {
+		t.Errorf("expected if-init for else-if branch, got: %s", output)
+	}
+}

@@ -325,23 +325,18 @@ func structScanners(elem reflect.Value, elemType reflect.Type, columns list of s
     # Map each column to a null-safe scanner
     ptrs := make(list of any, len(columns))
     for ci, col in columns
-        ptrs[ci] = matchColumnToField(elem, col, tagMap, nameMap, snakeMap)
+        lowerCol := strpkg.ToLower(col)
+        if idx, ok := tagMap[col]; ok
+            ptrs[ci] = reference of nullSafeField{target: elem.Field(idx)}
+        else if idx, ok := nameMap[lowerCol]; ok
+            ptrs[ci] = reference of nullSafeField{target: elem.Field(idx)}
+        else if idx, ok := snakeMap[lowerCol]; ok
+            ptrs[ci] = reference of nullSafeField{target: elem.Field(idx)}
+        else
+            throwaway := ""
+            ptrs[ci] = reference of throwaway
 
     return ptrs
-
-func matchColumnToField(elem reflect.Value, col string, tagMap map of string to int, nameMap map of string to int, snakeMap map of string to int) any
-    if idx, ok := tagMap[col]; ok
-        return reference of nullSafeField{target: elem.Field(idx)}
-
-    lowerCol := strpkg.ToLower(col)
-    if idx, ok := nameMap[lowerCol]; ok
-        return reference of nullSafeField{target: elem.Field(idx)}
-
-    if idx, ok := snakeMap[lowerCol]; ok
-        return reference of nullSafeField{target: elem.Field(idx)}
-
-    throwaway := ""
-    return reference of throwaway
 
 # camelToSnake converts CamelCase to snake_case.
 func camelToSnake(s string) string

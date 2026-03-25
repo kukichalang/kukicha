@@ -340,8 +340,20 @@ func (g *Generator) generateIfStmt(stmt *ast.IfStmt) {
 }
 
 func (g *Generator) generateIfStmtContinued(stmt *ast.IfStmt) {
-	condition := g.exprToString(stmt.Condition)
-	g.output.WriteString(fmt.Sprintf("if %s {\n", condition))
+	if stmt.Init != nil {
+		g.output.WriteString("if ")
+		tempGen := g.childGenerator(0)
+		tempGen.indent = 0
+		tempGen.generateStatement(stmt.Init)
+		initStr := strings.TrimSpace(tempGen.output.String())
+		g.output.WriteString(initStr)
+		g.output.WriteString("; ")
+		g.output.WriteString(g.exprToString(stmt.Condition))
+		g.output.WriteString(" {\n")
+	} else {
+		condition := g.exprToString(stmt.Condition)
+		g.output.WriteString(fmt.Sprintf("if %s {\n", condition))
+	}
 
 	g.indent++
 	g.generateBlock(stmt.Consequence)

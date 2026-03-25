@@ -200,8 +200,6 @@ Always store the keyword's `lexer.Token` as the first field — it carries line/
 
 `IfStmt` supports optional init statements: `if x, ok := m[key]; ok`. The `Init` field holds the init statement (typically a `VarDeclStmt` or `AssignStmt`); it is nil for plain `if condition`. The parser uses a lookahead scan for `;` at the current nesting depth to decide whether an init statement is present. Semantic analysis enters a new scope before analyzing the init statement so that variables declared in the init are scoped to the if/else chain.
 
-**Known limitation:** `else if` branches with their own init statements do not codegen correctly — the init is dropped. Use early-return patterns or split into separate `if` blocks as a workaround.
-
 ### OnErrClause
 
 `OnErrClause` is **not** a standalone `Statement` or `Expression`. It is an optional field on `VarDeclStmt`, `AssignStmt`, and `ExpressionStmt`. The `Handler` field holds the parsed error handler expression (`PanicExpr`, `EmptyExpr`, `DiscardExpr`, `ReturnExpr`, or a default value expression). Shorthand forms use boolean flags instead of `Handler`: `ShorthandReturn`, `ShorthandContinue`, `ShorthandBreak`.
