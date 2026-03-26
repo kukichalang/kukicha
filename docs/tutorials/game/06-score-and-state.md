@@ -15,7 +15,6 @@ Add scoring, a game-over condition, and restart logic.
 # score.kuki
 
 import "stdlib/game"
-import "fmt"
 
 variable player game.Rect = game.Rect{X: 300, Y: 400, Width: 30, Height: 30}
 variable target game.Rect = game.Rect{X: 200, Y: 50, Width: 20, Height: 20}
@@ -51,7 +50,7 @@ function update()
     # Player caught the target
     if game.Overlaps(player, target)
         score = score + 1
-        if score % 5 == 0 and targetSpeed < 8.0
+        if score % 5 equals 0 and targetSpeed < 8.0
             targetSpeed = targetSpeed + 0.5
         resetTarget()
 
@@ -76,13 +75,13 @@ function draw(screen game.Screen)
     game.Clear(screen, game.MakeColor(20, 20, 50, 255))
 
     if gameOver
-        game.DrawText(screen, fmt.Sprintf("Game Over! Score: %d", score), 230, 200, game.Red)
+        game.DrawText(screen, "Game Over! Score: {score}", 230, 200, game.Red)
         game.DrawText(screen, "Press SPACE to restart", 220, 230, game.White)
         return
 
     game.DrawRect(screen, player.X, player.Y, player.Width, player.Height, game.Green)
     game.DrawRect(screen, target.X, target.Y, target.Width, target.Height, game.Yellow)
-    game.DrawText(screen, fmt.Sprintf("Score: %d  Lives: %d", score, lives), 10, 10, game.White)
+    game.DrawText(screen, "Score: {score}  Lives: {lives}", 10, 10, game.White)
 ```
 
 ## How it works

@@ -15,7 +15,6 @@ Build a complete Breakout game using everything you've learned.
 # breakout.kuki
 
 import "stdlib/game"
-import "fmt"
 
 constant screenW = 640
 constant screenH = 480
@@ -104,19 +103,19 @@ function update()
             ballDY = ballDY * -1.0
             score = score + 10
 
-    if remaining == 0
+    if remaining equals 0
         won = true
 
 function draw(screen game.Screen)
     game.Clear(screen, game.MakeColor(10, 10, 30, 255))
 
     if gameOver
-        game.DrawText(screen, fmt.Sprintf("Game Over! Score: %d", score), 230, 220, game.Red)
+        game.DrawText(screen, "Game Over! Score: {score}", 230, 220, game.Red)
         game.DrawText(screen, "Press SPACE to restart", 220, 250, game.White)
         return
 
     if won
-        game.DrawText(screen, fmt.Sprintf("You Win! Score: %d", score), 240, 220, game.Green)
+        game.DrawText(screen, "You Win! Score: {score}", 240, 220, game.Green)
         game.DrawText(screen, "Press SPACE to play again", 210, 250, game.White)
         return
 
@@ -136,7 +135,7 @@ function draw(screen game.Screen)
         game.DrawRect(screen, bricks[i].X, bricks[i].Y, bricks[i].Width, bricks[i].Height, c)
 
     # Draw score
-    game.DrawText(screen, fmt.Sprintf("Score: %d", score), 10, 10, game.White)
+    game.DrawText(screen, "Score: {score}", 10, 10, game.White)
 ```
 
 ## How it works

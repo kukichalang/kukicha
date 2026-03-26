@@ -14,7 +14,6 @@ Use `OnSetup` for initialization and add visual polish to your game.
 # polished.kuki
 
 import "stdlib/game"
-import "fmt"
 
 variable player game.Rect
 variable targets list of game.Rect
@@ -72,7 +71,7 @@ function draw(screen game.Screen)
         game.DrawRect(screen, targets[i].X, targets[i].Y, targets[i].Width, targets[i].Height, game.Yellow)
 
     # Draw score
-    game.DrawText(screen, fmt.Sprintf("Score: %d", score), 10, 10, game.White)
+    game.DrawText(screen, "Score: {score}", 10, 10, game.White)
 ```
 
 ## How it works
