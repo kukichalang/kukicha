@@ -217,7 +217,7 @@ function main()
         print("Good to go")
 ```
 
-No brackets, no quoting the variable, no semicolons. `equals` and `not equals` do what you'd expect.
+No brackets, no quoting the variable, no semicolons. `equals` and `isnt` do what you'd expect.
 
 ---
 
@@ -257,7 +257,7 @@ Save this as `decisions.kuki` and run it:
 kukicha run decisions.kuki
 ```
 
-No `then`, no `fi`, no `[ ]`, no `-ge` / `-lt` / `-eq`. Just the comparison operators you'd expect: `>=`, `<=`, `>`, `<`, `equals`, `not equals`.
+No `then`, no `fi`, no `[ ]`, no `-ge` / `-lt` / `-eq`. Just the comparison operators you'd expect: `>=`, `<=`, `>`, `<`, `equals`, `isnt`.
 
 ### Combining Conditions
 

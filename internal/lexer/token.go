@@ -72,6 +72,7 @@ const (
 	TOKEN_WALRUS         // :=
 	TOKEN_ASSIGN         // =
 	TOKEN_EQUALS         // equals
+	TOKEN_ISNT           // isnt
 	TOKEN_DOUBLE_EQUALS  // ==
 	TOKEN_NOT_EQUALS     // !=
 	TOKEN_LT             // <
@@ -402,6 +403,7 @@ var keywords = map[string]TokenType{
 	"true":        TOKEN_TRUE,
 	"false":       TOKEN_FALSE,
 	"equals":      TOKEN_EQUALS,
+	"isnt":        TOKEN_ISNT,
 	"and":         TOKEN_AND,
 	"or":          TOKEN_OR,
 	"onerr":       TOKEN_ONERR,

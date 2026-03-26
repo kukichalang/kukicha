@@ -481,7 +481,7 @@ function main()
                     # No argument — build a menu from languages in the current repo list
                     languages := make(list of string, 0)
                     for repo in ex.repos
-                        if repo.Language not equals "" and not slice.Contains(languages, repo.Language)
+                        if repo.Language isnt "" and not slice.Contains(languages, repo.Language)
                             languages = append(languages, repo.Language)
                     if slice.IsEmpty(languages)
                         print("No language data in current repos.")

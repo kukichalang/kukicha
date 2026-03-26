@@ -274,7 +274,7 @@ value := getData() onerr return empty, error "{error}"
 # When function returns (T1, T2, error)
 # Use tuple unpacking first
 a, b, err := getMultiple()
-if err != empty
+if err isnt empty
     return empty, empty, err
 ```
 

@@ -357,7 +357,7 @@ kukicha run cleaner.kuki
 > import "stdlib/iterator"
 >
 > # Lazy pipeline: filter and transform without materializing intermediate lists
-> rows |> iterator.Filter((row map of string to string) => row["name"] not equals "")
+> rows |> iterator.Filter((row map of string to string) => row["name"] isnt "")
 >     |> iterator.Map((row map of string to string) =>
 >         row["name"] = row["name"] |> string.TrimSpace() |> string.Title()
 >         return row

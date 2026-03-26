@@ -384,7 +384,7 @@ function updatePlaying()
         }
         if game.CircleOverlapsRect(stem, intake) and stemDY < 0.0
             # Level 3 chain check: must hit in sequence
-            if level equals 3 and stations[i].sequence not equals nextInChain
+            if level equals 3 and stations[i].sequence isnt nextInChain
                 # Wrong station — bounce off and reset chain
                 stemDY = stemDY * -1.0
                 resetChain()

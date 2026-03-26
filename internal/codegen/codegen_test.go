@@ -265,6 +265,18 @@ func TestBooleanOperators(t *testing.T) {
 	}
 }
 
+func TestIsntOperator(t *testing.T) {
+	input := `func Check(a int, b int) bool
+    return a isnt b
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "!=") {
+		t.Errorf("expected != operator for isnt, got: %s", output)
+	}
+}
+
 func TestReferenceType(t *testing.T) {
 	input := `type Person
     Name string

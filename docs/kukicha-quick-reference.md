@@ -13,7 +13,7 @@ Kukicha replaces many symbolic operators with English words for better readabili
 | `or` | `a or b` | Logical OR (`||`) |
 | `not` | `not a` | Logical NOT (`!`) |
 | `equals` | `a equals b` | Equality (`==`) |
-| `not equals` | `a not equals b` | Inequality (`!=`) |
+| `isnt` | `a isnt b` | Inequality (`!=`). Also `not equals` |
 | `in` | `item in collection` | Membership test |
 | `not in` | `item not in collection` | Inverse membership test |
 | `discard` | `onerr discard` | Ignore error in `onerr` clause |
@@ -354,7 +354,7 @@ func Connect(host string, port int = 8080, timeout int = 30)
 | `// comment` | `# comment` |
 | `{ ... }` | (Indentation - 4 spaces) |
 | `&&`, `\|\|`, `!` | `and`, `or`, `not` |
-| `==`, `!=` | `equals`, `not equals` |
+| `==`, `!=` | `equals`, `isnt` |
 | `*T` | `reference T` |
 | `&v` | `reference of v` |
 | `*v` | `dereference v` |

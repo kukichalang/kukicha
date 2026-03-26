@@ -375,7 +375,7 @@ func (a *Analyzer) analyzeBinaryExpr(expr *ast.BinaryExpr) *TypeInfo {
 		}
 		return &TypeInfo{Kind: TypeKindInt}
 
-	case "==", "!=", "<", ">", "<=", ">=", "equals", "not equals":
+	case "==", "!=", "<", ">", "<=", ">=", "equals", "not equals", "isnt":
 		// Comparison operators
 		if !a.typesCompatible(leftType, rightType) {
 			a.error(expr.Pos(), fmt.Sprintf("cannot compare %s and %s", leftType, rightType))

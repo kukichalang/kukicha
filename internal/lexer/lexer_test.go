@@ -884,6 +884,7 @@ func TestKeywordRecognition(t *testing.T) {
 		{"true", TOKEN_TRUE},
 		{"false", TOKEN_FALSE},
 		{"equals", TOKEN_EQUALS},
+		{"isnt", TOKEN_ISNT},
 		{"and", TOKEN_AND},
 		{"or", TOKEN_OR},
 		{"not", TOKEN_NOT},

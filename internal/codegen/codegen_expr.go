@@ -566,7 +566,7 @@ func (g *Generator) generateBinaryExpr(expr *ast.BinaryExpr) string {
 		op = "||"
 	case "equals":
 		op = "=="
-	case "not equals":
+	case "not equals", "isnt":
 		op = "!="
 	}
 

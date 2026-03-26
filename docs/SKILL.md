@@ -1009,7 +1009,7 @@ if err != nil {
 
 # CORRECT — Kukicha syntax
 result, err := doSomething()
-if err not equals empty
+if err isnt empty
     return err
 return result, empty
 ```

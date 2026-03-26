@@ -141,7 +141,7 @@ func (p *Parser) parseComparisonExpr() ast.Expression {
 
 	for {
 		var operator lexer.Token
-		if p.match(lexer.TOKEN_DOUBLE_EQUALS, lexer.TOKEN_NOT_EQUALS, lexer.TOKEN_LT, lexer.TOKEN_GT, lexer.TOKEN_LTE, lexer.TOKEN_GTE, lexer.TOKEN_EQUALS) {
+		if p.match(lexer.TOKEN_DOUBLE_EQUALS, lexer.TOKEN_NOT_EQUALS, lexer.TOKEN_LT, lexer.TOKEN_GT, lexer.TOKEN_LTE, lexer.TOKEN_GTE, lexer.TOKEN_EQUALS, lexer.TOKEN_ISNT) {
 			operator = p.previousToken()
 		} else if p.check(lexer.TOKEN_NOT) && p.peekNextToken().Type == lexer.TOKEN_EQUALS {
 			operator = p.advance() // consume NOT
@@ -744,7 +744,7 @@ func (p *Parser) parseEmptyExpr() *ast.EmptyExpr {
 	// Be careful not to consume logical operators or other delimiters as type annotations
 	next := p.peekToken().Type
 	if !p.check(lexer.TOKEN_NEWLINE) && !p.check(lexer.TOKEN_COMMA) && !p.check(lexer.TOKEN_RPAREN) &&
-		!p.check(lexer.TOKEN_AND) && !p.check(lexer.TOKEN_OR) && !p.check(lexer.TOKEN_NOT_EQUALS) &&
+		!p.check(lexer.TOKEN_AND) && !p.check(lexer.TOKEN_OR) && !p.check(lexer.TOKEN_NOT_EQUALS) && !p.check(lexer.TOKEN_ISNT) &&
 		!p.check(lexer.TOKEN_DOUBLE_EQUALS) && !p.check(lexer.TOKEN_BANG) && !p.check(lexer.TOKEN_PIPE) &&
 		!p.isAtEnd() {
 		// Only parse if it looks like a type name or keywords like 'map', 'list', 'func', 'channel'

@@ -28,7 +28,7 @@ func (g *Generator) inferExprReturnType(expr ast.Expression) string {
 	switch e := expr.(type) {
 	case *ast.BinaryExpr:
 		switch e.Operator {
-		case "==", "!=", "<", ">", "<=", ">=", "equals", "not equals",
+		case "==", "!=", "<", ">", "<=", ">=", "equals", "not equals", "isnt",
 			"and", "or", "&&", "||", "in", "not in":
 			return "bool"
 		case "+", "-", "*", "/", "%":

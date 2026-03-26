@@ -362,7 +362,7 @@ defer f.Close()                    # Defer a single call
 
 # Defer block (multi-statement cleanup, emits defer func() { ... }())
 defer
-    if r := recover(); r != empty
+    if r := recover(); r isnt empty
         tx.Rollback()
         panic(r)
 ```

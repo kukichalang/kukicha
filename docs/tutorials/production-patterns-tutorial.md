@@ -214,7 +214,7 @@ function OpenDatabase(filename string) (Database, error)
 
 # Close the database
 function Close on d Database()
-    if d.db not equals empty
+    if d.db isnt empty
         d.db.Close()
 ```
 
@@ -326,7 +326,7 @@ type ErrorResponse
 
 function NewServer(dbPath string, baseURL string) (reference Server, error)
     db, dbErr := OpenDatabase(dbPath)
-    if dbErr not equals empty
+    if dbErr isnt empty
         return empty, dbErr
 
     server := Server{db: db, baseURL: baseURL}
@@ -336,7 +336,7 @@ function NewServer(dbPath string, baseURL string) (reference Server, error)
 
 # POST /shorten — Create a new short link
 function handleShorten on s reference Server(w http.ResponseWriter, r reference http.Request)
-    if r.Method not equals "POST"
+    if r.Method isnt "POST"
         httphelper.MethodNotAllowed(w)
         return
 
@@ -361,13 +361,13 @@ function handleShorten on s reference Server(w http.ResponseWriter, r reference 
     # Retry on collision (unlikely with 6 random chars, but be safe)
     for i from 0 to 10
         _, getErr := s.db.GetLink(code)
-        if getErr not equals empty
+        if getErr isnt empty
             break
         code = random.String(6)
     link, createErr := s.db.InsertLink(code, input.url)
     s.mu.Unlock()
 
-    if createErr not equals empty
+    if createErr isnt empty
         log.Printf("Error creating link: %v", createErr)
         httphelper.JSONError(w, 500, "Failed to create link")
         return
@@ -392,7 +392,7 @@ function handleRedirect on s reference Server(w http.ResponseWriter, r reference
     link, getErr := s.db.GetLink(code)
     s.mu.RUnlock()
 
-    if getErr not equals empty
+    if getErr isnt empty
         httphelper.JSONNotFound(w, "Link not found")
         return
 
@@ -411,7 +411,7 @@ function handleRedirect on s reference Server(w http.ResponseWriter, r reference
 
 # GET /links — List all links
 function handleListLinks on s reference Server(w http.ResponseWriter, r reference http.Request)
-    if r.Method not equals "GET"
+    if r.Method isnt "GET"
         httphelper.MethodNotAllowed(w)
         return
 
@@ -792,7 +792,7 @@ function RecoveryMiddleware(next http.Handler) http.Handler
         # Defer a function that calls recover()
         defer function()
             recovered := recover()
-            if recovered not equals empty
+            if recovered isnt empty
                 log.Printf("PANIC RECOVERED: %v", recovered)
                 http.Error(w, "Internal Server Error", 500)
         () # Call the deferred function
@@ -867,7 +867,7 @@ Here's a quick reference for translating between Kukicha and Go:
 | `reference of x` | `&x` |
 | `empty` | `nil` |
 | `equals` | `==` |
-| `not equals` | `!=` |
+| `isnt` / `not equals` | `!=` |
 | `and` | `&&` |
 | `or` | `\|\|` |
 | `not` | `!` |

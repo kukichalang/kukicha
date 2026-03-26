@@ -243,7 +243,7 @@ import "stdlib/http" as httphelper   # Alias to avoid conflict with "net/http"
 
 # POST /shorten — Create a shortened link
 function handleShorten on store reference LinkStore(response http.ResponseWriter, request reference http.Request)
-    if request.Method not equals "POST"
+    if request.Method isnt "POST"
         httphelper.MethodNotAllowed(response)
         return
 
@@ -305,7 +305,7 @@ function handleRedirect on store reference LinkStore(response http.ResponseWrite
 
 # GET /links — List all links
 function handleListLinks on store reference LinkStore(response http.ResponseWriter, request reference http.Request)
-    if request.Method not equals "GET"
+    if request.Method isnt "GET"
         httphelper.MethodNotAllowed(response)
         return
 
@@ -495,7 +495,7 @@ Add this handler to your `LinkStore` (or `Server`):
 
 ```kukicha
 function handleHome on store reference LinkStore(response http.ResponseWriter, request reference http.Request)
-    if request.URL.Path not equals "/"
+    if request.URL.Path isnt "/"
         http.NotFound(response, request)
         return
 

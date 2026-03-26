@@ -438,7 +438,7 @@ kukicha run strings.kuki
 
 **String comparison operators:**
 - `equals` - checks if two strings are the same
-- `not equals` - checks if two strings are different
+- `isnt` - checks if two strings are different (also `not equals`)
 
 ---
 
@@ -660,7 +660,7 @@ Consider joining our membership program!
 
 **Key points:**
 - Conditions don't need parentheses in Kukicha
-- Kukicha uses English words: `equals`, `not equals`, `and`, `or`, `not`
+- Kukicha uses English words: `equals`, `isnt`, `and`, `or`, `not`
 - Indentation defines what code belongs to each branch
 - Only the first matching branch runs in an `if/else if/else` chain
 
