@@ -68,6 +68,7 @@ type Generator struct {
 	stdlibModuleBase     string                   // Base module path for rewriting "stdlib/X" imports (default: defaultStdlibModuleBase)
 	reservedNames        map[string]bool          // User-declared identifiers — uniqueId skips these to avoid collisions
 	varMap               map[string]string        // Maps generated temp variable names to source descriptions (for debugging)
+	warnings             []error                  // Non-fatal diagnostics collected during code generation
 }
 
 // New creates a new code generator
@@ -88,6 +89,23 @@ func New(program *ast.Program) *Generator {
 // descriptions. Used by the CLI to annotate panic output and error messages.
 func (g *Generator) VarMap() map[string]string {
 	return g.varMap
+}
+
+// warn records a non-fatal diagnostic. Call Warnings() after Generate() to retrieve them.
+func (g *Generator) warn(pos ast.Position, message string) {
+	var w error
+	if pos.File != "" && pos.Line > 0 {
+		w = fmt.Errorf("%s:%d:%d: %s", pos.File, pos.Line, pos.Column, message)
+	} else {
+		w = fmt.Errorf("%s", message)
+	}
+	g.warnings = append(g.warnings, w)
+}
+
+// Warnings returns non-fatal diagnostics collected during code generation.
+// Call after Generate().
+func (g *Generator) Warnings() []error {
+	return g.warnings
 }
 
 // childGenerator creates a temporary Generator that shares the parent's semantic

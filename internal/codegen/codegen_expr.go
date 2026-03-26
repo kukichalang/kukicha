@@ -611,7 +611,7 @@ func (g *Generator) generateDerefExpr(expr *ast.DerefExpr) string {
 
 // generatePipeExpr transforms pipe expressions into function calls.
 //
-// ARCHITECTURE NOTE: Kukicha's pipe operator (|>) supports three strategies
+// ARCHITECTURE NOTE: Kukicha's pipe operator (|>) supports two strategies
 // to determine where the piped value is inserted:
 //
 //	Strategy A (Placeholder): User explicitly marks position with "_"
@@ -620,16 +620,12 @@ func (g *Generator) generateDerefExpr(expr *ast.DerefExpr) string {
 //	Strategy B (Data-First): Default - piped value becomes first argument
 //	  users |> slice.Filter(fn)  →  slice.Filter(users, fn)
 //
-//	Strategy C (Context-First): If piped value is a context.Context, special handling
-//	  ctx |> db.Query(sql)  →  db.Query(ctx, sql)
-//
 // The placeholder strategy (A) takes precedence. This design lets users handle
 // APIs where the "data" isn't the first parameter, without requiring Kukicha
 // to know every function signature in the ecosystem.
 func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 	// Transform a |> b() into b(a)
 	// Supports placeholder strategy: a |> b(x, _) becomes b(x, a)
-	// Supports context-first strategy: ctx |> b(x) becomes b(ctx, x)
 
 	// Calculate Left expression first, handling multi-return values if needed
 	leftExpr := g.exprToString(expr.Left)

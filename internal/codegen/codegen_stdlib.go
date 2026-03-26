@@ -411,6 +411,23 @@ func (g *Generator) isErrorOnlyReturn(expr ast.Expression) bool {
 	return false
 }
 
+// isUnknownSingleReturn returns true when an expression has a known return
+// count of 1 but its type was not resolved by semantic analysis. In a pipe
+// onerr chain this means we cannot tell whether the return value is an error
+// (should be checked) or a regular value (safe to collapse). The caller
+// should warn the user.
+func (g *Generator) isUnknownSingleReturn(expr ast.Expression) bool {
+	count, ok := g.inferReturnCount(expr)
+	if !ok || count != 1 {
+		return false
+	}
+	if g.exprTypes == nil {
+		return true
+	}
+	ti, ok := g.exprTypes[expr]
+	return !ok || ti == nil || ti.Kind == semantic.TypeKindUnknown
+}
+
 func (g *Generator) inferReturnCount(expr ast.Expression) (int, bool) {
 	if g.exprReturnCounts != nil {
 		if count, ok := g.exprReturnCounts[expr]; ok {

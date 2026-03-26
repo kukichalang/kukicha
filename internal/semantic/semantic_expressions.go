@@ -442,9 +442,32 @@ func (a *Analyzer) analyzePipeExprMulti(expr *ast.PipeExpr) []*TypeInfo {
 	// Left side is piped as first argument to right side
 	leftType := a.analyzeExpression(expr.Left)
 
+	// Check for multiple placeholders
+	checkPipeArgs := func(args []ast.Expression) {
+		count := 0
+		var pos ast.Position
+		for _, arg := range args {
+			if id, ok := arg.(*ast.Identifier); ok && id.Value == "_" {
+				count++
+				if count == 2 {
+					pos = id.Pos()
+				}
+			} else if _, ok := arg.(*ast.DiscardExpr); ok {
+				count++
+				if count == 2 {
+					pos = arg.Pos()
+				}
+			}
+		}
+		if count > 1 {
+			a.error(pos, "pipe placeholder '_' may only appear once per step; use a temporary variable if you need the piped value in multiple positions")
+		}
+	}
+
 	// Pass left type as piped argument to right side
 	switch right := expr.Right.(type) {
 	case *ast.CallExpr:
+		checkPipeArgs(right.Arguments)
 		types := a.analyzeCallExpr(right, leftType)
 		a.recordReturnCount(expr, len(types))
 		// Record type info on the step expression so codegen can detect
@@ -454,6 +477,7 @@ func (a *Analyzer) analyzePipeExprMulti(expr *ast.PipeExpr) []*TypeInfo {
 		}
 		return types
 	case *ast.MethodCallExpr:
+		checkPipeArgs(right.Arguments)
 		types := a.analyzeMethodCallExpr(right, leftType)
 		a.recordReturnCount(expr, len(types))
 		if len(types) > 0 {

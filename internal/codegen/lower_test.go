@@ -337,7 +337,7 @@ func TestLowerOnErrPipeChainWithLabels(t *testing.T) {
 	}
 
 	l := newLowerer(gen)
-	block, finalVar := l.lowerOnErrPipeChainWithLabels(pipe, "onerr_label")
+	block, finalVar := l.lowerOnErrPipeChainWithLabels(pipe, "onerr_label", "pipeErr_0")
 
 	if block == nil {
 		t.Fatal("expected non-nil block")

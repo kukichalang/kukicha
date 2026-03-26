@@ -227,6 +227,10 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 		os.Exit(1)
 	}
 
+	for _, w := range gen.Warnings() {
+		fmt.Fprintf(os.Stderr, "warning: %v\n", w)
+	}
+
 	// Format with gofmt
 	formatted, err := format.Source([]byte(goCode))
 	if err != nil {

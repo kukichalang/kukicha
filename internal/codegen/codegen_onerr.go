@@ -282,7 +282,21 @@ func (g *Generator) generatePipedStepCall(right ast.Expression, leftExpr string)
 			return leftExpr + "." + field.Field.Value, true
 		}
 		return g.generateFieldAccessExpr(field), true
+	} else if id, ok := right.(*ast.Identifier); ok {
+		// Bare identifier: treat as a zero-argument function call with the piped value.
+		// Mirrors the same case in generatePipeExpr so onerr chains behave identically.
+		if id.Value == "print" {
+			if g.mcpTarget {
+				g.addImport("os")
+				g.addImport("fmt")
+				return fmt.Sprintf("fmt.Fprintln(os.Stderr, %s)", leftExpr), true
+			}
+			g.addImport("fmt")
+			return fmt.Sprintf("fmt.Println(%s)", leftExpr), true
+		}
+		return fmt.Sprintf("%s(%s)", id.Value, leftExpr), true
 	} else {
+		g.warn(right.Pos(), fmt.Sprintf("unsupported pipe target type %T in onerr chain; wrap in a call: f()", right))
 		return "", false
 	}
 
@@ -295,7 +309,7 @@ func (g *Generator) generatePipedStepCall(right ast.Expression, leftExpr string)
 }
 
 // buildPipeArgs builds the argument list for a piped function call.
-// It handles placeholder substitution (_), context-first insertion, and default data-first insertion.
+// It handles placeholder substitution (_), and default data-first insertion.
 func (g *Generator) buildPipeArgs(leftExpr string, arguments []ast.Expression) []string {
 	placeholderIndex := -1
 	for i, arg := range arguments {

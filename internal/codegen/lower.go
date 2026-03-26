@@ -332,6 +332,9 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock, Pos: cp})
 		} else {
 			// Non-error step: collapse into nested expression (no temp variable).
+			if l.gen.isUnknownSingleReturn(step) {
+				l.gen.warn(step.Pos(), fmt.Sprintf("return type of '%s' is unknown; if it returns error, that error is unchecked in this pipe chain", summarizeExpr(step)))
+			}
 			current = callExpr
 		}
 	}
@@ -341,14 +344,19 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 
 // lowerOnErrPipeChainWithLabels is like lowerOnErrPipeChain but uses goto
 // for error handling instead of inline handlers (for piped switch support).
-func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel string) (*ir.Block, string) {
+func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel string, pipeErrVar string) (*ir.Block, string) {
 	base, steps, ok := flattenPipeChain(pipe)
 	if !ok {
 		return nil, ""
 	}
 
 	block := &ir.Block{}
-	gotoErr := &ir.Block{Nodes: []ir.Node{&ir.Goto{Label: onErrLabel}}}
+	gotoErrBlock := func(errVar string) *ir.Block {
+		return &ir.Block{Nodes: []ir.Node{
+			&ir.Assign{Names: []string{pipeErrVar}, Expr: errVar, Walrus: false},
+			&ir.Goto{Label: onErrLabel},
+		}}
+	}
 
 	stepNum := 0
 	addStepComment := func(block *ir.Block, expr ast.Expression) {
@@ -365,7 +373,7 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel s
 		l.recordVar(tempVar, base)
 		addStepComment(block, base)
 		block.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: current, Walrus: true, Pos: posOf(base)})
-		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
+		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErrBlock(errVar)})
 		current = tempVar
 	}
 
@@ -382,15 +390,18 @@ func (l *Lowerer) lowerOnErrPipeChainWithLabels(pipe *ast.PipeExpr, onErrLabel s
 			l.recordVar(next, step)
 			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true, Pos: sp})
-			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
+			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErrBlock(errVar)})
 			current = next
 		} else if l.gen.isErrorOnlyReturn(step) {
 			errVar := l.uniqueId("err")
 			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{errVar}, Expr: callExpr, Walrus: true, Pos: sp})
-			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErr})
+			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: gotoErrBlock(errVar)})
 		} else {
 			// Non-error step: collapse into nested expression.
+			if l.gen.isUnknownSingleReturn(step) {
+				l.gen.warn(step.Pos(), fmt.Sprintf("return type of '%s' is unknown; if it returns error, that error is unchecked in this pipe chain", summarizeExpr(step)))
+			}
 			current = callExpr
 		}
 	}
@@ -407,11 +418,16 @@ func (l *Lowerer) lowerPipedSwitchVarDecl(varName string, ps *ast.PipedSwitchExp
 
 	returnType := l.gen.pipedSwitchReturnType(ps)
 	if returnType == "" {
+		l.gen.warn(ps.Pos(), "piped switch return type could not be inferred; generated as 'any' — ensure all branches return the same type")
 		returnType = "any"
 	}
 
 	onErrLabel := l.uniqueId("onerr")
 	endLabel := l.uniqueId("end")
+	pipeErrVar := l.uniqueId("pipeErr")
+
+	// Declare pipeErr variable to capture errors from pipe steps before jumping to onErrLabel
+	block.Add(&ir.VarDecl{Name: pipeErrVar, Type: "error"})
 
 	// Declare result variable, pre-initialized to handler default if available
 	handlerDefault := l.gen.extractDefaultValue(clause, returnType)
@@ -422,7 +438,7 @@ func (l *Lowerer) lowerPipedSwitchVarDecl(varName string, ps *ast.PipedSwitchExp
 
 	var finalPipeVar string
 	if pipe, ok := ps.Left.(*ast.PipeExpr); ok {
-		pipeBlock, pipeVar := l.lowerOnErrPipeChainWithLabels(pipe, onErrLabel)
+		pipeBlock, pipeVar := l.lowerOnErrPipeChainWithLabels(pipe, onErrLabel, pipeErrVar)
 		if pipeBlock == nil {
 			return nil
 		}
@@ -448,11 +464,10 @@ func (l *Lowerer) lowerPipedSwitchVarDecl(varName string, ps *ast.PipedSwitchExp
 
 	block.Add(&ir.ScopedBlock{Body: inner})
 
-	// Error handler label — no specific error variable is in scope at the
-	// goto target, so we pass empty errVar.
+	// Error handler label
 	block.Add(&ir.Label{Name: onErrLabel})
 	if handlerDefault == "" {
-		handlerBlock := l.lowerOnErrHandler(clause, identNames(names), "")
+		handlerBlock := l.lowerOnErrHandler(clause, identNames(names), pipeErrVar)
 		block.AddAll(handlerBlock)
 	}
 
@@ -466,12 +481,16 @@ func (l *Lowerer) lowerPipedSwitchStmt(ps *ast.PipedSwitchExpr, clause *ast.OnEr
 
 	onErrLabel := l.uniqueId("onerr")
 	endLabel := l.uniqueId("end")
+	pipeErrVar := l.uniqueId("pipeErr")
+
+	// Declare pipeErr variable to capture errors from pipe steps before jumping to onErrLabel
+	block.Add(&ir.VarDecl{Name: pipeErrVar, Type: "error"})
 
 	inner := &ir.Block{}
 
 	var finalPipeVar string
 	if pipe, ok := ps.Left.(*ast.PipeExpr); ok {
-		pipeBlock, pipeVar := l.lowerOnErrPipeChainWithLabels(pipe, onErrLabel)
+		pipeBlock, pipeVar := l.lowerOnErrPipeChainWithLabels(pipe, onErrLabel, pipeErrVar)
 		if pipeBlock == nil {
 			return nil
 		}
@@ -490,7 +509,7 @@ func (l *Lowerer) lowerPipedSwitchStmt(ps *ast.PipedSwitchExpr, clause *ast.OnEr
 	block.Add(&ir.ScopedBlock{Body: inner})
 
 	block.Add(&ir.Label{Name: onErrLabel})
-	handlerBlock := l.lowerOnErrHandler(clause, []string{finalPipeVar}, "")
+	handlerBlock := l.lowerOnErrHandler(clause, []string{finalPipeVar}, pipeErrVar)
 	block.AddAll(handlerBlock)
 
 	block.Add(&ir.Label{Name: endLabel})

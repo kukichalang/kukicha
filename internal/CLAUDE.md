@@ -387,6 +387,7 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 | `mcpTarget bool` | True if targeting MCP (Model Context Protocol) — affects main function generation |
 | `processingReturnType bool` | True while processing a return type annotation (prevents placeholder expansion loops) |
 | `varMap map[string]string` | Maps generated temp variable names (e.g., `pipe_1`) to source descriptions for debugging |
+| `warnings []error` | Non-fatal diagnostics collected during codegen (retrieved via `Warnings()`) |
 
 ### onerr code generation (Lowerer + IR)
 
