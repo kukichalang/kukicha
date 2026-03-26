@@ -1,0 +1,10 @@
+# serve.kuki — a tiny web server to run Stem Panic in the browser
+
+import "net/http"
+import "mime"
+import "fmt"
+
+function main()
+    mime.AddExtensionType(".wasm", "application/wasm") onerr panic "{error}"
+    fmt.Println("Open http://localhost:8080 in your browser")
+    http.ListenAndServe(":8080", http.FileServer(http.Dir("."))) onerr panic "{error}"
