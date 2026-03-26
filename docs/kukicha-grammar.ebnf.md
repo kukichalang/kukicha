@@ -297,7 +297,7 @@ BitwiseOrExpression ::= ComparisonExpression { "|" ComparisonExpression }
 ComparisonExpression ::= AdditiveExpression [ ComparisonOp AdditiveExpression | "in" AdditiveExpression | "not" "in" AdditiveExpression ]
 
 ComparisonOp ::=
-    | "==" | "!=" | "equals" | "not" "equals"
+    | "==" | "!=" | "equals" | "not" "equals" | "isnt"
     | ">" | "<" | ">=" | "<="
 
 AdditiveExpression ::= MultiplicativeExpression { ( "+" | "-" ) MultiplicativeExpression }
@@ -496,7 +496,7 @@ switch      when        otherwise   default
 
 ```
 +     -     *     /     %
-==    !=    <     <=    >     >=
+==    !=    <     <=    >     >=    isnt
 !     and   or    not
 |     |>    =>    ++    --
 :=    =     :     .     ,     ;
@@ -582,7 +582,7 @@ if active or pending
 The `onerr` clause desugars to:
 ```kukicha
 data, err := file.read(path)
-if err != empty
+if err isnt empty
     panic "failed"
 ```
 
