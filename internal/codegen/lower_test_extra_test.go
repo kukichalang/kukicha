@@ -276,3 +276,95 @@ func TestBareIdentifierPipeTargetInOnerr(t *testing.T) {
 		t.Errorf("expected no warning for bare identifier pipe target, got warnings: %v", gen.Warnings())
 	}
 }
+
+// TestPipedSwitchNonPipeBaseMultiReturn verifies that when a piped switch's
+// base expression is a single multi-return call (not a pipe chain), its error
+// is checked and pipeErr is populated so {error} resolves in the handler.
+func TestPipedSwitchNonPipeBaseMultiReturn(t *testing.T) {
+	// getValue() |> switch ... onerr panic "{error}"
+	baseCall := &ast.CallExpr{Function: &ast.Identifier{Value: "getValue"}, Arguments: []ast.Expression{}}
+	ps := &ast.PipedSwitchExpr{
+		Left: baseCall,
+		Switch: &ast.SwitchStmt{
+			Expression: &ast.Identifier{Value: "_"},
+			Cases: []*ast.WhenCase{{
+				Values: []ast.Expression{&ast.IntegerLiteral{Value: 1}},
+				Body:   &ast.BlockStmt{Statements: []ast.Statement{&ast.ExpressionStmt{Expression: &ast.CallExpr{Function: &ast.Identifier{Value: "doA"}, Arguments: []ast.Expression{}}}}},
+			}},
+		},
+	}
+	clause := &ast.OnErrClause{
+		Handler: &ast.PanicExpr{Message: &ast.StringLiteral{
+			Value:        "{error}",
+			Interpolated: true,
+			Parts: []*ast.StringInterpolation{
+				{Expr: &ast.Identifier{Value: "error"}},
+			},
+		}},
+	}
+
+	gen := New(&ast.Program{})
+	gen.exprReturnCounts = map[ast.Expression]int{baseCall: 2}
+
+	// Test lowerPipedSwitchStmt (statement form)
+	l := newLowerer(gen)
+	block := l.lowerPipedSwitchStmt(ps, clause)
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+	gen.emitIR(block)
+	out := gen.output.String()
+
+	// The base call must be split into val, err := getValue()
+	if !strings.Contains(out, "getValue()") {
+		t.Errorf("expected getValue() call, got:\n%s", out)
+	}
+	// The error must be checked
+	if !strings.Contains(out, "!= nil") {
+		t.Errorf("expected error check (if err != nil), got:\n%s", out)
+	}
+	// pipeErr must be assigned so {error} resolves
+	if !strings.Contains(out, "pipeErr") {
+		t.Errorf("expected pipeErr assignment, got:\n%s", out)
+	}
+}
+
+// TestPipedSwitchVarDeclNonPipeBaseMultiReturn verifies the var-decl form
+// of piped switch with a non-pipe multi-return base.
+func TestPipedSwitchVarDeclNonPipeBaseMultiReturn(t *testing.T) {
+	baseCall := &ast.CallExpr{Function: &ast.Identifier{Value: "getValue"}, Arguments: []ast.Expression{}}
+	ps := &ast.PipedSwitchExpr{
+		Left: baseCall,
+		Switch: &ast.SwitchStmt{
+			Expression: &ast.Identifier{Value: "_"},
+			Cases: []*ast.WhenCase{{
+				Values: []ast.Expression{&ast.IntegerLiteral{Value: 1}},
+				Body:   &ast.BlockStmt{Statements: []ast.Statement{&ast.ReturnStmt{Values: []ast.Expression{&ast.StringLiteral{Value: "one"}}}}},
+			}},
+		},
+	}
+	clause := &ast.OnErrClause{
+		Handler: &ast.PanicExpr{Message: &ast.StringLiteral{Value: "fail"}},
+	}
+
+	gen := New(&ast.Program{})
+	gen.exprReturnCounts = map[ast.Expression]int{baseCall: 2}
+
+	l := newLowerer(gen)
+	block := l.lowerPipedSwitchVarDecl("result", ps, clause, []*ast.Identifier{{Value: "result"}})
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+	gen.emitIR(block)
+	out := gen.output.String()
+
+	if !strings.Contains(out, "getValue()") {
+		t.Errorf("expected getValue() call, got:\n%s", out)
+	}
+	if !strings.Contains(out, "!= nil") {
+		t.Errorf("expected error check, got:\n%s", out)
+	}
+	if !strings.Contains(out, "pipeErr") {
+		t.Errorf("expected pipeErr assignment, got:\n%s", out)
+	}
+}

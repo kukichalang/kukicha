@@ -665,10 +665,11 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 		}
 		funcName = objStr + "." + method.Method.Value
 		if method.Object == nil {
-			// Shorthand: .Method()
+			// Shorthand: .Method() — piped value becomes the receiver.
+			// e.g., data |> .Write(x) → data.Write(x)
+			// Placeholders (_) are not meaningful here since the piped
+			// value is the receiver, not an argument position.
 			funcName = leftExpr + "." + method.Method.Value
-
-			// Method call: obj.Method(args)
 			arguments = method.Arguments
 			isVariadic = method.Variadic
 

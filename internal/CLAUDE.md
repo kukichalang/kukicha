@@ -403,9 +403,17 @@ The Lowerer handles three cases per pipe step:
 2. **Error-only** (count == 1 and type is `error`): `err := call()`; check err; keep current pipe variable unchanged
 3. **Single value** (count == 1, non-error): `pipe := call()`; advance pipe variable
 
-Error-only detection uses `isErrorOnlyReturn()` which checks both `exprReturnCounts` (count == 1) and `exprTypes` (type is `error`).
+Error-only detection uses `isErrorOnlyReturn()` which checks both `exprReturnCounts` (count == 1) and `exprTypes` (type is `error`). When neither map has an entry for a single-return step, `isUnknownSingleReturn()` returns true and the Lowerer emits a warning via `g.warn()`. Codegen warnings are retrieved after `Generate()` via `g.Warnings()` and printed by the CLI alongside semantic warnings.
 
 `lowerOnErrWithExplicitErr` handles multi-return cases where the user provides the error variable as the last LHS name (e.g., `a, b, err := f() onerr ...`). If the last name is `_`, it replaces it with a generated unique error variable, since Go's blank identifier cannot be read in `if _ != nil`.
+
+**Piped switch base handling:** `lowerPipedSwitchVarDecl` and `lowerPipedSwitchStmt` both handle two shapes of `ps.Left`: a `PipeExpr` (delegated to `lowerOnErrPipeChainWithLabels`) or a single expression (non-pipe base). For single multi-return bases (e.g., `getValue() |> switch`), the base is split into `val, err :=` and the error is checked with a goto to the onerr label, populating `pipeErrVar` so `{error}` resolves in the handler.
+
+### Pipe operator design notes (non-onerr path)
+
+The non-onerr `generatePipeExpr` wraps multi-return **Left** sides in an IIFE to extract the first value (discarding trailing returns). The **Right** (final) side is NOT wrapped — its full return signature becomes the pipe expression's result, so `val, err := data |> parse()` works naturally. `warnPipeDiscardedErrors` in semantic analysis warns when intermediate steps discard errors without `onerr`. This is intentional: the Go compiler catches type mismatches if the final step's multi-return is used in a single-value context.
+
+**Shorthand `.Method()` and placeholders:** In `data |> .Method(args)`, the piped value becomes the **receiver** (not an argument), so `_` placeholders in the argument list are not meaningful and are treated as literal underscore identifiers. This differs from `data |> pkg.Func(_, x)` where `_` marks the insertion point for the piped value as a function argument.
 
 ### `empty` keyword in codegen
 

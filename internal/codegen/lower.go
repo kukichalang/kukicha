@@ -445,7 +445,21 @@ func (l *Lowerer) lowerPipedSwitchVarDecl(varName string, ps *ast.PipedSwitchExp
 		inner.AddAll(pipeBlock)
 		finalPipeVar = pipeVar
 	} else {
-		finalPipeVar = l.gen.exprToString(ps.Left)
+		// Non-pipe base: if it returns (T, error), split and check the error.
+		baseExpr := l.gen.exprToString(ps.Left)
+		if count, ok := l.gen.inferReturnCount(ps.Left); ok && count >= 2 {
+			tempVar := l.uniqueId("pipe")
+			errVar := l.uniqueId("err")
+			l.recordVar(tempVar, ps.Left)
+			inner.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: baseExpr, Walrus: true, Pos: posOf(ps.Left)})
+			inner.Add(&ir.IfErrCheck{ErrVar: errVar, Body: &ir.Block{Nodes: []ir.Node{
+				&ir.Assign{Names: []string{pipeErrVar}, Expr: errVar, Walrus: false},
+				&ir.Goto{Label: onErrLabel},
+			}}})
+			finalPipeVar = tempVar
+		} else {
+			finalPipeVar = baseExpr
+		}
 	}
 
 	// Render switch IIFE — temporarily bump indent to match the ScopedBlock
@@ -497,7 +511,21 @@ func (l *Lowerer) lowerPipedSwitchStmt(ps *ast.PipedSwitchExpr, clause *ast.OnEr
 		inner.AddAll(pipeBlock)
 		finalPipeVar = pipeVar
 	} else {
-		finalPipeVar = l.gen.exprToString(ps.Left)
+		// Non-pipe base: if it returns (T, error), split and check the error.
+		baseExpr := l.gen.exprToString(ps.Left)
+		if count, ok := l.gen.inferReturnCount(ps.Left); ok && count >= 2 {
+			tempVar := l.uniqueId("pipe")
+			errVar := l.uniqueId("err")
+			l.recordVar(tempVar, ps.Left)
+			inner.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: baseExpr, Walrus: true, Pos: posOf(ps.Left)})
+			inner.Add(&ir.IfErrCheck{ErrVar: errVar, Body: &ir.Block{Nodes: []ir.Node{
+				&ir.Assign{Names: []string{pipeErrVar}, Expr: errVar, Walrus: false},
+				&ir.Goto{Label: onErrLabel},
+			}}})
+			finalPipeVar = tempVar
+		} else {
+			finalPipeVar = baseExpr
+		}
 	}
 
 	// Render switch statement at indent=0, RawStmt multi-line handling
