@@ -27,8 +27,11 @@ func parseCIDRs(cidrs []string) ([]*net.IPNet, error) {
 	for _, cidr := range cidrs {
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:37
 		network, err_1 := netutil.ParseCIDR(cidr)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:37
 		if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:37
 			err_1 = fmt.Errorf("netguard: invalid CIDR : %w", err_1)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:37
 			return []*net.IPNet{}, err_1
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:38
@@ -70,8 +73,10 @@ func checkIP(g Guard, ip net.IP) bool {
 func NewAllow(cidrs []string) (Guard, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:59
 	nets, err_2 := parseCIDRs(cidrs)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:59
 	if err_2 != nil {
 		var _zero0 Guard
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:59
 		return _zero0, err_2
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:60
@@ -82,8 +87,10 @@ func NewAllow(cidrs []string) (Guard, error) {
 func NewBlock(cidrs []string) (Guard, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:64
 	nets, err_3 := parseCIDRs(cidrs)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:64
 	if err_3 != nil {
 		var _zero0 Guard
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:64
 		return _zero0, err_3
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:65
@@ -117,14 +124,20 @@ func Check(g Guard, ipStr string) bool {
 func DialContext(g Guard, ctx context.Context, network string, addr string) (net.Conn, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:104
 	host, port, err_4 := net.SplitHostPort(addr)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:104
 	if err_4 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:104
 		err_4 = fmt.Errorf("netguard: invalid address : %w", err_4)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:104
 		return nil, err_4
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:106
 	ips, err_5 := net.DefaultResolver.LookupIPAddr(ctx, host)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:106
 	if err_5 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:106
 		err_5 = fmt.Errorf("netguard: dns lookup : %w", err_5)
+//line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:106
 		return nil, err_5
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/netguard/netguard.kuki:109

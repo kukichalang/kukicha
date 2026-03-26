@@ -37,7 +37,9 @@ func TestIPAndCIDRHelpers(t *testing.T) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:24
 	cidr, err_1 := netutil.ParseCIDR("192.0.2.0/24")
+//line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:24
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:24
 		//line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:25
 		t.Fatalf("ParseCIDR failed: %v", err_1)
 	}
@@ -48,7 +50,9 @@ func TestIPAndCIDRHelpers(t *testing.T) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:29
 	host, port, err_2 := netutil.SplitHostPort("example.com:8080")
+//line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:29
 	if err_2 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:29
 		//line /var/home/tluker/repos/go/kukicha/stdlib/net/net_test.kuki:30
 		t.Fatalf("SplitHostPort failed: %v", err_2)
 	}

@@ -703,7 +703,9 @@ func execute(c Client) (string, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:624
 	comp, err_1 := executeRaw(c)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:624
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:624
 		return "", err_1
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:625
@@ -736,8 +738,10 @@ func executeRaw(c Client) (Completion, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:646
 	resp, err_2 := fetch.Do(req)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:646
 	if err_2 != nil {
 		var _zero0 Completion
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:646
 		return _zero0, err_2
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:648
@@ -746,7 +750,9 @@ func executeRaw(c Client) (Completion, error) {
 	if resp.StatusCode >= 400 {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:651
 		errBody, err_3 := fetch.Bytes(resp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:651
 		if err_3 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:651
 			return Completion{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:652
@@ -755,9 +761,12 @@ func executeRaw(c Client) (Completion, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:654
 	comp := Completion{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:655
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:655
 	err_4 := json.UnmarshalRead(resp.Body, &comp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:655
 	if err_4 != nil {
 		var _zero0 Completion
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:655
 		return _zero0, err_4
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:657
@@ -785,7 +794,9 @@ func executeStream(c Client) (string, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:676
 	resp, err_5 := fetch.Do(req)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:676
 	if err_5 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:676
 		return "", err_5
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:678
@@ -794,7 +805,9 @@ func executeStream(c Client) (string, error) {
 	if resp.StatusCode >= 400 {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:681
 		errBody, err_6 := fetch.Bytes(resp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:681
 		if err_6 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:681
 			return "", fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:682
@@ -825,8 +838,11 @@ func executeStream(c Client) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:701
 			chunk := Chunk{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:702
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:702
 			err_7 := json.Unmarshal([]byte(data), &chunk)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:702
 			if err_7 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:702
 				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:703
 				continue
 			}
@@ -845,8 +861,11 @@ func executeStream(c Client) (string, error) {
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:711
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:711
 	err_8 := scanner.Err()
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:711
 	if err_8 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:711
 		return fullContent, fmt.Errorf("%v", err_8)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:713
@@ -1660,7 +1679,9 @@ func rExecute(c ResponseClient) (string, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1286
 	resp, err_9 := rExecuteRaw(c)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1286
 	if err_9 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1286
 		return "", err_9
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1287
@@ -1693,8 +1714,10 @@ func rExecuteRaw(c ResponseClient) (Response, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1308
 	resp, err_10 := fetch.Do(req)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1308
 	if err_10 != nil {
 		var _zero0 Response
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1308
 		return _zero0, err_10
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1310
@@ -1703,7 +1726,9 @@ func rExecuteRaw(c ResponseClient) (Response, error) {
 	if resp.StatusCode >= 400 {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1313
 		errBody, err_11 := fetch.Bytes(resp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1313
 		if err_11 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1313
 			return Response{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1314
@@ -1712,9 +1737,12 @@ func rExecuteRaw(c ResponseClient) (Response, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1316
 	result := Response{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1317
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1317
 	err_12 := json.UnmarshalRead(resp.Body, &result)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1317
 	if err_12 != nil {
 		var _zero0 Response
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1317
 		return _zero0, err_12
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1319
@@ -1742,7 +1770,9 @@ func rExecuteStream(c ResponseClient) (string, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1338
 	resp, err_13 := fetch.Do(req)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1338
 	if err_13 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1338
 		return "", err_13
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1340
@@ -1751,7 +1781,9 @@ func rExecuteStream(c ResponseClient) (string, error) {
 	if resp.StatusCode >= 400 {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1343
 		errBody, err_14 := fetch.Bytes(resp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1343
 		if err_14 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1343
 			return "", fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1344
@@ -1782,8 +1814,11 @@ func rExecuteStream(c ResponseClient) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1368
 			evt := StreamEvent{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
 			err_15 := json.Unmarshal([]byte(data), &evt)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
 			if err_15 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
 				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1370
 				continue
 			}
@@ -1820,8 +1855,11 @@ func rExecuteStream(c ResponseClient) (string, error) {
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1390
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1390
 	err_16 := scanner.Err()
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1390
 	if err_16 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1390
 		return fullContent, fmt.Errorf("%v", err_16)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1392
@@ -2463,7 +2501,9 @@ func mExecute(c MessagesClient) (string, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1880
 	resp, err_17 := mExecuteRaw(c)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1880
 	if err_17 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1880
 		return "", err_17
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1881
@@ -2498,8 +2538,10 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1905
 	resp, err_18 := fetch.Do(req)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1905
 	if err_18 != nil {
 		var _zero0 AnthropicResponse
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1905
 		return _zero0, err_18
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1907
@@ -2508,7 +2550,9 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
 	if resp.StatusCode >= 400 {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1910
 		errBody, err_19 := fetch.Bytes(resp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1910
 		if err_19 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1910
 			return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1911
@@ -2517,9 +2561,12 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1913
 	result := AnthropicResponse{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1914
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1914
 	err_20 := json.UnmarshalRead(resp.Body, &result)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1914
 	if err_20 != nil {
 		var _zero0 AnthropicResponse
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1914
 		return _zero0, err_20
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1916
@@ -2549,7 +2596,9 @@ func mExecuteStream(c MessagesClient) (string, error) {
 	req = fetch.Body(req, body)
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1946
 	resp, err_21 := fetch.Do(req)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1946
 	if err_21 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1946
 		return "", err_21
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1948
@@ -2558,7 +2607,9 @@ func mExecuteStream(c MessagesClient) (string, error) {
 	if resp.StatusCode >= 400 {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1951
 		errBody, err_22 := fetch.Bytes(resp)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1951
 		if err_22 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1951
 			return "", fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1952
@@ -2584,8 +2635,11 @@ func mExecuteStream(c MessagesClient) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1968
 			evt := AnthropicStreamEvent{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
 			err_23 := json.Unmarshal([]byte(data), &evt)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
 			if err_23 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
 				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1970
 				continue
 			}
@@ -2615,8 +2669,11 @@ func mExecuteStream(c MessagesClient) (string, error) {
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1987
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1987
 	err_24 := scanner.Err()
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1987
 	if err_24 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1987
 		return fullContent, fmt.Errorf("%v", err_24)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1988

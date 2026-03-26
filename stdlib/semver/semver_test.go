@@ -59,7 +59,9 @@ func TestBump(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:56
 			v, err_1 := semver.Parse(tc.tag)
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:56
 			if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:56
 				panic(fmt.Sprintf("%v", err_1))
 			}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:57
@@ -87,7 +89,9 @@ func TestFormat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:75
 			v, err_1 := semver.Parse(tc.tag)
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:75
 			if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:75
 				panic(fmt.Sprintf("%v", err_1))
 			}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:76
@@ -139,12 +143,16 @@ func TestCompare(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:119
 			a, err_1 := semver.Parse(tc.a)
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:119
 			if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:119
 				panic(fmt.Sprintf("%v", err_1))
 			}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:120
 			b, err_2 := semver.Parse(tc.b)
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:120
 			if err_2 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:120
 				panic(fmt.Sprintf("%v", err_2))
 			}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver_test.kuki:121

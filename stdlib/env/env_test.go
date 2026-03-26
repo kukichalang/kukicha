@@ -53,7 +53,9 @@ func TestGet(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:35
 	value, err_1 := env.Get("TEST_STRING")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:35
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:35
 		panic("get failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:36
@@ -88,7 +90,9 @@ func TestGetInt(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:57
 	value, err_2 := env.GetInt("TEST_INT")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:57
 	if err_2 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:57
 		panic("get int failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:58
@@ -115,14 +119,18 @@ func TestGetIntOr(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:73
 	value, err_3 := env.GetIntOr("TEST_INT", 100)
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:73
 	if err_3 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:73
 		panic("get int or failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:74
 	test.AssertEqual(t, value, 42)
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:76
 	value2, err_4 := env.GetIntOr("NONEXISTENT", 100)
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:76
 	if err_4 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:76
 		panic("get int or failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:77
@@ -169,14 +177,18 @@ func TestGetBool(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:105
 	value, err_5 := env.GetBool("TEST_BOOL_TRUE")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:105
 	if err_5 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:105
 		panic("get bool failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:106
 	test.AssertTrue(t, value)
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:108
 	value2, err_6 := env.GetBool("TEST_BOOL_FALSE")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:108
 	if err_6 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:108
 		panic("get bool failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:109
@@ -203,14 +215,18 @@ func TestGetBoolOr(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:124
 	value, err_7 := env.GetBoolOr("TEST_BOOL_TRUE", false)
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:124
 	if err_7 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:124
 		panic("get bool or failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:125
 	test.AssertTrue(t, value)
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:127
 	value2, err_8 := env.GetBoolOr("NONEXISTENT", true)
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:127
 	if err_8 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:127
 		panic("get bool or failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:128
@@ -257,7 +273,9 @@ func TestGetFloat(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:156
 	value, err_9 := env.GetFloat("TEST_FLOAT")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:156
 	if err_9 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:156
 		panic("get float failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:157
@@ -284,14 +302,18 @@ func TestGetFloatOr(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:172
 	value, err_10 := env.GetFloatOr("TEST_FLOAT", 2.71)
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:172
 	if err_10 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:172
 		panic("get float or failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:173
 	test.AssertEqual(t, value, 3.14)
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:175
 	value2, err_11 := env.GetFloatOr("NONEXISTENT", 2.71)
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:175
 	if err_11 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:175
 		panic("get float or failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:176
@@ -314,7 +336,9 @@ func TestGetList(t *testing.T) {
 	defer cleanupTestEnv()
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:188
 	value, err_12 := env.GetList("TEST_LIST", ",")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:188
 	if err_12 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:188
 		panic("get list failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:189
@@ -362,8 +386,11 @@ func TestSetUnset(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:215
 	test.AssertEqual(t, value, "new_value")
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:217
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:217
 	err_13 := env.Unset("TEST_NEW_VAR")
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:217
 	if err_13 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:217
 		panic("unset failed")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/env/env_test.kuki:218

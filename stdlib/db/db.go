@@ -42,14 +42,19 @@ type TxOptions struct {
 func Open(driver string, connString string) (Pool, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:49
 	conn, err_1 := sql.Open(driver, connString)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:49
 	if err_1 != nil {
 		var _zero0 Pool
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:49
 		return _zero0, err_1
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
 	err_2 := conn.Ping()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
 	if err_2 != nil {
 		var _zero0 Pool
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
 		return _zero0, err_2
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:51
@@ -74,8 +79,10 @@ func Ping(pool Pool) error {
 func Query(pool Pool, query string, args ...any) (Rows, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:73
 	rows, err_3 := pool.conn.Query(query, args...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:73
 	if err_3 != nil {
 		var _zero0 Rows
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:73
 		return _zero0, err_3
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:74
@@ -96,12 +103,16 @@ func QueryRow(pool Pool, query string, args ...any) Row {
 func Exec(pool Pool, query string, args ...any) (int64, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:89
 	result, err_4 := pool.conn.Exec(query, args...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:89
 	if err_4 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:89
 		return 0, err_4
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:90
 	affected, err_5 := result.RowsAffected()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:90
 	if err_5 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:90
 		return 0, err_5
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:91
@@ -114,8 +125,10 @@ func ScanAll(rows Rows, sample any) (any, error) {
 	defer rows.rows.Close()
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:105
 	columns, err_6 := rows.rows.Columns()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:105
 	if err_6 != nil {
 		var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:105
 		return _zero0, err_6
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:107
@@ -131,18 +144,24 @@ func ScanAll(rows Rows, sample any) (any, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:113
 		fieldPtrs := structScanners(elemPtr.Elem(), elemType, columns)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
 		err_7 := rows.rows.Scan(fieldPtrs...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
 		if err_7 != nil {
 			var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
 			return _zero0, err_7
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:115
 		resultSlice = reflect.Append(resultSlice, elemPtr.Elem())
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
 	err_8 := rows.rows.Err()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
 	if err_8 != nil {
 		var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
 		return _zero0, err_8
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:118
@@ -155,8 +174,10 @@ func ScanOne(rows Rows, sample any) (any, error) {
 	defer rows.rows.Close()
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:127
 	columns, err_9 := rows.rows.Columns()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:127
 	if err_9 != nil {
 		var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:127
 		return _zero0, err_9
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:129
@@ -166,9 +187,12 @@ func ScanOne(rows Rows, sample any) (any, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:132
 	if !rows.rows.Next() {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
 		err_10 := rows.rows.Err()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
 		if err_10 != nil {
 			var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
 			return _zero0, err_10
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:134
@@ -177,9 +201,12 @@ func ScanOne(rows Rows, sample any) (any, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:136
 	fieldPtrs := structScanners(elemPtr.Elem(), elemType, columns)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
 	err_11 := rows.rows.Scan(fieldPtrs...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
 	if err_11 != nil {
 		var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
 		return _zero0, err_11
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:139
@@ -188,9 +215,12 @@ func ScanOne(rows Rows, sample any) (any, error) {
 		return sample, errors.New("db.ScanOne: more than one row returned")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
 	err_12 := rows.rows.Err()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
 	if err_12 != nil {
 		var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
 		return _zero0, err_12
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:143
@@ -218,9 +248,12 @@ func ScanRow(row Row, sample any) (any, error) {
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
 	err_13 := row.row.Scan(scanners...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
 	if err_13 != nil {
 		var _zero0 any
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
 		return _zero0, err_13
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:160
@@ -237,7 +270,9 @@ func CloseRows(rows Rows) error {
 func Transaction(pool Pool, fn func(Tx) error) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:179
 	sqlTx, err_14 := pool.conn.Begin()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:179
 	if err_14 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:179
 		return err_14
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:180
@@ -286,7 +321,9 @@ func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:208
 	sqlTx, err_15 := pool.conn.BeginTx(context.Background(), &txOpts)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:208
 	if err_15 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:208
 		return err_15
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:209
@@ -319,8 +356,10 @@ func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error {
 func TxQuery(tx Tx, query string, args ...any) (Rows, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
 	rows, err_16 := tx.tx.Query(query, args...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
 	if err_16 != nil {
 		var _zero0 Rows
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
 		return _zero0, err_16
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:229
@@ -341,12 +380,16 @@ func TxQueryRow(tx Tx, query string, args ...any) Row {
 func TxExec(tx Tx, query string, args ...any) (int64, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
 	result, err_17 := tx.tx.Exec(query, args...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
 	if err_17 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
 		return 0, err_17
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
 	affected, err_18 := result.RowsAffected()
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
 	if err_18 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
 		return 0, err_18
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:246
@@ -360,8 +403,11 @@ func Count(pool Pool, query string, args ...any) (int64, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
 	n := int64(0)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
 	err_19 := row.Scan(&n)
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
 	if err_19 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
 		return 0, err_19
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:259

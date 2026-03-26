@@ -117,7 +117,9 @@ func IsValid(pattern string) bool {
 func Compile(pattern string) (Pattern, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex.kuki:115
 	re, err_1 := regexp.Compile(pattern)
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex.kuki:115
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex.kuki:115
 		return Pattern{}, fmt.Errorf("invalid pattern: %v", err_1)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex.kuki:116

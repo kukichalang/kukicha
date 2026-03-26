@@ -41,17 +41,23 @@ func Parse(tag string) (Version, error) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:39
 	major, err_1 := cast.Atoi(parts[0])
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:39
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:39
 		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:40
 	minor, err_2 := cast.Atoi(parts[1])
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:40
 	if err_2 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:40
 		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:41
 	patch, err_3 := cast.Atoi(parts[2])
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:41
 	if err_3 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:41
 		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:43
@@ -158,7 +164,9 @@ func Highest(tags []string) (string, error) {
 	for _, tag := range valid {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
 		v, err_4 := Parse(tag)
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
 		if err_4 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
 			continue
 		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:108

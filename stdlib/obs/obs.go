@@ -108,7 +108,9 @@ func Log(logger Logger, level string, message string, fields map[string]any) {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/obs/obs.kuki:82
 	line, err_1 := json.Marshal(payload)
+//line /var/home/tluker/repos/go/kukicha/stdlib/obs/obs.kuki:82
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/obs/obs.kuki:82
 		//line /var/home/tluker/repos/go/kukicha/stdlib/obs/obs.kuki:83
 		fmt.Println(fmt.Sprintf("[obs:%v] %v", level, message))
 		//line /var/home/tluker/repos/go/kukicha/stdlib/obs/obs.kuki:84

@@ -25,6 +25,7 @@ func Discover(dir string) ([]Skill, error) {
 		return result, nil
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:24
+//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:24
 	err_1 := filepath.Walk(dir, func(filePath string, info os.FileInfo, err error) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:25
 		if err != nil {
@@ -59,7 +60,9 @@ func Discover(dir string) ([]Skill, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:38
 		return nil
 	})
+//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:39
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:39
 		return []Skill{}, err_1
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:40

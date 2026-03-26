@@ -74,7 +74,9 @@ func LengthBetween(s string, min int, max int) (string, error) {
 func Matches(s string, pattern string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:56
 	matched, err_1 := regexp.MatchString(pattern, s)
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:56
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:56
 		return s, fmt.Errorf("invalid pattern: %v", err_1)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:57
@@ -92,7 +94,9 @@ func Email(s string) (string, error) {
 	pattern := "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:67
 	matched, err_2 := regexp.MatchString(pattern, s)
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:67
 	if err_2 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:67
 		panic(fmt.Sprintf("validate: invalid email pattern: %v", err_2))
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:68
@@ -108,7 +112,9 @@ func Email(s string) (string, error) {
 func URL(s string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:75
 	parsed, err_3 := url.Parse(s)
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:75
 	if err_3 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:75
 		return s, fmt.Errorf("invalid URL: %v", err_3)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:76
@@ -323,7 +329,9 @@ func InRangeFloat(n float64, min float64, max float64) (float64, error) {
 func ParseInt(s string) (int, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:212
 	val, err_4 := cast.Atoi(s)
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:212
 	if err_4 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:212
 		return 0, fmt.Errorf("invalid integer: %v", s)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:213
@@ -334,7 +342,9 @@ func ParseInt(s string) (int, error) {
 func ParsePositiveInt(s string) (int, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:218
 	val, err_5 := cast.Atoi(s)
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:218
 	if err_5 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:218
 		return 0, fmt.Errorf("invalid integer: %v", s)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:219
@@ -350,7 +360,9 @@ func ParsePositiveInt(s string) (int, error) {
 func ParseFloat(s string) (float64, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:226
 	val, err_6 := cast.ParseFloat(s, 64)
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:226
 	if err_6 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:226
 		return 0.0, fmt.Errorf("invalid number: %v", s)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:227

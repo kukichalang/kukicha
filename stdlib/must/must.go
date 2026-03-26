@@ -85,7 +85,9 @@ func EnvInt(key string) int {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:63
 	val, err_1 := cast.Atoi(value)
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:63
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:63
 		panic(fmt.Sprintf("must: environment variable %v must be a valid integer", key))
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:64
@@ -103,7 +105,9 @@ func EnvIntOr(key string, defaultValue int) int {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:72
 	val, err_2 := cast.Atoi(value)
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:72
 	if err_2 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:72
 		panic(fmt.Sprintf("must: environment variable %v must be a valid integer", key))
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:73
@@ -121,7 +125,9 @@ func EnvBool(key string) bool {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:82
 	val, err_3 := env.ParseBool(value)
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:82
 	if err_3 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:82
 		panic(fmt.Sprintf("must: environment variable %v must be a valid boolean", key))
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:83
@@ -139,7 +145,9 @@ func EnvBoolOr(key string, defaultValue bool) bool {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:92
 	val, err_4 := env.ParseBool(value)
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:92
 	if err_4 != nil {
+//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:92
 		panic(fmt.Sprintf("must: environment variable %v must be a valid boolean", key))
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:93

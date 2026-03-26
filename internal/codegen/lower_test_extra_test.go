@@ -17,8 +17,8 @@ func TestLowerPipedSwitchOnerrAsAlias(t *testing.T) {
 		Switch: &ast.SwitchStmt{
 			Expression: &ast.Identifier{Value: "_"},
 			Cases: []*ast.WhenCase{{
-				Values: []ast.Expression{&ast.StringLiteral{Value: "a"}}, 
-				Body: &ast.BlockStmt{Statements: []ast.Statement{&ast.ExpressionStmt{Expression: &ast.CallExpr{Function: &ast.Identifier{Value: "doA"}, Arguments: []ast.Expression{}}}}},
+				Values: []ast.Expression{&ast.StringLiteral{Value: "a"}},
+				Body:   &ast.BlockStmt{Statements: []ast.Statement{&ast.ExpressionStmt{Expression: &ast.CallExpr{Function: &ast.Identifier{Value: "doA"}, Arguments: []ast.Expression{}}}}},
 			}},
 		},
 	}
@@ -55,8 +55,8 @@ func TestLowerPipedSwitchOnerrPanicError(t *testing.T) {
 		Switch: &ast.SwitchStmt{
 			Expression: &ast.Identifier{Value: "_"},
 			Cases: []*ast.WhenCase{{
-				Values: []ast.Expression{&ast.StringLiteral{Value: "a"}}, 
-				Body: &ast.BlockStmt{Statements: []ast.Statement{&ast.ExpressionStmt{Expression: &ast.CallExpr{Function: &ast.Identifier{Value: "doA"}, Arguments: []ast.Expression{}}}}},
+				Values: []ast.Expression{&ast.StringLiteral{Value: "a"}},
+				Body:   &ast.BlockStmt{Statements: []ast.Statement{&ast.ExpressionStmt{Expression: &ast.CallExpr{Function: &ast.Identifier{Value: "doA"}, Arguments: []ast.Expression{}}}}},
 			}},
 		},
 	}
@@ -82,14 +82,14 @@ func TestLowerPipedSwitchOnerrPanicError(t *testing.T) {
 
 func TestLowerPipeChainLong(t *testing.T) {
 	calls := []ast.Expression{&ast.Identifier{Value: "start"}}
-	for i := 0; i < 6; i++ {
+	for range 6 {
 		calls = append(calls, &ast.CallExpr{Function: &ast.Identifier{Value: "step"}, Arguments: []ast.Expression{}})
 	}
 	var pipe ast.Expression = calls[0]
 	for i := 1; i < len(calls); i++ {
 		pipe = &ast.PipeExpr{Left: pipe, Right: calls[i]}
 	}
-	
+
 	gen := New(&ast.Program{})
 	gen.exprReturnCounts = map[ast.Expression]int{}
 	for i := 1; i < len(calls); i++ {
@@ -110,11 +110,11 @@ func TestLowerPipeChainConsecutiveErrorOnly(t *testing.T) {
 	err1 := &ast.CallExpr{Function: &ast.Identifier{Value: "errorOnly1"}, Arguments: []ast.Expression{}}
 	err2 := &ast.CallExpr{Function: &ast.Identifier{Value: "errorOnly2"}, Arguments: []ast.Expression{}}
 	bCall := &ast.CallExpr{Function: &ast.Identifier{Value: "b"}, Arguments: []ast.Expression{}}
-	
+
 	p1 := &ast.PipeExpr{Left: aCall, Right: err1}
 	p2 := &ast.PipeExpr{Left: p1, Right: err2}
 	p3 := &ast.PipeExpr{Left: p2, Right: bCall}
-	
+
 	errType := &semantic.TypeInfo{Kind: semantic.TypeKindNamed, Name: "error"}
 	gen := New(&ast.Program{})
 	gen.exprReturnCounts = map[ast.Expression]int{
@@ -132,7 +132,7 @@ func TestLowerPipeChainConsecutiveErrorOnly(t *testing.T) {
 	block, _ := l.lowerOnErrPipeChain(p3, clause, []string{"res"}, "")
 	gen.emitIR(block)
 	out := gen.output.String()
-	
+
 	if !strings.Contains(out, "errorOnly1(pipe_1)") {
 		t.Errorf("missing errorOnly1 call, got:\n%s", out)
 	}
@@ -149,7 +149,7 @@ func TestPipedSwitchMismatchedTypesFallback(t *testing.T) {
 	value := &ast.Identifier{Value: "value"}
 	riskyCall := &ast.CallExpr{Function: &ast.Identifier{Value: "Risky"}, Arguments: []ast.Expression{}}
 	pipe := &ast.PipeExpr{Left: value, Right: riskyCall}
-	
+
 	ps := &ast.PipedSwitchExpr{
 		Left: pipe,
 		Switch: &ast.SwitchStmt{
@@ -157,25 +157,25 @@ func TestPipedSwitchMismatchedTypesFallback(t *testing.T) {
 			Cases: []*ast.WhenCase{
 				{
 					Values: []ast.Expression{&ast.StringLiteral{Value: "a"}},
-					Body: &ast.BlockStmt{Statements: []ast.Statement{&ast.ReturnStmt{Values: []ast.Expression{&ast.StringLiteral{Value: "str"}}}}},
+					Body:   &ast.BlockStmt{Statements: []ast.Statement{&ast.ReturnStmt{Values: []ast.Expression{&ast.StringLiteral{Value: "str"}}}}},
 				},
 				{
 					Values: []ast.Expression{&ast.StringLiteral{Value: "b"}},
-					Body: &ast.BlockStmt{Statements: []ast.Statement{&ast.ReturnStmt{Values: []ast.Expression{&ast.IntegerLiteral{Value: 42}}}}},
+					Body:   &ast.BlockStmt{Statements: []ast.Statement{&ast.ReturnStmt{Values: []ast.Expression{&ast.IntegerLiteral{Value: 42}}}}},
 				},
 			},
 		},
 	}
-	
+
 	gen := New(&ast.Program{})
 	gen.exprReturnCounts = map[ast.Expression]int{riskyCall: 2}
 	l := newLowerer(gen)
 	clause := &ast.OnErrClause{Handler: &ast.PanicExpr{Message: &ast.StringLiteral{Value: "fail"}}}
-	
+
 	block := l.lowerPipedSwitchVarDecl("result", ps, clause, []*ast.Identifier{{Value: "result"}})
 	gen.emitIR(block)
 	out := gen.output.String()
-	
+
 	if !strings.Contains(out, "func() any {") {
 		t.Errorf("expected IIFE to return any, got:\n%s", out)
 	}

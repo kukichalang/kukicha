@@ -65,8 +65,10 @@ func ParseInLocation(value string, format string, location string) (time.Time, e
 	layout := getLayout(format)
 //line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:46
 	loc, err_1 := time.LoadLocation(location)
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:46
 	if err_1 != nil {
 		var _zero0 time.Time
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:46
 		return _zero0, err_1
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:47
@@ -375,8 +377,10 @@ func InLocal(t time.Time) time.Time {
 func InLocation(t time.Time, location string) (time.Time, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:308
 	loc, err_2 := time.LoadLocation(location)
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:308
 	if err_2 != nil {
 		var _zero0 time.Time
+//line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:308
 		return _zero0, err_2
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/datetime/datetime.kuki:309
