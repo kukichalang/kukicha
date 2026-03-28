@@ -629,6 +629,32 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 		}
 	}
 
+	// Check for cross-package enum access (e.g., http.Status.OK → pkg.EnumType.Case)
+	if outerFA, ok := expr.Object.(*ast.FieldAccessExpr); ok {
+		if pkgIdent, ok := outerFA.Object.(*ast.Identifier); ok {
+			pkgSym := a.symbolTable.Resolve(pkgIdent.Value)
+			if pkgSym != nil && pkgSym.Kind == SymbolVariable {
+				// Resolve import alias to base package name
+				basePkg := pkgIdent.Value
+				if alias, ok := a.importAliases[basePkg]; ok {
+					basePkg = alias
+				}
+				qualifiedEnum := basePkg + "." + outerFA.Field.Value
+				if cases, ok := GetStdlibEnum(qualifiedEnum); ok {
+					fieldName := expr.Field.Value
+					for _, c := range cases {
+						if c == fieldName {
+							a.recordReturnCount(expr, 1)
+							return &TypeInfo{Kind: TypeKindNamed, Name: qualifiedEnum}
+						}
+					}
+					a.error(expr.Field.Pos(), fmt.Sprintf("'%s' is not a case of enum %s", fieldName, qualifiedEnum))
+					return &TypeInfo{Kind: TypeKindUnknown}
+				}
+			}
+		}
+	}
+
 	objType := pipedArg
 	if expr.Object != nil {
 		objType = a.analyzeExpression(expr.Object)

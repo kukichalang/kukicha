@@ -46,3 +46,15 @@ func GetSecurityCategory(qualifiedName string) string {
 func IsKnownInterface(qualifiedName string) bool {
 	return generatedGoInterfaces[qualifiedName] || generatedStdlibInterfaces[qualifiedName]
 }
+
+// GetStdlibEnum returns the case names for a qualified enum type (e.g., "http.Status")
+// and true if found, or nil and false if not an enum.
+func GetStdlibEnum(qualifiedName string) ([]string, bool) {
+	cases, ok := generatedStdlibEnums[qualifiedName]
+	return cases, ok
+}
+
+// GetAllStdlibEnums returns the full map of stdlib enum types to their case names.
+func GetAllStdlibEnums() map[string][]string {
+	return generatedStdlibEnums
+}

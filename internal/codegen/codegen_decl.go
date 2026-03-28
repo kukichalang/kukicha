@@ -73,6 +73,53 @@ func (g *Generator) generateEnumDecl(decl *ast.EnumDecl) {
 	}
 	g.indent--
 	g.writeLine(")")
+
+	// Auto-generate String() method unless user defined one
+	if !g.hasMethodOnType(decl.Name.Value, "String") {
+		g.writeLine("")
+		g.writeLine(fmt.Sprintf("func (e %s) String() string {", decl.Name.Value))
+		g.indent++
+		g.writeLine("switch e {")
+		for _, c := range decl.Cases {
+			g.writeLine(fmt.Sprintf("case %s%s:", decl.Name.Value, c.Name.Value))
+			g.indent++
+			g.writeLine(fmt.Sprintf("return %q", c.Name.Value))
+			g.indent--
+		}
+		g.writeLine("default:")
+		g.indent++
+		if underlyingType == "string" {
+			g.writeLine("return string(e)")
+		} else {
+			g.addImport("fmt")
+			g.writeLine(fmt.Sprintf("return fmt.Sprintf(\"%s(%%d)\", int(e))", decl.Name.Value))
+		}
+		g.indent--
+		g.writeLine("}")
+		g.indent--
+		g.writeLine("}")
+	}
+}
+
+// hasMethodOnType checks if the program declares a method with the given name on the given type.
+func (g *Generator) hasMethodOnType(typeName, methodName string) bool {
+	for _, decl := range g.program.Declarations {
+		fd, ok := decl.(*ast.FunctionDecl)
+		if !ok || fd.Receiver == nil || fd.Name.Value != methodName {
+			continue
+		}
+		switch rt := fd.Receiver.Type.(type) {
+		case *ast.NamedType:
+			if rt.Name == typeName {
+				return true
+			}
+		case *ast.PrimitiveType:
+			if rt.Name == typeName {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (g *Generator) generateConstDecl(decl *ast.ConstDecl) {

@@ -121,6 +121,65 @@ func TestEnumDecl_ConstBlock(t *testing.T) {
 	}
 }
 
+func TestEnumDecl_StringMethod_Integer(t *testing.T) {
+	input := `enum Status
+    OK = 200
+    NotFound = 404
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (e Status) String() string {") {
+		t.Errorf("expected auto-generated String() method, got:\n%s", output)
+	}
+	if !strings.Contains(output, `return "OK"`) {
+		t.Errorf("expected return \"OK\" in String(), got:\n%s", output)
+	}
+	if !strings.Contains(output, `return "NotFound"`) {
+		t.Errorf("expected return \"NotFound\" in String(), got:\n%s", output)
+	}
+	if !strings.Contains(output, `fmt.Sprintf("Status(%d)", int(e))`) {
+		t.Errorf("expected fallback fmt.Sprintf for unknown int value, got:\n%s", output)
+	}
+}
+
+func TestEnumDecl_StringMethod_String(t *testing.T) {
+	input := `enum LogLevel
+    Debug = "debug"
+    Info = "info"
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (e LogLevel) String() string {") {
+		t.Errorf("expected auto-generated String() method, got:\n%s", output)
+	}
+	if !strings.Contains(output, "return string(e)") {
+		t.Errorf("expected fallback 'return string(e)' for string enum, got:\n%s", output)
+	}
+}
+
+func TestEnumDecl_StringMethod_SkipsUserDefined(t *testing.T) {
+	input := `enum Status
+    OK = 200
+    NotFound = 404
+
+func String on s Status string
+    return "custom"
+`
+
+	output := generateSource(t, input)
+
+	// Should have the user's method
+	if !strings.Contains(output, `return "custom"`) {
+		t.Errorf("expected user-defined String() method, got:\n%s", output)
+	}
+	// Should NOT have auto-generated String()
+	if strings.Contains(output, `case StatusOK:`) && strings.Contains(output, `return "OK"`) {
+		t.Errorf("should not auto-generate String() when user defines one, got:\n%s", output)
+	}
+}
+
 func TestEnumDecl_OrderIndependent(t *testing.T) {
 	// Enum declared after function that uses it
 	input := `func main()

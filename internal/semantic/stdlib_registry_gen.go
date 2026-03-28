@@ -900,3 +900,7 @@ var generatedSliceGenericClass = map[string]string{
 // generatedStdlibInterfaces lists qualified Kukicha stdlib type names that are interfaces.
 // Used by codegen to decide between type assertion (x.(T)) and type conversion (T(x)).
 var generatedStdlibInterfaces = map[string]bool{}
+
+// generatedStdlibEnums maps qualified enum type names (e.g., "http.Status") to their
+// ordered case names. Used for cross-package enum case resolution.
+var generatedStdlibEnums = map[string][]string{}

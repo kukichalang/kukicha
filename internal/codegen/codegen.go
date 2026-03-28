@@ -206,6 +206,22 @@ func (g *Generator) Generate() (string, error) {
 		}
 	}
 
+	// Register cross-package enum types from stdlib registry so dot-access rewriting
+	// works for imported enums (e.g., http.Status.OK → http.StatusOK)
+	for _, imp := range g.program.Imports {
+		pkgName := extractPkgName(strings.Trim(imp.Path.Value, "\""))
+		if imp.Alias != nil {
+			pkgName = imp.Alias.Value
+		}
+		// Check all known stdlib enums for this package prefix
+		for qualifiedName := range semantic.GetAllStdlibEnums() {
+			if strings.HasPrefix(qualifiedName, pkgName+".") {
+				// Register as "pkg.EnumName" so generateFieldAccessExpr can match
+				g.enumTypes[qualifiedName] = true
+			}
+		}
+	}
+
 	// Generate declarations
 	for _, decl := range g.program.Declarations {
 		g.writeLine("")
