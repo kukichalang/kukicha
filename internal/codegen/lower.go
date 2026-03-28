@@ -211,15 +211,21 @@ func (l *Lowerer) lowerOnErrHandler(clause *ast.OnErrClause, names []string, err
 // ensuring exprToString resolves "error" / alias identifiers to errVar
 // during handler rendering.
 func (l *Lowerer) renderHandler(clause *ast.OnErrClause, names []string, errVar string) string {
-	// Save and restore generator state.
+	// Save generator state and restore on exit (panic-safe).
 	savedOutput := l.gen.output
-	l.gen.output = strings.Builder{}
 	savedIndent := l.gen.indent
-	l.gen.indent = 0
-
 	prevOnErrVar := l.gen.currentOnErrVar
-	l.gen.currentOnErrVar = errVar
 	prevAlias := l.gen.currentOnErrAlias
+	defer func() {
+		l.gen.output = savedOutput
+		l.gen.indent = savedIndent
+		l.gen.currentOnErrVar = prevOnErrVar
+		l.gen.currentOnErrAlias = prevAlias
+	}()
+
+	l.gen.output = strings.Builder{}
+	l.gen.indent = 0
+	l.gen.currentOnErrVar = errVar
 	l.gen.currentOnErrAlias = clause.Alias
 
 	idents := make([]*ast.Identifier, len(names))
@@ -228,13 +234,7 @@ func (l *Lowerer) renderHandler(clause *ast.OnErrClause, names []string, errVar 
 	}
 	l.gen.generateOnErrHandler(idents, clause.Handler, errVar)
 
-	l.gen.currentOnErrVar = prevOnErrVar
-	l.gen.currentOnErrAlias = prevAlias
-
-	result := strings.TrimRight(l.gen.output.String(), "\n")
-	l.gen.output = savedOutput
-	l.gen.indent = savedIndent
-	return result
+	return strings.TrimRight(l.gen.output.String(), "\n")
 }
 
 // ---------- Phase 3: onerr pipe chains ----------
@@ -465,13 +465,17 @@ func (l *Lowerer) lowerPipedSwitchVarDecl(varName string, ps *ast.PipedSwitchExp
 	// Render switch IIFE — temporarily bump indent to match the ScopedBlock
 	// context during emission (generatePipedSwitchExpr bakes absolute
 	// indentation into the IIFE string).
-	savedIndent := l.gen.indent
-	l.gen.indent++
-	savedLeft := ps.Left
-	ps.Left = &ast.Identifier{Value: finalPipeVar}
-	switchStr := l.gen.generatePipedSwitchExpr(ps)
-	ps.Left = savedLeft
-	l.gen.indent = savedIndent
+	switchStr := func() string {
+		savedIndent := l.gen.indent
+		savedLeft := ps.Left
+		defer func() {
+			ps.Left = savedLeft
+			l.gen.indent = savedIndent
+		}()
+		l.gen.indent++
+		ps.Left = &ast.Identifier{Value: finalPipeVar}
+		return l.gen.generatePipedSwitchExpr(ps)
+	}()
 
 	inner.Add(&ir.Assign{Names: []string{varName}, Expr: switchStr, Walrus: false})
 	inner.Add(&ir.Goto{Label: endLabel})
@@ -546,9 +550,15 @@ func (l *Lowerer) lowerPipedSwitchStmt(ps *ast.PipedSwitchExpr, clause *ast.OnEr
 
 // renderSwitchStmt captures the output of a switch statement into a string.
 func (l *Lowerer) renderSwitchStmt(ps *ast.PipedSwitchExpr, finalPipeVar string) string {
+	// Save generator state and restore on exit (panic-safe).
 	savedOutput := l.gen.output
-	l.gen.output = strings.Builder{}
 	savedIndent := l.gen.indent
+	defer func() {
+		l.gen.output = savedOutput
+		l.gen.indent = savedIndent
+	}()
+
+	l.gen.output = strings.Builder{}
 	l.gen.indent = 0
 
 	switch stmt := ps.Switch.(type) {
@@ -564,10 +574,7 @@ func (l *Lowerer) renderSwitchStmt(ps *ast.PipedSwitchExpr, finalPipeVar string)
 		stmt.Expression = originalExpr
 	}
 
-	result := strings.TrimRight(l.gen.output.String(), "\n")
-	l.gen.output = savedOutput
-	l.gen.indent = savedIndent
-	return result
+	return strings.TrimRight(l.gen.output.String(), "\n")
 }
 
 // lowerOnErrStmt produces IR for a statement-level onerr (no named targets).

@@ -701,8 +701,8 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 		}
 		return fmt.Sprintf("%s(%s)", funcName, leftExpr)
 	} else {
-		pos := expr.Right.Pos()
-		panic(fmt.Sprintf("codegen: unhandled pipe target %T at %s:%d:%d", expr.Right, pos.File, pos.Line, pos.Column))
+		g.warn(expr.Right.Pos(), fmt.Sprintf("unsupported pipe target type %T; wrap in a call: f()", expr.Right))
+		return leftExpr
 	}
 
 	// Build the argument list using the shared helper
