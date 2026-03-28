@@ -178,3 +178,7 @@ bricks[i]                                # Access by index
 - Make bricks worth different points per row
 - Add power-ups that fall when bricks break (wider paddle, multi-ball)
 - Add a second level with a different brick layout
+
+## What's next?
+
+Want to see a larger game built with Kukicha? Check out [Stem Panic](../../../examples/stem-panic/) — a tapper-style tea processing game that uses multiple lanes, game states, levels, and the `|>` pipe as a gameplay mechanic. It builds on all the concepts from these tutorials.

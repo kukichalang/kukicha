@@ -211,6 +211,9 @@ All editors get syntax highlighting, hover, go-to-definition, completions, and d
 - [Link Shortener](docs/tutorials/web-app-tutorial.md) — HTTP servers, JSON, REST APIs
 - [Concurrent Health Checker](docs/tutorials/concurrent-url-health-checker.md) — goroutines and channels
 
+**Make a game:**
+- [Game Tutorials](docs/tutorials/game/01-hello-world.md) — 8 lessons from hello world to Breakout (WASM)
+
 **Go deeper:**
 - [Shell Scripters Guide](docs/tutorials/beginner-tutorial.md) — for bash users
 - [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, validation, retry, auth
