@@ -118,6 +118,13 @@ func (a *Analyzer) collectDirectives() {
 			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
 				a.deprecatedTypes[d.Name.Value] = msg
 			}
+		case *ast.EnumDecl:
+			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
+				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
+			}
+			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
+				a.deprecatedTypes[d.Name.Value] = msg
+			}
 		}
 	}
 }

@@ -127,6 +127,8 @@ func (p *Parser) parseDeclaration() ast.Declaration {
 		decl = p.parseVarDeclaration()
 	case lexer.TOKEN_CONST:
 		decl = p.parseConstDecl()
+	case lexer.TOKEN_ENUM:
+		decl = p.parseEnumDecl()
 	default:
 		if !p.isAtEnd() {
 			p.error(p.peekToken(), fmt.Sprintf("unexpected token %s, expected declaration", p.peekToken().Type))
@@ -143,6 +145,8 @@ func (p *Parser) parseDeclaration() ast.Declaration {
 		case *ast.TypeDecl:
 			d.Directives = dirs
 		case *ast.InterfaceDecl:
+			d.Directives = dirs
+		case *ast.EnumDecl:
 			d.Directives = dirs
 		}
 	}
@@ -534,6 +538,59 @@ func (p *Parser) parseVarDeclaration() ast.Declaration {
 		Names:  names,
 		Type:   typeAnnot,
 		Values: values,
+	}
+}
+
+// parseEnumDecl parses an enum declaration:
+//
+//	enum Status
+//	    OK = 200
+//	    NotFound = 404
+func (p *Parser) parseEnumDecl() ast.Declaration {
+	token := p.advance() // consume 'enum'
+	p.skipNewlines()
+
+	name := p.parseIdentifier()
+	if name == nil {
+		return nil
+	}
+
+	p.skipNewlines()
+
+	if !p.match(lexer.TOKEN_INDENT) {
+		p.error(p.peekToken(), "expected indented block for enum cases")
+		return nil
+	}
+
+	var cases []*ast.EnumCase
+	for !p.check(lexer.TOKEN_DEDENT) && !p.isAtEnd() {
+		p.skipNewlines()
+		if p.check(lexer.TOKEN_DEDENT) {
+			break
+		}
+
+		caseName := p.parseIdentifier()
+		if caseName == nil {
+			p.skipNewlines()
+			continue
+		}
+		p.consume(lexer.TOKEN_ASSIGN, fmt.Sprintf("expected '=' after enum case '%s'", caseName.Value))
+		value := p.parseExpression()
+
+		cases = append(cases, &ast.EnumCase{
+			Name:  caseName,
+			Value: value,
+		})
+		p.skipNewlines()
+	}
+
+	p.consume(lexer.TOKEN_DEDENT, "expected dedent after enum cases")
+	p.skipNewlines()
+
+	return &ast.EnumDecl{
+		Token: token,
+		Name:  name,
+		Cases: cases,
 	}
 }
 

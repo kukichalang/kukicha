@@ -40,8 +40,15 @@ ImportDeclaration ::= "import" STRING [ "as" IDENTIFIER ] NEWLINE
 TopLevelDeclaration ::=
     | TypeDeclaration
     | InterfaceDeclaration
+    | EnumDeclaration
     | FunctionDeclaration
     | MethodDeclaration
+
+EnumDeclaration ::= "enum" IDENTIFIER NEWLINE INDENT EnumCaseList DEDENT
+
+EnumCaseList ::= EnumCase { EnumCase }
+
+EnumCase ::= IDENTIFIER "=" Literal NEWLINE
 
 TypeDeclaration ::=
     | "type" IDENTIFIER NEWLINE INDENT FieldList DEDENT

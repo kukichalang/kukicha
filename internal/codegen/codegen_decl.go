@@ -54,6 +54,27 @@ func (g *Generator) generateInterfaceDecl(decl *ast.InterfaceDecl) {
 	g.writeLine("}")
 }
 
+func (g *Generator) generateEnumDecl(decl *ast.EnumDecl) {
+	// Register as an enum type for dot-access rewriting
+	g.enumTypes[decl.Name.Value] = true
+
+	// Infer underlying type from first case
+	underlyingType := "int"
+	if _, ok := decl.Cases[0].Value.(*ast.StringLiteral); ok {
+		underlyingType = "string"
+	}
+
+	g.writeLine(fmt.Sprintf("type %s %s", decl.Name.Value, underlyingType))
+	g.writeLine("")
+	g.writeLine("const (")
+	g.indent++
+	for _, c := range decl.Cases {
+		g.writeLine(fmt.Sprintf("%s%s %s = %s", decl.Name.Value, c.Name.Value, decl.Name.Value, g.exprToString(c.Value)))
+	}
+	g.indent--
+	g.writeLine(")")
+}
+
 func (g *Generator) generateConstDecl(decl *ast.ConstDecl) {
 	if len(decl.Specs) == 0 {
 		return

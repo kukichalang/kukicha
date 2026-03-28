@@ -124,6 +124,8 @@ func (a *Analyzer) collectDeclarations() {
 			a.collectFunctionDecl(d)
 		case *ast.ConstDecl:
 			a.collectConstDecl(d)
+		case *ast.EnumDecl:
+			a.collectEnumDecl(d)
 		}
 	}
 }
@@ -333,6 +335,8 @@ func (a *Analyzer) analyzeDeclarations() {
 			a.analyzeGlobalVarDecl(d)
 		case *ast.ConstDecl:
 			a.analyzeConstDecl(d)
+		case *ast.EnumDecl:
+			a.analyzeEnumDecl(d)
 		}
 	}
 }
@@ -491,4 +495,77 @@ func (a *Analyzer) analyzeFunctionDecl(decl *ast.FunctionDecl) {
 	}
 
 	a.currentFunc = nil
+}
+
+func (a *Analyzer) collectEnumDecl(decl *ast.EnumDecl) {
+	if !isValidIdentifier(decl.Name.Value) {
+		a.error(decl.Name.Pos(), fmt.Sprintf("invalid enum name '%s'", decl.Name.Value))
+		return
+	}
+
+	if len(decl.Cases) == 0 {
+		a.error(decl.Pos(), fmt.Sprintf("enum '%s' must have at least one case", decl.Name.Value))
+		return
+	}
+
+	// Infer underlying type from the first case value
+	var enumTypeKind TypeKind
+	switch decl.Cases[0].Value.(type) {
+	case *ast.IntegerLiteral:
+		enumTypeKind = TypeKindInt
+	case *ast.StringLiteral:
+		enumTypeKind = TypeKindString
+	default:
+		a.error(decl.Cases[0].Value.Pos(), "enum case values must be integer or string literals")
+		return
+	}
+
+	// Build enum cases map — each case maps to the enum type itself
+	enumType := &TypeInfo{Kind: TypeKindEnum, Name: decl.Name.Value, EnumCases: make(map[string]*TypeInfo, len(decl.Cases))}
+	for _, c := range decl.Cases {
+		caseType := &TypeInfo{Kind: enumTypeKind, Name: decl.Name.Value}
+		enumType.EnumCases[c.Name.Value] = caseType
+	}
+
+	symbol := &Symbol{
+		Name:     decl.Name.Value,
+		Kind:     SymbolType,
+		Type:     enumType,
+		Defined:  decl.Name.Pos(),
+		Exported: isExported(decl.Name.Value),
+	}
+
+	if err := a.symbolTable.Define(symbol); err != nil {
+		a.error(decl.Name.Pos(), err.Error())
+	}
+}
+
+func (a *Analyzer) analyzeEnumDecl(decl *ast.EnumDecl) {
+	if len(decl.Cases) == 0 {
+		return
+	}
+
+	// Validate all cases have the same type
+	var expectedKind string
+	switch decl.Cases[0].Value.(type) {
+	case *ast.IntegerLiteral:
+		expectedKind = "integer"
+	case *ast.StringLiteral:
+		expectedKind = "string"
+	}
+
+	for _, c := range decl.Cases {
+		switch c.Value.(type) {
+		case *ast.IntegerLiteral:
+			if expectedKind != "integer" {
+				a.error(c.Value.Pos(), fmt.Sprintf("enum '%s' mixes value types: expected %s, got integer", decl.Name.Value, expectedKind))
+			}
+		case *ast.StringLiteral:
+			if expectedKind != "string" {
+				a.error(c.Value.Pos(), fmt.Sprintf("enum '%s' mixes value types: expected %s, got string", decl.Name.Value, expectedKind))
+			}
+		default:
+			a.error(c.Value.Pos(), "enum case values must be integer or string literals")
+		}
+	}
 }

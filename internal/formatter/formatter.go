@@ -159,6 +159,8 @@ func (p *PrinterWithComments) printDeclarationWithComments(decl ast.Declaration)
 		p.printFunctionDeclWithComments(d)
 	case *ast.ConstDecl:
 		p.printConstDeclWithComments(d)
+	case *ast.EnumDecl:
+		p.printEnumDecl(d)
 	}
 }
 

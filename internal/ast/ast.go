@@ -152,6 +152,30 @@ type FieldDecl struct {
 	Tag  string // Struct tag (e.g., `json:"name"`)
 }
 
+// EnumDecl represents an enum declaration.
+//
+//	enum Status
+//	    OK = 200
+//	    NotFound = 404
+type EnumDecl struct {
+	Token      lexer.Token // The 'enum' token
+	Name       *Identifier
+	Cases      []*EnumCase
+	Directives []Directive
+}
+
+func (d *EnumDecl) TokenLiteral() string { return d.Token.Lexeme }
+func (d *EnumDecl) Pos() Position {
+	return Position{Line: d.Token.Line, Column: d.Token.Column, File: d.Token.File}
+}
+func (d *EnumDecl) declNode() {}
+
+// EnumCase is a single named value in an enum.
+type EnumCase struct {
+	Name  *Identifier
+	Value Expression // Must be a literal (integer or string)
+}
+
 type InterfaceDecl struct {
 	Token      lexer.Token // The 'interface' token
 	Name       *Identifier

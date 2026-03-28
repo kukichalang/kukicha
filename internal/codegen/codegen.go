@@ -69,6 +69,7 @@ type Generator struct {
 	reservedNames        map[string]bool          // User-declared identifiers — uniqueId skips these to avoid collisions
 	varMap               map[string]string        // Maps generated temp variable names to source descriptions (for debugging)
 	warnings             []error                  // Non-fatal diagnostics collected during code generation
+	enumTypes            map[string]bool          // Enum type names for Status.OK → StatusOK rewriting
 }
 
 // New creates a new code generator
@@ -82,6 +83,7 @@ func New(program *ast.Program) *Generator {
 		stdlibModuleBase:   defaultStdlibModuleBase,
 		currentReturnIndex: -1,
 		varMap:             make(map[string]string),
+		enumTypes:          make(map[string]bool),
 	}
 }
 
@@ -130,6 +132,7 @@ func (g *Generator) childGenerator(extraIndent int) *Generator {
 		currentReturnIndex: -1,
 		stdlibModuleBase:   g.stdlibModuleBase,
 		reservedNames:      g.reservedNames,
+		enumTypes:          g.enumTypes,
 	}
 }
 
@@ -196,6 +199,13 @@ func (g *Generator) Generate() (string, error) {
 		g.generateImports()
 	}
 
+	// Pre-scan enum declarations so dot-access rewriting works regardless of declaration order
+	for _, decl := range g.program.Declarations {
+		if ed, ok := decl.(*ast.EnumDecl); ok {
+			g.enumTypes[ed.Name.Value] = true
+		}
+	}
+
 	// Generate declarations
 	for _, decl := range g.program.Declarations {
 		g.writeLine("")
@@ -241,6 +251,8 @@ func (g *Generator) generateDeclaration(decl ast.Declaration) {
 		g.generateGlobalVarDecl(d)
 	case *ast.ConstDecl:
 		g.generateConstDecl(d)
+	case *ast.EnumDecl:
+		g.generateEnumDecl(d)
 	}
 }
 

@@ -616,6 +616,19 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 }
 
 func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *TypeInfo) *TypeInfo {
+	// Check if the object is an enum type name (e.g., Status.OK)
+	if ident, ok := expr.Object.(*ast.Identifier); ok {
+		sym := a.symbolTable.Resolve(ident.Value)
+		if sym != nil && sym.Kind == SymbolType && sym.Type != nil && sym.Type.Kind == TypeKindEnum {
+			if caseType, ok := sym.Type.EnumCases[expr.Field.Value]; ok {
+				a.recordReturnCount(expr, 1)
+				return caseType
+			}
+			a.error(expr.Field.Pos(), fmt.Sprintf("'%s' is not a case of enum %s", expr.Field.Value, ident.Value))
+			return &TypeInfo{Kind: TypeKindUnknown}
+		}
+	}
+
 	objType := pipedArg
 	if expr.Object != nil {
 		objType = a.analyzeExpression(expr.Object)

@@ -70,7 +70,18 @@ func (p *Printer) printDeclaration(decl ast.Declaration) {
 		p.printFunctionDecl(d)
 	case *ast.ConstDecl:
 		p.printConstDecl(d)
+	case *ast.EnumDecl:
+		p.printEnumDecl(d)
 	}
+}
+
+func (p *Printer) printEnumDecl(decl *ast.EnumDecl) {
+	p.writeLine(fmt.Sprintf("enum %s", decl.Name.Value))
+	p.indentLevel++
+	for _, c := range decl.Cases {
+		p.writeLine(fmt.Sprintf("%s = %s", c.Name.Value, p.exprToString(c.Value)))
+	}
+	p.indentLevel--
 }
 
 func (p *Printer) printConstDecl(decl *ast.ConstDecl) {

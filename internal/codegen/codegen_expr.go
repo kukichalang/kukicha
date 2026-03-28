@@ -883,6 +883,11 @@ func (g *Generator) generateFieldAccessExpr(expr *ast.FieldAccessExpr) string {
 	object := g.exprToString(expr.Object)
 	field := expr.Field.Value
 
+	// Enum case access: Status.OK → StatusOK
+	if g.enumTypes[object] {
+		return object + field
+	}
+
 	if alias, ok := g.pkgAliases[object]; ok {
 		object = alias
 	}

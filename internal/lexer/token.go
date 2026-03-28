@@ -61,6 +61,7 @@ const (
 	TOKEN_AS
 	TOKEN_SKILL
 	TOKEN_SELECT
+	TOKEN_ENUM
 
 	// Variadic keyword
 	TOKEN_MANY
@@ -235,6 +236,8 @@ func (t TokenType) String() string {
 		return "SKILL"
 	case TOKEN_SELECT:
 		return "SELECT"
+	case TOKEN_ENUM:
+		return "ENUM"
 
 	// Variadic keyword
 	case TOKEN_MANY:
@@ -411,6 +414,7 @@ var keywords = map[string]TokenType{
 	"not":         TOKEN_NOT,
 	"skill":       TOKEN_SKILL,
 	"select":      TOKEN_SELECT,
+	"enum":        TOKEN_ENUM,
 }
 
 var (
