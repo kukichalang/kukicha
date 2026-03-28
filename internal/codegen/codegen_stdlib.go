@@ -62,7 +62,11 @@ func (g *Generator) inferExprReturnType(expr ast.Expression) string {
 	case *ast.FieldAccessExpr:
 		return ""
 	case *ast.CallExpr:
-		// Can't easily determine return type of arbitrary call
+		if id, ok := e.Function.(*ast.Identifier); ok {
+			if ret := g.returnTypeForFunctionName(id.Value); ret != "" {
+				return ret
+			}
+		}
 		return ""
 	}
 	// For field access, identifiers, etc. — can't determine without full type info
@@ -448,6 +452,17 @@ func (g *Generator) inferReturnCount(expr ast.Expression) (int, bool) {
 		return 1, true
 	}
 	return 0, false
+}
+
+func (g *Generator) returnTypeForFunctionName(name string) string {
+	for _, decl := range g.program.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
+			if fn.Receiver == nil && fn.Name.Value == name && len(fn.Returns) > 0 {
+				return g.generateTypeAnnotation(fn.Returns[0])
+			}
+		}
+	}
+	return ""
 }
 
 func (g *Generator) returnCountForFunctionName(name string) (int, bool) {

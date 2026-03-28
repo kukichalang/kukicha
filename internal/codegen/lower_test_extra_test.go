@@ -277,6 +277,91 @@ func TestBareIdentifierPipeTargetInOnerr(t *testing.T) {
 	}
 }
 
+// TestUserDefinedFuncReturnTypeInPipeIIFE verifies that when a user-defined
+// function with a concrete return type (e.g., string, error) is used as a
+// multi-return pipe step, the IIFE wrapper uses the concrete first return type
+// instead of falling back to "any".
+func TestUserDefinedFuncReturnTypeInPipeIIFE(t *testing.T) {
+	// Program declares: func GetName() string, error
+	program := &ast.Program{
+		Declarations: []ast.Declaration{
+			&ast.FunctionDecl{
+				Name: &ast.Identifier{Value: "GetName"},
+				Returns: []ast.TypeAnnotation{
+					&ast.NamedType{Name: "string"},
+					&ast.NamedType{Name: "error"},
+				},
+			},
+		},
+	}
+
+	// Pipe chain: GetName() |> toUpper()
+	getNameCall := &ast.CallExpr{Function: &ast.Identifier{Value: "GetName"}, Arguments: []ast.Expression{}}
+	toUpperCall := &ast.CallExpr{Function: &ast.Identifier{Value: "toUpper"}, Arguments: []ast.Expression{}}
+	pipe := &ast.PipeExpr{Left: getNameCall, Right: toUpperCall}
+
+	gen := New(program)
+	gen.exprReturnCounts = map[ast.Expression]int{getNameCall: 2, toUpperCall: 1}
+
+	l := newLowerer(gen)
+	block, _ := l.lowerPipeChain(pipe)
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+	gen.emitIR(block)
+	out := gen.output.String()
+
+	// The IIFE should use "string" (the first return type of GetName),
+	// not "any" which is the current fallback.
+	if strings.Contains(out, "func() any {") {
+		t.Errorf("IIFE should use concrete return type 'string', not 'any':\n%s", out)
+	}
+	if !strings.Contains(out, "func() string {") {
+		t.Errorf("expected IIFE with 'func() string {', got:\n%s", out)
+	}
+}
+
+// TestUserDefinedFuncReturnTypeInPipeIIFE_MultiStep verifies the fix works for
+// intermediate multi-return steps (not just the base) in a pipe chain.
+func TestUserDefinedFuncReturnTypeInPipeIIFE_MultiStep(t *testing.T) {
+	program := &ast.Program{
+		Declarations: []ast.Declaration{
+			&ast.FunctionDecl{
+				Name: &ast.Identifier{Value: "Parse"},
+				Returns: []ast.TypeAnnotation{
+					&ast.NamedType{Name: "int"},
+					&ast.NamedType{Name: "error"},
+				},
+			},
+		},
+	}
+
+	// Pipe chain: data |> Parse() |> display()
+	// Parse is a multi-return intermediate step — its IIFE should use "int"
+	dataIdent := &ast.Identifier{Value: "data"}
+	parseCall := &ast.CallExpr{Function: &ast.Identifier{Value: "Parse"}, Arguments: []ast.Expression{}}
+	displayCall := &ast.CallExpr{Function: &ast.Identifier{Value: "display"}, Arguments: []ast.Expression{}}
+	pipe := &ast.PipeExpr{Left: &ast.PipeExpr{Left: dataIdent, Right: parseCall}, Right: displayCall}
+
+	gen := New(program)
+	gen.exprReturnCounts = map[ast.Expression]int{parseCall: 2, displayCall: 1}
+
+	l := newLowerer(gen)
+	block, _ := l.lowerPipeChain(pipe)
+	if block == nil {
+		t.Fatal("expected non-nil block")
+	}
+	gen.emitIR(block)
+	out := gen.output.String()
+
+	if strings.Contains(out, "func() any {") {
+		t.Errorf("IIFE should use concrete return type 'int', not 'any':\n%s", out)
+	}
+	if !strings.Contains(out, "func() int {") {
+		t.Errorf("expected IIFE with 'func() int {', got:\n%s", out)
+	}
+}
+
 // TestPipedSwitchNonPipeBaseMultiReturn verifies that when a piped switch's
 // base expression is a single multi-return call (not a pipe chain), its error
 // is checked and pipeErr is populated so {error} resolves in the handler.
