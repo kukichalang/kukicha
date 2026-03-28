@@ -188,25 +188,7 @@ func process(level LogLevel)
         print("debug mode")
 ```
 
-## Implementation Scope
-
-### 1. Lexer (`internal/lexer/token.go`)
-
-Add a new token type:
-
-```go
-TOKEN_ENUM  // 'enum' keyword
-```
-
-Add to the `keywords` map:
-
-```go
-"enum": TOKEN_ENUM,
-```
-
-### 2. AST (`internal/ast/ast.go`)
-
-Define two new nodes:
+## AST Nodes
 
 ```go
 // EnumDecl represents an enum declaration.
@@ -230,67 +212,6 @@ type EnumCase struct {
 
 `EnumDecl` implements `Declaration` (like `TypeDecl` and `ConstDecl`).
 
-### 3. Parser (`internal/parser/parser_decl.go`)
-
-Add `case lexer.TOKEN_ENUM:` in `parseDeclaration()`, calling a new `parseEnumDecl()` method:
-
-```
-parseEnumDecl:
-  1. consume TOKEN_ENUM
-  2. parse name identifier
-  3. consume TOKEN_INDENT
-  4. loop: parse each case (identifier = literal)
-  5. consume TOKEN_DEDENT
-```
-
-This follows the same pattern as `parseConstDecl()` for grouped const blocks.
-
-### 4. Semantic Analysis (`internal/semantic/semantic_declarations.go`)
-
-In `collectDeclarations()` and `analyzeDeclarations()`:
-
-- Register the enum type as a named type in the symbol table
-- Store enum case names and values for validation
-- Validate: all values must be the same type (all int or all string)
-- Validate: no duplicate case names
-- Validate: no duplicate values
-- Register enum cases as package-level constants
-
-For field access validation in `semantic_calls.go`:
-- When `expr.Object` resolves to an enum type and `expr.Field` is a valid case name, mark it as valid
-
-### 5. Codegen (`internal/codegen/codegen_decl.go`)
-
-Add `case *ast.EnumDecl:` in the declaration switch, calling `generateEnumDecl()`:
-
-```go
-func (g *Generator) generateEnumDecl(decl *ast.EnumDecl) {
-    // Emit: type Status int  (or string)
-    // Emit: const ( StatusOK Status = 200 ... )
-}
-```
-
-In `exprToString` (for `FieldAccessExpr`):
-- When the object resolves to an enum type, emit `TypeNameCaseName` instead of `TypeName.CaseName`
-
-### 6. Formatter (`internal/formatter/printer.go`)
-
-Add `case *ast.EnumDecl:` to print enum declarations with proper indentation.
-
-### Key Files Summary
-
-| File | Change |
-|------|--------|
-| `internal/lexer/token.go` | Add `TOKEN_ENUM`, add `"enum"` to keywords |
-| `internal/ast/ast.go` | Add `EnumDecl`, `EnumCase` nodes |
-| `internal/parser/parser_decl.go` | Add `parseEnumDecl()` |
-| `internal/semantic/semantic_declarations.go` | Collect + analyze enum declarations |
-| `internal/semantic/semantic_calls.go` | Resolve `EnumType.Case` field access |
-| `internal/codegen/codegen_decl.go` | Generate Go `type` + `const` block |
-| `internal/codegen/codegen_expr.go` | Translate `Status.OK` to `StatusOK` |
-| `internal/codegen/codegen.go` | Add case in declaration dispatch |
-| `internal/formatter/printer.go` | Format enum declarations |
-
 ## Risk Assessment
 
 ### Low Risk: Conflict with Go
@@ -313,37 +234,27 @@ If Go adds **data-carrying variants** (Rust-style `enum Result { Ok(T), Err(E) }
 
 `enum` is not a Go keyword, so using it in generated code is not an issue. The generated output uses standard `type` + `const` patterns.
 
-## Open Design Questions
+## Design Decisions
 
 ### 1. Auto-Increment vs Explicit Values
 
-**Current proposal:** All values must be explicit.
+**Decision:** All values must be explicit.
 
 ```kukicha
-# This is the proposed syntax — explicit values required
 enum Color
     Red = 0
     Green = 1
     Blue = 2
 ```
 
-**Alternative:** Support auto-increment (like Go's `iota`):
-
-```kukicha
-enum Color
-    Red      # 0
-    Green    # 1
-    Blue     # 2
-```
-
-**Recommendation:** Start with explicit values only. Kukicha's philosophy is "no magic" — auto-increment hides the actual values and makes insertion-order bugs possible. Auto-increment could be added later as a convenience feature if users request it.
+Kukicha's philosophy is "no magic" — auto-increment hides the actual values and makes insertion-order bugs possible. A beginner reading this code can see exactly what each name maps to. Auto-increment could be added later as a convenience feature if users request it.
 
 ### 2. Exhaustiveness Checking
 
-Should the compiler warn when a `switch` on an enum type is missing cases?
+**Decision:** Add exhaustiveness checking when there is no `otherwise` clause.
 
 ```kukicha
-# Should this warn about missing Status.Error case?
+# This warns: "switch on Status is missing case: Error"
 status |> switch
     when Status.OK
         print("ok")
@@ -351,116 +262,232 @@ status |> switch
         print("not found")
 ```
 
-**Recommendation:** Add exhaustiveness checking, but only when there is no `otherwise` clause. If `otherwise` is present, the programmer has explicitly handled the remaining cases. This matches Rust's approach and provides real safety without being annoying.
+```kukicha
+# This is fine — otherwise handles the rest
+status |> switch
+    when Status.OK
+        print("ok")
+    otherwise
+        print("something else")
+```
 
-**Implementation:** In `codegen_stmt.go` (or semantic), when generating a `switch` where the expression type is a known enum:
+This matches Rust's approach and provides real safety without being annoying. If `otherwise` is present, the programmer has explicitly handled the remaining cases.
+
+**Implementation:** In semantic analysis, when analyzing a `switch` where the expression type is a known enum:
 - Collect all `when` case values
 - Compare against all enum cases
 - If missing cases and no `otherwise`, emit a compiler warning
+- This runs in the semantic pass (not codegen) so the warning appears alongside other type errors
 
 ### 3. Underlying Type Specification
 
-**Current proposal:** Infer from values (all integers → `int`, all strings → `string`).
-
-**Alternative:** Allow explicit underlying type:
+**Decision:** Infer from values. All integers → `int`, all strings → `string`.
 
 ```kukicha
-enum Port int
-    HTTP = 80
-    HTTPS = 443
+# Underlying type is int (inferred from integer values)
+enum Status
+    OK = 200
+    NotFound = 404
+
+# Underlying type is string (inferred from string values)
+enum LogLevel
+    Debug = "debug"
+    Info = "info"
 ```
 
-**Recommendation:** Start with inference only. The inferred type covers most cases. Explicit types can be added later if needed (e.g., for `int32` or `uint8`).
+Explicit types (`enum Port int`) can be added later if needed for `int32` or `uint8`.
 
 ### 4. Zero Value Safety
 
-**Problem:** Since integer enums generate `type Status int`, any uninitialized variable or struct field has value `Status(0)`. If no case maps to `0`, this is a silently invalid state:
+**Decision:** Warn when no integer enum case maps to `0`.
+
+**The problem:** Since integer enums generate `type Status int`, any uninitialized variable or struct field has value `Status(0)`. If no case maps to `0`, this is a silently invalid state:
 
 ```kukicha
 type Response
-    status Status   # zero value is Status(0) — invalid if no case = 0
+    status Status   # zero value is Status(0) — matches no case
     body string
 
 resp := Response{body: "hello"}
 # resp.status is Status(0), which matches no case
 ```
 
-This is the core safety concern with Go's iota enums and applies equally to Kukicha's proposal.
+**The warning:**
 
-**Options:**
+```
+Warning in api.kuki:2:5
 
-1. **Require a sentinel case at value `0`** — semantic analysis rejects integer enums where no case equals `0`. Users must add an explicit unknown/unset case:
+    2 |    enum Status
+      |    ^^^^ enum Status has no case with value 0 — uninitialized variables will hold an invalid state
 
-```kukicha
-enum Status
-    Unknown = 0
-    OK = 200
-    NotFound = 404
-    Error = 500
+    Help: Consider adding an explicit Unknown = 0 case:
+          enum Status
+              Unknown = 0
+              OK = 200
 ```
 
-2. **Warn at declaration** — emit a compiler warning when no case maps to `0`, without requiring a fix.
-
-3. **String enums sidestep the problem** — string enums have `""` as their zero value, which is also not a valid case, so the problem is symmetric. However, the empty string is at least obviously invalid in logs and JSON output, unlike `0`.
-
-**Recommendation:** Warn when no integer enum case maps to `0`, and suggest adding an explicit `Unknown = 0` or `Unset = 0` case. Do not make it a hard error — there are legitimate enums where `0` is intentionally unused (e.g., HTTP status codes).
+This is a warning, not an error — legitimate enums like HTTP status codes intentionally have no `0` case. String enums have `""` as their zero value, which is also not a valid case, but at least obviously invalid in logs and JSON output.
 
 ### 5. String Representation
 
-Should enums have an automatic `String()` method?
+**Decision:** Defer `String()` generation to a follow-up. Ship enums without it.
 
-```kukicha
-print(Status.OK)  # Should this print "OK" or "200"?
-```
+Generating `String()` adds complexity: if the user also writes `func String on s Status string`, the generated Go has a duplicate method — a compile error. This requires a post-collection pass to detect user-defined `String` methods before deciding whether to generate one.
 
-**Recommendation:** Generate a `String()` method that returns the case name. This matches user expectations and is more useful for debugging than the raw value. The raw value is still accessible since the enum is a typed constant.
-
-**Conflict with user-defined methods:** If the user also writes:
-
-```kukicha
-func String on s Status string
-    return "custom"
-```
-
-The generated Go will have a duplicate `String()` method — a compile error. The codegen must check whether the enum type has a user-defined `String` method and skip generation if so. This requires a post-collection pass in semantic or codegen after all methods are registered.
+Users can write their own `String()` method in the meantime, and Go's `fmt.Stringer` works fine without it. This is additive — we can always add auto-generation later.
 
 ### 6. Enum Methods
 
-Should users be able to define methods on enum types?
+**Decision:** Yes, users can define methods on enum types.
 
 ```kukicha
 func IsClientError on s Status bool
     return s >= 400 and s < 500
 ```
 
-**Recommendation:** Yes — since enums generate a named type (`type Status int`), Go methods on that type work naturally. No special handling needed beyond what Kukicha already does for methods on named types.
+Since enums generate a named type (`type Status int`), Go methods on that type work naturally. No special handling needed beyond what Kukicha already does for methods on named types.
 
 ### 7. Cross-Package Enum Usage
 
-The research doc describes per-file declaration collection but does not address importing enums from other Kukicha packages. When a package exports an enum, consumers need to:
+**Decision:** Defer to a follow-up release. Single-file and same-package enums ship first.
 
-1. Resolve `Status` as an enum type (not a struct, not a package name) during semantic analysis
-2. Validate `Status.OK` as a known case of that enum
-3. Emit `StatusOK` (not `Status.OK`) in codegen
+When cross-package support is added, the approach is:
 
-This requires the stdlib/package registry to encode enum metadata (case names and values) alongside function signatures. The current `goStdlibEntry` / `TypeInfo` structures do not have an enum case map.
+- Add `EnumCases map[string]*TypeInfo` to the `TypeInfo` struct (alongside existing `Fields` and `Methods`)
+- Populate it during `collectDeclarations()` so cross-file resolution works the same as struct field resolution
+- Extend `genstdlibregistry` to emit enum case metadata when scanning `.kuki` files that contain enum declarations
+- Consumer packages then resolve `Status.OK` through the registry the same way they resolve `slice.Filter` today
 
-**Recommendation:** Add an `EnumCases map[string]any` field to `TypeInfo` for enum types. Populate it during `collectDeclarations()` so cross-file and cross-package resolution works the same as struct field resolution. This is required before enums can be used in any non-trivial multi-file program.
+This is a natural extension of the existing registry pipeline but is not needed for the initial release where enums are used within a single package.
 
 ### 8. `EnumType.Case` vs Package Access Disambiguation
 
-`Status.OK` and `json.Marshal` parse identically as field access expressions. The semantic analyzer must distinguish three cases for `x.y`:
+**Decision:** Use the existing symbol table. No ambiguity exists.
 
-1. `x` is a package name → method/function access
-2. `x` is an enum type name → case access, emit `StatusOK`
-3. `x` is a value of enum type → invalid (enum cases are not fields on instances)
+After reading the semantic analyzer, this concern is resolved by how the system already works:
 
-Currently, `x` being a type name (not a value) in a field access position is not a pattern the semantic analyzer handles. Package names are tracked separately from the symbol table. Enum type names live in the symbol table as type symbols.
+1. **Package names** are registered as `SymbolVariable` in the symbol table during `collectDeclarations()` (line 96-104 of `semantic_declarations.go`)
+2. **Enum type names** will be registered as `SymbolType` with a new `TypeKindEnum`
+3. **`analyzeFieldAccessExpr`** already calls `analyzeExpression` on the object first, which resolves the identifier through the symbol table
 
-**Implementation note:** In `analyzeExpression` for `FieldAccessExpr`, check if the object resolves to a type symbol with `TypeKindNamed` where the named type is an enum — before falling through to struct field resolution or package access. Emit a clear error for case 3 (`myStatus.OK` where `myStatus` is a value, not the type itself).
+The resolution order for `X.Y`:
+
+| `X` resolves to | Meaning | Codegen |
+|-----------------|---------|---------|
+| `SymbolVariable` (import) | Package access | `X.Y` (unchanged) |
+| `SymbolType` with `TypeKindEnum` | Enum case access | `XY` (concatenated) |
+| `SymbolVariable`/`SymbolParameter` with enum type | Instance field access | Error: "enum cases are accessed on the type, not on values — use `Status.OK`, not `myStatus.OK`" |
+
+**Concrete implementation in `analyzeFieldAccessExpr`:**
+
+```go
+// Before the existing objType resolution:
+if ident, ok := expr.Object.(*ast.Identifier); ok {
+    sym := a.symbolTable.Resolve(ident.Value)
+    if sym != nil && sym.Kind == SymbolType && sym.Type != nil && sym.Type.Kind == TypeKindEnum {
+        // X is an enum type name — validate Y is a known case
+        if caseType, ok := sym.Type.EnumCases[expr.Field.Value]; ok {
+            a.recordReturnCount(expr, 1)
+            return caseType
+        }
+        a.error(expr.Field.Pos(), fmt.Sprintf(
+            "'%s' is not a case of enum %s", expr.Field.Value, ident.Value))
+        return &TypeInfo{Kind: TypeKindUnknown}
+    }
+}
+```
+
+This slots in at the top of the existing function, before the general field resolution logic. No new disambiguation mechanism needed.
+
+**Codegen side** (`exprToString` for `FieldAccessExpr`):
+
+```go
+// When object is a known enum type, concatenate: Status.OK → StatusOK
+if ident, ok := expr.Object.(*ast.Identifier); ok {
+    if g.isEnumType(ident.Value) {
+        return ident.Value + expr.Field.Value
+    }
+}
+```
 
 ### 9. JSON Serialization
 
-Should enums serialize as their value or their name?
+**Decision:** Serialize as the value (Go's default behavior). No special handling needed.
 
-**Recommendation:** By default, serialize as the value (this is what Go does with typed constants). Consider adding a `# kuki:json name` directive later for name-based serialization.
+Since enums are typed constants, Go's `encoding/json` marshals them as their underlying value (`200` for `Status.OK`, `"debug"` for `LogLevel.Debug`). This is the expected behavior for APIs.
+
+A `# kuki:json name` directive for name-based serialization could be added later as an opt-in.
+
+---
+
+## EBNF Grammar Addition
+
+The following productions should be added to `docs/kukicha-grammar.ebnf.md`:
+
+```ebnf
+TopLevelDeclaration ::=
+    | TypeDeclaration
+    | InterfaceDeclaration
+    | EnumDeclaration
+    | FunctionDeclaration
+    | MethodDeclaration
+
+EnumDeclaration ::= "enum" IDENTIFIER NEWLINE INDENT EnumCaseList DEDENT
+
+EnumCaseList ::= EnumCase { EnumCase }
+
+EnumCase ::= IDENTIFIER "=" Literal NEWLINE
+```
+
+`enum` should be added to the reserved keywords list.
+
+---
+
+## Formatter Support
+
+The formatter (`internal/formatter/printer.go`) needs a `case *ast.EnumDecl:` that prints:
+
+```
+enum Name
+    Case1 = Value1
+    Case2 = Value2
+```
+
+This follows the same pattern as `TypeDecl` formatting: print the keyword + name, then indent and print each child on its own line.
+
+---
+
+## Implementation Phases
+
+### Phase 1: Core Enums (ship first)
+
+Single-package enum declarations, dot access, codegen, and formatter.
+
+| Step | File | Change |
+|------|------|--------|
+| 1 | `internal/lexer/token.go` | Add `TOKEN_ENUM`, add `"enum"` to keywords |
+| 2 | `internal/ast/ast.go` | Add `EnumDecl`, `EnumCase` nodes |
+| 3 | `internal/parser/parser_decl.go` | Add `parseEnumDecl()` |
+| 4 | `internal/semantic/symbols.go` | Add `TypeKindEnum`, add `EnumCases` to `TypeInfo` |
+| 5 | `internal/semantic/semantic_declarations.go` | `collectEnumDecl()` + `analyzeEnumDecl()` |
+| 6 | `internal/semantic/semantic_calls.go` | Enum case resolution in `analyzeFieldAccessExpr` |
+| 7 | `internal/codegen/codegen_decl.go` | `generateEnumDecl()` → `type X int` + `const (...)` |
+| 8 | `internal/codegen/codegen_expr.go` | `Status.OK` → `StatusOK` in `exprToString` |
+| 9 | `internal/formatter/printer.go` | Format enum declarations |
+| 10 | `docs/kukicha-grammar.ebnf.md` | Add `EnumDeclaration` production |
+| 11 | Tests in each package | Lexer, parser, semantic, codegen, formatter |
+
+### Phase 2: Safety (follow-up)
+
+| Step | File | Change |
+|------|------|--------|
+| 1 | `internal/semantic/semantic_declarations.go` | Zero-value warning for integer enums without `0` case |
+| 2 | `internal/semantic/semantic_statements.go` | Exhaustiveness checking for switch/when on enum types |
+
+### Phase 3: Polish (follow-up)
+
+| Step | File | Change |
+|------|------|--------|
+| 1 | `internal/codegen/codegen_decl.go` | Auto-generate `String()` method (skip if user-defined) |
+| 2 | `internal/semantic/stdlib_types.go` | Add `EnumCases` to registry types for cross-package support |
+| 3 | `cmd/genstdlibregistry/main.go` | Emit enum case metadata from `.kuki` files |

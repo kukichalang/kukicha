@@ -1,5 +1,6 @@
-# Stem Panic — A kukicha tea processing game
-# Route raw tea stems through processing stations to brew the perfect batch.
+# Stem Panic — A kukicha tea processing game (Tapper-style)
+# Slide raw tea stems down conveyor lanes to fill tea orders.
+# Each lane is a |> pipeline with processing stations inline.
 # An unhandled bitter leaf causes a Bitter Panic!
 
 import "stdlib/game"
@@ -13,6 +14,7 @@ constant screenH = 480
 
 variable darkWood game.Color = game.MakeColor(35, 25, 20, 255)
 variable bamboo game.Color = game.MakeColor(180, 150, 80, 255)
+variable bambooBright game.Color = game.MakeColor(200, 170, 90, 255)
 variable warmWhite game.Color = game.MakeColor(240, 230, 210, 255)
 variable amber game.Color = game.MakeColor(220, 160, 40, 255)
 variable matchaGreen game.Color = game.MakeColor(100, 180, 60, 255)
@@ -20,100 +22,177 @@ variable warmGold game.Color = game.MakeColor(220, 180, 50, 255)
 variable bitterRed game.Color = game.MakeColor(200, 40, 30, 255)
 variable stationClay game.Color = game.MakeColor(80, 55, 40, 255)
 variable cream game.Color = game.MakeColor(240, 230, 200, 255)
-variable strainerColor game.Color = game.MakeColor(210, 180, 120, 255)
+variable teaMasterColor game.Color = game.MakeColor(210, 180, 120, 255)
 variable jadeGreen game.Color = game.MakeColor(0, 180, 100, 120)
+variable jadeGreenSolid game.Color = game.MakeColor(0, 180, 100, 255)
+variable dimText game.Color = game.MakeColor(120, 100, 70, 255)
+variable laneHighlight game.Color = game.MakeColor(50, 38, 30, 255)
 
-# ── Strainer (Paddle) ──
+# ── Layout ──
 
-constant strainerW = 100.0
-constant strainerH = 12.0
-constant strainerY = 450.0
-constant strainerSpeed = 6.0
+constant laneCount = 3
+constant laneStartX = 80.0
+constant laneEndX = 560.0
+constant laneBaseY = 140.0
+constant laneSpacing = 100.0
+constant laneThick = 4.0
 
-variable strainer game.Rect
-variable shielded bool = false
+# ── Tea Master ──
 
-# ── Stem (Ball) ──
+constant masterW = 40.0
+constant masterH = 30.0
+constant masterX = 20.0
+
+# ── Stems ──
 
 constant stemRadius = 6.0
-constant stemStartSpeed = 3.0
+constant stemSpeed1 = 2.0
+constant stemSpeed2 = 3.0
+constant stemSpeed3 = 3.5
+constant maxStems = 6
 
-variable stem game.Circle
-variable stemDX float64 = 2.0
-variable stemDY float64 = -3.0
-variable stemActive bool = false
+# ── Stations ──
 
-# ── Processing Stations ──
+constant stationW = 60.0
+constant stationH = 40.0
+constant suckDuration = 20
 
-constant stationW = 70.0
-constant stationH = 90.0
-constant suckDuration = 30
-constant stationCooldown = 120
+# ── Catchers ──
+
+constant catcherW = 30.0
+constant catcherH = 30.0
+constant catcherActiveFrames = 60
+constant catcherCooldownFrames = 60
+
+# ── Orders ──
+
+constant orderW = 70.0
+constant orderH = 40.0
+constant orderX = 565.0
+
+# ── Enums ──
+
+enum Scene
+    Title = 0
+    TeaMenu = 1
+    Playing = 2
+    BatchComplete = 3
+    BitterPanic = 4
+
+enum StemState
+    Raw = 0
+    Harvested = 1
+    Steamed = 2
+    Dried = 3
+    Rolled = 4
+    Sorted = 5
+    Blended = 6
+    Bitter = 7
+
+# ── Types ──
+
+type Stem
+    x float64
+    y float64
+    lane int
+    dx float64
+    state StemState
+    suckTimer int
+    suckStationLane int
+    suckStationIdx int
+    suckStartX float64
+    active bool
+    trailX1 float64
+    trailY1 float64
+    trailX2 float64
+    trailY2 float64
 
 type Station
-    rect game.Rect
+    x float64
+    lane int
     funcName string
-    active bool
-    cooldown int
     isFlaky bool
-    sequence int
-    completed bool
+    outputState StemState
 
-variable stations list of Station
+type Catcher
+    x float64
+    lane int
+    active bool
+    timer int
+    cooldown int
 
-# ── Suck-and-Shoot State ──
-
-variable isSucked bool = false
-variable suckTimer int = 0
-variable suckStationIdx int = 0
-variable suckStartX float64 = 0.0
-variable suckStartY float64 = 0.0
-
-# ── Brew Flash Effect ──
-
-variable flashTimer int = 0
-variable flashX float64 = 0.0
-variable flashY float64 = 0.0
-
-# ── Stem State ──
-
-variable stemProcessed bool = false
-variable stemBitter bool = false
-variable nextInChain int = 0
-
-# ── Bitter Trail ──
-
-variable trailX1 float64 = 0.0
-variable trailY1 float64 = 0.0
-variable trailX2 float64 = 0.0
-variable trailY2 float64 = 0.0
-
-# Level concept hints
-variable levelHints list of string = list of string{
-    "|> pipe transforms data",
-    "onerr catches errors",
-    "chain functions in sequence",
-}
+type Order
+    lane int
+    wantState StemState
+    wantLabel string
+    timer int
+    maxTimer int
+    active bool
 
 # ── Game State ──
 
-variable scene string = "title"
+variable scene Scene = Scene.Title
 variable lives int = 3
 variable score int = 0
 variable level int = 1
-variable passes int = 0
-variable passTarget int = 3
+variable fulfilled int = 0
+variable fulfilledTarget int = 5
 variable levelName string = "First Steep"
 variable highestUnlocked int = 1
 variable menuCursor int = 0
+variable currentLane int = 0
+variable panicReason string = ""
 
-# Level names and descriptions
+variable stems list of Stem
+variable stations list of Station
+variable catchers list of Catcher
+variable orders list of Order
+variable orderSpawnTimer int = 0
+variable orderSpawnInterval int = 180
+
+variable stemSpeed float64 = stemSpeed1
+
 variable levelNames list of string = list of string{"First Steep", "Quality Control", "The Full Blend"}
 variable levelDescs list of string = list of string{
-    "One station. Learn the pipe.",
-    "Flaky stations. Use onerr shield.",
-    "Chain four stations in order.",
+    "Two lanes. Match the order.",
+    "Flaky stations. Use onerr catcher.",
+    "Chain stations. Pick the right lane.",
 }
+variable levelHints list of string = list of string{
+    "|> pipe sends data through functions",
+    "onerr catches errors before they crash",
+    "chain functions in sequence with |>",
+}
+
+# ── Helpers ──
+
+function laneY(lane int) float64
+    return laneBaseY + lane as float64 * laneSpacing
+
+function stemOnLane(lane int) bool
+    for i from 0 to len(stems)
+        if stems[i].active and stems[i].lane equals lane
+            return true
+    return false
+
+function stationsOnLane(lane int) list of Station
+    result := make(list of Station, 0)
+    for i from 0 to len(stations)
+        if stations[i].lane equals lane
+            result = append(result, stations[i])
+    return result
+
+function catcherOnLane(lane int) int
+    for i from 0 to len(catchers)
+        if catchers[i].lane equals lane
+            return i
+    return -1
+
+function outputStateForLane(lane int) StemState
+    laneStations := stationsOnLane(lane)
+    if len(laneStations) equals 0
+        return StemState.Raw
+    return laneStations[len(laneStations) - 1].outputState
 
 # ── Entry Point ──
 
@@ -129,140 +208,141 @@ function main()
 function setup()
     lives = 3
     score = 0
-    passes = 0
-    stemProcessed = false
-    stemBitter = false
-    nextInChain = 0
-    flashTimer = 0
-    isSucked = false
-    suckTimer = 0
+    fulfilled = 0
+    currentLane = 0
+    panicReason = ""
+    stems = make(list of Stem, 0)
+    orders = make(list of Order, 0)
+    orderSpawnTimer = 0
+
     if level equals 1
-        passTarget = 3
+        fulfilledTarget = 5
         levelName = "First Steep"
+        stemSpeed = stemSpeed1
+        orderSpawnInterval = 180
+        setupLevel1()
     else if level equals 2
-        passTarget = 3
+        fulfilledTarget = 8
         levelName = "Quality Control"
+        stemSpeed = stemSpeed2
+        orderSpawnInterval = 150
+        setupLevel2()
     else if level equals 3
-        passTarget = 2
+        fulfilledTarget = 10
         levelName = "The Full Blend"
-    resetStrainer()
-    resetStem()
-    setupStations()
+        stemSpeed = stemSpeed3
+        orderSpawnInterval = 120
+        setupLevel3()
 
-function setupStations()
-    if level equals 3
-        cx := screenW as float64 / 2.0 - stationW / 2.0
-        stationH4 := 70.0
-        stations = list of Station{
-            Station{
-                rect: game.Rect{X: cx, Y: 50.0, Width: stationW, Height: stationH4},
-                funcName: "harvest",
-                active: true,
-                sequence: 0,
-            },
-            Station{
-                rect: game.Rect{X: cx, Y: 150.0, Width: stationW, Height: stationH4},
-                funcName: "steam",
-                active: true,
-                sequence: 1,
-            },
-            Station{
-                rect: game.Rect{X: cx, Y: 250.0, Width: stationW, Height: stationH4},
-                funcName: "dry",
-                active: true,
-                sequence: 2,
-            },
-            Station{
-                rect: game.Rect{X: cx, Y: 350.0, Width: stationW, Height: stationH4},
-                funcName: "separate",
-                active: true,
-                sequence: 3,
-            },
-        }
-        return
-    if level equals 2
-        stations = list of Station{
-            Station{
-                rect: game.Rect{X: 100.0, Y: 80.0, Width: stationW, Height: stationH},
-                funcName: "roll",
-                active: true,
-                isFlaky: true,
-            },
-            Station{
-                rect: game.Rect{X: screenW as float64 / 2.0 - stationW / 2.0, Y: 80.0, Width: stationW, Height: stationH},
-                funcName: "sort",
-                active: true,
-                isFlaky: true,
-            },
-            Station{
-                rect: game.Rect{X: screenW as float64 - 100.0 - stationW, Y: 80.0, Width: stationW, Height: stationH},
-                funcName: "dry",
-                active: true,
-                isFlaky: true,
-            },
-        }
-        return
-    # Level 1 default
+function setupLevel1()
+    # Two lanes: steam and dry
     stations = list of Station{
-        Station{
-            rect: game.Rect{X: screenW as float64 / 2.0 - stationW / 2.0, Y: 100.0, Width: stationW, Height: stationH},
-            funcName: "steam.Process",
+        Station{x: 250.0, lane: 0, funcName: "steam", outputState: StemState.Steamed},
+        Station{x: 250.0, lane: 1, funcName: "dry", outputState: StemState.Dried},
+    }
+    catchers = make(list of Catcher, 0)
+
+function setupLevel2()
+    # Three lanes with flaky stations + onerr catchers
+    stations = list of Station{
+        Station{x: 220.0, lane: 0, funcName: "roll", isFlaky: true, outputState: StemState.Rolled},
+        Station{x: 220.0, lane: 1, funcName: "sort", isFlaky: true, outputState: StemState.Sorted},
+        Station{x: 220.0, lane: 2, funcName: "dry", isFlaky: true, outputState: StemState.Dried},
+    }
+    catchers = list of Catcher{
+        Catcher{x: 360.0, lane: 0},
+        Catcher{x: 360.0, lane: 1},
+        Catcher{x: 360.0, lane: 2},
+    }
+
+function setupLevel3()
+    # Three lanes with multi-station chains
+    # Lane 0: harvest |> steam  (produces "steamed")
+    # Lane 1: harvest |> dry    (produces "dried")
+    # Lane 2: harvest |> steam |> dry |> separate (produces "blended")
+    stations = list of Station{
+        Station{x: 180.0, lane: 0, funcName: "harvest", outputState: StemState.Harvested},
+        Station{x: 320.0, lane: 0, funcName: "steam", outputState: StemState.Steamed},
+        Station{x: 180.0, lane: 1, funcName: "harvest", outputState: StemState.Harvested},
+        Station{x: 320.0, lane: 1, funcName: "dry", outputState: StemState.Dried},
+        Station{x: 150.0, lane: 2, funcName: "harvest", outputState: StemState.Harvested},
+        Station{x: 240.0, lane: 2, funcName: "steam", outputState: StemState.Steamed},
+        Station{x: 340.0, lane: 2, funcName: "dry", outputState: StemState.Dried},
+        Station{x: 440.0, lane: 2, funcName: "separate", outputState: StemState.Blended},
+    }
+    catchers = make(list of Catcher, 0)
+
+# ── Spawn Orders ──
+
+function spawnOrder()
+    if level equals 1
+        # Alternate between steamed and dried
+        lane := game.Random(0, 2)
+        wantState := StemState.Steamed
+        wantLabel := "steamed"
+        if lane equals 1
+            wantState = StemState.Dried
+            wantLabel = "dried"
+        orders = append(orders, Order{
+            lane: lane,
+            wantState: wantState,
+            wantLabel: wantLabel,
+            timer: 480,
+            maxTimer: 480,
             active: true,
-        },
-    }
+        })
+    else if level equals 2
+        lane := game.Random(0, 3)
+        states := list of StemState{StemState.Rolled, StemState.Sorted, StemState.Dried}
+        labels := list of string{"rolled", "sorted", "dried"}
+        orders = append(orders, Order{
+            lane: lane,
+            wantState: states[lane],
+            wantLabel: labels[lane],
+            timer: 360,
+            maxTimer: 360,
+            active: true,
+        })
+    else if level equals 3
+        # Orders for steamed, dried, or blended
+        pick := game.Random(0, 3)
+        lanes := list of int{0, 1, 2}
+        states := list of StemState{StemState.Steamed, StemState.Dried, StemState.Blended}
+        labels := list of string{"steamed", "dried", "blended"}
+        orders = append(orders, Order{
+            lane: lanes[pick],
+            wantState: states[pick],
+            wantLabel: labels[pick],
+            timer: 300,
+            maxTimer: 300,
+            active: true,
+        })
 
-function resetStrainer()
-    strainer = game.Rect{
-        X: screenW as float64 / 2.0 - strainerW / 2.0,
-        Y: strainerY,
-        Width: strainerW,
-        Height: strainerH,
-    }
-
-function resetStem()
-    stem = game.Circle{
-        X: screenW as float64 / 2.0,
-        Y: strainerY - 30.0,
-        Radius: stemRadius,
-    }
-    if level >= 2
-        stemDX = 2.5
-        stemDY = -3.0
-    else
-        stemDX = 1.5
-        stemDY = -2.0
-    stemActive = true
-    stemProcessed = false
-    stemBitter = false
-    isSucked = false
-
-function resetChain()
-    nextInChain = 0
-    for i from 0 to len(stations)
-        stations[i].completed = false
-        if not stations[i].active
-            stations[i].active = true
-            stations[i].cooldown = 0
+function activeOrderOnLane(lane int) int
+    for i from 0 to len(orders)
+        if orders[i].active and orders[i].lane equals lane
+            return i
+    return -1
 
 # ── Update ──
 
 function update()
     switch scene
-        when "title"
+        when Scene.Title
             updateTitle()
-        when "tea_menu"
+        when Scene.TeaMenu
             updateTeaMenu()
-        when "playing"
+        when Scene.Playing
             updatePlaying()
-        when "batch_complete"
+        when Scene.BatchComplete
             updateBatchComplete()
-        when "bitter_panic"
+        when Scene.BitterPanic
             updateBitterPanic()
 
 function updateTitle()
     if game.IsKeyPressed(game.KeyEnter)
         menuCursor = 0
-        scene = "tea_menu"
+        scene = Scene.TeaMenu
 
 function updateTeaMenu()
     if game.IsKeyPressed(game.KeyUp) and menuCursor > 0
@@ -273,244 +353,256 @@ function updateTeaMenu()
         selectedLevel := menuCursor + 1
         if selectedLevel <= highestUnlocked
             level = selectedLevel
-            scene = "playing"
+            scene = Scene.Playing
             setup()
     if game.IsKeyPressed(game.KeyEscape)
-        scene = "title"
+        scene = Scene.Title
 
 function updatePlaying()
-    # Tick brew flash
-    if flashTimer > 0
-        flashTimer = flashTimer - 1
-
-    # Tick station cooldowns
-    for i from 0 to len(stations)
-        if not stations[i].active and stations[i].cooldown > 0
-            stations[i].cooldown = stations[i].cooldown - 1
-            if stations[i].cooldown <= 0
-                stations[i].active = true
-
-    # Check win condition
-    if passes >= passTarget
-        scene = "batch_complete"
-        stemActive = false
+    # Check win
+    if fulfilled >= fulfilledTarget
+        scene = Scene.BatchComplete
         return
 
-    # Move strainer
-    if game.IsKeyDown(game.KeyLeft) and strainer.X > 0.0
-        strainer.X = strainer.X - strainerSpeed
-    if game.IsKeyDown(game.KeyRight) and strainer.X + strainerW < screenW as float64
-        strainer.X = strainer.X + strainerSpeed
+    # Tea Master movement
+    if game.IsKeyPressed(game.KeyUp) and currentLane > 0
+        currentLane = currentLane - 1
+    if game.IsKeyPressed(game.KeyDown) and currentLane < activeLaneCount() - 1
+        currentLane = currentLane + 1
 
-    # Quality filter (onerr shield)
-    shielded = game.IsKeyDown(game.KeySpace)
+    # Send stem
+    if game.IsKeyPressed(game.KeyEnter) or game.IsKeyPressed(game.KeySpace)
+        if not stemOnLane(currentLane) and len(stems) < maxStems
+            stems = append(stems, Stem{
+                x: laneStartX,
+                y: laneY(currentLane),
+                lane: currentLane,
+                dx: stemSpeed,
+                state: StemState.Raw,
+                active: true,
+            })
 
-    if not stemActive
-        return
+    # Activate onerr catcher on current lane (level 2)
+    if level equals 2
+        if game.IsKeyPressed(game.KeyEnter) or game.IsKeyPressed(game.KeySpace)
+            ci := catcherOnLane(currentLane)
+            if ci >= 0 and not catchers[ci].active and catchers[ci].cooldown <= 0
+                catchers[ci].active = true
+                catchers[ci].timer = catcherActiveFrames
 
-    # Handle suck animation
-    if isSucked
-        updateSuck()
-        return
+    # Tick catchers
+    for i from 0 to len(catchers)
+        if catchers[i].active
+            catchers[i].timer = catchers[i].timer - 1
+            if catchers[i].timer <= 0
+                catchers[i].active = false
+                catchers[i].cooldown = catcherCooldownFrames
+        else if catchers[i].cooldown > 0
+            catchers[i].cooldown = catchers[i].cooldown - 1
 
-    # Store trail positions for bitter leaves
-    trailX2 = trailX1
-    trailY2 = trailY1
-    trailX1 = stem.X
-    trailY1 = stem.Y
+    # Spawn orders
+    orderSpawnTimer = orderSpawnTimer + 1
+    if orderSpawnTimer >= orderSpawnInterval
+        orderSpawnTimer = 0
+        # Only spawn if lane doesn't already have an order
+        spawnOrder()
 
-    # Move stem
-    stem.X = stem.X + stemDX
-    stem.Y = stem.Y + stemDY
+    # Ensure at least one order exists
+    activeOrders := 0
+    for i from 0 to len(orders)
+        if orders[i].active
+            activeOrders = activeOrders + 1
+    if activeOrders equals 0
+        spawnOrder()
 
-    # Bounce off left/right walls
-    if stem.X - stemRadius < 0.0
-        stem.X = stemRadius
-        stemDX = stemDX * -1.0
-    if stem.X + stemRadius > screenW as float64
-        stem.X = screenW as float64 - stemRadius
-        stemDX = stemDX * -1.0
-
-    # Bounce off ceiling
-    if stem.Y - stemRadius < 0.0
-        stem.Y = stemRadius
-        stemDY = stemDY * -1.0
-
-    # Stem fell below screen
-    if stem.Y - stemRadius > screenH as float64
-        lives = lives - 1
-        if lives <= 0
-            scene = "bitter_panic"
-            stemActive = false
-            return
-        resetStem()
-        return
-
-    # Bounce off strainer
-    if game.CircleOverlapsRect(stem, strainer) and stemDY > 0.0
-        if stemBitter
-            if shielded
-                # Quality filter caught the bitter leaf!
-                stemBitter = false
-                stemProcessed = false
-                stem.Radius = stemRadius
-                score = score + 100
-                stemDY = stemDY * -1.0
-                hitPos := (stem.X - strainer.X) / strainerW
-                stemDX = (hitPos - 0.5) * 6.0
-            else
-                # Unshielded bitter hit — Bitter Panic!
-                scene = "bitter_panic"
-                stemActive = false
-                return
-        else
-            stemDY = stemDY * -1.0
-            # Angle based on where stem hit the strainer
-            hitPos := (stem.X - strainer.X) / strainerW
-            stemDX = (hitPos - 0.5) * 6.0
-
-    # Check station intake collision
-    for i from 0 to len(stations)
-        if not stations[i].active
+    # Tick orders
+    for i from 0 to len(orders)
+        if not orders[i].active
             continue
-        if stations[i].completed
-            continue
-        # Intake zone: top portion of the station
-        intake := game.Rect{
-            X: stations[i].rect.X,
-            Y: stations[i].rect.Y,
-            Width: stations[i].rect.Width,
-            Height: 20.0,
-        }
-        if game.CircleOverlapsRect(stem, intake) and stemDY < 0.0
-            # Level 3 chain check: must hit in sequence
-            if level equals 3 and stations[i].sequence isnt nextInChain
-                # Wrong station — bounce off and reset chain
-                stemDY = stemDY * -1.0
-                resetChain()
+        orders[i].timer = orders[i].timer - 1
+        if orders[i].timer <= 0
+            # Customer left — lose a life
+            orders[i].active = false
+            lives = lives - 1
+            if lives <= 0
+                panicReason = "customer walked out"
+                scene = Scene.BitterPanic
                 return
+
+    # Update stems
+    updateStems()
+
+function activeLaneCount() int
+    if level equals 1
+        return 2
+    return 3
+
+function updateStems()
+    for i from 0 to len(stems)
+        if not stems[i].active
+            continue
+
+        # Handle suck animation
+        if stems[i].suckTimer > 0
+            updateStemSuck(i)
+            continue
+
+        # Store trail
+        stems[i].trailX2 = stems[i].trailX1
+        stems[i].trailY2 = stems[i].trailY1
+        stems[i].trailX1 = stems[i].x
+        stems[i].trailY1 = stems[i].y
+
+        # Move rightward
+        stems[i].x = stems[i].x + stems[i].dx
+
+        # Check station collisions
+        checkStationHit(i)
+
+        # Check catcher collisions (level 2)
+        if level equals 2
+            checkCatcherHit(i)
+
+        # Check if stem reached the order zone
+        if stems[i].x >= laneEndX
+            handleStemArrival(i)
+
+function checkStationHit(si int)
+    for j from 0 to len(stations)
+        if stations[j].lane isnt stems[si].lane
+            continue
+        # Check if stem just reached the station
+        stationLeft := stations[j].x
+        if stems[si].x + stemRadius >= stationLeft and stems[si].x - stemRadius <= stationLeft + 5.0
             # Begin suck
-            isSucked = true
-            suckTimer = 0
-            suckStationIdx = i
-            suckStartX = stem.X
-            suckStartY = stem.Y
-            stemDX = 0.0
-            stemDY = 0.0
+            stems[si].dx = 0.0
+            stems[si].suckTimer = 1
+            stems[si].suckStationLane = stations[j].lane
+            stems[si].suckStationIdx = j
+            stems[si].suckStartX = stems[si].x
             return
 
-function updateSuck()
-    suckTimer = suckTimer + 1
-    s := stations[suckStationIdx]
-    # Lerp stem through the station from top to bottom
-    progress := suckTimer as float64 / suckDuration as float64
+function updateStemSuck(si int)
+    stems[si].suckTimer = stems[si].suckTimer + 1
+    idx := stems[si].suckStationIdx
+    s := stations[idx]
+
+    progress := stems[si].suckTimer as float64 / suckDuration as float64
     if progress > 1.0
         progress = 1.0
-    targetX := s.rect.X + s.rect.Width / 2.0
-    enterY := s.rect.Y + 10.0
-    exitY := s.rect.Y + s.rect.Height - 10.0
-    stem.X = suckStartX + (targetX - suckStartX) * progress
-    stem.Y = enterY + (exitY - enterY) * progress
 
-    if suckTimer >= suckDuration
-        # Transform complete — eject
-        isSucked = false
-        stem.X = targetX
-        stem.Y = s.rect.Y + s.rect.Height + stem.Radius
-        stemDX = 0.0
-        stemDY = 3.0
+    # Lerp through station left to right
+    enterX := s.x + 5.0
+    exitX := s.x + stationW - 5.0
+    stems[si].x = enterX + (exitX - enterX) * progress
+
+    if stems[si].suckTimer >= suckDuration
+        # Done — eject from station
+        stems[si].x = s.x + stationW + stemRadius
+        stems[si].dx = stemSpeed
+        stems[si].suckTimer = 0
 
         # Flaky station: 30% chance of bitter output
         if s.isFlaky and game.Random(0, 100) < 30
-            stemBitter = true
-            stemProcessed = false
-            stem.Radius = stemRadius
+            stems[si].state = StemState.Bitter
         else
-            stemProcessed = true
-            stemBitter = false
-            stem.Radius = 8.0
-            score = score + 50
-            # Level 3: advance chain
-            if level equals 3
-                stations[suckStationIdx].completed = true
-                nextInChain = nextInChain + 1
-                if nextInChain >= len(stations)
-                    # Full chain complete — count as one pass
-                    passes = passes + 1
-                    nextInChain = 0
-                    for j from 0 to len(stations)
-                        stations[j].completed = false
-            else
-                passes = passes + 1
+            stems[si].state = s.outputState
+            score = score + 25
 
-        # Trigger brew flash (gold for success, red for bitter)
-        flashX = stem.X
-        flashY = stem.Y
-        flashTimer = 20
+function checkCatcherHit(si int)
+    if stems[si].state isnt StemState.Bitter
+        return
+    ci := catcherOnLane(stems[si].lane)
+    if ci < 0
+        return
+    catcherLeft := catchers[ci].x
+    if stems[si].x + stemRadius >= catcherLeft and stems[si].x - stemRadius <= catcherLeft + 5.0
+        if catchers[ci].active
+            # Caught! Convert back to the lane's output state
+            stems[si].state = outputStateForLane(stems[si].lane)
+            score = score + 100
 
-        # Deactivate station with cooldown
-        stations[suckStationIdx].active = false
-        stations[suckStationIdx].cooldown = stationCooldown
-
-        # Reset stem size for next pass if successful
-        if not stemBitter
-            stemProcessed = false
-            stem.Radius = stemRadius
+function handleStemArrival(si int)
+    stems[si].active = false
+    oi := activeOrderOnLane(stems[si].lane)
+    if oi < 0
+        # No order on this lane — stem wasted, no penalty
+        return
+    if stems[si].state equals StemState.Bitter
+        # Bitter leaf reached customer — panic!
+        panicReason = "bitter leaf not caught"
+        scene = Scene.BitterPanic
+        return
+    if stems[si].state equals orders[oi].wantState
+        # Correct tea delivered!
+        orders[oi].active = false
+        score = score + 50
+        fulfilled = fulfilled + 1
+    else
+        # Wrong tea — panic!
+        panicReason = "wrong tea delivered"
+        scene = Scene.BitterPanic
 
 function updateBatchComplete()
     if game.IsKeyPressed(game.KeyEnter)
-        # Unlock next level
         if level + 1 > highestUnlocked and level < 3
             highestUnlocked = level + 1
-        scene = "tea_menu"
+        scene = Scene.TeaMenu
 
 function updateBitterPanic()
     if game.IsKeyPressed(game.KeySpace)
-        scene = "tea_menu"
+        scene = Scene.TeaMenu
 
 # ── Draw ──
 
 function draw(screen game.Screen)
     game.Clear(screen, darkWood)
     switch scene
-        when "title"
+        when Scene.Title
             drawTitle(screen)
-        when "tea_menu"
+        when Scene.TeaMenu
             drawTeaMenu(screen)
-        when "playing"
+        when Scene.Playing
             drawPlaying(screen)
-        when "batch_complete"
+        when Scene.BatchComplete
             drawBatchComplete(screen)
-        when "bitter_panic"
+        when Scene.BitterPanic
             drawBitterPanic(screen)
 
 function drawTitle(screen game.Screen)
     drawBambooBorder(screen)
 
-    # Title
-    game.DrawText(screen, "STEM PANIC", 260, 160, warmWhite)
+    game.DrawText(screen, "STEM PANIC", 260, 140, warmWhite)
+    game.DrawText(screen, "A kukicha tea processing game", 210, 175, amber)
 
-    # Subtitle
-    game.DrawText(screen, "A kukicha tea processing game", 210, 200, amber)
-
-    # Blinking prompt
+    # Mini pipeline demo animation
     frame := game.FrameCount()
+    demoY := 230.0
+    # Conveyor
+    game.DrawRect(screen, 180.0, demoY, 280.0, 3.0, bamboo)
+    # Station
+    game.DrawRect(screen, 295.0, demoY - 18.0, 50.0, 36.0, stationClay)
+    game.DrawText(screen, "steam", 300, demoY as int - 6, cream)
+    # Pipe symbols
+    game.DrawText(screen, "|>", 250, demoY as int - 6, bambooBright)
+    game.DrawText(screen, "|>", 360, demoY as int - 6, bambooBright)
+    # Animated stem sliding through
+    stemX := 180.0 + (frame % 120) as float64 * 2.3
+    if stemX > 460.0
+        stemX = 180.0
+    stemColor := matchaGreen
+    if stemX > 345.0
+        stemColor = warmGold
+    game.DrawCircle(screen, stemX, demoY, 5.0, stemColor)
+
+    # Controls
+    game.DrawText(screen, "UP/DOWN: switch lane   ENTER/SPACE: send stem", 140, 290, dimText)
+    game.DrawText(screen, "Match the right pipeline to each tea order!", 160, 310, dimText)
+
     if frame % 60 < 40
-        game.DrawText(screen, "Press ENTER to start", 240, 280, warmWhite)
+        game.DrawText(screen, "Press ENTER to start", 240, 360, warmWhite)
 
-    # Decorative mini station
-    game.DrawRect(screen, 295.0, 225.0, 50.0, 30.0, stationClay)
-    game.DrawText(screen, "|>", 310, 235, cream)
-
-    # Controls hint
-    game.DrawText(screen, "Arrows: move   Space: shield   Enter: select", 160, 350, game.MakeColor(120, 100, 70, 255))
-
-    # Stem illustration — green circle bouncing through station
-    ballY := 222.0 + (frame % 30) as float64 * 0.3
-    game.DrawCircle(screen, 320.0, ballY, 4.0, matchaGreen)
-
-    # Credits
-    game.DrawText(screen, "v0.1", 305, 420, game.MakeColor(120, 100, 70, 255))
+    game.DrawText(screen, "v0.2", 305, 440, dimText)
 
 function drawTeaMenu(screen game.Screen)
     drawBambooBorder(screen)
@@ -524,139 +616,149 @@ function drawTeaMenu(screen game.Screen)
         unlocked := levelNum <= highestUnlocked
 
         if unlocked
-            # Unlocked level
             labelColor := warmWhite
             descColor := amber
             if i equals menuCursor
-                # Selected — highlight bar
                 game.DrawRect(screen, 140.0, y as float64 - 5.0, 360.0, 55.0, game.MakeColor(60, 42, 32, 255))
                 labelColor = warmGold
             game.DrawText(screen, "{levelNum}. {levelNames[i]}", 160, y, labelColor)
             game.DrawText(screen, levelDescs[i], 175, y + 20, descColor)
         else
-            # Locked level
             if i equals menuCursor
                 game.DrawRect(screen, 140.0, y as float64 - 5.0, 360.0, 55.0, game.MakeColor(45, 32, 27, 255))
             game.DrawText(screen, "{levelNum}. {levelNames[i]}", 160, y, game.MakeColor(80, 65, 50, 255))
             game.DrawText(screen, "[ locked ]", 175, y + 20, game.MakeColor(80, 65, 50, 255))
 
-    # Cursor indicator
     cursorY := 130 + menuCursor * 70
     game.DrawText(screen, "|>", 140, cursorY, bamboo)
 
-    game.DrawText(screen, "UP/DOWN to select, ENTER to play, ESC for title", 130, 420, game.MakeColor(120, 100, 70, 255))
+    game.DrawText(screen, "UP/DOWN to select, ENTER to play, ESC for title", 130, 420, dimText)
 
 function drawPlaying(screen game.Screen)
     drawBambooBorder(screen)
+    lanes := activeLaneCount()
 
-    # Level 3: draw pipe connectors between stations
-    if level equals 3 and len(stations) equals 4
-        cx := stations[0].rect.X + stations[0].rect.Width / 2.0
-        for i from 0 to 3
-            topY := stations[i].rect.Y + stations[i].rect.Height
-            botY := stations[i + 1].rect.Y
-            game.DrawRect(screen, cx - 1.0, topY, 2.0, botY - topY, game.MakeColor(120, 90, 60, 255))
-            # |> arrow between stations
-            midY := (topY + botY) / 2.0
-            game.DrawText(screen, "|>", cx as int - 6, midY as int - 6, game.MakeColor(120, 90, 60, 180))
+    # Draw lane backgrounds
+    for i from 0 to lanes
+        ly := laneY(i)
+        if i equals currentLane
+            game.DrawRect(screen, laneStartX, ly - 20.0, laneEndX - laneStartX, 40.0, laneHighlight)
+
+    # Draw conveyor belts
+    for i from 0 to lanes
+        ly := laneY(i)
+        game.DrawRect(screen, laneStartX, ly - laneThick / 2.0, laneEndX - laneStartX, laneThick, bamboo)
+        # Conveyor tick marks (scrolling)
+        frame := game.FrameCount()
+        for t from 0 to 20
+            tx := laneStartX + 25.0 + t as float64 * 26.0 + (frame % 26) as float64
+            if tx < laneEndX
+                game.DrawRect(screen, tx, ly - 1.0, 8.0, 2.0, game.MakeColor(160, 130, 60, 255))
+
+    # Draw |> pipe symbols between stations on same lane
+    for i from 0 to lanes
+        laneStations := stationsOnLane(i)
+        ly := laneY(i)
+        # |> before first station
+        if len(laneStations) > 0
+            px := laneStations[0].x - 25.0
+            if px > laneStartX
+                game.DrawText(screen, "|>", px as int, ly as int - 6, bambooBright)
+        # |> between stations
+        for j from 0 to len(laneStations) - 1
+            px := laneStations[j].x + stationW + 8.0
+            game.DrawText(screen, "|>", px as int, ly as int - 6, bambooBright)
 
     # Draw stations
     for i from 0 to len(stations)
         drawStation(screen, stations[i])
 
-    # Steam rising from completed stations
-    frame := game.FrameCount()
-    for i from 0 to len(stations)
-        if stations[i].completed
-            sx := stations[i].rect.X + stations[i].rect.Width / 2.0
-            sy := stations[i].rect.Y - 5.0
-            drift := (frame % 40) as float64 * 0.5
-            steamAlpha := 40 - (frame % 40) as int
-            if steamAlpha > 0
-                game.DrawCircle(screen, sx - 5.0, sy - drift, 3.0, game.MakeColor(180, 160, 120, steamAlpha))
-                game.DrawCircle(screen, sx + 5.0, sy - drift - 5.0, 2.0, game.MakeColor(180, 160, 120, steamAlpha / 2))
+    # Draw catchers (level 2)
+    for i from 0 to len(catchers)
+        drawCatcher(screen, catchers[i])
 
-    # Draw brew flash effect
-    if flashTimer > 0
-        flashAlpha := flashTimer * 12
-        if flashAlpha > 255
-            flashAlpha = 255
-        flashSize := (20 - flashTimer) as float64 * 3.0
-        if stemBitter
-            game.DrawCircle(screen, flashX, flashY, flashSize, game.MakeColor(200, 40, 30, flashAlpha))
-        else
-            game.DrawCircle(screen, flashX, flashY, flashSize, game.MakeColor(220, 180, 50, flashAlpha))
+    # Draw orders on the right
+    for i from 0 to len(orders)
+        if orders[i].active
+            drawOrder(screen, orders[i])
 
-    # Draw strainer
-    game.DrawRect(screen, strainer.X, strainer.Y, strainer.Width, strainer.Height, strainerColor)
-    if shielded
-        # Quality filter overlay
-        game.DrawRect(screen, strainer.X - 2.0, strainer.Y - 2.0, strainer.Width + 4.0, strainer.Height + 4.0, jadeGreen)
-        game.DrawText(screen, "onerr", strainer.X as int + strainer.Width as int / 2 - 15, strainer.Y as int + 1, game.MakeColor(0, 180, 100, 255))
-    else
-        game.DrawText(screen, "|>", strainer.X as int + strainer.Width as int / 2 - 6, strainer.Y as int + 1, darkWood)
+    # Draw stems
+    for i from 0 to len(stems)
+        if stems[i].active
+            drawStem(screen, stems[i])
 
-    # Draw stem
-    if stemActive
-        # Bitter trail
-        if stemBitter
-            game.DrawCircle(screen, trailX2, trailY2, 3.0, game.MakeColor(200, 40, 30, 60))
-            game.DrawCircle(screen, trailX1, trailY1, 4.0, game.MakeColor(200, 40, 30, 120))
-        stemColor := matchaGreen
-        if stemProcessed
-            stemColor = warmGold
-        if stemBitter
-            stemColor = bitterRed
-        game.DrawCircle(screen, stem.X, stem.Y, stem.Radius, stemColor)
+    # Draw Tea Master
+    my := laneY(currentLane)
+    game.DrawRect(screen, masterX, my - masterH / 2.0, masterW, masterH, teaMasterColor)
+    game.DrawText(screen, "|>", masterX as int + 10, my as int - 6, darkWood)
 
     # HUD
-    game.DrawText(screen, "Brew Quality: {score}", 490, 12, amber)
+    game.DrawText(screen, "Brew Quality: {score}", 480, 12, amber)
     game.DrawText(screen, "Lives: {lives}", 10, 12, warmWhite)
-    game.DrawText(screen, "{levelName}  {passes}/{passTarget}", 230, 12, bamboo)
-    if level equals 3
-        game.DrawText(screen, "Chain: {nextInChain}/4", 280, 30, warmWhite)
-    # Concept hint at bottom
-    game.DrawText(screen, levelHints[level - 1], 10, screenH - 20, game.MakeColor(120, 100, 70, 255))
+    game.DrawText(screen, "{levelName}  {fulfilled}/{fulfilledTarget}", 230, 12, bamboo)
+    game.DrawText(screen, levelHints[level - 1], 10, screenH - 20, dimText)
 
 function drawStation(screen game.Screen, s Station)
-    if s.completed
-        # Completed in chain: green-tinted with checkmark
-        game.DrawRect(screen, s.rect.X, s.rect.Y, s.rect.Width, s.rect.Height, game.MakeColor(50, 70, 40, 255))
-        game.DrawText(screen, s.funcName, s.rect.X as int + 5, s.rect.Y as int + s.rect.Height as int / 2 - 12, cream)
-        game.DrawText(screen, "OK", s.rect.X as int + s.rect.Width as int / 2 - 6, s.rect.Y as int + s.rect.Height as int / 2 + 4, matchaGreen)
-    else if s.active
-        # Pulse if this is the current chain target (Level 3)
-        isTarget := level equals 3 and s.sequence equals nextInChain
-        bodyColor := stationClay
-        if isTarget
-            pulse := game.FrameCount() % 40
-            if pulse < 20
-                bodyColor = game.MakeColor(100, 70, 50, 255)
-            else
-                bodyColor = stationClay
-        # Station body
-        game.DrawRect(screen, s.rect.X, s.rect.Y, s.rect.Width, s.rect.Height, bodyColor)
-        # Intake opening (top notch)
-        game.DrawRect(screen, s.rect.X + 15.0, s.rect.Y - 4.0, s.rect.Width - 30.0, 8.0, game.MakeColor(50, 35, 25, 255))
-        # Exit opening (bottom notch)
-        game.DrawRect(screen, s.rect.X + 15.0, s.rect.Y + s.rect.Height - 4.0, s.rect.Width - 30.0, 8.0, game.MakeColor(50, 35, 25, 255))
-        # Function label
-        game.DrawText(screen, s.funcName, s.rect.X as int + 5, s.rect.Y as int + s.rect.Height as int / 2 - 6, cream)
-        # Flaky warning
-        if s.isFlaky
-            game.DrawText(screen, "~err", s.rect.X as int + 5, s.rect.Y as int + s.rect.Height as int - 18, game.MakeColor(180, 100, 60, 200))
-        # Target arrow
-        if isTarget
-            game.DrawText(screen, ">>>", s.rect.X as int - 30, s.rect.Y as int + s.rect.Height as int / 2 - 6, amber)
+    ly := laneY(s.lane)
+    # Station body
+    game.DrawRect(screen, s.x, ly - stationH / 2.0, stationW, stationH, stationClay)
+    # Intake notch (left side)
+    game.DrawRect(screen, s.x - 2.0, ly - 4.0, 6.0, 8.0, game.MakeColor(50, 35, 25, 255))
+    # Exit notch (right side)
+    game.DrawRect(screen, s.x + stationW - 4.0, ly - 4.0, 6.0, 8.0, game.MakeColor(50, 35, 25, 255))
+    # Function label
+    game.DrawText(screen, s.funcName, s.x as int + 4, ly as int - 6, cream)
+    # Flaky warning
+    if s.isFlaky
+        game.DrawText(screen, "~err", s.x as int + 4, ly as int + 8, game.MakeColor(180, 100, 60, 200))
+
+function drawCatcher(screen game.Screen, c Catcher)
+    ly := laneY(c.lane)
+    if c.active
+        game.DrawRect(screen, c.x, ly - catcherH / 2.0, catcherW, catcherH, jadeGreen)
+        game.DrawText(screen, "onerr", c.x as int + 1, ly as int - 6, jadeGreenSolid)
+    else if c.cooldown > 0
+        game.DrawRect(screen, c.x, ly - catcherH / 2.0, catcherW, catcherH, game.MakeColor(40, 60, 40, 120))
+        game.DrawText(screen, "onerr", c.x as int + 1, ly as int - 6, game.MakeColor(60, 80, 60, 255))
     else
-        # Inactive: dim outline (cooling down)
-        game.DrawRect(screen, s.rect.X, s.rect.Y, s.rect.Width, s.rect.Height, game.MakeColor(60, 42, 32, 255))
-        game.DrawText(screen, s.funcName, s.rect.X as int + 5, s.rect.Y as int + s.rect.Height as int / 2 - 6, game.MakeColor(100, 80, 60, 255))
+        game.DrawRect(screen, c.x, ly - catcherH / 2.0, catcherW, catcherH, game.MakeColor(30, 50, 35, 180))
+        game.DrawText(screen, "onerr", c.x as int + 1, ly as int - 6, game.MakeColor(0, 140, 80, 180))
+
+function drawOrder(screen game.Screen, o Order)
+    ly := laneY(o.lane)
+    # Order box
+    game.DrawRect(screen, orderX, ly - orderH / 2.0, orderW, orderH, game.MakeColor(60, 42, 32, 255))
+    game.DrawRect(screen, orderX, ly - orderH / 2.0, orderW, 2.0, bamboo)
+    game.DrawRect(screen, orderX, ly + orderH / 2.0 - 2.0, orderW, 2.0, bamboo)
+    # Order label
+    game.DrawText(screen, o.wantLabel, orderX as int + 4, ly as int - 6, warmWhite)
+    # Timer bar
+    timerFrac := o.timer as float64 / o.maxTimer as float64
+    barW := orderW * timerFrac
+    barColor := amber
+    if timerFrac < 0.3
+        barColor = bitterRed
+    game.DrawRect(screen, orderX, ly - orderH / 2.0 - 6.0, barW, 4.0, barColor)
+
+function drawStem(screen game.Screen, s Stem)
+    # Bitter trail
+    if s.state equals StemState.Bitter
+        game.DrawCircle(screen, s.trailX2, s.trailY2, 3.0, game.MakeColor(200, 40, 30, 60))
+        game.DrawCircle(screen, s.trailX1, s.trailY1, 4.0, game.MakeColor(200, 40, 30, 120))
+
+    stemColor := matchaGreen
+    switch s.state
+        when StemState.Bitter
+            stemColor = bitterRed
+        when StemState.Raw
+            stemColor = matchaGreen
+        otherwise
+            stemColor = warmGold
+    game.DrawCircle(screen, s.x, s.y, stemRadius, stemColor)
 
 function drawBatchComplete(screen game.Screen)
     drawBambooBorder(screen)
 
-    # Steam effect — multiple expanding circles offset in time
     frame := game.FrameCount()
     for k from 0 to 3
         offset := k * 20
@@ -668,15 +770,14 @@ function drawBatchComplete(screen game.Screen)
         xOff := (k as float64 - 1.0) * 30.0
         game.DrawCircle(screen, 320.0 + xOff, 260.0, steamSize, game.MakeColor(220, 180, 50, steamAlpha))
 
-    game.DrawText(screen, "{levelName} COMPLETE", 230, 180, warmGold)
+    game.DrawText(screen, "{levelName} COMPLETE", 220, 180, warmGold)
     game.DrawText(screen, "Brew Quality: {score}", 260, 220, amber)
-    game.DrawText(screen, "Stems processed: {passes}", 250, 245, warmWhite)
+    game.DrawText(screen, "Orders filled: {fulfilled}", 255, 245, warmWhite)
 
     if frame % 60 < 40
         game.DrawText(screen, "Press ENTER to continue", 230, 300, warmWhite)
 
 function drawBitterPanic(screen game.Screen)
-    # Red flash background
     frame := game.FrameCount()
     flashIntensity := 0
     if frame % 30 < 10
@@ -684,26 +785,25 @@ function drawBitterPanic(screen game.Screen)
     game.Clear(screen, game.MakeColor(35 + flashIntensity, 25, 20, 255))
     drawBambooBorder(screen)
 
-    # Panic stack trace aesthetic
     game.DrawText(screen, "BITTER PANIC: unhandled contamination", 170, 150, bitterRed)
-    if stemBitter
-        game.DrawText(screen, "onerr panic \"bitter leaf not caught\"", 195, 185, game.MakeColor(180, 100, 80, 255))
-        game.DrawText(screen, "hint: hold SPACE to activate onerr shield", 160, 210, game.MakeColor(140, 120, 80, 255))
-    else
-        game.DrawText(screen, "onerr panic \"batch ruined\"", 210, 185, game.MakeColor(180, 100, 80, 255))
-    game.DrawText(screen, "Brew Quality: {score}", 250, 240, amber)
-    game.DrawText(screen, "at main.kuki:42  updatePlaying()", 200, 280, game.MakeColor(140, 100, 70, 255))
-    game.DrawText(screen, "at main.kuki:17  main()", 200, 300, game.MakeColor(140, 100, 70, 255))
+    game.DrawText(screen, "onerr panic \"{panicReason}\"", 195, 185, game.MakeColor(180, 100, 80, 255))
+
+    if panicReason equals "bitter leaf not caught"
+        game.DrawText(screen, "hint: activate onerr catcher with SPACE", 165, 210, game.MakeColor(140, 120, 80, 255))
+    else if panicReason equals "wrong tea delivered"
+        game.DrawText(screen, "hint: match the pipeline to the order", 170, 210, game.MakeColor(140, 120, 80, 255))
+
+    game.DrawText(screen, "Brew Quality: {score}", 250, 250, amber)
+    game.DrawText(screen, "at main.kuki:42  updatePlaying()", 200, 290, game.MakeColor(140, 100, 70, 255))
+    game.DrawText(screen, "at main.kuki:17  main()", 200, 310, game.MakeColor(140, 100, 70, 255))
 
     if frame % 60 < 40
-        game.DrawText(screen, "Press SPACE to retry", 240, 340, warmWhite)
+        game.DrawText(screen, "Press SPACE to retry", 240, 360, warmWhite)
 
 function drawBambooBorder(screen game.Screen)
-    # Top/bottom
     game.DrawRect(screen, 0.0, 0.0, screenW as float64, 3.0, bamboo)
     game.DrawRect(screen, 0.0, screenH as float64 - 3.0, screenW as float64, 3.0, bamboo)
     game.DrawRect(screen, 0.0, 6.0, screenW as float64, 1.0, game.MakeColor(180, 150, 80, 80))
     game.DrawRect(screen, 0.0, screenH as float64 - 7.0, screenW as float64, 1.0, game.MakeColor(180, 150, 80, 80))
-    # Left/right
     game.DrawRect(screen, 0.0, 0.0, 3.0, screenH as float64, bamboo)
     game.DrawRect(screen, screenW as float64 - 3.0, 0.0, 3.0, screenH as float64, bamboo)

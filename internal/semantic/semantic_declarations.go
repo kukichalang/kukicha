@@ -508,13 +508,12 @@ func (a *Analyzer) collectEnumDecl(decl *ast.EnumDecl) {
 		return
 	}
 
-	// Infer underlying type from the first case value
-	var enumTypeKind TypeKind
+	// Validate first case value type
 	switch decl.Cases[0].Value.(type) {
 	case *ast.IntegerLiteral:
-		enumTypeKind = TypeKindInt
+		// int-based enum
 	case *ast.StringLiteral:
-		enumTypeKind = TypeKindString
+		// string-based enum
 	default:
 		a.error(decl.Cases[0].Value.Pos(), "enum case values must be integer or string literals")
 		return
@@ -523,7 +522,7 @@ func (a *Analyzer) collectEnumDecl(decl *ast.EnumDecl) {
 	// Build enum cases map — each case maps to the enum type itself
 	enumType := &TypeInfo{Kind: TypeKindEnum, Name: decl.Name.Value, EnumCases: make(map[string]*TypeInfo, len(decl.Cases))}
 	for _, c := range decl.Cases {
-		caseType := &TypeInfo{Kind: enumTypeKind, Name: decl.Name.Value}
+		caseType := &TypeInfo{Kind: TypeKindEnum, Name: decl.Name.Value}
 		enumType.EnumCases[c.Name.Value] = caseType
 	}
 

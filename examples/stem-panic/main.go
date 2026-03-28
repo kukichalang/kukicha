@@ -7,1058 +7,1320 @@ import (
 	"github.com/kukichalang/game"
 )
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:9
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:10
 const screenW = 640
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:10
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:11
 const screenH = 480
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:14
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:15
 var darkWood game.Color = game.MakeColor(35, 25, 20, 255)
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:15
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:16
 var bamboo game.Color = game.MakeColor(180, 150, 80, 255)
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:16
-var warmWhite game.Color = game.MakeColor(240, 230, 210, 255)
-
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:17
-var amber game.Color = game.MakeColor(220, 160, 40, 255)
+var bambooBright game.Color = game.MakeColor(200, 170, 90, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:18
-var matchaGreen game.Color = game.MakeColor(100, 180, 60, 255)
+var warmWhite game.Color = game.MakeColor(240, 230, 210, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:19
-var warmGold game.Color = game.MakeColor(220, 180, 50, 255)
+var amber game.Color = game.MakeColor(220, 160, 40, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:20
-var bitterRed game.Color = game.MakeColor(200, 40, 30, 255)
+var matchaGreen game.Color = game.MakeColor(100, 180, 60, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:21
-var stationClay game.Color = game.MakeColor(80, 55, 40, 255)
+var warmGold game.Color = game.MakeColor(220, 180, 50, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:22
-var cream game.Color = game.MakeColor(240, 230, 200, 255)
+var bitterRed game.Color = game.MakeColor(200, 40, 30, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:23
-var strainerColor game.Color = game.MakeColor(210, 180, 120, 255)
+var stationClay game.Color = game.MakeColor(80, 55, 40, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:24
+var cream game.Color = game.MakeColor(240, 230, 200, 255)
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:25
+var teaMasterColor game.Color = game.MakeColor(210, 180, 120, 255)
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:26
 var jadeGreen game.Color = game.MakeColor(0, 180, 100, 120)
 
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:27
+var jadeGreenSolid game.Color = game.MakeColor(0, 180, 100, 255)
+
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:28
-const strainerW = 100.0
+var dimText game.Color = game.MakeColor(120, 100, 70, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:29
-const strainerH = 12.0
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:30
-const strainerY = 450.0
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:31
-const strainerSpeed = 6.0
+var laneHighlight game.Color = game.MakeColor(50, 38, 30, 255)
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:33
-var strainer game.Rect
+const laneCount = 3
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:34
-var shielded bool = false
+const laneStartX = 80.0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:35
+const laneEndX = 560.0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:36
+const laneBaseY = 140.0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:37
+const laneSpacing = 100.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:38
-const stemRadius = 6.0
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:39
-const stemStartSpeed = 3.0
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:41
-var stem game.Circle
+const laneThick = 4.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:42
-var stemDX float64 = 2.0
+const masterW = 40.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:43
-var stemDY float64 = -3.0
+const masterH = 30.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:44
-var stemActive bool = false
+const masterX = 20.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:48
-const stationW = 70.0
+const stemRadius = 6.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:49
-const stationH = 90.0
+const stemSpeed1 = 2.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:50
-const suckDuration = 30
+const stemSpeed2 = 3.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:51
-const stationCooldown = 120
+const stemSpeed3 = 3.5
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:53
-type Station struct {
-	rect      game.Rect
-	funcName  string
-	active    bool
-	cooldown  int
-	isFlaky   bool
-	sequence  int
-	completed bool
-}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:52
+const maxStems = 6
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:56
+const stationW = 60.0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:57
+const stationH = 40.0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:58
+const suckDuration = 20
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:62
-var stations []Station
+const catcherW = 30.0
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:66
-var isSucked bool = false
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:63
+const catcherH = 30.0
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:67
-var suckTimer int = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:64
+const catcherActiveFrames = 60
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:68
-var suckStationIdx int = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:65
+const catcherCooldownFrames = 60
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:69
-var suckStartX float64 = 0.0
+const orderW = 70.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:70
-var suckStartY float64 = 0.0
+const orderH = 40.0
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:74
-var flashTimer int = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:71
+const orderX = 565.0
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:75
-var flashX float64 = 0.0
+type Scene int
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:76
-var flashY float64 = 0.0
+const (
+	SceneTitle         Scene = 0
+	SceneTeaMenu       Scene = 1
+	ScenePlaying       Scene = 2
+	SceneBatchComplete Scene = 3
+	SceneBitterPanic   Scene = 4
+)
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:80
-var stemProcessed bool = false
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:81
-var stemBitter bool = false
+func (e Scene) String() string {
+	switch e {
+	case SceneTitle:
+		return "Title"
+	case SceneTeaMenu:
+		return "TeaMenu"
+	case ScenePlaying:
+		return "Playing"
+	case SceneBatchComplete:
+		return "BatchComplete"
+	case SceneBitterPanic:
+		return "BitterPanic"
+	default:
+		return fmt.Sprintf("Scene(%d)", int(e))
+	}
+}
 
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:82
-var nextInChain int = 0
+type StemState int
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:86
-var trailX1 float64 = 0.0
+const (
+	StemStateRaw       StemState = 0
+	StemStateHarvested StemState = 1
+	StemStateSteamed   StemState = 2
+	StemStateDried     StemState = 3
+	StemStateRolled    StemState = 4
+	StemStateSorted    StemState = 5
+	StemStateBlended   StemState = 6
+	StemStateBitter    StemState = 7
+)
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:87
-var trailY1 float64 = 0.0
+func (e StemState) String() string {
+	switch e {
+	case StemStateRaw:
+		return "Raw"
+	case StemStateHarvested:
+		return "Harvested"
+	case StemStateSteamed:
+		return "Steamed"
+	case StemStateDried:
+		return "Dried"
+	case StemStateRolled:
+		return "Rolled"
+	case StemStateSorted:
+		return "Sorted"
+	case StemStateBlended:
+		return "Blended"
+	case StemStateBitter:
+		return "Bitter"
+	default:
+		return fmt.Sprintf("StemState(%d)", int(e))
+	}
+}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:88
-var trailX2 float64 = 0.0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:94
+type Stem struct {
+	x               float64
+	y               float64
+	lane            int
+	dx              float64
+	state           StemState
+	suckTimer       int
+	suckStationLane int
+	suckStationIdx  int
+	suckStartX      float64
+	active          bool
+	trailX1         float64
+	trailY1         float64
+	trailX2         float64
+	trailY2         float64
+}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:89
-var trailY2 float64 = 0.0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:110
+type Station struct {
+	x           float64
+	lane        int
+	funcName    string
+	isFlaky     bool
+	outputState StemState
+}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:92
-var levelHints []string = []string{"|> pipe transforms data", "onerr catches errors", "chain functions in sequence"}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:117
+type Catcher struct {
+	x        float64
+	lane     int
+	active   bool
+	timer    int
+	cooldown int
+}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:100
-var scene string = "title"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:124
+type Order struct {
+	lane      int
+	wantState StemState
+	wantLabel string
+	timer     int
+	maxTimer  int
+	active    bool
+}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:101
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:134
+var scene Scene = SceneTitle
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:135
 var lives int = 3
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:102
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:136
 var score int = 0
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:103
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:137
 var level int = 1
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:104
-var passes int = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:138
+var fulfilled int = 0
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:105
-var passTarget int = 3
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:139
+var fulfilledTarget int = 5
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:106
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:140
 var levelName string = "First Steep"
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:107
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:141
 var highestUnlocked int = 1
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:108
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:142
 var menuCursor int = 0
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:111
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:143
+var currentLane int = 0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:144
+var panicReason string = ""
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:146
+var stems []Stem
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:147
+var stations []Station
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:148
+var catchers []Catcher
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:149
+var orders []Order
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:150
+var orderSpawnTimer int = 0
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:151
+var orderSpawnInterval int = 180
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:153
+var stemSpeed float64 = stemSpeed1
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:155
 var levelNames []string = []string{"First Steep", "Quality Control", "The Full Blend"}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:112
-var levelDescs []string = []string{"One station. Learn the pipe.", "Flaky stations. Use onerr shield.", "Chain four stations in order."}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:156
+var levelDescs []string = []string{"Two lanes. Match the order.", "Flaky stations. Use onerr catcher.", "Chain stations. Pick the right lane."}
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:120
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:161
+var levelHints []string = []string{"|> pipe sends data through functions", "onerr catches errors before they crash", "chain functions in sequence with |>"}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:169
+func laneY(lane int) float64 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:170
+	return (laneBaseY + (float64(lane) * laneSpacing))
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:172
+func stemOnLane(lane int) bool {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:173
+	for i := range len(stems) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:174
+		if stems[i].active && (stems[i].lane == lane) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:175
+			return true
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:176
+	return false
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:178
+func stationsOnLane(lane int) []Station {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:179
+	result := make([]Station, 0)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:180
+	for i := range len(stations) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:181
+		if stations[i].lane == lane {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:182
+			result = append(result, stations[i])
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:183
+	return result
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:185
+func catcherOnLane(lane int) int {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:186
+	for i := range len(catchers) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:187
+		if catchers[i].lane == lane {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:188
+			return i
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:189
+	return -1
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:191
+func outputStateForLane(lane int) StemState {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:192
+	laneStations := stationsOnLane(lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:193
+	if len(laneStations) == 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:194
+		return StemStateRaw
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:195
+	return laneStations[(len(laneStations) - 1)].outputState
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:199
 func main() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:121
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:200
+	// pipe step 1: game.Run(...)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:204
 	err_1 := game.Run(game.OnDraw(game.OnUpdate(game.OnSetup(game.Window("Stem Panic", screenW, screenH), setup), update), draw))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:204
 	if err_1 != nil {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:204
 		panic(fmt.Sprintf("%v", err_1))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:129
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:208
 func setup() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:130
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:209
 	lives = 3
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:131
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:210
 	score = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:132
-	passes = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:133
-	stemProcessed = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:134
-	stemBitter = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:135
-	nextInChain = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:136
-	flashTimer = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:137
-	isSucked = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:138
-	suckTimer = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:139
-	if level == 1 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:140
-		passTarget = 3
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:141
-		levelName = "First Steep"
-	} else if level == 2 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:143
-		passTarget = 3
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:144
-		levelName = "Quality Control"
-	} else if level == 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:146
-		passTarget = 2
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:147
-		levelName = "The Full Blend"
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:148
-	resetStrainer()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:149
-	resetStem()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:150
-	setupStations()
-}
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:152
-func setupStations() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:153
-	if level == 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:154
-		cx := ((float64(screenW) / 2.0) - (stationW / 2.0))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:155
-		stationH4 := 70.0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:156
-		stations = []Station{Station{rect: game.Rect{X: cx, Y: 50.0, Width: stationW, Height: stationH4}, funcName: "harvest", active: true, sequence: 0}, Station{rect: game.Rect{X: cx, Y: 150.0, Width: stationW, Height: stationH4}, funcName: "steam", active: true, sequence: 1}, Station{rect: game.Rect{X: cx, Y: 250.0, Width: stationW, Height: stationH4}, funcName: "dry", active: true, sequence: 2}, Station{rect: game.Rect{X: cx, Y: 350.0, Width: stationW, Height: stationH4}, funcName: "separate", active: true, sequence: 3}}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:182
-		return
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:183
-	if level == 2 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:184
-		stations = []Station{Station{rect: game.Rect{X: 100.0, Y: 80.0, Width: stationW, Height: stationH}, funcName: "roll", active: true, isFlaky: true}, Station{rect: game.Rect{X: ((float64(screenW) / 2.0) - (stationW / 2.0)), Y: 80.0, Width: stationW, Height: stationH}, funcName: "sort", active: true, isFlaky: true}, Station{rect: game.Rect{X: ((float64(screenW) - 100.0) - stationW), Y: 80.0, Width: stationW, Height: stationH}, funcName: "dry", active: true, isFlaky: true}}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:204
-		return
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:206
-	stations = []Station{Station{rect: game.Rect{X: ((float64(screenW) / 2.0) - (stationW / 2.0)), Y: 100.0, Width: stationW, Height: stationH}, funcName: "steam.Process", active: true}}
-}
-
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:211
+	fulfilled = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:212
+	currentLane = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:213
+	panicReason = ""
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:214
-func resetStrainer() {
+	stems = make([]Stem, 0)
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:215
-	strainer = game.Rect{X: ((float64(screenW) / 2.0) - (strainerW / 2.0)), Y: strainerY, Width: strainerW, Height: strainerH}
-}
-
+	orders = make([]Order, 0)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:216
+	orderSpawnTimer = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:218
+	if level == 1 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:219
+		fulfilledTarget = 5
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:220
+		levelName = "First Steep"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:221
+		stemSpeed = stemSpeed1
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:222
-func resetStem() {
+		orderSpawnInterval = 180
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:223
-	stem = game.Circle{X: (float64(screenW) / 2.0), Y: (strainerY - 30.0), Radius: stemRadius}
+		setupLevel1()
+	} else if level == 2 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:225
+		fulfilledTarget = 8
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:226
+		levelName = "Quality Control"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:227
+		stemSpeed = stemSpeed2
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:228
-	if level >= 2 {
+		orderSpawnInterval = 150
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:229
-		stemDX = 2.5
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:230
-		stemDY = -3.0
-	} else {
+		setupLevel2()
+	} else if level == 3 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:231
+		fulfilledTarget = 10
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:232
-		stemDX = 1.5
+		levelName = "The Full Blend"
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:233
-		stemDY = -2.0
-	}
+		stemSpeed = stemSpeed3
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:234
-	stemActive = true
+		orderSpawnInterval = 120
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:235
-	stemProcessed = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:236
-	stemBitter = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:237
-	isSucked = false
+		setupLevel3()
+	}
 }
 
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:237
+func setupLevel1() {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:239
-func resetChain() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:240
-	nextInChain = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:241
-	for i := range len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:242
-		stations[i].completed = false
+	stations = []Station{Station{x: 250.0, lane: 0, funcName: "steam", outputState: StemStateSteamed}, Station{x: 250.0, lane: 1, funcName: "dry", outputState: StemStateDried}}
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:243
-		if !stations[i].active {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:244
-			stations[i].active = true
+	catchers = make([]Catcher, 0)
+}
+
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:245
-			stations[i].cooldown = 0
+func setupLevel2() {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:247
+	stations = []Station{Station{x: 220.0, lane: 0, funcName: "roll", isFlaky: true, outputState: StemStateRolled}, Station{x: 220.0, lane: 1, funcName: "sort", isFlaky: true, outputState: StemStateSorted}, Station{x: 220.0, lane: 2, funcName: "dry", isFlaky: true, outputState: StemStateDried}}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:252
+	catchers = []Catcher{Catcher{x: 360.0, lane: 0}, Catcher{x: 360.0, lane: 1}, Catcher{x: 360.0, lane: 2}}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:258
+func setupLevel3() {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:263
+	stations = []Station{Station{x: 180.0, lane: 0, funcName: "harvest", outputState: StemStateHarvested}, Station{x: 320.0, lane: 0, funcName: "steam", outputState: StemStateSteamed}, Station{x: 180.0, lane: 1, funcName: "harvest", outputState: StemStateHarvested}, Station{x: 320.0, lane: 1, funcName: "dry", outputState: StemStateDried}, Station{x: 150.0, lane: 2, funcName: "harvest", outputState: StemStateHarvested}, Station{x: 240.0, lane: 2, funcName: "steam", outputState: StemStateSteamed}, Station{x: 340.0, lane: 2, funcName: "dry", outputState: StemStateDried}, Station{x: 440.0, lane: 2, funcName: "separate", outputState: StemStateBlended}}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:273
+	catchers = make([]Catcher, 0)
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:277
+func spawnOrder() {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:278
+	if level == 1 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:280
+		lane := game.Random(0, 2)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:281
+		wantState := StemStateSteamed
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:282
+		wantLabel := "steamed"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:283
+		if lane == 1 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:284
+			wantState = StemStateDried
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:285
+			wantLabel = "dried"
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:286
+		orders = append(orders, Order{lane: lane, wantState: wantState, wantLabel: wantLabel, timer: 480, maxTimer: 480, active: true})
+	} else if level == 2 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:295
+		lane := game.Random(0, 3)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:296
+		states := []StemState{StemStateRolled, StemStateSorted, StemStateDried}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:297
+		labels := []string{"rolled", "sorted", "dried"}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:298
+		orders = append(orders, Order{lane: lane, wantState: states[lane], wantLabel: labels[lane], timer: 360, maxTimer: 360, active: true})
+	} else if level == 3 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:308
+		pick := game.Random(0, 3)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:309
+		lanes := []int{0, 1, 2}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:310
+		states := []StemState{StemStateSteamed, StemStateDried, StemStateBlended}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:311
+		labels := []string{"steamed", "dried", "blended"}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:312
+		orders = append(orders, Order{lane: lanes[pick], wantState: states[pick], wantLabel: labels[pick], timer: 300, maxTimer: 300, active: true})
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:321
+func activeOrderOnLane(lane int) int {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:322
+	for i := range len(orders) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:323
+		if orders[i].active && (orders[i].lane == lane) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:324
+			return i
 		}
 	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:325
+	return -1
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:249
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:329
 func update() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:250
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:330
 	switch scene {
-	case "title":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:252
+	case SceneTitle:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:332
 		updateTitle()
-	case "tea_menu":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:254
+	case SceneTeaMenu:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:334
 		updateTeaMenu()
-	case "playing":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:256
+	case ScenePlaying:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:336
 		updatePlaying()
-	case "batch_complete":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:258
+	case SceneBatchComplete:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:338
 		updateBatchComplete()
-	case "bitter_panic":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:260
+	case SceneBitterPanic:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:340
 		updateBitterPanic()
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:262
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:342
 func updateTitle() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:263
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:343
 	if game.IsKeyPressed(game.KeyEnter) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:264
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:344
 		menuCursor = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:265
-		scene = "tea_menu"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:345
+		scene = SceneTeaMenu
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:267
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:347
 func updateTeaMenu() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:268
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:348
 	if game.IsKeyPressed(game.KeyUp) && (menuCursor > 0) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:269
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:349
 		menuCursor = (menuCursor - 1)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:270
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:350
 	if game.IsKeyPressed(game.KeyDown) && (menuCursor < 2) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:271
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:351
 		menuCursor = (menuCursor + 1)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:272
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:352
 	if game.IsKeyPressed(game.KeyEnter) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:273
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:353
 		selectedLevel := (menuCursor + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:274
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:354
 		if selectedLevel <= highestUnlocked {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:275
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:355
 			level = selectedLevel
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:276
-			scene = "playing"
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:277
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:356
+			scene = ScenePlaying
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:357
 			setup()
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:278
-	if game.IsKeyPressed(game.KeyEscape) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:279
-		scene = "title"
-	}
-}
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:281
-func updatePlaying() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:283
-	if flashTimer > 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:284
-		flashTimer = (flashTimer - 1)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:287
-	for i := range len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:288
-		if !stations[i].active && (stations[i].cooldown > 0) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:289
-			stations[i].cooldown = (stations[i].cooldown - 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:290
-			if stations[i].cooldown <= 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:291
-				stations[i].active = true
-			}
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:294
-	if passes >= passTarget {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:295
-		scene = "batch_complete"
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:296
-		stemActive = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:297
-		return
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:300
-	if game.IsKeyDown(game.KeyLeft) && (strainer.X > 0.0) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:301
-		strainer.X = (strainer.X - strainerSpeed)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:302
-	if game.IsKeyDown(game.KeyRight) && ((strainer.X + strainerW) < float64(screenW)) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:303
-		strainer.X = (strainer.X + strainerSpeed)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:306
-	shielded = game.IsKeyDown(game.KeySpace)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:308
-	if !stemActive {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:309
-		return
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:312
-	if isSucked {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:313
-		updateSuck()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:314
-		return
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:317
-	trailX2 = trailX1
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:318
-	trailY2 = trailY1
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:319
-	trailX1 = stem.X
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:320
-	trailY1 = stem.Y
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:323
-	stem.X = (stem.X + stemDX)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:324
-	stem.Y = (stem.Y + stemDY)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:327
-	if (stem.X - stemRadius) < 0.0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:328
-		stem.X = stemRadius
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:329
-		stemDX = (stemDX * -1.0)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:330
-	if (stem.X + stemRadius) > float64(screenW) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:331
-		stem.X = (float64(screenW) - stemRadius)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:332
-		stemDX = (stemDX * -1.0)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:335
-	if (stem.Y - stemRadius) < 0.0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:336
-		stem.Y = stemRadius
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:337
-		stemDY = (stemDY * -1.0)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:340
-	if (stem.Y - stemRadius) > float64(screenH) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:341
-		lives = (lives - 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:342
-		if lives <= 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:343
-			scene = "bitter_panic"
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:344
-			stemActive = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:345
-			return
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:346
-		resetStem()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:347
-		return
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:350
-	if game.CircleOverlapsRect(stem, strainer) && (stemDY > 0.0) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:351
-		if stemBitter {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:352
-			if shielded {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:354
-				stemBitter = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:355
-				stemProcessed = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:356
-				stem.Radius = stemRadius
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:357
-				score = (score + 100)
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:358
-				stemDY = (stemDY * -1.0)
+	if game.IsKeyPressed(game.KeyEscape) {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:359
-				hitPos := ((stem.X - strainer.X) / strainerW)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:360
-				stemDX = ((hitPos - 0.5) * 6.0)
-			} else {
+		scene = SceneTitle
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:361
+func updatePlaying() {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:363
-				scene = "bitter_panic"
+	if fulfilled >= fulfilledTarget {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:364
-				stemActive = false
+		scene = SceneBatchComplete
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:365
-				return
-			}
-		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:367
-			stemDY = (stemDY * -1.0)
+		return
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:368
+	if game.IsKeyPressed(game.KeyUp) && (currentLane > 0) {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:369
-			hitPos := ((stem.X - strainer.X) / strainerW)
+		currentLane = (currentLane - 1)
+	}
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:370
-			stemDX = ((hitPos - 0.5) * 6.0)
+	if game.IsKeyPressed(game.KeyDown) && (currentLane < (activeLaneCount() - 1)) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:371
+		currentLane = (currentLane + 1)
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:374
+	if game.IsKeyPressed(game.KeyEnter) || game.IsKeyPressed(game.KeySpace) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:375
+		if !stemOnLane(currentLane) && (len(stems) < maxStems) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:376
+			stems = append(stems, Stem{x: laneStartX, y: laneY(currentLane), lane: currentLane, dx: stemSpeed, state: StemStateRaw, active: true})
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:373
-	for i := range len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:374
-		if !stations[i].active {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:375
-			continue
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:376
-		if stations[i].completed {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:377
-			continue
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:379
-		intake := game.Rect{X: stations[i].rect.X, Y: stations[i].rect.Y, Width: stations[i].rect.Width, Height: 20.0}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:385
-		if game.CircleOverlapsRect(stem, intake) && (stemDY < 0.0) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:386
+	if level == 2 {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:387
-			if (level == 3) && (stations[i].sequence != nextInChain) {
+		if game.IsKeyPressed(game.KeyEnter) || game.IsKeyPressed(game.KeySpace) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:388
+			ci := catcherOnLane(currentLane)
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:389
-				stemDY = (stemDY * -1.0)
+			if ((ci >= 0) && !catchers[ci].active) && (catchers[ci].cooldown <= 0) {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:390
-				resetChain()
+				catchers[ci].active = true
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:391
+				catchers[ci].timer = catcherActiveFrames
+			}
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:394
+	for i := range len(catchers) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:395
+		if catchers[i].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:396
+			catchers[i].timer = (catchers[i].timer - 1)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:397
+			if catchers[i].timer <= 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:398
+				catchers[i].active = false
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:399
+				catchers[i].cooldown = catcherCooldownFrames
+			}
+		} else if catchers[i].cooldown > 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:401
+			catchers[i].cooldown = (catchers[i].cooldown - 1)
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:404
+	orderSpawnTimer = (orderSpawnTimer + 1)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:405
+	if orderSpawnTimer >= orderSpawnInterval {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:406
+		orderSpawnTimer = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:408
+		spawnOrder()
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:411
+	activeOrders := 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:412
+	for i := range len(orders) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:413
+		if orders[i].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:414
+			activeOrders = (activeOrders + 1)
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:415
+	if activeOrders == 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:416
+		spawnOrder()
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:419
+	for i := range len(orders) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:420
+		if !orders[i].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:421
+			continue
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:422
+		orders[i].timer = (orders[i].timer - 1)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:423
+		if orders[i].timer <= 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:425
+			orders[i].active = false
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:426
+			lives = (lives - 1)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:427
+			if lives <= 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:428
+				panicReason = "customer walked out"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:429
+				scene = SceneBitterPanic
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:430
 				return
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:393
-			isSucked = true
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:394
-			suckTimer = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:395
-			suckStationIdx = i
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:396
-			suckStartX = stem.X
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:397
-			suckStartY = stem.Y
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:398
-			stemDX = 0.0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:399
-			stemDY = 0.0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:400
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:433
+	updateStems()
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:435
+func activeLaneCount() int {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:436
+	if level == 1 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:437
+		return 2
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:438
+	return 3
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:440
+func updateStems() {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:441
+	for i := range len(stems) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:442
+		if !stems[i].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:443
+			continue
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:446
+		if stems[i].suckTimer > 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:447
+			updateStemSuck(i)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:448
+			continue
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:451
+		stems[i].trailX2 = stems[i].trailX1
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:452
+		stems[i].trailY2 = stems[i].trailY1
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:453
+		stems[i].trailX1 = stems[i].x
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:454
+		stems[i].trailY1 = stems[i].y
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:457
+		stems[i].x = (stems[i].x + stems[i].dx)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:460
+		checkStationHit(i)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:463
+		if level == 2 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:464
+			checkCatcherHit(i)
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:467
+		if stems[i].x >= laneEndX {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:468
+			handleStemArrival(i)
+		}
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:470
+func checkStationHit(si int) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:471
+	for j := range len(stations) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:472
+		if stations[j].lane != stems[si].lane {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:473
+			continue
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:475
+		stationLeft := stations[j].x
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:476
+		if ((stems[si].x + stemRadius) >= stationLeft) && ((stems[si].x - stemRadius) <= (stationLeft + 5.0)) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:478
+			stems[si].dx = 0.0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:479
+			stems[si].suckTimer = 1
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:480
+			stems[si].suckStationLane = stations[j].lane
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:481
+			stems[si].suckStationIdx = j
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:482
+			stems[si].suckStartX = stems[si].x
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:483
 			return
 		}
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:402
-func updateSuck() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:403
-	suckTimer = (suckTimer + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:404
-	s := stations[suckStationIdx]
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:406
-	progress := (float64(suckTimer) / float64(suckDuration))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:407
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:485
+func updateStemSuck(si int) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:486
+	stems[si].suckTimer = (stems[si].suckTimer + 1)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:487
+	idx := stems[si].suckStationIdx
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:488
+	s := stations[idx]
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:490
+	progress := (float64(stems[si].suckTimer) / float64(suckDuration))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:491
 	if progress > 1.0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:408
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:492
 		progress = 1.0
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:409
-	targetX := (s.rect.X + (s.rect.Width / 2.0))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:410
-	enterY := (s.rect.Y + 10.0)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:411
-	exitY := ((s.rect.Y + s.rect.Height) - 10.0)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:412
-	stem.X = (suckStartX + ((targetX - suckStartX) * progress))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:413
-	stem.Y = (enterY + ((exitY - enterY) * progress))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:415
-	if suckTimer >= suckDuration {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:417
-		isSucked = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:418
-		stem.X = targetX
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:419
-		stem.Y = ((s.rect.Y + s.rect.Height) + stem.Radius)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:420
-		stemDX = 0.0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:421
-		stemDY = 3.0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:424
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:495
+	enterX := (s.x + 5.0)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:496
+	exitX := ((s.x + stationW) - 5.0)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:497
+	stems[si].x = (enterX + ((exitX - enterX) * progress))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:499
+	if stems[si].suckTimer >= suckDuration {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:501
+		stems[si].x = ((s.x + stationW) + stemRadius)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:502
+		stems[si].dx = stemSpeed
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:503
+		stems[si].suckTimer = 0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:506
 		if s.isFlaky && (game.Random(0, 100) < 30) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:425
-			stemBitter = true
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:426
-			stemProcessed = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:427
-			stem.Radius = stemRadius
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:507
+			stems[si].state = StemStateBitter
 		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:429
-			stemProcessed = true
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:430
-			stemBitter = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:431
-			stem.Radius = 8.0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:432
-			score = (score + 50)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:434
-			if level == 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:435
-				stations[suckStationIdx].completed = true
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:436
-				nextInChain = (nextInChain + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:437
-				if nextInChain >= len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:439
-					passes = (passes + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:440
-					nextInChain = 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:441
-					for j := range len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:442
-						stations[j].completed = false
-					}
-				}
-			} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:444
-				passes = (passes + 1)
-			}
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:447
-		flashX = stem.X
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:448
-		flashY = stem.Y
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:449
-		flashTimer = 20
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:452
-		stations[suckStationIdx].active = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:453
-		stations[suckStationIdx].cooldown = stationCooldown
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:456
-		if !stemBitter {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:457
-			stemProcessed = false
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:458
-			stem.Radius = stemRadius
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:509
+			stems[si].state = s.outputState
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:510
+			score = (score + 25)
 		}
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:460
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:512
+func checkCatcherHit(si int) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:513
+	if stems[si].state != StemStateBitter {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:514
+		return
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:515
+	ci := catcherOnLane(stems[si].lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:516
+	if ci < 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:517
+		return
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:518
+	catcherLeft := catchers[ci].x
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:519
+	if ((stems[si].x + stemRadius) >= catcherLeft) && ((stems[si].x - stemRadius) <= (catcherLeft + 5.0)) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:520
+		if catchers[ci].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:522
+			stems[si].state = outputStateForLane(stems[si].lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:523
+			score = (score + 100)
+		}
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:525
+func handleStemArrival(si int) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:526
+	stems[si].active = false
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:527
+	oi := activeOrderOnLane(stems[si].lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:528
+	if oi < 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:530
+		return
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:531
+	if stems[si].state == StemStateBitter {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:533
+		panicReason = "bitter leaf not caught"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:534
+		scene = SceneBitterPanic
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:535
+		return
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:536
+	if stems[si].state == orders[oi].wantState {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:538
+		orders[oi].active = false
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:539
+		score = (score + 50)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:540
+		fulfilled = (fulfilled + 1)
+	} else {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:543
+		panicReason = "wrong tea delivered"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:544
+		scene = SceneBitterPanic
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:546
 func updateBatchComplete() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:461
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:547
 	if game.IsKeyPressed(game.KeyEnter) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:463
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:548
 		if ((level + 1) > highestUnlocked) && (level < 3) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:464
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:549
 			highestUnlocked = (level + 1)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:465
-		scene = "tea_menu"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:550
+		scene = SceneTeaMenu
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:467
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:552
 func updateBitterPanic() {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:468
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:553
 	if game.IsKeyPressed(game.KeySpace) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:469
-		scene = "tea_menu"
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:554
+		scene = SceneTeaMenu
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:473
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:558
 func draw(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:474
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:559
 	game.Clear(screen, darkWood)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:475
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:560
 	switch scene {
-	case "title":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:477
+	case SceneTitle:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:562
 		drawTitle(screen)
-	case "tea_menu":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:479
+	case SceneTeaMenu:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:564
 		drawTeaMenu(screen)
-	case "playing":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:481
+	case ScenePlaying:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:566
 		drawPlaying(screen)
-	case "batch_complete":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:483
+	case SceneBatchComplete:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:568
 		drawBatchComplete(screen)
-	case "bitter_panic":
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:485
+	case SceneBitterPanic:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:570
 		drawBitterPanic(screen)
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:487
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:572
 func drawTitle(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:488
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:573
 	drawBambooBorder(screen)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:491
-	game.DrawText(screen, "STEM PANIC", 260, 160, warmWhite)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:494
-	game.DrawText(screen, "A kukicha tea processing game", 210, 200, amber)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:497
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:575
+	game.DrawText(screen, "STEM PANIC", 260, 140, warmWhite)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:576
+	game.DrawText(screen, "A kukicha tea processing game", 210, 175, amber)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:579
 	frame := game.FrameCount()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:498
-	if (frame % 60) < 40 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:499
-		game.DrawText(screen, "Press ENTER to start", 240, 280, warmWhite)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:580
+	demoY := 230.0
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:582
+	game.DrawRect(screen, 180.0, demoY, 280.0, 3.0, bamboo)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:584
+	game.DrawRect(screen, 295.0, (demoY - 18.0), 50.0, 36.0, stationClay)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:585
+	game.DrawText(screen, "steam", 300, (int(demoY) - 6), cream)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:587
+	game.DrawText(screen, "|>", 250, (int(demoY) - 6), bambooBright)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:588
+	game.DrawText(screen, "|>", 360, (int(demoY) - 6), bambooBright)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:590
+	stemX := (180.0 + (float64((frame % 120)) * 2.3))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:591
+	if stemX > 460.0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:592
+		stemX = 180.0
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:502
-	game.DrawRect(screen, 295.0, 225.0, 50.0, 30.0, stationClay)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:503
-	game.DrawText(screen, "|>", 310, 235, cream)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:506
-	game.DrawText(screen, "Arrows: move   Space: shield   Enter: select", 160, 350, game.MakeColor(120, 100, 70, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:509
-	ballY := (222.0 + (float64((frame % 30)) * 0.3))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:510
-	game.DrawCircle(screen, 320.0, ballY, 4.0, matchaGreen)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:513
-	game.DrawText(screen, "v0.1", 305, 420, game.MakeColor(120, 100, 70, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:593
+	stemColor := matchaGreen
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:594
+	if stemX > 345.0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:595
+		stemColor = warmGold
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:596
+	game.DrawCircle(screen, stemX, demoY, 5.0, stemColor)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:599
+	game.DrawText(screen, "UP/DOWN: switch lane   ENTER/SPACE: send stem", 140, 290, dimText)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:600
+	game.DrawText(screen, "Match the right pipeline to each tea order!", 160, 310, dimText)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:602
+	if (frame % 60) < 40 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:603
+		game.DrawText(screen, "Press ENTER to start", 240, 360, warmWhite)
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:605
+	game.DrawText(screen, "v0.2", 305, 440, dimText)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:515
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:607
 func drawTeaMenu(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:516
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:608
 	drawBambooBorder(screen)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:518
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:610
 	game.DrawText(screen, "TEA MENU", 275, 80, warmWhite)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:519
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:611
 	game.DrawRect(screen, 260.0, 100.0, 120.0, 1.0, bamboo)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:521
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:613
 	for i := range 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:522
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:614
 		y := (130 + (i * 70))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:523
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:615
 		levelNum := (i + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:524
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:616
 		unlocked := (levelNum <= highestUnlocked)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:526
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:618
 		if unlocked {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:528
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:619
 			labelColor := warmWhite
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:529
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:620
 			descColor := amber
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:530
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:621
 			if i == menuCursor {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:532
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:622
 				game.DrawRect(screen, 140.0, (float64(y) - 5.0), 360.0, 55.0, game.MakeColor(60, 42, 32, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:533
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:623
 				labelColor = warmGold
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:534
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:624
 			game.DrawText(screen, fmt.Sprintf("%v. %v", levelNum, levelNames[i]), 160, y, labelColor)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:535
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:625
 			game.DrawText(screen, levelDescs[i], 175, (y + 20), descColor)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:538
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:627
 			if i == menuCursor {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:539
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:628
 				game.DrawRect(screen, 140.0, (float64(y) - 5.0), 360.0, 55.0, game.MakeColor(45, 32, 27, 255))
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:540
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:629
 			game.DrawText(screen, fmt.Sprintf("%v. %v", levelNum, levelNames[i]), 160, y, game.MakeColor(80, 65, 50, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:541
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:630
 			game.DrawText(screen, "[ locked ]", 175, (y + 20), game.MakeColor(80, 65, 50, 255))
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:544
-	cursorY := (130 + (menuCursor * 70))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:545
-	game.DrawText(screen, "|>", 140, cursorY, bamboo)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:547
-	game.DrawText(screen, "UP/DOWN to select, ENTER to play, ESC for title", 130, 420, game.MakeColor(120, 100, 70, 255))
-}
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:549
-func drawPlaying(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:550
-	drawBambooBorder(screen)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:553
-	if (level == 3) && (len(stations) == 4) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:554
-		cx := (stations[0].rect.X + (stations[0].rect.Width / 2.0))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:555
-		for i := range 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:556
-			topY := (stations[i].rect.Y + stations[i].rect.Height)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:557
-			botY := stations[(i + 1)].rect.Y
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:558
-			game.DrawRect(screen, (cx - 1.0), topY, 2.0, (botY - topY), game.MakeColor(120, 90, 60, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:560
-			midY := ((topY + botY) / 2.0)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:561
-			game.DrawText(screen, "|>", (int(cx) - 6), (int(midY) - 6), game.MakeColor(120, 90, 60, 180))
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:564
-	for i := range len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:565
-		drawStation(screen, stations[i])
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:568
-	frame := game.FrameCount()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:569
-	for i := range len(stations) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:570
-		if stations[i].completed {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:571
-			sx := (stations[i].rect.X + (stations[i].rect.Width / 2.0))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:572
-			sy := (stations[i].rect.Y - 5.0)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:573
-			drift := (float64((frame % 40)) * 0.5)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:574
-			steamAlpha := (40 - int((frame % 40)))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:575
-			if steamAlpha > 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:576
-				game.DrawCircle(screen, (sx - 5.0), (sy - drift), 3.0, game.MakeColor(180, 160, 120, steamAlpha))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:577
-				game.DrawCircle(screen, (sx + 5.0), ((sy - drift) - 5.0), 2.0, game.MakeColor(180, 160, 120, (steamAlpha/2)))
-			}
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:580
-	if flashTimer > 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:581
-		flashAlpha := (flashTimer * 12)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:582
-		if flashAlpha > 255 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:583
-			flashAlpha = 255
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:584
-		flashSize := (float64((20 - flashTimer)) * 3.0)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:585
-		if stemBitter {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:586
-			game.DrawCircle(screen, flashX, flashY, flashSize, game.MakeColor(200, 40, 30, flashAlpha))
-		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:588
-			game.DrawCircle(screen, flashX, flashY, flashSize, game.MakeColor(220, 180, 50, flashAlpha))
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:591
-	game.DrawRect(screen, strainer.X, strainer.Y, strainer.Width, strainer.Height, strainerColor)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:592
-	if shielded {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:594
-		game.DrawRect(screen, (strainer.X - 2.0), (strainer.Y - 2.0), (strainer.Width + 4.0), (strainer.Height + 4.0), jadeGreen)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:595
-		game.DrawText(screen, "onerr", ((int(strainer.X) + (int(strainer.Width) / 2)) - 15), (int(strainer.Y) + 1), game.MakeColor(0, 180, 100, 255))
-	} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:597
-		game.DrawText(screen, "|>", ((int(strainer.X) + (int(strainer.Width) / 2)) - 6), (int(strainer.Y) + 1), darkWood)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:600
-	if stemActive {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:602
-		if stemBitter {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:603
-			game.DrawCircle(screen, trailX2, trailY2, 3.0, game.MakeColor(200, 40, 30, 60))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:604
-			game.DrawCircle(screen, trailX1, trailY1, 4.0, game.MakeColor(200, 40, 30, 120))
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:605
-		stemColor := matchaGreen
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:606
-		if stemProcessed {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:607
-			stemColor = warmGold
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:608
-		if stemBitter {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:609
-			stemColor = bitterRed
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:610
-		game.DrawCircle(screen, stem.X, stem.Y, stem.Radius, stemColor)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:613
-	game.DrawText(screen, fmt.Sprintf("Brew Quality: %v", score), 490, 12, amber)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:614
-	game.DrawText(screen, fmt.Sprintf("Lives: %v", lives), 10, 12, warmWhite)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:615
-	game.DrawText(screen, fmt.Sprintf("%v  %v/%v", levelName, passes, passTarget), 230, 12, bamboo)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:616
-	if level == 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:617
-		game.DrawText(screen, fmt.Sprintf("Chain: %v/4", nextInChain), 280, 30, warmWhite)
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:619
-	game.DrawText(screen, levelHints[(level-1)], 10, (screenH - 20), game.MakeColor(120, 100, 70, 255))
-}
-
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:621
-func drawStation(screen game.Screen, s Station) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:622
-	if s.completed {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:624
-		game.DrawRect(screen, s.rect.X, s.rect.Y, s.rect.Width, s.rect.Height, game.MakeColor(50, 70, 40, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:625
-		game.DrawText(screen, s.funcName, (int(s.rect.X) + 5), ((int(s.rect.Y) + (int(s.rect.Height) / 2)) - 12), cream)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:626
-		game.DrawText(screen, "OK", ((int(s.rect.X) + (int(s.rect.Width) / 2)) - 6), ((int(s.rect.Y) + (int(s.rect.Height) / 2)) + 4), matchaGreen)
-	} else if s.active {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:629
-		isTarget := ((level == 3) && (s.sequence == nextInChain))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:630
-		bodyColor := stationClay
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:631
-		if isTarget {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:632
-			pulse := (game.FrameCount() % 40)
+	cursorY := (130 + (menuCursor * 70))
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:633
-			if pulse < 20 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:634
-				bodyColor = game.MakeColor(100, 70, 50, 255)
-			} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:636
-				bodyColor = stationClay
-			}
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:638
-		game.DrawRect(screen, s.rect.X, s.rect.Y, s.rect.Width, s.rect.Height, bodyColor)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:640
-		game.DrawRect(screen, (s.rect.X + 15.0), (s.rect.Y - 4.0), (s.rect.Width - 30.0), 8.0, game.MakeColor(50, 35, 25, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:642
-		game.DrawRect(screen, (s.rect.X + 15.0), ((s.rect.Y + s.rect.Height) - 4.0), (s.rect.Width - 30.0), 8.0, game.MakeColor(50, 35, 25, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:644
-		game.DrawText(screen, s.funcName, (int(s.rect.X) + 5), ((int(s.rect.Y) + (int(s.rect.Height) / 2)) - 6), cream)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:646
-		if s.isFlaky {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:647
-			game.DrawText(screen, "~err", (int(s.rect.X) + 5), ((int(s.rect.Y) + int(s.rect.Height)) - 18), game.MakeColor(180, 100, 60, 200))
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:649
-		if isTarget {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:650
-			game.DrawText(screen, ">>>", (int(s.rect.X) - 30), ((int(s.rect.Y) + (int(s.rect.Height) / 2)) - 6), amber)
-		}
-	} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:653
-		game.DrawRect(screen, s.rect.X, s.rect.Y, s.rect.Width, s.rect.Height, game.MakeColor(60, 42, 32, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:654
-		game.DrawText(screen, s.funcName, (int(s.rect.X) + 5), ((int(s.rect.Y) + (int(s.rect.Height) / 2)) - 6), game.MakeColor(100, 80, 60, 255))
-	}
+	game.DrawText(screen, "|>", 140, cursorY, bamboo)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:635
+	game.DrawText(screen, "UP/DOWN to select, ENTER to play, ESC for title", 130, 420, dimText)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:656
-func drawBatchComplete(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:657
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:637
+func drawPlaying(screen game.Screen) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:638
 	drawBambooBorder(screen)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:639
+	lanes := activeLaneCount()
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:642
+	for i := range lanes {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:643
+		ly := laneY(i)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:644
+		if i == currentLane {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:645
+			game.DrawRect(screen, laneStartX, (ly - 20.0), (laneEndX - laneStartX), 40.0, laneHighlight)
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:648
+	for i := range lanes {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:649
+		ly := laneY(i)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:650
+		game.DrawRect(screen, laneStartX, (ly - (laneThick / 2.0)), (laneEndX - laneStartX), laneThick, bamboo)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:652
+		frame := game.FrameCount()
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:653
+		for t := range 20 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:654
+			tx := (((laneStartX + 25.0) + (float64(t) * 26.0)) + float64((frame % 26)))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:655
+			if tx < laneEndX {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:656
+				game.DrawRect(screen, tx, (ly - 1.0), 8.0, 2.0, game.MakeColor(160, 130, 60, 255))
+			}
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:659
+	for i := range lanes {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:660
-	frame := game.FrameCount()
+		laneStations := stationsOnLane(i)
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:661
-	for k := range 3 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:662
-		offset := (k * 20)
+		ly := laneY(i)
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:663
-		phase := ((frame + int64(offset)) % 60)
+		if len(laneStations) > 0 {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:664
-		steamSize := (float64(phase) * 1.5)
+			px := (laneStations[0].x - 25.0)
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:665
-		steamAlpha := (60 - int(phase))
+			if px > laneStartX {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:666
-		if steamAlpha < 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:667
-			steamAlpha = 0
+				game.DrawText(screen, "|>", int(px), (int(ly) - 6), bambooBright)
+			}
 		}
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:668
-		xOff := ((float64(k) - 1.0) * 30.0)
+		for j := range len(laneStations) - 1 {
 //line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:669
+			px := ((laneStations[j].x + stationW) + 8.0)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:670
+			game.DrawText(screen, "|>", int(px), (int(ly) - 6), bambooBright)
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:673
+	for i := range len(stations) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:674
+		drawStation(screen, stations[i])
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:677
+	for i := range len(catchers) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:678
+		drawCatcher(screen, catchers[i])
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:681
+	for i := range len(orders) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:682
+		if orders[i].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:683
+			drawOrder(screen, orders[i])
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:686
+	for i := range len(stems) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:687
+		if stems[i].active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:688
+			drawStem(screen, stems[i])
+		}
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:691
+	my := laneY(currentLane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:692
+	game.DrawRect(screen, masterX, (my - (masterH / 2.0)), masterW, masterH, teaMasterColor)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:693
+	game.DrawText(screen, "|>", (int(masterX) + 10), (int(my) - 6), darkWood)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:696
+	game.DrawText(screen, fmt.Sprintf("Brew Quality: %v", score), 480, 12, amber)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:697
+	game.DrawText(screen, fmt.Sprintf("Lives: %v", lives), 10, 12, warmWhite)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:698
+	game.DrawText(screen, fmt.Sprintf("%v  %v/%v", levelName, fulfilled, fulfilledTarget), 230, 12, bamboo)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:699
+	game.DrawText(screen, levelHints[(level-1)], 10, (screenH - 20), dimText)
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:701
+func drawStation(screen game.Screen, s Station) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:702
+	ly := laneY(s.lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:704
+	game.DrawRect(screen, s.x, (ly - (stationH / 2.0)), stationW, stationH, stationClay)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:706
+	game.DrawRect(screen, (s.x - 2.0), (ly - 4.0), 6.0, 8.0, game.MakeColor(50, 35, 25, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:708
+	game.DrawRect(screen, ((s.x + stationW) - 4.0), (ly - 4.0), 6.0, 8.0, game.MakeColor(50, 35, 25, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:710
+	game.DrawText(screen, s.funcName, (int(s.x) + 4), (int(ly) - 6), cream)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:712
+	if s.isFlaky {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:713
+		game.DrawText(screen, "~err", (int(s.x) + 4), (int(ly) + 8), game.MakeColor(180, 100, 60, 200))
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:715
+func drawCatcher(screen game.Screen, c Catcher) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:716
+	ly := laneY(c.lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:717
+	if c.active {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:718
+		game.DrawRect(screen, c.x, (ly - (catcherH / 2.0)), catcherW, catcherH, jadeGreen)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:719
+		game.DrawText(screen, "onerr", (int(c.x) + 1), (int(ly) - 6), jadeGreenSolid)
+	} else if c.cooldown > 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:721
+		game.DrawRect(screen, c.x, (ly - (catcherH / 2.0)), catcherW, catcherH, game.MakeColor(40, 60, 40, 120))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:722
+		game.DrawText(screen, "onerr", (int(c.x) + 1), (int(ly) - 6), game.MakeColor(60, 80, 60, 255))
+	} else {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:724
+		game.DrawRect(screen, c.x, (ly - (catcherH / 2.0)), catcherW, catcherH, game.MakeColor(30, 50, 35, 180))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:725
+		game.DrawText(screen, "onerr", (int(c.x) + 1), (int(ly) - 6), game.MakeColor(0, 140, 80, 180))
+	}
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:727
+func drawOrder(screen game.Screen, o Order) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:728
+	ly := laneY(o.lane)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:730
+	game.DrawRect(screen, orderX, (ly - (orderH / 2.0)), orderW, orderH, game.MakeColor(60, 42, 32, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:731
+	game.DrawRect(screen, orderX, (ly - (orderH / 2.0)), orderW, 2.0, bamboo)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:732
+	game.DrawRect(screen, orderX, ((ly + (orderH / 2.0)) - 2.0), orderW, 2.0, bamboo)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:734
+	game.DrawText(screen, o.wantLabel, (int(orderX) + 4), (int(ly) - 6), warmWhite)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:736
+	timerFrac := (float64(o.timer) / float64(o.maxTimer))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:737
+	barW := (orderW * timerFrac)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:738
+	barColor := amber
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:739
+	if timerFrac < 0.3 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:740
+		barColor = bitterRed
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:741
+	game.DrawRect(screen, orderX, ((ly - (orderH / 2.0)) - 6.0), barW, 4.0, barColor)
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:743
+func drawStem(screen game.Screen, s Stem) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:745
+	if s.state == StemStateBitter {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:746
+		game.DrawCircle(screen, s.trailX2, s.trailY2, 3.0, game.MakeColor(200, 40, 30, 60))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:747
+		game.DrawCircle(screen, s.trailX1, s.trailY1, 4.0, game.MakeColor(200, 40, 30, 120))
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:749
+	stemColor := matchaGreen
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:750
+	switch s.state {
+	case StemStateBitter:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:752
+		stemColor = bitterRed
+	case StemStateRaw:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:754
+		stemColor = matchaGreen
+	default:
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:756
+		stemColor = warmGold
+	}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:757
+	game.DrawCircle(screen, s.x, s.y, stemRadius, stemColor)
+}
+
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:759
+func drawBatchComplete(screen game.Screen) {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:760
+	drawBambooBorder(screen)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:762
+	frame := game.FrameCount()
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:763
+	for k := range 3 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:764
+		offset := (k * 20)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:765
+		phase := ((frame + int64(offset)) % 60)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:766
+		steamSize := (float64(phase) * 1.5)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:767
+		steamAlpha := (60 - int(phase))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:768
+		if steamAlpha < 0 {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:769
+			steamAlpha = 0
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:770
+		xOff := ((float64(k) - 1.0) * 30.0)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:771
 		game.DrawCircle(screen, (320.0 + xOff), 260.0, steamSize, game.MakeColor(220, 180, 50, steamAlpha))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:671
-	game.DrawText(screen, fmt.Sprintf("%v COMPLETE", levelName), 230, 180, warmGold)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:672
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:773
+	game.DrawText(screen, fmt.Sprintf("%v COMPLETE", levelName), 220, 180, warmGold)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:774
 	game.DrawText(screen, fmt.Sprintf("Brew Quality: %v", score), 260, 220, amber)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:673
-	game.DrawText(screen, fmt.Sprintf("Stems processed: %v", passes), 250, 245, warmWhite)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:675
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:775
+	game.DrawText(screen, fmt.Sprintf("Orders filled: %v", fulfilled), 255, 245, warmWhite)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:777
 	if (frame % 60) < 40 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:676
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:778
 		game.DrawText(screen, "Press ENTER to continue", 230, 300, warmWhite)
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:678
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:780
 func drawBitterPanic(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:680
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:781
 	frame := game.FrameCount()
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:681
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:782
 	flashIntensity := 0
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:682
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:783
 	if (frame % 30) < 10 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:683
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:784
 		flashIntensity = 40
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:684
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:785
 	game.Clear(screen, game.MakeColor((35+flashIntensity), 25, 20, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:685
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:786
 	drawBambooBorder(screen)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:688
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:788
 	game.DrawText(screen, "BITTER PANIC: unhandled contamination", 170, 150, bitterRed)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:689
-	if stemBitter {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:690
-		game.DrawText(screen, "onerr panic \"bitter leaf not caught\"", 195, 185, game.MakeColor(180, 100, 80, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:691
-		game.DrawText(screen, "hint: hold SPACE to activate onerr shield", 160, 210, game.MakeColor(140, 120, 80, 255))
-	} else {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:693
-		game.DrawText(screen, "onerr panic \"batch ruined\"", 210, 185, game.MakeColor(180, 100, 80, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:789
+	game.DrawText(screen, fmt.Sprintf("onerr panic \"%v\"", panicReason), 195, 185, game.MakeColor(180, 100, 80, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:791
+	if panicReason == "bitter leaf not caught" {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:792
+		game.DrawText(screen, "hint: activate onerr catcher with SPACE", 165, 210, game.MakeColor(140, 120, 80, 255))
+	} else if panicReason == "wrong tea delivered" {
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:794
+		game.DrawText(screen, "hint: match the pipeline to the order", 170, 210, game.MakeColor(140, 120, 80, 255))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:694
-	game.DrawText(screen, fmt.Sprintf("Brew Quality: %v", score), 250, 240, amber)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:695
-	game.DrawText(screen, "at main.kuki:42  updatePlaying()", 200, 280, game.MakeColor(140, 100, 70, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:696
-	game.DrawText(screen, "at main.kuki:17  main()", 200, 300, game.MakeColor(140, 100, 70, 255))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:698
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:796
+	game.DrawText(screen, fmt.Sprintf("Brew Quality: %v", score), 250, 250, amber)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:797
+	game.DrawText(screen, "at main.kuki:42  updatePlaying()", 200, 290, game.MakeColor(140, 100, 70, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:798
+	game.DrawText(screen, "at main.kuki:17  main()", 200, 310, game.MakeColor(140, 100, 70, 255))
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:800
 	if (frame % 60) < 40 {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:699
-		game.DrawText(screen, "Press SPACE to retry", 240, 340, warmWhite)
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:801
+		game.DrawText(screen, "Press SPACE to retry", 240, 360, warmWhite)
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:701
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:803
 func drawBambooBorder(screen game.Screen) {
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:703
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:804
 	game.DrawRect(screen, 0.0, 0.0, float64(screenW), 3.0, bamboo)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:704
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:805
 	game.DrawRect(screen, 0.0, (float64(screenH) - 3.0), float64(screenW), 3.0, bamboo)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:705
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:806
 	game.DrawRect(screen, 0.0, 6.0, float64(screenW), 1.0, game.MakeColor(180, 150, 80, 80))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:706
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:807
 	game.DrawRect(screen, 0.0, (float64(screenH) - 7.0), float64(screenW), 1.0, game.MakeColor(180, 150, 80, 80))
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:708
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:808
 	game.DrawRect(screen, 0.0, 0.0, 3.0, float64(screenH), bamboo)
-//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:709
+//line /var/home/tluker/repos/go/kukicha/examples/stem-panic/main.kuki:809
 	game.DrawRect(screen, (float64(screenW) - 3.0), 0.0, 3.0, float64(screenH), bamboo)
 }

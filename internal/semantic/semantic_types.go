@@ -226,6 +226,12 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 			return a.isReferenceType(t1)
 		}
 
+		// Enum vs Named compatibility (e.g., Status enum case vs Status named parameter)
+		if (t1.Kind == TypeKindEnum && t2.Kind == TypeKindNamed && t1.Name == t2.Name) ||
+			(t2.Kind == TypeKindEnum && t1.Kind == TypeKindNamed && t1.Name == t2.Name) {
+			return true
+		}
+
 		// Interface types are compatible with named types (defer structural
 		// check to Go compiler — we can't verify interface satisfaction here)
 		if t1.Kind == TypeKindInterface || t2.Kind == TypeKindInterface {
@@ -249,7 +255,7 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 			return true
 		}
 		return a.typesCompatible(t1.KeyType, t2.KeyType) && a.typesCompatible(t1.ValueType, t2.ValueType)
-	case TypeKindNamed:
+	case TypeKindNamed, TypeKindEnum:
 		if t1.Name == t2.Name {
 			return true
 		}
