@@ -197,6 +197,12 @@ var externalStdlibPackages = map[string]string{
 	"webinfer": "github.com/kukichalang/infer/webinfer",
 }
 
+// wasmOnlyPackages lists external stdlib packages that only build for js/wasm.
+// Generated .go files for these packages get a //go:build js constraint.
+var wasmOnlyPackages = map[string]bool{
+	"game": true,
+}
+
 // rewriteStdlibImport rewrites stdlib/ import paths to full module paths
 // e.g., "stdlib/json" → "<stdlibModuleBase>/stdlib/json"
 // External packages (e.g., game) are mapped to their own module paths.

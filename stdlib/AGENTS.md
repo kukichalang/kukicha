@@ -24,7 +24,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/errors` | Error wrapping and inspection | Wrap, Opaque, Is, Unwrap, New, Join, NewPublic, Public |
 | `stdlib/fetch` | HTTP client (Builder, Auth, Sessions, Safe URL helpers, Retry) | Get, SafeGet, Post, Json, Decode, Text, Bytes, CheckStatus, URLTemplate, URLWithQuery, PathEscape, QueryEscape, New/Header/Timeout/Retry/MaxBodySize/Transport/Do, BearerAuth, BasicAuth, FormData, NewSession, DownloadTo |
 | `stdlib/files` | File I/O operations | Read, ReadBytes, Write, WriteString, Append, AppendString, Exists, IsDir, IsFile, Copy, Move, Delete, DeleteAll, List, ListRecursive, MkDir, MkDirAll, TempFile, TempDir, Size, ModTime, Basename, Dirname, Extension, Join, Abs, UseWith, Watch |
-| `stdlib/game` | 2D game library ([kukichalang/game](https://github.com/kukichalang/game), Ebitengine wrapper, WASM-ready) | Window, OnSetup, OnUpdate, OnDraw, Run, Clear, DrawRect, DrawCircle, DrawLine, DrawText, IsKeyDown, IsKeyPressed, MousePosition, MouseClicked, Overlaps, OverlapsCircle, CircleOverlapsRect, MakeColor, Random, RandomFloat, FrameCount; Types: Color, Position, Size, Rect, Circle, Screen, App; Constants: Red/Green/Blue/White/Black/Yellow/Orange/Purple/Gray, KeyLeft/Right/Up/Down/Space/Enter/Escape |
+| `stdlib/game` | 2D game library ([kukichalang/game](https://github.com/kukichalang/game), Ebitengine wrapper, **WASM-only** — `//go:build js`) | Window, OnSetup, OnUpdate, OnDraw, Run, Clear, DrawRect, DrawCircle, DrawLine, DrawText, IsKeyDown, IsKeyPressed, MousePosition, MouseClicked, Overlaps, OverlapsCircle, CircleOverlapsRect, MakeColor, Random, RandomFloat, FrameCount; Types: Color, Position, Size, Rect, Circle, Screen, App; Constants: Red/Green/Blue/White/Black/Yellow/Orange/Purple/Gray, KeyLeft/Right/Up/Down/Space/Enter/Escape |
 | `stdlib/git` | Git/GitHub operations via gh CLI | ListTags, TagExists, DefaultBranch, CurrentBranch, ReleaseExists, CreateRelease, PreviewRelease, RepoExists, CurrentUser, Clone, CloneShallow |
 | `stdlib/http` | HTTP response/request helpers + security | JSON, JSONStatus, JSONCreated, JSONError, JSONBadRequest, JSONNotFound, Text, HTML, SafeHTML, ReadJSON, ReadJSONLimit, Redirect, SafeRedirect, SafeURL, SetSecureHeaders, SecureHeaders, WithCSRF, Serve, MethodNotAllowed, IsGet/IsPost/IsPut/IsDelete/IsPatch, GetQueryParam, GetHeader; Constants: StatusOK/NotFound/etc, HeaderContentType, ContentJSON |
 | `stdlib/input` | User input utilities | ReadLine, Prompt, Confirm, Choose |
@@ -530,6 +530,14 @@ result := template.HTMLRenderSimple(tmplStr, data) onerr return
 ## Module Structure
 
 Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. No `_helper.go` or `_tool.go` files.
+
+### WASM-only packages
+
+Some external stdlib packages (e.g., `game`) depend on libraries with native platform requirements (Ebitengine needs X11 headers on Linux). The codegen automatically emits a `//go:build js` constraint for these packages and any user code that imports them. This means:
+- `go build ./...` and `go test ./...` skip them on native platforms (no X11 needed)
+- `kukicha build --wasm` compiles them normally for WebAssembly
+
+The list of WASM-only packages is defined in `wasmOnlyPackages` in `internal/codegen/codegen_imports.go`.
 
 All packages: `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`,
 `game`, `git`, `http`, `infer`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `ort`, `parse`,

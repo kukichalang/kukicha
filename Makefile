@@ -87,9 +87,9 @@ check-main-staleness:
 		exit 1; \
 	fi
 
-# Run all tests
+# Run all tests (exclude WASM-only packages that can't build natively)
 test: check-test-staleness check-main-staleness
-	go test ./...
+	go test $$(go list ./... | grep -v /examples/stem-panic)
 
 # Run linter (requires golangci-lint: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest)
 lint:
