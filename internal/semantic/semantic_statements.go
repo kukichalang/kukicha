@@ -189,6 +189,10 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 			a.analyzeBlock(s.Otherwise.Body)
 			mergeBlock(s.Otherwise.Body)
 		}
+		// Exhaustiveness check for piped enum switches without otherwise
+		if s.Otherwise == nil {
+			a.checkEnumExhaustivenessFromType(leftType, s.Cases, s.Token.Line, s.Token.Column, s.Token.File)
+		}
 	case *ast.TypeSwitchStmt:
 		for _, c := range s.Cases {
 			a.symbolTable.EnterScope()
@@ -247,6 +251,11 @@ func (a *Analyzer) analyzeSwitchStmt(stmt *ast.SwitchStmt) {
 
 	if stmt.Otherwise != nil {
 		a.analyzeBlock(stmt.Otherwise.Body)
+	}
+
+	// Exhaustiveness check for enum switches without otherwise
+	if stmt.Expression != nil && stmt.Otherwise == nil {
+		a.checkEnumExhaustiveness(stmt.Expression, stmt.Cases, stmt.Token.Line, stmt.Token.Column, stmt.Token.File)
 	}
 }
 

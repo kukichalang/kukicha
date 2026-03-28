@@ -48,6 +48,119 @@ func TestEnumDecl_MixedTypes(t *testing.T) {
 	}
 }
 
+func TestEnumDecl_ZeroValueWarning(t *testing.T) {
+	input := `enum Status
+    OK = 200
+    NotFound = 404
+`
+	analyzer, _ := analyzeSource(t, input)
+	warnings := analyzer.Warnings()
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "no case with value 0") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected zero-value warning, got warnings: %v", warnings)
+	}
+}
+
+func TestEnumDecl_NoZeroValueWarningWhenPresent(t *testing.T) {
+	input := `enum Color
+    Unknown = 0
+    Red = 1
+    Blue = 2
+`
+	analyzer, _ := analyzeSource(t, input)
+	for _, w := range analyzer.Warnings() {
+		if strings.Contains(w.Error(), "no case with value 0") {
+			t.Errorf("unexpected zero-value warning: %v", w)
+		}
+	}
+}
+
+func TestEnumDecl_NoZeroValueWarningForStringEnum(t *testing.T) {
+	input := `enum LogLevel
+    Debug = "debug"
+    Info = "info"
+`
+	analyzer, _ := analyzeSource(t, input)
+	for _, w := range analyzer.Warnings() {
+		if strings.Contains(w.Error(), "no case with value 0") {
+			t.Errorf("unexpected zero-value warning for string enum: %v", w)
+		}
+	}
+}
+
+func TestEnumDecl_ExhaustivenessWarning(t *testing.T) {
+	input := `enum Status
+    OK = 0
+    NotFound = 1
+    Error = 2
+
+func handle(s Status)
+    switch s
+        when Status.OK
+            return
+        when Status.NotFound
+            return
+`
+	analyzer, _ := analyzeSource(t, input)
+	found := false
+	for _, w := range analyzer.Warnings() {
+		if strings.Contains(w.Error(), "missing cases") && strings.Contains(w.Error(), "Status.Error") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected exhaustiveness warning mentioning Status.Error, got warnings: %v", analyzer.Warnings())
+	}
+}
+
+func TestEnumDecl_ExhaustivenessNoWarningWithOtherwise(t *testing.T) {
+	input := `enum Status
+    OK = 0
+    NotFound = 1
+    Error = 2
+
+func handle(s Status)
+    switch s
+        when Status.OK
+            return
+        otherwise
+            return
+`
+	analyzer, _ := analyzeSource(t, input)
+	for _, w := range analyzer.Warnings() {
+		if strings.Contains(w.Error(), "missing cases") {
+			t.Errorf("unexpected exhaustiveness warning with otherwise clause: %v", w)
+		}
+	}
+}
+
+func TestEnumDecl_ExhaustivenessAllCoveered(t *testing.T) {
+	input := `enum Dir
+    Up = 0
+    Down = 1
+
+func handle(d Dir)
+    switch d
+        when Dir.Up
+            return
+        when Dir.Down
+            return
+`
+	analyzer, _ := analyzeSource(t, input)
+	for _, w := range analyzer.Warnings() {
+		if strings.Contains(w.Error(), "missing cases") {
+			t.Errorf("unexpected exhaustiveness warning when all cases covered: %v", w)
+		}
+	}
+}
+
 func TestEnumDecl_InvalidCaseAccess(t *testing.T) {
 	input := `enum Status
     OK = 200

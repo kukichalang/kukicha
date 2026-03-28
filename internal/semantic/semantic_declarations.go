@@ -554,11 +554,15 @@ func (a *Analyzer) analyzeEnumDecl(decl *ast.EnumDecl) {
 		expectedKind = "string"
 	}
 
+	hasZero := false
 	for _, c := range decl.Cases {
-		switch c.Value.(type) {
+		switch v := c.Value.(type) {
 		case *ast.IntegerLiteral:
 			if expectedKind != "integer" {
 				a.error(c.Value.Pos(), fmt.Sprintf("enum '%s' mixes value types: expected %s, got integer", decl.Name.Value, expectedKind))
+			}
+			if v.Value == 0 {
+				hasZero = true
 			}
 		case *ast.StringLiteral:
 			if expectedKind != "string" {
@@ -566,6 +570,77 @@ func (a *Analyzer) analyzeEnumDecl(decl *ast.EnumDecl) {
 			}
 		default:
 			a.error(c.Value.Pos(), "enum case values must be integer or string literals")
+		}
+	}
+
+	// Warn if integer enum has no case with value 0 (zero value of uninitialized variables)
+	if expectedKind == "integer" && !hasZero {
+		a.warn(decl.Pos(), fmt.Sprintf("enum %s has no case with value 0 — uninitialized variables will hold an invalid state", decl.Name.Value))
+	}
+}
+
+// checkEnumExhaustiveness checks if a switch on an enum expression covers all cases.
+// Called for non-piped switches where the expression is available.
+func (a *Analyzer) checkEnumExhaustiveness(expr ast.Expression, cases []*ast.WhenCase, line, col int, file string) {
+	exprType := a.exprTypes[expr]
+	a.checkEnumExhaustivenessFromType(exprType, cases, line, col, file)
+}
+
+// checkEnumExhaustivenessFromType checks exhaustiveness given a resolved type.
+// Used by both regular and piped switches.
+func (a *Analyzer) checkEnumExhaustivenessFromType(exprType *TypeInfo, cases []*ast.WhenCase, line, col int, file string) {
+	if exprType == nil {
+		return
+	}
+
+	// Resolve to enum type — exprType might be the case type (TypeKindInt/TypeKindString with enum Name)
+	var enumSym *Symbol
+	if exprType.Kind == TypeKindEnum {
+		enumSym = a.symbolTable.Resolve(exprType.Name)
+	} else if exprType.Name != "" {
+		sym := a.symbolTable.Resolve(exprType.Name)
+		if sym != nil && sym.Type != nil && sym.Type.Kind == TypeKindEnum {
+			enumSym = sym
+		}
+	}
+
+	if enumSym == nil || enumSym.Type == nil || enumSym.Type.EnumCases == nil {
+		return
+	}
+
+	// Collect all covered case names from when clauses
+	covered := make(map[string]bool)
+	for _, c := range cases {
+		for _, val := range c.Values {
+			if fa, ok := val.(*ast.FieldAccessExpr); ok {
+				if ident, ok := fa.Object.(*ast.Identifier); ok && ident.Value == enumSym.Name {
+					covered[fa.Field.Value] = true
+				}
+			}
+		}
+	}
+
+	// Find missing cases
+	var missing []string
+	for caseName := range enumSym.Type.EnumCases {
+		if !covered[caseName] {
+			missing = append(missing, enumSym.Name+"."+caseName)
+		}
+	}
+
+	if len(missing) > 0 {
+		// Sort for deterministic output
+		sortStrings(missing)
+		pos := ast.Position{Line: line, Column: col, File: file}
+		a.warn(pos, fmt.Sprintf("switch on %s is missing cases: %s", enumSym.Name, strings.Join(missing, ", ")))
+	}
+}
+
+// sortStrings sorts a string slice in place (avoids importing sort).
+func sortStrings(s []string) {
+	for i := 1; i < len(s); i++ {
+		for j := i; j > 0 && s[j] < s[j-1]; j-- {
+			s[j], s[j-1] = s[j-1], s[j]
 		}
 	}
 }
