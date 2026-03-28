@@ -483,7 +483,7 @@ COMMENT ::= "#" { any character except NEWLINE } NEWLINE
 ## Keywords (Reserved)
 
 ```
-petiole      import      type        interface   func
+petiole      import      type        interface   func        enum
 if          else        for         in          from
 to          through     of          and
 or          onerr       not         return      go

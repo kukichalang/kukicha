@@ -345,6 +345,41 @@ func Connect(host string, port int = 8080, timeout int = 30)
     # ...
 ```
 
+### 19. Enums
+Define a fixed set of named constants with type safety and exhaustiveness checking.
+
+```kukicha
+# Integer enum
+enum Status
+    OK = 200
+    NotFound = 404
+    Error = 500
+
+# String enum
+enum LogLevel
+    Debug = "debug"
+    Info = "info"
+    Warn = "warn"
+
+# Dot access
+status := Status.OK
+
+# Switch with exhaustiveness checking
+switch status
+    when Status.OK
+        print("ok")
+    when Status.NotFound
+        print("not found")
+    when Status.Error
+        print("error")
+```
+
+- Underlying type (int or string) is inferred from case values
+- `Status.OK` transpiles to Go `StatusOK`
+- Compiler warns if a switch on an enum type misses cases (unless `otherwise` is present)
+- Compiler warns if an integer enum has no case with value 0
+- A `String()` method is auto-generated (skipped if you define your own)
+
 ---
 
 ## Go to Kukicha Translation Table
@@ -392,6 +427,7 @@ func Connect(host string, port int = 8080, timeout int = 30)
 | (no equivalent) | `func F(x int = 10)` (default parameters) |
 | (no equivalent) | `expr \|> switch` / `when` / `otherwise` (piped switch) |
 | (no equivalent) | pipeline `onerr` across multi-step pipe chains |
+| `type T int` + `const (...)` iota | `enum T` with `Case = value` |
 
 ---
 

@@ -120,6 +120,38 @@ type Repo
     meta  map of string to string
 ```
 
+### Enums
+
+```kukicha
+# Integer enum
+enum Status
+    OK = 200
+    NotFound = 404
+    Error = 500
+
+# String enum
+enum LogLevel
+    Debug = "debug"
+    Info = "info"
+    Warn = "warn"
+
+# Dot access
+status := Status.OK
+
+# Exhaustiveness-checked switch
+switch status
+    when Status.OK
+        print("ok")
+    when Status.NotFound, Status.Error
+        print("problem")
+```
+
+- Underlying type (int or string) inferred from values — all must match
+- `Status.OK` transpiles to Go `StatusOK`
+- Compiler warns if switch on enum misses cases (unless `otherwise` present)
+- Integer enums warn if no case has value 0
+- Auto-generated `String()` method (skipped if user defines one)
+
 ### Methods
 
 ```kukicha

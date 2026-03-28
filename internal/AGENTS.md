@@ -167,7 +167,7 @@ or → pipe (`|>`) → and → bitwise or/and → comparison → additive → mu
 
 ```
 Node
-├── Declaration  (declNode marker)  — FunctionDecl, TypeDecl, ImportDecl, …
+├── Declaration  (declNode marker)  — FunctionDecl, TypeDecl, EnumDecl, ImportDecl, …
 ├── Statement    (stmtNode marker)  — IfStmt, ForRangeStmt, ReturnStmt, …
 ├── Expression   (exprNode marker)  — CallExpr, PipeExpr, ArrowLambda, …
 └── TypeAnnotation (typeNode marker) — ListType, MapType, ReferenceType, …
@@ -192,6 +192,10 @@ func (s *XxxStmt) stmtNode() {} // or declNode() / exprNode() / typeNode()
 Always store the keyword's `lexer.Token` as the first field — it carries line/column for error messages.
 
 **Notable:** `VarDeclStmt` implements both `Statement` and `Declaration`.
+
+### EnumDecl and EnumCase
+
+`EnumDecl` represents an `enum` declaration with named integer or string constants. `EnumCase` holds a single case name and its literal value. Directives (`# kuki:deprecated`) can annotate the enum.
 
 ### DeferStmt
 
@@ -235,16 +239,16 @@ Currently supported directives:
 | File | Contents |
 |------|---------|
 | `semantic.go` | Core `Analyzer` struct, `New`, `Analyze`, `Warnings`, `ReturnCounts`, error/warn helpers |
-| `semantic_declarations.go` | Package name validation, skill validation, declaration collection/analysis |
+| `semantic_declarations.go` | Package name validation, skill validation, declaration collection/analysis, enum validation and exhaustiveness checking |
 | `semantic_statements.go` | Statement analysis (`analyzeBlock`, `analyzeStatement`, `analyzeIfStmt`, …) |
 | `semantic_expressions.go` | Expression analysis (`analyzeExpression`, `analyzeIdentifier`, `analyzeBinaryExpr`, `analyzePipeExprMulti`, …) |
 | `semantic_onerr.go` | `onerr` clause analysis, `{error}` not `{err}` enforcement |
 | `semantic_types.go` | Type annotation validation and conversion (`validateTypeAnnotation`, `typeAnnotationToTypeInfo`, `typesCompatible`) |
 | `semantic_helpers.go` | Pure utilities (`isValidIdentifier`, `extractPackageName`, `isExported`, `isNumericType`) |
-| `semantic_calls.go` | `analyzeCallExpr`, `analyzeMethodCallExpr`, `analyzeFieldAccessExpr` |
+| `semantic_calls.go` | `analyzeCallExpr`, `analyzeMethodCallExpr`, `analyzeFieldAccessExpr` (incl. enum dot-access resolution) |
 | `semantic_security.go` | Security checks (SQL injection, XSS, SSRF, path traversal, command injection, open redirect) |
 | `symbols.go` | Symbol table and type info |
-| `stdlib_types.go` | Shared `goStdlibType`/`goStdlibEntry` structs (not generated — edit directly) |
+| `stdlib_types.go` | Shared `goStdlibType`/`goStdlibEntry` structs, `GetStdlibEnum`, `GetAllStdlibEnums` (not generated — edit directly) |
 | `stdlib_registry_gen.go` | GENERATED — Kukicha stdlib signatures |
 | `go_stdlib_gen.go` | GENERATED — Go stdlib signatures |
 
@@ -285,6 +289,7 @@ When a new stdlib function is added to a `.kuki` file, run `make genstdlibregist
    - `generatedSecurityFunctions` — function name → security category
    - `generatedSliceGenericClass` — function name → generic class (`T`, `K`, `TK`, `O`, `TO`, `TR`)
    - `generatedStdlibInterfaces` — interface names
+   - `generatedStdlibEnums` — enum type name → case names (for cross-package resolution)
 
 2. **`generatedGoStdlib`** (`go_stdlib_gen.go`) — return counts and per-position type info for Go stdlib functions. Contains two maps:
    - `generatedGoStdlib` — function name → `goStdlibEntry`
@@ -298,13 +303,21 @@ To add a new Go stdlib function: add it to the curated list in `cmd/gengostdlib/
 
 ### stdlib_types.go
 
-Defines the shared `goStdlibType` and `goStdlibEntry` structs. Not auto-generated — edit directly when adding fields. Exports accessors for codegen: `GetStdlibEntry(name)`, `GetSliceGenericClass(name)`, `GetSecurityCategory(name)`, `IsKnownInterface(name)`.
+Defines the shared `goStdlibType` and `goStdlibEntry` structs. Not auto-generated — edit directly when adding fields. Exports accessors for codegen: `GetStdlibEntry(name)`, `GetSliceGenericClass(name)`, `GetSecurityCategory(name)`, `IsKnownInterface(name)`, `GetStdlibEnum(name)`, `GetAllStdlibEnums()`.
 
 `goStdlibType` carries nested type info for compound types: `ElementType *goStdlibType` for lists, `KeyType`/`ValueType *goStdlibType` for maps. This allows the semantic analyzer to propagate element types through pipe chains.
 
 ### Security checks
 
 Security checks run during `analyzeDeclarations()`. The analyzer detects "inside an HTTP handler" by checking whether the enclosing `FunctionDecl` has an `http.ResponseWriter` parameter. The `inOnerr bool` field tracks whether the analyzer is currently inside an `onerr` block (used to enforce `{error}` not `{err}`).
+
+### Enum analysis
+
+Enums are registered during `collectDeclarations()` as `SymbolType` with `Kind == TypeKindEnum`. `TypeInfo.EnumCases` maps case names to their `TypeInfo` (with `Kind` of `TypeKindInt` or `TypeKindString`). In `collectEnumDecl()`, all case values must be the same literal type; mixed types are rejected. `analyzeEnumDecl()` warns if an integer enum has no case with value 0.
+
+`checkEnumExhaustiveness()` verifies switch statements cover all cases of an enum type. If missing cases are found and no `otherwise` clause is present, the analyzer reports an error listing uncovered cases. Runs for both regular and piped switches.
+
+Cross-package enums (from stdlib) are resolved via `GetStdlibEnum(qualifiedName)` in `analyzeFieldAccessExpr` — handles `pkg.EnumType.Case` patterns.
 
 ### Adding a new security check
 
@@ -352,7 +365,7 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 | File | Contents |
 |------|---------|
 | `codegen.go` | Core `Generator` struct, public API, `Generate`, output helpers (`write`, `writeLine`, `uniqueId`) |
-| `codegen_decl.go` | Declaration generators (`generateTypeDecl`, `generateFunctionDecl`, `generateArrowLambda`, …) |
+| `codegen_decl.go` | Declaration generators (`generateTypeDecl`, `generateEnumDecl`, `generateFunctionDecl`, `generateArrowLambda`, …) |
 | `codegen_stmt.go` | Statement generators (`generateBlock`, `generateVarDeclStmt`, `generateReturnStmt`, `generateIfStmt`, …) |
 | `codegen_expr.go` | Expression generators (`exprToString`, `generatePipeExpr`, `generateCallExpr`, string interpolation, …) |
 | `codegen_onerr.go` | `onerr` code generation; delegates pipe-chain and piped-switch onerr to Lowerer |
@@ -387,7 +400,14 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 | `mcpTarget bool` | True if targeting MCP (Model Context Protocol) — affects main function generation |
 | `processingReturnType bool` | True while processing a return type annotation (prevents placeholder expansion loops) |
 | `varMap map[string]string` | Maps generated temp variable names (e.g., `pipe_1`) to source descriptions for debugging |
+| `enumTypes map[string]bool` | Known enum type names (local + cross-package); drives dot-access rewriting |
 | `warnings []error` | Non-fatal diagnostics collected during codegen (retrieved via `Warnings()`) |
+
+### Enum codegen
+
+`generateEnumDecl()` emits: (1) `type X int` or `type X string`, (2) a `const (...)` block with prefixed names (`StatusOK`, `StatusNotFound`), and (3) an auto-generated `String()` method (switch-based for int enums, `return string(e)` for string enums). The `String()` method is skipped if `hasMethodOnType()` finds a user-defined one.
+
+**Dot-access rewriting:** `generateFieldAccessExpr` checks `g.enumTypes[object]` — if the object is an enum name, `Status.OK` becomes `StatusOK`. The `enumTypes` map is populated in two pre-scans in `Generate()`: (1) local enums from the program's declarations, (2) cross-package enums by checking each imported package against `GetAllStdlibEnums()`.
 
 ### onerr code generation (Lowerer + IR)
 
@@ -494,6 +514,7 @@ Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newl
 - `FormatCheck(source, filename, opts)` — check if already formatted
 - Supports Go-style preprocessing (braces/semicolons → indentation)
 - Comment preservation: extracts from tokens, attaches to AST nodes, emits during printing
+- `printEnumDecl()` formats enum declarations with proper indentation
 
 ## LSP (`lsp/`)
 

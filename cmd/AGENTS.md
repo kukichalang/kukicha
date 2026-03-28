@@ -56,6 +56,7 @@ Scans `stdlib/*/*.kuki` files and generates `internal/semantic/stdlib_registry_g
 - `# kuki:deprecated`, `# kuki:security`, `# kuki:panics` directives
 - Generic placeholder classification (`T`, `K`, `TK`, `TR`, `TO`, `O`)
 - Exported interface declarations
+- Exported enum declarations (case names for cross-package resolution)
 
 Run standalone: `make genstdlibregistry` or `go run ./cmd/genstdlibregistry`
 

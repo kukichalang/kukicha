@@ -20,6 +20,7 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 | `func (t T) Method()` | `func Method on t T` |
 | `func(x T) T { return expr }` | `(x T) => expr` |
 | `go func() { ... }()` | `go` + indented block |
+| `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` |
 
 ## Keyword Aliases (English-Friendly Forms)
 
@@ -198,6 +199,42 @@ items := fetch.Get(url) |> fetch.CheckStatus() |> fetch.Json(list of Todo) onerr
 > - `fetch.Json(map of string to string)` → decodes a JSON object into `map[string]string`
 >
 > Passing the wrong shape (e.g., `list of Todo` when the API returns an object) produces a runtime decode error with no compile-time warning.
+
+### Enums
+```kukicha
+# Integer enum (underlying type inferred from values)
+enum Status
+    OK = 200
+    NotFound = 404
+    Error = 500
+
+# String enum
+enum LogLevel
+    Debug = "debug"
+    Info = "info"
+    Warn = "warn"
+    Error = "error"
+
+# Dot access
+status := Status.OK
+
+# Use in switch (exhaustiveness checked — compiler warns on missing cases)
+switch status
+    when Status.OK
+        print("Success")
+    when Status.NotFound
+        print("Not found")
+    when Status.Error
+        print("Error")
+```
+
+Enum features:
+- **Underlying type inferred** from case values (all must be same type: int or string)
+- **Dot access**: `Status.OK` transpiles to Go `StatusOK`
+- **Exhaustiveness checking**: compiler warns if switch on enum misses cases (unless `otherwise` present)
+- **Zero-value warning**: warns if integer enum has no case with value 0
+- **Auto-generated `String()` method** (skipped if user defines one)
+- **Cross-package support**: enums in stdlib `.kuki` files are registered for cross-package resolution
 
 ### Collections
 ```kukicha

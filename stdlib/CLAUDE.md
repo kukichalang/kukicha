@@ -1,7 +1,7 @@
 # stdlib/CLAUDE.md
 
 Kukicha standard library reference. Each package lives in `stdlib/<name>/` with:
-- `<name>.kuki` — Kukicha source (types, function signatures, inline implementations)
+- `<name>.kuki` — Kukicha source (types, enums, function signatures, inline implementations)
 - `<name>.go` — **Generated** by `make generate` from the `.kuki` file. Never edit directly.
 
 Import with: `import "stdlib/slice"`
@@ -643,7 +643,7 @@ resp.Body = reference of limitReadCloser{r: io.LimitReader(resp.Body, maxSize), 
 1. **Never edit generated `*.go` files in stdlib** — edit `.kuki` source, then `make generate`
 2. **Never edit `internal/semantic/stdlib_registry_gen.go` or `go_stdlib_gen.go`** — both are auto-generated; `make generate` regenerates `stdlib_registry_gen.go` automatically, and `make gengostdlib` regenerates `go_stdlib_gen.go` from Go stdlib signatures via `go/importer`
 3. **Types must be defined in `.kuki`** — so the Kukicha compiler knows about them
-4. **After adding an exported function to a stdlib `.kuki` file**, run `make genstdlibregistry` (or just `make generate`) so `onerr` and pipe expressions work correctly with the new function
+4. **After adding an exported function or enum to a stdlib `.kuki` file**, run `make genstdlibregistry` (or just `make generate`) so `onerr`, pipe expressions, and cross-package enum resolution work correctly
 5. **To deprecate a stdlib function**, add `# kuki:deprecated "Use NewFunc instead"` above it in the `.kuki` source, then run `make genstdlibregistry` — callers will get a compile-time warning
 6. **To mark a function as security-sensitive**, add `# kuki:security "category"` above it (categories: `sql`, `html`, `fetch`, `files`, `redirect`, `shell`), then run `make genstdlibregistry` — the compiler will enforce the corresponding security check
 7. **Every stdlib package must have a `*_test.kuki` file** using the table-driven pattern (see "Testing Stdlib Packages" above)

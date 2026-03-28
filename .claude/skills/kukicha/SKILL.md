@@ -5,9 +5,9 @@ description: Help write, debug, and understand Kukicha code - a beginner-friendl
 
 # Kukicha Language Skill
 
-Kukicha (茎) transpiles to idiomatic Go. Full language reference is in `CLAUDE.md`; stdlib API and patterns are in `stdlib/CLAUDE.md` — both always available.
+Kukicha (茎) transpiles to idiomatic Go. Full language reference is in `AGENTS.md`; stdlib API and patterns are in `stdlib/AGENTS.md` — both always available.
 
-**For compiler errors and diagnostics**, read `.claude/skills/kukicha/troubleshooting.md`.
+**For compiler errors and diagnostics**, read `.agent/skills/kukicha/troubleshooting.md`.
 
 ## Common AI Mistakes (Gotchas Not in AGENTS.md)
 
@@ -126,6 +126,31 @@ names := repos
 ```
 
 Functions: `Values`, `Filter`, `Map`, `FlatMap`, `Take`, `Skip`, `Enumerate`, `Chunk`, `Zip`, `Reduce`, `Collect`, `Any`, `All`, `Find`.
+
+### Enums — declaration, dot access, and exhaustiveness
+
+```kukicha
+enum Status
+    OK = 200
+    NotFound = 404
+    Error = 500
+
+status := Status.OK    # Dot access → transpiles to StatusOK in Go
+
+switch status
+    when Status.OK
+        print("ok")
+    when Status.NotFound
+        print("not found")
+    when Status.Error
+        print("error")
+    # Omitting a case without 'otherwise' → compiler warning
+```
+
+- Underlying type (int or string) inferred from values — all cases must match
+- Integer enums warn if no case has value 0 (zero-value safety)
+- Auto-generated `String()` method (skipped if user defines one)
+- Cross-package enums from stdlib are resolved automatically
 
 ### `any2` in stdlib source is a compiler placeholder — not user syntax
 
