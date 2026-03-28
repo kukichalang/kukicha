@@ -360,7 +360,7 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 | `lower.go` | `Lowerer` struct — transforms pipe chains, onerr clauses, and piped switches into IR nodes |
 | `emit.go` | `emitIR` — walks IR blocks and emits Go source via `g.writeLine` |
 | `codegen_imports.go` | Import generation and auto-import scanning |
-| `codegen_stdlib.go` | Stdlib/generics type inference (`inferStdlibTypeParameters`, `zeroValueForType`, …) |
+| `codegen_stdlib.go` | Stdlib/generics type inference (`inferStdlibTypeParameters`, `zeroValueForType`, `returnTypeForFunctionName`, …) |
 | `codegen_walk.go` | Unified AST visitor and `needsXxx` helpers; `collectReservedNames` |
 
 ### Generator state
@@ -411,7 +411,7 @@ Error-only detection uses `isErrorOnlyReturn()` which checks both `exprReturnCou
 
 ### Pipe operator design notes (non-onerr path)
 
-The non-onerr `generatePipeExpr` wraps multi-return **Left** sides in an IIFE to extract the first value (discarding trailing returns). The **Right** (final) side is NOT wrapped — its full return signature becomes the pipe expression's result, so `val, err := data |> parse()` works naturally. `warnPipeDiscardedErrors` in semantic analysis warns when intermediate steps discard errors without `onerr`. This is intentional: the Go compiler catches type mismatches if the final step's multi-return is used in a single-value context.
+The non-onerr `generatePipeExpr` wraps multi-return **Left** sides in an IIFE to extract the first value (discarding trailing returns). The **Right** (final) side is NOT wrapped — its full return signature becomes the pipe expression's result, so `val, err := data |> parse()` works naturally. `warnPipeDiscardedErrors` in semantic analysis warns when intermediate steps discard errors without `onerr`. This is intentional: the Go compiler catches type mismatches if the final step's multi-return is used in a single-value context. IIFE return types are inferred via `inferExprReturnType`, which resolves user-defined function return types through `returnTypeForFunctionName` (scanning program declarations) — avoiding the `any` fallback for known functions.
 
 **Shorthand `.Method()` and placeholders:** In `data |> .Method(args)`, the piped value becomes the **receiver** (not an argument), so `_` placeholders in the argument list are not meaningful and are treated as literal underscore identifiers. This differs from `data |> pkg.Func(_, x)` where `_` marks the insertion point for the piped value as a function argument.
 
