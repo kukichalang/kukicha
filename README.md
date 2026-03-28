@@ -169,7 +169,7 @@ Every Kukicha concept maps 1:1 to Go and Python — see the [Quick Reference](do
 
 ## Standard Library
 
-41+ packages, pipe-friendly, error-handled with `onerr`.
+42+ packages, pipe-friendly, error-handled with `onerr`.
 
 | Category | Packages |
 |---------|---------|
@@ -178,7 +178,7 @@ Every Kukicha concept maps 1:1 to Go and Python — see the [Quick Reference](do
 | **Security** | `crypto` (SHA-256, HMAC, secure random), `netguard`, `sandbox` |
 | **Infrastructure** | `container`, `shell`, `net` |
 | **AI & Agents** | `llm`, `mcp`, `a2a`, `skills` |
-| **Web** | `http`, `fetch`, `validate`, `template` |
+| **Web** | `html` (component fragments, auto-escaping), `http`, `fetch`, `validate`, `template` |
 | **Config & Ops** | `env`, `must`, `cli`, `semver`, `obs`, `retry`, `ctx`, `datetime`, `concurrent` |
 | **Output** | `table` (terminal tables: plain, box, markdown), `input` (interactive prompts) |
 | **Errors & Testing** | `errors`, `test` |

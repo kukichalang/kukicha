@@ -1,0 +1,155 @@
+# Tests for Kukicha Standard Library - HTML Package
+
+petiole html_test
+
+import "stdlib/html"
+import "stdlib/test"
+import "testing"
+
+# --- TestRender ---
+type RenderCase
+    name string
+    input string
+    want string
+
+func TestRender(t reference testing.T)
+    cases := list of RenderCase{
+        RenderCase{
+            name: "plain HTML passthrough",
+            input: "<h1>Hello</h1>",
+            want: "<h1>Hello</h1>",
+        },
+        RenderCase{
+            name: "empty string",
+            input: "",
+            want: "",
+        },
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            f := html.Render(tc.input)
+            test.AssertEqual(t, html.String(f), tc.want)
+        )
+
+# --- TestEscape ---
+type EscapeCase
+    name string
+    input string
+    want string
+
+func TestEscape(t reference testing.T)
+    cases := list of EscapeCase{
+        EscapeCase{
+            name: "escapes script tag",
+            input: "<script>alert('xss')</script>",
+            want: "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;",
+        },
+        EscapeCase{
+            name: "escapes ampersand",
+            input: "rock & roll",
+            want: "rock &amp; roll",
+        },
+        EscapeCase{
+            name: "escapes double quotes",
+            input: "say \"hello\"",
+            want: "say &#34;hello&#34;",
+        },
+        EscapeCase{
+            name: "plain text unchanged",
+            input: "hello world",
+            want: "hello world",
+        },
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            result := html.Escape(tc.input)
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestAttr ---
+func TestAttr(t reference testing.T)
+    result := html.Attr("value with \"quotes\"")
+    test.AssertEqual(t, result, "value with &#34;quotes&#34;")
+
+# --- TestEmbed ---
+func TestEmbed(t reference testing.T)
+    child := html.Render("<p>inner</p>")
+    raw := html.Embed(child)
+    test.AssertEqual(t, raw, "<p>inner</p>")
+
+# --- TestJoin ---
+func TestJoin(t reference testing.T)
+    a := html.Render("<h1>Title</h1>")
+    b := html.Render("<p>Body</p>")
+    c := html.Render("<footer>End</footer>")
+    result := html.Join(a, b, c)
+    test.AssertEqual(t, html.String(result), "<h1>Title</h1><p>Body</p><footer>End</footer>")
+
+# --- TestJoinEmpty ---
+func TestJoinEmpty(t reference testing.T)
+    result := html.Join()
+    test.AssertTrue(t, html.IsEmpty(result))
+
+# --- TestIsEmpty ---
+type IsEmptyCase
+    name string
+    input string
+    want bool
+
+func TestIsEmpty(t reference testing.T)
+    cases := list of IsEmptyCase{
+        IsEmptyCase{name: "empty fragment", input: "", want: true},
+        IsEmptyCase{name: "non-empty fragment", input: "<p>hi</p>", want: false},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            f := html.Render(tc.input)
+            test.AssertEqual(t, html.IsEmpty(f), tc.want)
+        )
+
+# --- TestWhen ---
+func TestWhen(t reference testing.T)
+    badge := html.Render("<span>admin</span>")
+
+    t.Run("condition true", (t reference testing.T) =>
+        result := html.When(true, badge)
+        test.AssertEqual(t, html.String(result), "<span>admin</span>")
+    )
+
+    t.Run("condition false", (t reference testing.T) =>
+        result := html.When(false, badge)
+        test.AssertTrue(t, html.IsEmpty(result))
+    )
+
+# --- TestWhenElse ---
+func TestWhenElse(t reference testing.T)
+    yes := html.Render("<span>yes</span>")
+    no := html.Render("<span>no</span>")
+
+    t.Run("condition true", (t reference testing.T) =>
+        result := html.WhenElse(true, yes, no)
+        test.AssertEqual(t, html.String(result), "<span>yes</span>")
+    )
+
+    t.Run("condition false", (t reference testing.T) =>
+        result := html.WhenElse(false, yes, no)
+        test.AssertEqual(t, html.String(result), "<span>no</span>")
+    )
+
+# --- TestComposition ---
+func TestComposition(t reference testing.T)
+    t.Run("nested fragments with escaped content", (t reference testing.T) =>
+        name := "<script>alert('xss')</script>"
+        inner := html.Render("<p>{html.Escape(name)}</p>")
+        outer := html.Render("<div>{html.Embed(inner)}</div>")
+        want := "<div><p>&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;</p></div>"
+        test.AssertEqual(t, html.String(outer), want)
+    )
+
+    t.Run("join then embed", (t reference testing.T) =>
+        a := html.Render("<li>one</li>")
+        b := html.Render("<li>two</li>")
+        items := html.Join(a, b)
+        result := html.Render("<ul>{html.Embed(items)}</ul>")
+        test.AssertEqual(t, html.String(result), "<ul><li>one</li><li>two</li></ul>")
+    )

@@ -26,6 +26,7 @@ Import with: `import "stdlib/slice"`
 | `stdlib/files` | File I/O operations | Read, ReadBytes, Write, WriteString, Append, AppendString, Exists, IsDir, IsFile, Copy, Move, Delete, DeleteAll, List, ListRecursive, MkDir, MkDirAll, TempFile, TempDir, Size, ModTime, Basename, Dirname, Extension, Join, Abs, UseWith, Watch |
 | `stdlib/game` | 2D game library ([kukichalang/game](https://github.com/kukichalang/game), Ebitengine wrapper, **WASM-only** — `//go:build js`) | Window, OnSetup, OnUpdate, OnDraw, Run, Clear, DrawRect, DrawCircle, DrawLine, DrawText, IsKeyDown, IsKeyPressed, MousePosition, MouseClicked, Overlaps, OverlapsCircle, CircleOverlapsRect, MakeColor, Random, RandomFloat, FrameCount; Types: Color, Position, Size, Rect, Circle, Screen, App; Constants: Red/Green/Blue/White/Black/Yellow/Orange/Purple/Gray, KeyLeft/Right/Up/Down/Space/Enter/Escape |
 | `stdlib/git` | Git/GitHub operations via gh CLI | ListTags, TagExists, DefaultBranch, CurrentBranch, ReleaseExists, CreateRelease, PreviewRelease, RepoExists, CurrentUser, Clone, CloneShallow |
+| `stdlib/html` | Component-style HTML with auto-escaping | Render, Escape, Attr, Embed, WriteTo, WriteStatusTo, String, IsEmpty, Join, Map, When, WhenElse; Type: Fragment |
 | `stdlib/http` | HTTP response/request helpers + security | JSON, JSONStatus, JSONCreated, JSONError, JSONBadRequest, JSONNotFound, Text, HTML, SafeHTML, ReadJSON, ReadJSONLimit, Redirect, SafeRedirect, SafeURL, SetSecureHeaders, SecureHeaders, WithCSRF, Serve, MethodNotAllowed, IsGet/IsPost/IsPut/IsDelete/IsPatch, GetQueryParam, GetHeader; Constants: StatusOK/NotFound/etc, HeaderContentType, ContentJSON |
 | `stdlib/input` | User input utilities | ReadLine, Prompt, Confirm, Choose |
 | `stdlib/iterator` | Functional iteration (Go 1.23 iter.Seq) | Values, Filter, Map, FlatMap, Take, Skip, Enumerate, Chunk, Zip, Reduce, Collect, Any, All, Find |
@@ -181,6 +182,27 @@ if ctx.Done(c)
     print("request canceled: {ctx.Err(c)}")
 # Use ctx-enabled operations for cancellable waits/streams
 container.EventsCtx(engine, c) onerr panic "{error}"
+
+# HTML components (auto-escaping, HTMX-friendly partials)
+import "stdlib/html"
+func Card(title string, body string) html.Fragment
+    return html.Render("
+        <article class='card'>
+            <h3>{html.Escape(title)}</h3>
+            <p>{html.Escape(body)}</p>
+        </article>
+    ")
+
+# Compose fragments — Escape for data, Embed for components
+func Page(cards list of html.Fragment) html.Fragment
+    inner := html.Join(many cards)
+    return html.Render("<div class='grid'>{html.Embed(inner)}</div>")
+
+# Conditional rendering
+nav := html.WhenElse(loggedIn, userNav, guestNav)
+
+# Write to HTTP response
+html.WriteTo(w, page) onerr discard
 
 # HTTP responses
 import "stdlib/http" as httphelper
@@ -455,7 +477,7 @@ The compiler enforces several security checks. Use the safe alternatives below t
 | Category | Unsafe (compiler error) | Safe alternative |
 |----------|------------------------|------------------|
 | **SQL Injection** | `db.Query(pool, "SELECT * FROM t WHERE name = '{name}'")` | `db.Query(pool, "SELECT * FROM t WHERE name = $1", name)` |
-| **XSS** | `http.HTML(w, userInput)` | `http.SafeHTML(w, userInput)` or `template.HTMLRenderSimple(...)` |
+| **XSS** | `http.HTML(w, userInput)` | `http.SafeHTML(w, userInput)`, `html.Render()` with `html.Escape()`, or `template.HTMLRenderSimple(...)` |
 | **SSRF** | `fetch.Get(url)` (in HTTP handler) | `fetch.SafeGet(url)` |
 | **Open Redirect** | `http.Redirect(w, r, userURL)` | `http.SafeRedirect(w, r, url, "example.com")` |
 | **Path Traversal** | `files.Read(userInput)` (in HTTP handler) | `sandbox.New("/var/data")` + `sandbox.Read(box, userInput)` |
@@ -470,6 +492,11 @@ httphelper.HTML(w, userInput)  # XSS risk: http.HTML with non-literal content �
 
 # SAFE — HTML-escapes content before writing
 httphelper.SafeHTML(w, userInput)
+
+# SAFE — component-style with explicit escaping (preferred for HTMX partials)
+import "stdlib/html"
+page := html.Render("<p>{html.Escape(userInput)}</p>")
+html.WriteTo(w, page) onerr discard
 
 # --- SSRF Prevention (inside HTTP handlers) ---
 # UNSAFE — triggers compiler error inside any HTTP handler
@@ -540,7 +567,7 @@ Some external stdlib packages (e.g., `game`) depend on libraries with native pla
 The list of WASM-only packages is defined in `wasmOnlyPackages` in `internal/codegen/codegen_imports.go`.
 
 All packages: `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`,
-`game`, `git`, `http`, `infer`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `ort`, `parse`,
+`game`, `git`, `html`, `http`, `infer`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `ort`, `parse`,
 `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`, `webinfer`
 
 ## Import Aliases

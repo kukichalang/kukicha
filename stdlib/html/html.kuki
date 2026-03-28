@@ -1,0 +1,106 @@
+# Kukicha Standard Library - HTML Components
+# Component-style HTML rendering with auto-escaping for safe composition.
+# Uses Kukicha string interpolation ({expr}) as the template engine.
+# All user-facing values must go through Escape(); fragments compose via Embed().
+#
+# Design inspired by templ (https://templ.guide/) by Adrian Hesketh.
+# templ's typed component model and auto-escaping boundary informed the
+# Fragment/Escape/Embed pattern used here.
+
+petiole html
+
+import "html"
+import "io"
+import "net/http"
+import "bytes"
+
+# Fragment holds trusted HTML content that is safe to render.
+# Create via Render(), compose via Embed(), escape user input via Escape().
+type Fragment
+    content string
+
+# Render creates a Fragment from an HTML string.
+# The caller is responsible for escaping user input with Escape()
+# and composing child fragments with Embed().
+# Example:
+#   html.Render("<h1>{html.Escape(name)}</h1>")
+#   html.Render("<div>{html.Embed(child)}</div>")
+func Render(htmlStr string) Fragment
+    return Fragment{content: htmlStr}
+
+# Escape returns an HTML-escaped string safe for interpolation.
+# Use inside Render() for any user-controlled value.
+# Example: html.Render("<p>{html.Escape(userInput)}</p>")
+func Escape(s string) string
+    return html.EscapeString(s)
+
+# Embed returns the raw HTML content of a Fragment for composition.
+# Use inside Render() to nest fragments without double-escaping.
+# Example: html.Render("<main>{html.Embed(content)}</main>")
+func Embed(f Fragment) string
+    return f.content
+
+# WriteTo writes a Fragment to an http.ResponseWriter with text/html headers.
+# Example: html.WriteTo(w, page) onerr discard
+func WriteTo(w http.ResponseWriter, f Fragment) error
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    _, err := io.WriteString(w, f.content)
+    return err
+
+# WriteStatusTo writes a Fragment with a custom HTTP status code.
+# Example: html.WriteStatusTo(w, errorPage, 404) onerr discard
+func WriteStatusTo(w http.ResponseWriter, f Fragment, status int) error
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    w.WriteHeader(status)
+    _, err := io.WriteString(w, f.content)
+    return err
+
+# String returns the raw HTML string of a Fragment.
+# Example: output := html.String(page)
+func String(f Fragment) string
+    return f.content
+
+# IsEmpty returns true if the Fragment has no content.
+func IsEmpty(f Fragment) bool
+    return f.content == ""
+
+# Join combines multiple Fragments into one in order.
+# Example: page := html.Join(nav, hero, cards, footer)
+func Join(many fragments Fragment) Fragment
+    buf := bytes.Buffer{}
+    for f in fragments
+        buf.WriteString(f.content)
+    return Fragment{content: buf.String()}
+
+# Map applies a function to each item and joins the resulting Fragments.
+# Useful for rendering lists without manual accumulation.
+# Example:
+#   items := html.Map(users, (u User) =>
+#       return html.Render("<li>{html.Escape(u.Name)}</li>")
+#   )
+func Map(items list of any, f func(any) Fragment) Fragment
+    buf := bytes.Buffer{}
+    for item in items
+        result := f(item)
+        buf.WriteString(result.content)
+    return Fragment{content: buf.String()}
+
+# Attr escapes a string for safe use in an HTML attribute value.
+# Wraps html.EscapeString — identical to Escape() but communicates intent.
+# Example: html.Render("<a href='{html.Attr(url)}'>link</a>")
+func Attr(s string) string
+    return html.EscapeString(s)
+
+# When returns the fragment if condition is true, otherwise an empty Fragment.
+# Example: html.Render("{html.Embed(html.When(isAdmin, adminBadge))}")
+func When(condition bool, f Fragment) Fragment
+    if condition
+        return f
+    return Fragment{content: ""}
+
+# WhenElse returns the first fragment if condition is true, otherwise the second.
+# Example: html.Embed(html.WhenElse(loggedIn, userNav, guestNav))
+func WhenElse(condition bool, ifTrue Fragment, ifFalse Fragment) Fragment
+    if condition
+        return ifTrue
+    return ifFalse
