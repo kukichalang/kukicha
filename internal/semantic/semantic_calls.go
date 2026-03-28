@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/kukichalang/kukicha/internal/ast"
 )
@@ -234,7 +235,7 @@ func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*Ty
 		a.checkDeprecated(expr, id.Value, "")
 		a.checkPanics(expr, id.Value, "")
 	} else if methodCall, ok := expr.Function.(*ast.MethodCallExpr); ok {
-		// Handles things like obj.method()() if that ever occurs, 
+		// Handles things like obj.method()() if that ever occurs,
 		// though typically pkg.Func() parses directly to MethodCallExpr
 		if objID, ok := methodCall.Object.(*ast.Identifier); ok {
 			qualifiedName := objID.Value + "." + methodCall.Method.Value
@@ -581,7 +582,7 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 	// Check generated Go stdlib registry for method calls
 	if objType != nil && (objType.Kind == TypeKindNamed || objType.Kind == TypeKindReference) && objType.Name != "" {
 		qualifiedMethodName := objType.Name + "." + methodName
-		
+
 		a.checkDeprecated(expr, methodName, qualifiedMethodName)
 		a.checkPanics(expr, methodName, qualifiedMethodName)
 
@@ -642,11 +643,9 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 				qualifiedEnum := basePkg + "." + outerFA.Field.Value
 				if cases, ok := GetStdlibEnum(qualifiedEnum); ok {
 					fieldName := expr.Field.Value
-					for _, c := range cases {
-						if c == fieldName {
-							a.recordReturnCount(expr, 1)
-							return &TypeInfo{Kind: TypeKindNamed, Name: qualifiedEnum}
-						}
+					if slices.Contains(cases, fieldName) {
+						a.recordReturnCount(expr, 1)
+						return &TypeInfo{Kind: TypeKindNamed, Name: qualifiedEnum}
 					}
 					a.error(expr.Field.Pos(), fmt.Sprintf("'%s' is not a case of enum %s", fieldName, qualifiedEnum))
 					return &TypeInfo{Kind: TypeKindUnknown}
