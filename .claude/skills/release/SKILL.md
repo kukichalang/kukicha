@@ -31,6 +31,24 @@ const Version = "0.0.X"   # new version
 
 Replace all with the new version.
 
+### 3b. Update version in kukicha.org
+
+Update the two version strings in `~/repos/go/kukicha.org`:
+
+- `components/hero.kuki` — badge text: `v0.0.OLD` (two occurrences on one line: `title` attribute and link text)
+- `components/layout.kuki` — footer text: `Kukicha v0.0.OLD`
+
+No need to rebuild — `main.go` is gitignored; the Dockerfile runs `kukicha build .` at deploy time.
+
+Commit and push in the kukicha.org repo:
+
+```bash
+cd ~/repos/go/kukicha.org
+git add components/hero.kuki components/layout.kuki
+git commit -m "chore: bump version to vX.X.X"
+git push origin main
+```
+
 ### 4. Regenerate and rebuild
 
 Generated `.go` headers no longer contain the version number, so a version-only bump does not require force-regenerating stdlib files. Just regenerate the registry files and rebuild:
@@ -94,3 +112,5 @@ git push origin vX.X.X
 - [ ] Single commit with all changes
 - [ ] Tag created and pushed
 - [ ] `git ls-remote --tags origin` confirms tag is present
+- [ ] `~/repos/go/kukicha.org` — `components/hero.kuki` and `components/layout.kuki` updated
+- [ ] `~/repos/go/kukicha.org` — committed and pushed
