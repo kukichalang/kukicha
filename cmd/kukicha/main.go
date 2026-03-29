@@ -403,7 +403,13 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 			os.Exit(1)
 		}
 	}
-	projectDir := findProjectDir(absFile)
+	var projectDir string
+	if isDir {
+		// In directory mode, the directory itself is the project root
+		projectDir = findProjectDir(filepath.Join(absFile, "main.kuki"))
+	} else {
+		projectDir = findProjectDir(absFile)
+	}
 
 	var program *ast.Program
 	var returnCounts map[ast.Expression]int

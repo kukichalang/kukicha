@@ -21,7 +21,7 @@ func ReadLine(prompt string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:19
 	reader := bufio.NewReader(os.Stdin)
 //line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20
-	text, err_1 := reader.ReadString('\n')
+	text, err_1 := reader.ReadString("\n"[0])
 //line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20
 	if err_1 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20

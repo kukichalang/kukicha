@@ -146,7 +146,7 @@ func Append(r Root, data any, path string) error {
 		return err_8
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:67
-	jsonData = append(jsonData, '\n')
+	jsonData = append(jsonData, "\n"[0])
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:68
 	f, err_9 := r.root.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:68

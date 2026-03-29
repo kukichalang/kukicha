@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/kukichalang/kukicha/internal/ast"
@@ -130,5 +131,50 @@ func TestLoadAndAnalyzeMulti_CrossFileReferences(t *testing.T) {
 	_, _, _, err := loadAndAnalyzeMulti([]string{f1, f2})
 	if err != nil {
 		t.Errorf("cross-file reference should work, got: %v", err)
+	}
+}
+
+func TestMergePrograms_MultipleInitsAllowed(t *testing.T) {
+	dir := t.TempDir()
+	f1 := filepath.Join(dir, "a.kuki")
+	f2 := filepath.Join(dir, "b.kuki")
+	os.WriteFile(f1, []byte("func init()\n    print(\"init a\")\n"), 0644)
+	os.WriteFile(f2, []byte("func init()\n    print(\"init b\")\n"), 0644)
+
+	prog1, _ := parseFile(f1)
+	prog2, _ := parseFile(f2)
+
+	merged, err := mergePrograms([]*ast.Program{prog1, prog2}, []string{f1, f2})
+	if err != nil {
+		t.Fatalf("multiple init functions should be allowed, got: %v", err)
+	}
+
+	initCount := 0
+	for _, decl := range merged.Declarations {
+		if f, ok := decl.(*ast.FunctionDecl); ok && f.Name.Value == "init" {
+			initCount++
+		}
+	}
+	if initCount != 2 {
+		t.Errorf("expected 2 init functions, got %d", initCount)
+	}
+}
+
+func TestMergePrograms_DuplicateMainRejected(t *testing.T) {
+	dir := t.TempDir()
+	f1 := filepath.Join(dir, "a.kuki")
+	f2 := filepath.Join(dir, "b.kuki")
+	os.WriteFile(f1, []byte("func main()\n    print(\"a\")\n"), 0644)
+	os.WriteFile(f2, []byte("func main()\n    print(\"b\")\n"), 0644)
+
+	prog1, _ := parseFile(f1)
+	prog2, _ := parseFile(f2)
+
+	_, err := mergePrograms([]*ast.Program{prog1, prog2}, []string{f1, f2})
+	if err == nil {
+		t.Fatal("expected error for duplicate main functions, got nil")
+	}
+	if !strings.Contains(err.Error(), "function 'main' already declared") {
+		t.Errorf("expected duplicate main error, got: %v", err)
 	}
 }

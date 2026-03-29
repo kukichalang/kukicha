@@ -54,7 +54,7 @@ func Append(data any, path string) error
 
     jsonData := json.Marshal(data) onerr return
     # Add newline by appending a byte directly
-    jsonData = append(jsonData, '\n')
+    jsonData = append(jsonData, "\n"[0])
     _, err := file.Write(jsonData) onerr return
     return empty
 

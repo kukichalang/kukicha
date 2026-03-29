@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -245,9 +246,20 @@ func ensureGoMod(projectDir, stdlibPath string) error {
 	data, err := os.ReadFile(goModPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("no go.mod found in %s; run 'kukicha init' first", projectDir)
+			// Auto-create go.mod using the directory name as the module path
+			moduleName := filepath.Base(projectDir)
+			cmd := exec.Command("go", "mod", "init", moduleName)
+			cmd.Dir = projectDir
+			if out, initErr := cmd.CombinedOutput(); initErr != nil {
+				return fmt.Errorf("auto-creating go.mod: %s: %w", string(out), initErr)
+			}
+			data, err = os.ReadFile(goModPath)
+			if err != nil {
+				return fmt.Errorf("reading auto-created go.mod: %w", err)
+			}
+		} else {
+			return err
 		}
-		return err
 	}
 
 	mod, err := modfile.Parse(goModPath, data, nil)
