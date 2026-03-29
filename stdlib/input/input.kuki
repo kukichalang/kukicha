@@ -17,7 +17,7 @@ func ReadLine(prompt string) (string, error)
         fmt.Print(prompt)
 
     reader := bufio.NewReader(os.Stdin)
-    text := reader.ReadString("\n"[0]) onerr return
+    text := reader.ReadString("\n" as byte) onerr return
     return string.TrimSpace(text), empty
 
 # Prompt is a helper that prints a prompt and reads a line

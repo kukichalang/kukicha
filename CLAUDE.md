@@ -363,9 +363,17 @@ args := list of int{1, 2, 3}
 result := Sum(many args)
 ```
 
-### Type Assertions
+### Type Casts and Assertions
 ```kukicha
-# Two-value form (safe)
+# Type cast (conversion)
+n := x as int
+f := n as float64
+
+# Byte cast — single-char string to byte (emits Go rune literal)
+jsonData = append(jsonData, "\n" as byte)    # emits: '\n'
+text := reader.ReadString("\t" as byte)      # emits: '\t'
+
+# Two-value type assertion (safe)
 result, ok := value.(string)
 if ok
     print("string: {result}")

@@ -311,10 +311,13 @@ nums := list of int{1, 2, 3}
 result := Sum(many nums)              # spread a slice
 ```
 
-### Type Assertions
+### Type Casts and Assertions
 
 ```kukicha
-result, ok := value.(string)          # safe (two-value)
+n := x as int                        # type conversion
+f := n as float64
+data = append(data, "\n" as byte)    # byte cast (emits rune literal)
+result, ok := value.(string)          # safe type assertion (two-value)
 s := value.(string)                   # panics if wrong type
 ```
 

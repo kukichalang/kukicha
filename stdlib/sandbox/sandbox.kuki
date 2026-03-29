@@ -64,7 +64,7 @@ func AppendString(r Root, data string, path string) error
 # Append marshals data to JSON and appends it (with newline) to a file within the sandbox.
 func Append(r Root, data any, path string) error
     jsonData := json.Marshal(data) onerr explain "sandbox append marshal"
-    jsonData = append(jsonData, "\n"[0])
+    jsonData = append(jsonData, "\n" as byte)
     f := r.root.OpenFile(path, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0644) onerr explain "sandbox append"
     defer f.Close()
     _, err := f.Write(jsonData) onerr explain "sandbox append"

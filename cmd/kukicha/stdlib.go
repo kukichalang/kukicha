@@ -368,21 +368,26 @@ func isKukichaRepo(startDir string) bool {
 	return false
 }
 
-// findProjectDir walks up from the given filename to find the directory
-// containing a go.mod file. If none is found, returns the directory of the file.
-func findProjectDir(filename string) string {
-	dir := filepath.Dir(filename)
-	absDir, err := filepath.Abs(dir)
+// findProjectDir walks up from the given path to find the directory
+// containing a go.mod file. If none is found, returns the starting directory.
+// The path may be a file or a directory.
+func findProjectDir(path string) string {
+	absPath, err := filepath.Abs(path)
 	if err != nil {
-		return dir
+		return filepath.Dir(path)
+	}
+
+	// If path is a file, start from its parent directory.
+	if info, err := os.Stat(absPath); err != nil || !info.IsDir() {
+		absPath = filepath.Dir(absPath)
 	}
 
 	// Walk up looking for go.mod
-	for d := absDir; d != filepath.Dir(d); d = filepath.Dir(d) {
+	for d := absPath; d != filepath.Dir(d); d = filepath.Dir(d) {
 		if _, err := os.Stat(filepath.Join(d, "go.mod")); err == nil {
 			return d
 		}
 	}
 
-	return absDir
+	return absPath
 }

@@ -113,6 +113,14 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return fmt.Sprintf("<-%s", channel)
 	case *ast.TypeCastExpr:
 		targetType := g.generateTypeAnnotation(e.TargetType)
+		// "x" as byte → Go rune literal 'x' (auto-converts to byte)
+		if targetType == "byte" {
+			if strLit, ok := e.Expression.(*ast.StringLiteral); ok && !strLit.Interpolated {
+				if r := g.stringToRuneLiteral(strLit.Value); r != "" {
+					return r
+				}
+			}
+		}
 		expr := g.exprToString(e.Expression)
 		// Use type assertion for interface types, conversion for concrete types.
 		if g.isLikelyInterfaceType(targetType) {
@@ -391,6 +399,32 @@ func (g *Generator) escapeString(s string) string {
 		}
 	}
 	return result.String()
+}
+
+// stringToRuneLiteral converts a single-character string value to a Go rune literal.
+// Returns the rune literal (e.g., '\n') or "" if the string is not exactly one character.
+func (g *Generator) stringToRuneLiteral(s string) string {
+	runes := []rune(s)
+	if len(runes) != 1 {
+		return ""
+	}
+	r := runes[0]
+	switch r {
+	case '\n':
+		return "'\\n'"
+	case '\t':
+		return "'\\t'"
+	case '\r':
+		return "'\\r'"
+	case '\x00':
+		return "'\\x00'"
+	case '\\':
+		return "'\\\\'"
+	case '\'':
+		return "'\\''"
+	default:
+		return fmt.Sprintf("'%c'", r)
+	}
 }
 
 // generateErrorExpr emits a Go error-construction expression for a string literal message.

@@ -726,6 +726,42 @@ func Foo(x any) Stringer
 	}
 }
 
+func TestTypeCastStringToByte(t *testing.T) {
+	// "x" as byte should emit a Go rune literal 'x'
+	input := `func Foo() byte
+    return "\n" as byte
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `'\n'`) {
+		t.Errorf("expected rune literal '\\n', got: %s", output)
+	}
+	if strings.Contains(output, `byte(`) {
+		t.Errorf("should not use byte() conversion for single-char string, got: %s", output)
+	}
+}
+
+func TestTypeCastStringToByte_MultiChar(t *testing.T) {
+	// Multi-char string as byte should fall back to byte() conversion
+	input := `func Foo() byte
+    return "ab" as byte
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `byte("ab")`) {
+		t.Errorf("expected byte() conversion for multi-char string, got: %s", output)
+	}
+}
+
+func TestTypeCastStringToByte_RegularChar(t *testing.T) {
+	// Single regular character as byte
+	input := `func Foo() byte
+    return "x" as byte
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `'x'`) {
+		t.Errorf("expected rune literal 'x', got: %s", output)
+	}
+}
+
 func TestDeeplyNestedIndentation(t *testing.T) {
 	// 10+ levels of nesting should compile correctly
 	input := `func deep(n int) int

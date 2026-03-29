@@ -82,7 +82,7 @@ func Append(data any, path string) error {
 		return err_7
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:57
-	jsonData = append(jsonData, "\n"[0])
+	jsonData = append(jsonData, '\n')
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:58
 	_, err := file.Write(jsonData)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:58

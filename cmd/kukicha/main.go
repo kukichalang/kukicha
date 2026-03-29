@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/kukichalang/kukicha/internal/ast"
 	"github.com/kukichalang/kukicha/internal/codegen"
@@ -403,13 +404,7 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 			os.Exit(1)
 		}
 	}
-	var projectDir string
-	if isDir {
-		// In directory mode, the directory itself is the project root
-		projectDir = findProjectDir(filepath.Join(absFile, "main.kuki"))
-	} else {
-		projectDir = findProjectDir(absFile)
-	}
+	projectDir := findProjectDir(absFile)
 
 	var program *ast.Program
 	var returnCounts map[ast.Expression]int
@@ -594,7 +589,11 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 	if ifChanged {
 		if existing, readErr := os.ReadFile(outputFile); readErr == nil {
 			if bytes.Equal(stripFirstLine(existing), stripFirstLine(cr.formatted)) {
-				return // body unchanged — preserve old version comment, skip write+build
+				// Body unchanged — touch the file so staleness checks pass,
+				// but don't rewrite content (preserves old version comment).
+				now := time.Now()
+				os.Chtimes(outputFile, now, now)
+				return
 			}
 		}
 	}

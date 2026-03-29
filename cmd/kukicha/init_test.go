@@ -178,15 +178,26 @@ func TestEnsureGoMod_IdempotentOnRerun(t *testing.T) {
 	}
 }
 
-func TestEnsureGoMod_NoGoModErrors(t *testing.T) {
+func TestEnsureGoMod_AutoCreatesGoMod(t *testing.T) {
 	dir := t.TempDir()
-	// No go.mod exists
-	err := ensureGoMod(dir, filepath.Join(dir, ".kukicha", "stdlib"))
-	if err == nil {
-		t.Fatal("expected error when go.mod is missing")
+	stdlibPath := filepath.Join(dir, ".kukicha", "stdlib")
+	if err := os.MkdirAll(stdlibPath, 0755); err != nil {
+		t.Fatal(err)
 	}
-	if !strings.Contains(err.Error(), "no go.mod found") {
-		t.Errorf("expected 'no go.mod found' error, got: %v", err)
+	// No go.mod exists — ensureGoMod should auto-create it
+	err := ensureGoMod(dir, stdlibPath)
+	if err != nil {
+		t.Fatalf("expected auto-creation to succeed, got: %v", err)
+	}
+	data, readErr := os.ReadFile(filepath.Join(dir, "go.mod"))
+	if readErr != nil {
+		t.Fatalf("go.mod not created: %v", readErr)
+	}
+	if !strings.Contains(string(data), "module "+filepath.Base(dir)) {
+		t.Errorf("go.mod should use directory name as module, got: %s", data)
+	}
+	if !strings.Contains(string(data), "github.com/kukichalang/kukicha/stdlib") {
+		t.Errorf("go.mod should contain stdlib require, got: %s", data)
 	}
 }
 
