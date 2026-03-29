@@ -455,7 +455,9 @@ make generate             # Regenerate stdlib_registry_gen.go + all stdlib .go f
 make genstdlibregistry    # Regenerate only internal/semantic/stdlib_registry_gen.go
 make gengostdlib          # Regenerate only internal/semantic/go_stdlib_gen.go
 kukicha check file.kuki   # Validate syntax without compiling
+kukicha check myapp/      # Validate all .kuki files in a directory
 kukicha build file.kuki   # Transpile and compile to binary
+kukicha build myapp/      # Build from directory (merges all .kuki files)
 kukicha build --wasm file.kuki       # Build for WebAssembly (GOOS=js GOARCH=wasm)
 kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run

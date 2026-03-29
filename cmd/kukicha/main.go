@@ -125,9 +125,9 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "Kukicha - A transpiler that compiles Kukicha to Go")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] [--vulncheck] [--wasm] <file.kuki>  Compile Kukicha file to Go")
-	fmt.Fprintln(os.Stderr, "  kukicha run [--target t] <file.kuki>   Transpile and execute Kukicha file")
-	fmt.Fprintln(os.Stderr, "  kukicha check <file.kuki>   Type check Kukicha file")
+	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] [--vulncheck] [--wasm] <file.kuki|dir>  Compile Kukicha to Go")
+	fmt.Fprintln(os.Stderr, "  kukicha run [--target t] <file.kuki|dir>   Transpile and execute Kukicha")
+	fmt.Fprintln(os.Stderr, "  kukicha check <file.kuki|dir>   Type check Kukicha")
 	fmt.Fprintln(os.Stderr, "  kukicha audit [--json] [--warn-only] [dir]  Check dependencies for vulnerabilities")
 	fmt.Fprintln(os.Stderr, "  kukicha fmt [options] <files>  Fix indentation and normalize style")
 	fmt.Fprintln(os.Stderr, "    -w          Write result to file instead of stdout")
@@ -136,6 +136,179 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  kukicha init [module-name]  Initialize project (go mod init + extract stdlib)")
 	fmt.Fprintln(os.Stderr, "  kukicha version             Show version information")
 	fmt.Fprintln(os.Stderr, "  kukicha help                Show this help message")
+}
+
+// resolveKukiFiles determines whether the argument is a single .kuki file or a
+// directory. For directories it returns all *.kuki files (excluding *_test.kuki),
+// sorted for deterministic output. The boolean indicates directory mode.
+func resolveKukiFiles(arg string) ([]string, bool, error) {
+	info, err := os.Stat(arg)
+	if err != nil {
+		return nil, false, err
+	}
+	if !info.IsDir() {
+		return []string{arg}, false, nil
+	}
+	entries, err := os.ReadDir(arg)
+	if err != nil {
+		return nil, false, fmt.Errorf("error reading directory: %v", err)
+	}
+	var files []string
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || !strings.HasSuffix(name, ".kuki") || strings.HasSuffix(name, "_test.kuki") {
+			continue
+		}
+		files = append(files, filepath.Join(arg, name))
+	}
+	if len(files) == 0 {
+		return nil, false, fmt.Errorf("no .kuki files found in %s", arg)
+	}
+	sort.Strings(files)
+	return files, true, nil
+}
+
+// resolveKukiFilesRecursive globs *.kuki files recursively in a directory,
+// excluding *_test.kuki. Subdirectory files with the same petiole are included.
+func resolveKukiFilesRecursive(dir string) ([]string, error) {
+	var files []string
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			// Skip hidden directories
+			if strings.HasPrefix(d.Name(), ".") && path != dir {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		name := d.Name()
+		if strings.HasSuffix(name, ".kuki") && !strings.HasSuffix(name, "_test.kuki") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error walking directory: %v", err)
+	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no .kuki files found in %s", dir)
+	}
+	sort.Strings(files)
+	return files, nil
+}
+
+// parseFile reads and parses a single .kuki file, returning its AST.
+func parseFile(filename string) (*ast.Program, error) {
+	source, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file %s: %v", filename, err)
+	}
+
+	p, err := parser.New(string(source), filename)
+	if err != nil {
+		return nil, fmt.Errorf("lexer error in %s: %v", filename, err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		var msgs []string
+		for _, e := range parseErrors {
+			msgs = append(msgs, fmt.Sprintf("  %v", e))
+		}
+		return nil, fmt.Errorf("parse errors:\n%s", strings.Join(msgs, "\n"))
+	}
+	return program, nil
+}
+
+// mergePrograms combines multiple parsed programs into one. All files must have
+// the same petiole (or no petiole, defaulting to "main"). Imports are deduplicated.
+func mergePrograms(programs []*ast.Program, files []string) (*ast.Program, error) {
+	merged := &ast.Program{}
+
+	// Validate petiole consistency
+	var petioleName string
+	var petioleFile string
+	for i, prog := range programs {
+		var name string
+		if prog.PetioleDecl != nil {
+			name = prog.PetioleDecl.Name.Value
+		}
+		if i == 0 {
+			petioleName = name
+			petioleFile = files[i]
+			merged.PetioleDecl = prog.PetioleDecl
+		} else if name != petioleName {
+			return nil, fmt.Errorf("petiole mismatch: %s declares %q but %s declares %q",
+				petioleFile, petioleName, files[i], name)
+		}
+	}
+
+	// Deduplicate imports by path+alias
+	seen := make(map[string]bool)
+	for _, prog := range programs {
+		for _, imp := range prog.Imports {
+			key := imp.Path.Value
+			if imp.Alias != nil {
+				key += " as " + imp.Alias.Value
+			}
+			if !seen[key] {
+				seen[key] = true
+				merged.Imports = append(merged.Imports, imp)
+			}
+		}
+	}
+
+	// Concatenate declarations
+	for _, prog := range programs {
+		merged.Declarations = append(merged.Declarations, prog.Declarations...)
+	}
+
+	// Take first non-empty target and skill declaration
+	for _, prog := range programs {
+		if prog.Target != "" && merged.Target == "" {
+			merged.Target = prog.Target
+		}
+		if prog.SkillDecl != nil && merged.SkillDecl == nil {
+			merged.SkillDecl = prog.SkillDecl
+		}
+	}
+
+	return merged, nil
+}
+
+// loadAndAnalyzeMulti parses multiple .kuki files, merges them, and runs semantic analysis.
+func loadAndAnalyzeMulti(files []string) (*ast.Program, map[ast.Expression]int, map[ast.Expression]*semantic.TypeInfo, error) {
+	programs := make([]*ast.Program, 0, len(files))
+	for _, f := range files {
+		absF, err := filepath.Abs(f)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("error resolving path %s: %v", f, err)
+		}
+		prog, err := parseFile(absF)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		programs = append(programs, prog)
+	}
+
+	merged, err := mergePrograms(programs, files)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	analyzer := semantic.NewWithFile(merged, files[0])
+	semanticErrors := analyzer.Analyze()
+	if len(semanticErrors) > 0 {
+		var msgs []string
+		for _, e := range semanticErrors {
+			msgs = append(msgs, fmt.Sprintf("  %v", e))
+		}
+		return nil, nil, nil, fmt.Errorf("semantic errors:\n%s", strings.Join(msgs, "\n"))
+	}
+
+	return merged, analyzer.ReturnCounts(), analyzer.ExprTypes(), nil
 }
 
 func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, map[ast.Expression]*semantic.TypeInfo, error) {
@@ -185,14 +358,45 @@ type compileResult struct {
 // generate Go code, and format it. targetFlag overrides auto-detection when non-empty.
 // defaultTarget is used when no flag is given and no target directive is found in source.
 func compile(filename, targetFlag, defaultTarget string) compileResult {
-	absFile, err := filepath.Abs(filename)
+	files, isDir, err := resolveKukiFiles(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error resolving file path: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
+	}
+
+	// For directory mode, also include subdirectories
+	if isDir {
+		files, err = resolveKukiFilesRecursive(filename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	var absFile string
+	if isDir {
+		absFile, err = filepath.Abs(filename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error resolving directory path: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		absFile, err = filepath.Abs(files[0])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error resolving file path: %v\n", err)
+			os.Exit(1)
+		}
 	}
 	projectDir := findProjectDir(absFile)
 
-	program, returnCounts, exprTypes, err := loadAndAnalyze(absFile)
+	var program *ast.Program
+	var returnCounts map[ast.Expression]int
+	var exprTypes map[ast.Expression]*semantic.TypeInfo
+	if isDir {
+		program, returnCounts, exprTypes, err = loadAndAnalyzeMulti(files)
+	} else {
+		program, returnCounts, exprTypes, err = loadAndAnalyze(absFile)
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -201,7 +405,7 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 	// Detect target from source if not provided by flag
 	if targetFlag != "" {
 		program.Target = targetFlag
-	} else {
+	} else if !isDir {
 		t, readErr := detectTargetFromFile(absFile)
 		if readErr != nil {
 			fmt.Fprintf(os.Stderr, "Warning: could not read %s for target detection: %v\n", absFile, readErr)
@@ -211,6 +415,8 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 		} else if defaultTarget != "" {
 			program.Target = defaultTarget
 		}
+	} else if defaultTarget != "" {
+		program.Target = defaultTarget
 	}
 
 	// Generate Go code
@@ -353,8 +559,15 @@ func stripFirstLine(b []byte) []byte {
 func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool, wasm bool) {
 	cr := compile(filename, targetFlag, "")
 
-	// Write Go file
-	outputFile := strings.TrimSuffix(cr.absFile, ".kuki") + ".go"
+	// Write Go file — for directory builds, use <dir>/main.go; for files, use <file>.go
+	var outputFile string
+	info, _ := os.Stat(filename)
+	isDir := info != nil && info.IsDir()
+	if isDir {
+		outputFile = filepath.Join(cr.absFile, "main.go")
+	} else {
+		outputFile = strings.TrimSuffix(cr.absFile, ".kuki") + ".go"
+	}
 
 	if ifChanged {
 		if existing, readErr := os.ReadFile(outputFile); readErr == nil {
@@ -369,14 +582,23 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 		os.Exit(1)
 	}
 
-	fmt.Printf("Successfully compiled %s to %s\n", cr.absFile, outputFile)
+	if isDir {
+		fmt.Printf("Successfully compiled %s/ to %s\n", cr.absFile, outputFile)
+	} else {
+		fmt.Printf("Successfully compiled %s to %s\n", cr.absFile, outputFile)
+	}
 
 	ensureStdlibIfNeeded(cr.goCode, cr.projectDir)
 
 	// Determine the output binary name. When cross-compiling for Windows
 	// (GOOS=windows), append .exe so the binary is recognised as executable.
 	// WASM builds produce a .wasm file instead.
-	binaryName := strings.TrimSuffix(filepath.Base(cr.absFile), ".kuki")
+	var binaryName string
+	if isDir {
+		binaryName = filepath.Base(cr.absFile)
+	} else {
+		binaryName = strings.TrimSuffix(filepath.Base(cr.absFile), ".kuki")
+	}
 	if wasm {
 		binaryName += ".wasm"
 	} else {
@@ -540,39 +762,36 @@ func runCommand(filename string, targetFlag string, scriptArgs []string) {
 }
 
 func checkCommand(filename string, strictOnerr bool) {
-	source, err := os.ReadFile(filename)
+	files, isDir, err := resolveKukiFiles(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
-		os.Exit(1)
+		// Fall back to treating as a single file for better error messages
+		files = []string{filename}
+		isDir = false
 	}
 
-	p, err := parser.New(string(source), filename)
+	if isDir {
+		files, err = resolveKukiFilesRecursive(filename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	var program *ast.Program
+	if isDir || len(files) > 1 {
+		program, _, _, err = loadAndAnalyzeMulti(files)
+	} else {
+		program, _, _, err = loadAndAnalyze(files[0])
+	}
+	_ = program // check only — no codegen needed
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Lexer error: %v\n", err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		var msgs []string
-		for _, e := range parseErrors {
-			msgs = append(msgs, fmt.Sprintf("  %v", e))
-		}
-		fmt.Fprintf(os.Stderr, "Parse errors:\n%s\n", strings.Join(msgs, "\n"))
-		os.Exit(1)
-	}
-
-	analyzer := semantic.NewWithFile(program, filename)
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		var msgs []string
-		for _, e := range semanticErrors {
-			msgs = append(msgs, fmt.Sprintf("  %v", e))
-		}
-		fmt.Fprintf(os.Stderr, "Semantic errors:\n%s\n", strings.Join(msgs, "\n"))
-		os.Exit(1)
-	}
-
+	// Re-run analysis to get warnings (loadAndAnalyze* already validated)
+	analyzer := semantic.NewWithFile(program, files[0])
+	_ = analyzer.Analyze() // errors already checked above
 	warnings := analyzer.Warnings()
 	for _, w := range warnings {
 		fmt.Fprintf(os.Stderr, "warning: %v\n", w)
