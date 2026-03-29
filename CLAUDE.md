@@ -9,8 +9,8 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 | Go | Kukicha |
 |----|---------|
 | `&&`, `\|\|`, `!` | `and`, `or`, `not` |
-| `[]string` | `list of string` |
-| `map[string]int` | `map of string to int` |
+| `[]string` | `list of string` (or `[]string`) |
+| `map[string]int` | `map of string to int` (or `map[string]int`) |
 | `*User` | `reference User` |
 | `&user` | `reference of user` |
 | `*ptr` | `dereference ptr` |

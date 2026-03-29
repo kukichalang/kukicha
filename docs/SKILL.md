@@ -47,8 +47,8 @@ Build with: `kukicha build myapp/` — merges all `.kuki` files into `myapp/main
 | `and`, `or`, `not` | `&&`, `\|\|`, `!` |
 | `equals` | `==` |
 | `empty` | `nil` |
-| `list of string` | `[]string` |
-| `map of string to int` | `map[string]int` |
+| `list of string` (or `[]string`) | `[]string` |
+| `map of string to int` (or `map[string]int`) | `map[string]int` |
 | `reference User` | `*User` |
 | `reference of x` | `&x` |
 | `dereference ptr` | `*ptr` |

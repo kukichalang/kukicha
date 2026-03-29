@@ -29,6 +29,16 @@ import (
 // as variable names elsewhere (e.g., `list := getData()`).
 func (p *Parser) parseTypeAnnotation() ast.TypeAnnotation {
 	switch p.peekToken().Type {
+	case lexer.TOKEN_LBRACKET:
+		// []T — bracket alias for "list of T"
+		token := p.advance() // consume '['
+		p.consume(lexer.TOKEN_RBRACKET, "expected ']' after '[' for list type ([]T)")
+		elementType := p.parseTypeAnnotation()
+		return &ast.ListType{
+			Token:       token,
+			ElementType: elementType,
+		}
+
 	case lexer.TOKEN_REFERENCE:
 		token := p.advance()
 		elementType := p.parseTypeAnnotation()
@@ -48,7 +58,19 @@ func (p *Parser) parseTypeAnnotation() ast.TypeAnnotation {
 
 	case lexer.TOKEN_MAP:
 		token := p.advance()
-		p.consume(lexer.TOKEN_OF, "expected 'of' after 'map'")
+		if p.check(lexer.TOKEN_LBRACKET) {
+			// map[K]V — bracket alias for "map of K to V"
+			p.advance() // consume '['
+			keyType := p.parseTypeAnnotation()
+			p.consume(lexer.TOKEN_RBRACKET, "expected ']' after map key type")
+			valueType := p.parseTypeAnnotation()
+			return &ast.MapType{
+				Token:     token,
+				KeyType:   keyType,
+				ValueType: valueType,
+			}
+		}
+		p.consume(lexer.TOKEN_OF, "expected 'of' or '[' after 'map'")
 		keyType := p.parseTypeAnnotation()
 		p.consume(lexer.TOKEN_TO, "expected 'to' after map key type")
 		valueType := p.parseTypeAnnotation()

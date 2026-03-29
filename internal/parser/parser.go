@@ -105,14 +105,14 @@ func (p *Parser) isAtEnd() bool {
 // Directive tokens are parsed and accumulated in pendingDirectives for the next declaration.
 func (p *Parser) skipIgnoredTokens() {
 	for p.pos < len(p.tokens) {
-		t := p.tokens[p.pos]
-		if t.Type == lexer.TOKEN_COMMENT || t.Type == lexer.TOKEN_SEMICOLON {
+		switch p.tokens[p.pos].Type {
+		case lexer.TOKEN_COMMENT, lexer.TOKEN_SEMICOLON:
 			p.pos++
-		} else if t.Type == lexer.TOKEN_DIRECTIVE {
-			p.pendingDirectives = append(p.pendingDirectives, parseDirective(t))
+		case lexer.TOKEN_DIRECTIVE:
+			p.pendingDirectives = append(p.pendingDirectives, parseDirective(p.tokens[p.pos]))
 			p.pos++
-		} else {
-			break
+		default:
+			return
 		}
 	}
 }

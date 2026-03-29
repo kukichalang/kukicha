@@ -9,8 +9,8 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 | Go | Kukicha |
 |----|---------|
 | `&&`, `\|\|`, `!` | `and`, `or`, `not` |
-| `[]string` | `list of string` |
-| `map[string]int` | `map of string to int` |
+| `[]string` | `list of string` (or `[]string`) |
+| `map[string]int` | `map of string to int` (or `map[string]int`) |
 | `*User` | `reference User` |
 | `&user` | `reference of user` |
 | `*ptr` | `dereference ptr` |
@@ -24,8 +24,6 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 
 ## Keyword Aliases (English-Friendly Forms)
 
-Kukicha accepts English-word aliases for two common keywords:
-
 | Short form | English alias | When to use |
 |-----------|--------------|-------------|
 | `func`    | `function`   | Beginner-facing code and tutorials |
@@ -34,422 +32,23 @@ Kukicha accepts English-word aliases for two common keywords:
 
 All forms compile identically. Use `func`/`var`/`const` in idiomatic/production code, and `function`/`variable`/`constant` when writing beginner tutorials or agent-generated code aimed at non-programmers.
 
-```kukicha
-# These are identical to the compiler:
-func Add(a int, b int) int
-function Add(a int, b int) int
-
-# Top-level variable (file scope):
-var AppName string = "myapp"
-variable AppName string = "myapp"
-
-# Constants:
-const MaxRetries = 5
-constant MaxRetries = 5
-```
-
-**For AI agents generating beginner-facing code:** prefer `function`, `variable`, and `constant`.
-**For all other code generation:** use `func`, `var`, and `const`.
-
 ## Generic Type Placeholders (stdlib authoring only)
-
-Kukicha uses reserved placeholder names to express generic type parameters in stdlib `.kuki` source files. **Do not use these in application code** — they are only meaningful inside stdlib function signatures.
 
 | Placeholder | Go equivalent | Constraint | Used for |
 |-------------|---------------|------------|----------|
 | `any` | `T` | `any` (unconstrained) | First type parameter |
 | `any2` | `K` | `comparable` | Second type parameter (e.g., map key) |
-| `ordered` | `K` | `cmp.Ordered` | Second type parameter requiring ordering (e.g., sort key) |
+| `ordered` | `K` | `cmp.Ordered` | Second type parameter requiring ordering |
 | `result` | `R` | `any` (unconstrained) | Second unconstrained type parameter (e.g., transform output) |
-
-Example: `slice.GroupBy` uses `any` for element type and `any2` for the map key type:
-```kukicha
-# stdlib signature (you read this; you do NOT write it in app code)
-func GroupBy(items list of any, keyFunc func(any) any2) map of any2 to list of any
-```
-The compiler generates: `func GroupBy[T any, K comparable](items []T, keyFunc func(T) K) map[K][]T`
-
-Example: `sort.ByKey` uses `any` for element type and `ordered` for the sort key type:
-```kukicha
-func ByKey(items list of any, key func(any) ordered) list of any
-```
-The compiler generates: `func ByKey[T any, K cmp.Ordered](items []T, key func(T) K) []T`
-
-Example: `slice.Map` and `concurrent.Map` use `any` for input type and `result` for output type:
-```kukicha
-func Map(items list of any, transform func(any) result) list of result
-```
-The compiler generates: `func Map[T any, R any](items []T, transform func(T) R) []R`
-
-Functions that use `any2` only (no `any`): `Unique`, `Contains`, `IndexOf`. These emit `[K comparable]` as the sole type parameter.
-
-Application code just calls `logs |> slice.GroupBy(getLevel)` — no generics syntax needed.
-
-## Kukicha Syntax Quick Reference
-
-### Variables
-```kukicha
-count := 42              # Type inferred
-count = 100              # Reassignment
-val, error := f()        # 'error' and 'empty' can be used as variable names
-```
-
-### Strings and Interpolation
-```kukicha
-greeting := "Hello {name}!"          # String interpolation with {expr}
-json := "key: \{value\}"             # Literal braces with \{ and \}
-mixed := "\{{key}\}: {value}"        # Escaped + interpolated: produces "{key_val}: value_val"
-path := "{dir}\sep{file}"            # OS path separator (filepath.Separator at runtime)
-```
-
-Use `\{` and `\}` to produce literal `{` and `}` characters in strings. Without escaping, `{identifier}` is treated as string interpolation.
-
-Use `\sep` to produce the OS-specific path separator (`/` on Unix, `\` on Windows) at runtime. It expands to `string(filepath.Separator)` in generated Go and auto-imports `path/filepath`.
-
-### Single-Quote Multi-Line Strings
-```kukicha
-# Single-quote strings are multi-line with auto-dedent — ideal for HTML
-page := '
-    <div class="hero">
-        <h1>{html.Escape(title)}</h1>
-    </div>
-'
-```
-
-Single-quote strings (`'...'`) behave like triple-quoted strings (`"""..."""`) but use `'` as the delimiter. This avoids escaping double quotes inside HTML attributes. Features:
-- Multi-line with automatic indentation stripping (based on closing `'` position)
-- String interpolation with `{expr}` works identically to double-quoted strings
-- Escape sequences: `\'` for literal single quote, `\{` `\}` for literal braces
-- First newline after opening `'` and last newline before closing `'` are stripped
-
-**Note:** Kukicha does not have rune/character literals. Use strings for all text.
-
-### Functions (explicit types required)
-```kukicha
-func Add(a int, b int) int
-    return a + b
-
-func Divide(a int, b int) int, error
-    if b equals 0
-        return 0, error "division by zero"
-    return a / b, empty
-
-# Default parameter values
-func Greet(name string, greeting string = "Hello") string
-    return "{greeting}, {name}!"
-
-# Named arguments (at call site)
-result := Greet("Alice", greeting: "Hi")
-files.Copy(from: source, to: dest)
-```
-
-### Methods (receiver after `on`)
-```kukicha
-func Display on todo Todo string
-    return "{todo.id}: {todo.title}"
-
-func SetDone on todo reference Todo       # Pointer receiver
-    todo.done = true
-```
-
-### Error Handling (`onerr`)
-```kukicha
-data := fetchData() onerr panic "failed"              # Panic on error
-data := fetchData() onerr return                      # Propagate error (shorthand — zero values + raw error)
-data := fetchData() onerr return empty, error "{error}" # Propagate error (verbose, wraps error)
-port := getPort() onerr 8080                          # Default value
-_ := riskyOp() onerr discard                          # Ignore error
-v := parse(item) onerr continue                       # Skip iteration on error (inside for loop)
-v := parse(item) onerr break                          # Exit loop on error (inside for loop)
-
-# Explain syntax - wrap error with hint message
-data := fetchData() onerr explain "failed to fetch data"  # Standalone: returns wrapped error
-data := fetchData() onerr 0 explain "fetch failed"        # With handler: wraps error, then runs handler
-
-# Block-style onerr (multi-statement error handling)
-users := csvData |> parse.CsvWithHeader() onerr
-    print("Failed to parse CSV: {error}")    # {error} refers to the caught error
-    return
-
-# Named alias for the caught error in block handlers
-payload := fetchData() onerr as e
-    print("fetch failed: {e}")    # {e} and {error} both refer to the caught error
-    return
-```
-> **`{error}` in `onerr` — critical:** The caught error is always named `error`, never `err`. Use `{error}` in string interpolation to reference it. Writing `{err}` inside any `onerr` handler is a **compile-time error** — the compiler will reject it with `use {error} not {err} inside onerr`. To use a custom name, write `onerr as e` and use `{e}`.
-
-| onerr form | Example | Error variable available |
-|------------|---------|--------------------------|
-| Default value | `x := f() onerr 0` | — |
-| Panic | `x := f() onerr panic "msg"` | — |
-| Propagate shorthand | `x := f() onerr return` | — |
-| Propagate inline | `x := f() onerr return empty, error "{error}"` | `{error}` in string |
-| Continue (loop) | `x := f() onerr continue` | — |
-| Break (loop) | `x := f() onerr break` | — |
-| Block (multi-stmt) | `x := f() onerr` + indented body | `{error}` in interpolation |
-| Block with alias | `x := f() onerr as e` + indented body | `{e}` or `{error}` in interpolation |
-
-Use the **block form** when the error handler needs more than one statement; use inline forms for everything else.
-
-> **Note:** `error "msg"` always requires a message string. Use `error "{error}"` to include the original error text when propagating. `onerr return` (bare shorthand) passes the original error through unchanged — use it when no additional context is needed.
-
-### Types
-```kukicha
-type Todo
-    id int64
-    title string as "title"         # JSON alias sugar
-    tags list of string
-    meta map of string to string
-
-# Function type aliases
-type Handler func(string)
-type Transform func(int) (string, error)
-```
-
-```kukicha
-# Typed JSON decode (preferred over bytes + unmarshal boilerplate)
-items := fetch.Get(url) |> fetch.CheckStatus() |> fetch.Json(list of Todo) onerr panic "{error}"
-```
-
-> **`fetch.Json` sample parameter:** The argument is a typed zero value that tells the compiler what to decode into — it is NOT passed at runtime.
-> - `fetch.Json(list of Todo)` → decodes a JSON array into `[]Todo`
-> - `fetch.Json(empty Todo)` → decodes a JSON object into `Todo`
-> - `fetch.Json(map of string to string)` → decodes a JSON object into `map[string]string`
->
-> Passing the wrong shape (e.g., `list of Todo` when the API returns an object) produces a runtime decode error with no compile-time warning.
-
-### Enums
-```kukicha
-# Integer enum (underlying type inferred from values)
-enum Status
-    OK = 200
-    NotFound = 404
-    Error = 500
-
-# String enum
-enum LogLevel
-    Debug = "debug"
-    Info = "info"
-    Warn = "warn"
-    Error = "error"
-
-# Dot access
-status := Status.OK
-
-# Use in switch (exhaustiveness checked — compiler warns on missing cases)
-switch status
-    when Status.OK
-        print("Success")
-    when Status.NotFound
-        print("Not found")
-    when Status.Error
-        print("Error")
-```
-
-Enum features:
-- **Underlying type inferred** from case values (all must be same type: int or string)
-- **Dot access**: `Status.OK` transpiles to Go `StatusOK`
-- **Exhaustiveness checking**: compiler warns if switch on enum misses cases (unless `otherwise` present)
-- **Zero-value warning**: warns if integer enum has no case with value 0
-- **Auto-generated `String()` method** (skipped if user defines one)
-- **Cross-package support**: enums in stdlib `.kuki` files are registered for cross-package resolution
-
-### Collections
-```kukicha
-items := list of string{"a", "b", "c"}
-config := map of string to int{"port": 8080}
-last := items[-1]                      # Negative indexing
-```
-
-### Control Flow
-```kukicha
-if count equals 0
-    return "empty"
-else if count < 10
-    return "small"
-
-for item in items
-    process(item)
-
-for i from 0 to 10        # 0..9 (exclusive, ascending)
-for i from 0 through 10   # 0..10 (inclusive, ascending)
-for i from 10 through 0   # 10..0 (inclusive, descending)
-
-switch command
-    when "fetch", "pull"
-        fetchRepos()
-    when "help"
-        showHelp()
-    otherwise
-        print "Unknown: {command}"
-
-switch                     # condition switch (bare)
-    when stars >= 1000
-        print "Popular"
-    otherwise
-        print "New"
-```
-
-### Pipes
-```kukicha
-result := data |> parse() |> transform()
-
-# Placeholder _ for non-first position
-todo |> json.MarshalWrite(w, _)   # becomes: json.MarshalWrite(w, todo)
-
-# Bare identifier as pipe target (no parentheses needed)
-data |> print                     # becomes: fmt.Println(data)
-
-# Pipeline-level onerr — catches errors from any step in the chain.
-# The handler runs independently for EACH error-returning step.
-# If step 1 fails, its handler fires and control exits;
-# if step 1 succeeds but step 2 fails, step 2's handler fires.
-processed := data
-    |> parse.Json(list of User)
-    |> fetch.EnrichWithDB()
-    |> validate.Safe()
-    onerr panic "pipeline failed: {error}"
-
-# Piped switch — pipe a value directly into a switch
-user.Role |> switch
-    when "admin"
-        grantAccess()
-    when "guest"
-        denyAccess()
-    otherwise
-        checkPermissions()
-```
-
-### Arrow Lambdas
-```kukicha
-# Expression lambda — type annotations are OPTIONAL for stdlib calls (inferred):
-repos |> slice.Filter(r => r.Stars > 100)           # r inferred as Repo
-entries |> sort.ByKey(e => e.name)                  # e inferred as Entry
-app |> cli.CommandAction("list", a => doList(a))    # a inferred as cli.Args
-
-# Explicit type annotation still works when you prefer it
-repos |> slice.Filter((r Repo) => r.Stars > 100)
-
-# Single untyped param — no parens needed
-numbers |> slice.Filter(n => n > 0)
-
-# Multiple untyped params (each inferred as the element type)
-sort.By(items, (a, b) => a.score < b.score)
-
-# Zero params
-button.OnClick(() => print("clicked"))
-
-# Block lambda (multi-statement, explicit return)
-repos |> slice.Filter((r Repo) =>
-    name := r.Name |> string.ToLower()
-    return name |> string.Contains("go")
-)
-```
-
-### Variadic Arguments (`many`)
-```kukicha
-# Declare: "many" before param name
-func Sum(many numbers int) int
-    total := 0
-    for n in numbers
-        total = total + n
-    return total
-
-# Call with individual args
-result := Sum(1, 2, 3)
-
-# Spread a slice with "many" at call site
-args := list of int{1, 2, 3}
-result := Sum(many args)
-```
-
-### Type Casts and Assertions
-```kukicha
-# Type cast (conversion)
-n := x as int
-f := n as float64
-
-# Byte cast — single-char string to byte (emits Go rune literal)
-jsonData = append(jsonData, "\n" as byte)    # emits: '\n'
-text := reader.ReadString("\t" as byte)      # emits: '\t'
-
-# Two-value type assertion (safe)
-result, ok := value.(string)
-if ok
-    print("string: {result}")
-
-# Direct assertion (panics if wrong type)
-s := value.(string)
-```
-
-### Multi-Value Destructuring
-```kukicha
-# 2-value (common)
-data, err := os.ReadFile(path)
-
-# 3-value (supported)
-_, ipNet, err := net.ParseCIDR("192.168.0.0/16")
-```
-
-### Concurrency
-```kukicha
-ch := make channel of string
-send "message" to ch
-msg := receive from ch
-go doWork()
-
-# Go block (multi-statement goroutine)
-go
-    mu.Lock()
-    doWork()
-    mu.Unlock()
-
-# Select (channel multiplexing)
-select
-    when receive from done           # bare receive (no assignment)
-        return
-    when msg := receive from ch      # assign one var
-        print(msg)
-    when msg, ok := receive from ch  # assign two vars (ok check)
-        if ok
-            print(msg)
-    when send "ping" to out          # send case
-        print("sent")
-    otherwise                        # default (non-blocking)
-        print("nothing ready")
-```
-
-### Defer
-```kukicha
-defer f.Close()                    # Defer a single call
-
-# Defer block (multi-statement cleanup, emits defer func() { ... }())
-defer
-    if r := recover(); r isnt empty
-        tx.Rollback()
-        panic(r)
-```
 
 ## Compiler Directives
 
-Directives are special comments starting with `# kuki:` that annotate the next declaration.
-
 ```kukicha
-# kuki:deprecated "Use NewFunc instead"
-func OldFunc() string
-    return "old"
+# kuki:deprecated "Use NewFunc instead"    # warns at every call site
+# kuki:security "category"                 # categories: sql, html, fetch, files, redirect, shell
 ```
 
-| Directive | Target | Effect |
-|-----------|--------|--------|
-| `# kuki:deprecated "msg"` | `func`, `type` | Emits a warning at each call site |
-| `# kuki:security "category"` | `func` | Registers function for compile-time security checks (`sql`, `html`, `fetch`, `files`, `redirect`, `shell`) |
-
-Directives on stdlib `.kuki` files are automatically picked up by `make genstdlibregistry` and checked at compile time.
-
-## Security Checks (Compiler-Enforced)
-
-The compiler enforces SQL injection, XSS, SSRF, path traversal, command injection, and open redirect checks at compile time. See **[`stdlib/CLAUDE.md`](stdlib/CLAUDE.md)** for the full check table and safe alternatives.
+Run `make genstdlibregistry` after adding or changing directives on stdlib functions.
 
 ## Build & Test Commands
 
@@ -466,13 +65,11 @@ kukicha check file.kuki   # Validate syntax without compiling
 kukicha check myapp/      # Validate all .kuki files in a directory
 kukicha build file.kuki   # Transpile and compile to binary
 kukicha build myapp/      # Build from directory (merges all .kuki files into main.go)
-kukicha build --wasm file.kuki       # Build for WebAssembly (GOOS=js GOARCH=wasm)
+kukicha build --wasm file.kuki       # Build for WebAssembly
 kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run
 kukicha fmt -w file.kuki  # Format in place
 kukicha audit             # Check dependencies for known vulnerabilities
-kukicha audit --warn-only # Audit but exit 0 even if vulns found
-kukicha audit --json      # Audit with JSON output
 ```
 
 ## Multi-File Directory Builds
@@ -489,8 +86,8 @@ kukicha audit --json      # Audit with JSON output
 
 ```
 cmd/kukicha/              # CLI entry point
-cmd/genstdlibregistry/    # Generator: scans stdlib/*.kuki → stdlib_registry_gen.go
-cmd/gengostdlib/          # Generator: Go stdlib signatures via go/importer → go_stdlib_gen.go
+cmd/genstdlibregistry/    # Generator: stdlib/*.kuki → stdlib_registry_gen.go
+cmd/gengostdlib/          # Generator: Go stdlib signatures → go_stdlib_gen.go
 internal/
   lexer/                  # Tokenization (INDENT/DEDENT handling)
   parser/                 # Recursive descent parser → AST
@@ -502,23 +99,9 @@ internal/
   codegen/                # AST → IR (lower.go) → Go source (emit.go)
   formatter/              # Code formatting
 stdlib/                   # Standard library (.kuki source files)
-  slice/                  # Filter, Map, GroupBy, etc.
-  json/                   # encoding/json wrapper
-  fetch/                  # HTTP client (Auth, Sessions)
-  files/                  # File I/O
-  shell/                  # Command execution
-  game/                   # Registry stub only — impl at kukichalang/game
-  infer/                  # Registry stub only — impl at kukichalang/infer
-  ort/                    # Registry stub only — impl at kukichalang/infer/ort
-  webinfer/               # Registry stub only — impl at kukichalang/infer/webinfer
-  ...
 examples/                 # Example programs
 docs/                     # Documentation
-  tutorials/game/         # 8-lesson game tutorial series (WASM)
-# Editor extensions (separate repos):
-# kukichalang/vscode-kukicha  — VS Code extension
-# kukichalang/zed-kukicha     — Zed extension
-# kukichalang/tree-sitter-kukicha — Tree-sitter grammar
+  SKILL.md                # Full language + stdlib reference (embedded into user projects as AGENTS.md)
 ```
 
 ## Imports
@@ -529,39 +112,22 @@ import "stdlib/ctx" as ctxpkg          # alias — use when the package name con
 import "github.com/jackc/pgx/v5" as pgx  # external package with alias
 ```
 
-Use `as alias` whenever the package's last path segment clashes with a local variable name. See **[`stdlib/CLAUDE.md`](stdlib/CLAUDE.md)** for the canonical alias table.
-
 ## Critical Rules
 
 1. **Always validate** - Run `kukicha check` before committing `.kuki` changes
 2. Use red/green TDD when adding new features. Update existing tests when required.
-3. **4-space indentation only** - Tabs are not allowed in Kukicha
-4. **Explicit function signatures** - Parameters and return types must be declared
-5. **Test with `make test`** - Run the full test suite
-6. **Lint with `make lint`** - Catch unused code, unchecked errors, and other issues
-7. **Vet with `make vet`** - Catch bugs in stdlib that golangci-lint excludes
-8. **Modernize with `make modernize`** - Ensure generated Go uses current patterns
+3. **4-space indentation only** — tabs are not allowed in Kukicha
+4. **Explicit function signatures** — parameters and return types must be declared
+5. **Test with `make test`** — run the full test suite
+6. **Lint with `make lint`** — catch unused code, unchecked errors, and other issues
+7. **Vet with `make vet`** — catch bugs in stdlib that golangci-lint excludes
+8. **Modernize with `make modernize`** — ensure generated Go uses current patterns
+9. **After adding a stdlib function or enum**, run `make genstdlibregistry`
 
-## Adding Features to the Compiler
+## Skills
 
-Typical workflow for new syntax:
-1. **Lexer** (`internal/lexer/`) - Add token type if new keyword/operator
-2. **Parser** (`internal/parser/`) - Add parsing logic, create AST nodes
-3. **AST** (`internal/ast/`) - Define new node types if needed
-4. **Codegen** (`internal/codegen/`) - Generate corresponding Go code
-5. **Tests** - Add tests in each modified package
-
-See **[`internal/CLAUDE.md`](internal/CLAUDE.md)** for the full compiler reference.
-
-## Stdlib Packages
-
-See **[`stdlib/CLAUDE.md`](stdlib/CLAUDE.md)** for the full package reference, API details, and common usage patterns.
-
-Import with: `import "stdlib/slice"`
-
-## More Documentation
-
-- `.agent/skills/kukicha/` - Comprehensive syntax reference, examples, and troubleshooting (for all AI tools)
-- `.claude/skills/kukicha/` - Same content, Claude Code-specific location
-- `docs/kukicha-grammar.ebnf.md` - Formal grammar
-- `docs/tutorials/` - Progressive tutorials
+- `/kukicha` — full language syntax, error handling, pipes, lambdas, stdlib usage, troubleshooting
+- `/compiler-internals` — lexer, parser, AST, semantic analysis, IR, codegen internals; adding new features
+- `/stdlib` — stdlib authoring: package table, patterns, security checks, pitfalls, critical rules
+- `/cmd` — CLI binary structure, subcommands, key functions, generators, test coverage
+- `docs/SKILL.md` — full language + stdlib reference (the content embedded into user projects)

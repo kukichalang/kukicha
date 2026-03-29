@@ -54,11 +54,3 @@ func mustNotContainPattern(t *testing.T, output, pattern, msg string) {
 		t.Errorf("%s\npattern: %s\ngot:\n%s", msg, pattern, output)
 	}
 }
-
-// extractMatch returns the first match of the given regex in output, or "" if not found.
-// Useful for capturing a generated temp name and checking it's reused consistently.
-func extractMatch(output, pattern string) string {
-	re := regexp.MustCompile(pattern)
-	m := re.FindString(output)
-	return m
-}

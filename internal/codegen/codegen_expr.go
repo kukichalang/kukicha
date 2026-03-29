@@ -235,7 +235,7 @@ func (g *Generator) generatePipedSwitchExpr(expr *ast.PipedSwitchExpr) string {
 
 	var result strings.Builder
 	if returnType != "" {
-		result.WriteString(fmt.Sprintf("func() %s {\n", returnType))
+		fmt.Fprintf(&result, "func() %s {\n", returnType)
 	} else {
 		result.WriteString("func() {\n")
 	}
@@ -1066,8 +1066,14 @@ func (g *Generator) generateListLiteral(expr *ast.ListLiteralExpr) string {
 }
 
 func (g *Generator) generateMapLiteral(expr *ast.MapLiteralExpr) string {
-	keyType := g.generateTypeAnnotation(expr.KeyType)
-	valType := g.generateTypeAnnotation(expr.ValType)
+	keyType := "any"
+	if expr.KeyType != nil {
+		keyType = g.generateTypeAnnotation(expr.KeyType)
+	}
+	valType := "any"
+	if expr.ValType != nil {
+		valType = g.generateTypeAnnotation(expr.ValType)
+	}
 
 	if len(expr.Pairs) == 0 {
 		return fmt.Sprintf("map[%s]%s{}", keyType, valType)

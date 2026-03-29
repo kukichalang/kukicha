@@ -467,9 +467,17 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		if p.peekNextToken().Type == lexer.TOKEN_OF {
 			return p.parseMapLiteral()
 		}
+		if p.peekNextToken().Type == lexer.TOKEN_LBRACKET {
+			// map[K]V or map[K]V{...} — bracket map type in expression position
+			return p.parseBracketMapExpr()
+		}
 		token := p.advance()
 		return &ast.Identifier{Token: token, Value: token.Lexeme}
 	case lexer.TOKEN_LBRACKET:
+		if p.peekNextToken().Type == lexer.TOKEN_RBRACKET {
+			// []T or []T{...} — bracket list type in expression position
+			return p.parseBracketListExpr()
+		}
 		return p.parseListLiteral()
 	case lexer.TOKEN_LPAREN:
 		// Check if this is an arrow lambda: () => ..., (x Type) => ..., (x, y) => ...
@@ -479,6 +487,9 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		return p.parseGroupedExpression()
 	case lexer.TOKEN_FUNC:
 		return p.parseFunctionLiteral()
+	case lexer.TOKEN_LBRACE:
+		// {key: val, ...} — untyped map literal (type inferred from context)
+		return p.parseUntypedMapLiteral()
 	case lexer.TOKEN_DOT:
 		return p.parseShorthandMethodCall()
 	case lexer.TOKEN_RETURN:
@@ -868,6 +879,115 @@ func (p *Parser) parseTypedListLiteral() ast.Expression {
 		Token:    token,
 		Type:     elementType,
 		Elements: elements,
+	}
+}
+
+// parseBracketListExpr parses []T{...} or []T (typed-empty shorthand) in expression position.
+func (p *Parser) parseBracketListExpr() ast.Expression {
+	token := p.advance() // consume '['
+	p.advance()          // consume ']'
+	elementType := p.parseTypeAnnotation()
+
+	if !p.check(lexer.TOKEN_LBRACE) {
+		// []T as typed-empty shorthand
+		return &ast.EmptyExpr{
+			Token: token,
+			Type:  &ast.ListType{Token: token, ElementType: elementType},
+		}
+	}
+
+	p.advance() // consume '{'
+	elements := []ast.Expression{}
+	if !p.check(lexer.TOKEN_RBRACE) {
+		for {
+			elements = append(elements, p.parseExpression())
+			if !p.match(lexer.TOKEN_COMMA) {
+				break
+			}
+			if p.check(lexer.TOKEN_RBRACE) {
+				break
+			}
+		}
+	}
+	p.consume(lexer.TOKEN_RBRACE, "expected '}' after list elements")
+
+	return &ast.ListLiteralExpr{
+		Token:    token,
+		Type:     elementType,
+		Elements: elements,
+	}
+}
+
+// parseBracketMapExpr parses map[K]V{...} or map[K]V (typed-empty shorthand) in expression position.
+func (p *Parser) parseBracketMapExpr() ast.Expression {
+	token := p.advance() // consume 'map'
+	p.advance()          // consume '['
+	keyType := p.parseTypeAnnotation()
+	p.consume(lexer.TOKEN_RBRACKET, "expected ']' after map key type")
+	valType := p.parseTypeAnnotation()
+
+	if !p.check(lexer.TOKEN_LBRACE) {
+		// map[K]V as typed-empty shorthand
+		return &ast.EmptyExpr{
+			Token: token,
+			Type:  &ast.MapType{Token: token, KeyType: keyType, ValueType: valType},
+		}
+	}
+
+	p.advance() // consume '{'
+	pairs := []*ast.KeyValuePair{}
+	if !p.check(lexer.TOKEN_RBRACE) {
+		for {
+			key := p.parseExpression()
+			p.consume(lexer.TOKEN_COLON, "expected ':' after map key")
+			val := p.parseExpression()
+			pairs = append(pairs, &ast.KeyValuePair{Key: key, Value: val})
+			if p.match(lexer.TOKEN_COMMA) {
+				if p.check(lexer.TOKEN_RBRACE) {
+					break
+				}
+				continue
+			}
+			break
+		}
+	}
+	p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
+
+	return &ast.MapLiteralExpr{
+		Token:   token,
+		KeyType: keyType,
+		ValType: valType,
+		Pairs:   pairs,
+	}
+}
+
+// parseUntypedMapLiteral parses {key: val, ...} — a map literal without explicit types.
+// Types default to map[any]any in codegen (or are inferred from context by the semantic analyzer).
+func (p *Parser) parseUntypedMapLiteral() ast.Expression {
+	token := p.advance() // consume '{'
+
+	pairs := []*ast.KeyValuePair{}
+	if !p.check(lexer.TOKEN_RBRACE) {
+		for {
+			key := p.parseExpression()
+			p.consume(lexer.TOKEN_COLON, "expected ':' after map key")
+			val := p.parseExpression()
+			pairs = append(pairs, &ast.KeyValuePair{Key: key, Value: val})
+			if p.match(lexer.TOKEN_COMMA) {
+				if p.check(lexer.TOKEN_RBRACE) {
+					break
+				}
+				continue
+			}
+			break
+		}
+	}
+	p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
+
+	return &ast.MapLiteralExpr{
+		Token: token,
+		// KeyType and ValType are nil — codegen defaults to map[any]any
+		Pairs: pairs,
 	}
 }
 
