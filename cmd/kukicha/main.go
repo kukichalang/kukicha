@@ -260,8 +260,24 @@ func mergePrograms(programs []*ast.Program, files []string) (*ast.Program, error
 		}
 	}
 
-	// Concatenate declarations
-	for _, prog := range programs {
+	// Check for duplicate function declarations and concatenate declarations.
+	// We allow multiple "init" functions (as Go does) but ensure other
+	// names (including "main") are unique within the merged package.
+	seenFuncs := make(map[string]string) // func name -> file where first seen
+	for i, prog := range programs {
+		for _, decl := range prog.Declarations {
+			if funcDecl, ok := decl.(*ast.FunctionDecl); ok {
+				funcName := funcDecl.Name.Value
+				// Go allows multiple init functions in the same package.
+				if funcName != "init" {
+					if existingFile, exists := seenFuncs[funcName]; exists {
+						return nil, fmt.Errorf("function '%s' already declared in %s (first declared in %s)",
+							funcName, files[i], existingFile)
+					}
+					seenFuncs[funcName] = files[i]
+				}
+			}
+		}
 		merged.Declarations = append(merged.Declarations, prog.Declarations...)
 	}
 
