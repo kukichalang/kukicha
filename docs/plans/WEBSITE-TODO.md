@@ -32,6 +32,7 @@ Common patterns:
 | Interactivity | HTMX 4 (CDN) | No JS build step, partial swaps for WASM loader |
 | CSS | Oat (CDN) | Classless + utility, no build step |
 | WASM demos | Pre-built `.wasm` in `static/` | Stem Panic, Breakout, playground (future) |
+| Compression | Pre-compressed Brotli (`.wasm.br` in Docker) + `Content-Encoding: br` | Self-contained, no CDN needed for Brotli |
 
 This means:
 - The entire site source is `.kuki` files — visitors can read the code that serves them
@@ -193,16 +194,61 @@ Key patterns:
 - [ ] Deploy to Fly.io or Railway
 - [ ] Cloudflare DNS pointing kukicha.org at the host
 
-### v0.2 — Playground
-- [ ] WASM-compiled Kukicha compiler running in browser
-- [ ] Split-pane editor with syntax highlighting
-- [ ] Pre-loaded examples (fetch pipeline, Breakout, hello world)
-- [ ] HTMX partial: swap playground output without full page reload
+### v0.2 — Playground (transpiler-only WASM)
 
-### v0.3 — Docs migration
+#### Architecture
+
+The `compile()` pipeline in `cmd/kukicha/main.go` is entirely pure Go — no `exec.Command`.
+Shell-outs only happen in `buildCommand` (calls `go build`) and `runCommand` (calls `go run`).
+
+This means **parse → semantic → codegen → `go/format`** can run in WASM with no backend and
+no Go toolchain in the browser. The compiler internals need zero changes.
+
+A new `cmd/kukicha-wasm/main.go` (~50 lines of glue) exposes a single JS function:
+
+```
+kukichaTranspile(source) → { goSource: "...", errors: ["..."] }
+```
+
+Estimated WASM size: ~3–5 MB uncompressed, ~1–2 MB gzipped.
+
+**What the playground does:** Kukicha source on the left → live-generated Go on the right.
+Errors appear as you type (debounced 300ms). No execution — transpilation + error display only.
+This directly serves selling points 1 ("read what AI writes") and 2 ("catch mistakes at compile time").
+
+**Execution (actually running Kukicha code) is deferred to v0.3** — it requires a sandboxed
+server endpoint calling `go run`, rate limiting, and streaming stdout/stderr back.
+
+#### Checklist
+- [x] `cmd/kukicha-wasm/main.go` — WASM entrypoint, registers `kukichaTranspile` JS function
+- [x] `kukicha build --wasm cmd/kukicha-wasm/main.kuki` → `static/wasm/kukicha.wasm`
+- [x] Split-pane editor (CodeMirror or plain `<textarea>` to start)
+- [x] Live transpilation on keystroke (debounced 300ms, plain JS — no HTMX needed here)
+- [x] Pre-loaded examples: fetch pipeline, hello world, security flag demo
+- [x] Error display below editor pane
+- [x] "Generated Go" pane collapses on mobile
+- [x] HTMX partial: swap playground section without full page reload
+
+### v0.3 — Playground execution + Docs migration
+
+#### Playground execution
+- [ ] Server endpoint: receive Kukicha source, run `go run` in sandbox, stream stdout/stderr
+- [ ] Sandboxing: gVisor, firecracker, or rate-limited Docker container
+- [ ] "Run" button in playground — HTMX partial swaps output pane
+- [ ] Resource limits: timeout, memory cap, no network access in sandbox
+
+#### Docs migration
 - [ ] Move tutorials into the website (render markdown → `html.Fragment` at build time or startup)
 - [ ] Stdlib reference pages (auto-generated from .kuki files)
 - [ ] Search (HTMX `hx-trigger='keyup changed delay:300ms'` for live search)
+
+### Cloud CDN (long-term)
+- [ ] Global HTTPS Load Balancer in front of Cloud Run (GCP)
+- [ ] Enable Cloud CDN on the LB backend for edge caching of WASM + static assets
+- [ ] Add `Vary: Accept-Encoding` already in place — CDN will cache Brotli and plain versions separately
+- [ ] Expected savings: WASM files served from edge, ~300ms → <50ms for cached requests; eliminates Cloud Run cold starts for static asset fetches
+
+Note: The `Vary: Accept-Encoding` and `Cache-Control: public, max-age=3600` headers are already set by the `serveWasm` handler in `main.kuki`, so the LB/CDN setup requires no application code changes.
 
 ### v0.4 — Blog
 - [ ] Markdown → `html.Fragment` renderer

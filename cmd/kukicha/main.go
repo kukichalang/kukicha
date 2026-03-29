@@ -41,16 +41,17 @@ func main() {
 		ifChanged := buildFlags.Bool("if-changed", false, "Skip writing output if Go body (excluding generated header) is unchanged")
 		vulncheck := buildFlags.Bool("vulncheck", false, "Run govulncheck after successful build")
 		wasm := buildFlags.Bool("wasm", false, "Build for WebAssembly (GOOS=js GOARCH=wasm)")
+		noLineDirectives := buildFlags.Bool("no-line-directives", false, "Omit //line directives from generated Go (cleaner output for production builds)")
 		if err := buildFlags.Parse(args); err != nil {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] <file.kuki>")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] [--no-line-directives] <file.kuki>")
 			os.Exit(1)
 		}
 		buildArgs := buildFlags.Args()
 		if len(buildArgs) < 1 {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] <file.kuki>")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] [--no-line-directives] <file.kuki>")
 			os.Exit(1)
 		}
-		buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck, *wasm)
+		buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck, *wasm, *noLineDirectives)
 	case "run":
 		runFlags := flag.NewFlagSet("run", flag.ContinueOnError)
 		runFlags.SetOutput(os.Stderr)
@@ -374,7 +375,8 @@ type compileResult struct {
 // compile runs the shared pipeline: resolve path, parse, analyze, detect target,
 // generate Go code, and format it. targetFlag overrides auto-detection when non-empty.
 // defaultTarget is used when no flag is given and no target directive is found in source.
-func compile(filename, targetFlag, defaultTarget string) compileResult {
+// stripLineDirectives suppresses //line directives in generated output.
+func compile(filename, targetFlag, defaultTarget string, stripLineDirectives bool) compileResult {
 	files, isDir, err := resolveKukiFiles(filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -443,6 +445,9 @@ func compile(filename, targetFlag, defaultTarget string) compileResult {
 	gen.SetExprTypes(exprTypes)
 	if program.Target == "mcp" {
 		gen.SetMCPTarget(true)
+	}
+	if stripLineDirectives {
+		gen.SetStripLineDirectives(true)
 	}
 	goCode, err := gen.Generate()
 	if err != nil {
@@ -573,8 +578,8 @@ func stripFirstLine(b []byte) []byte {
 	return b
 }
 
-func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool, wasm bool) {
-	cr := compile(filename, targetFlag, "")
+func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool, wasm bool, noLineDirectives bool) {
+	cr := compile(filename, targetFlag, "", noLineDirectives)
 
 	// Write Go file — for directory builds, use <dir>/main.go; for files, use <file>.go
 	var outputFile string
@@ -729,7 +734,7 @@ WebAssembly.instantiateStreaming(fetch("%s.wasm"), go.importObject).then(r => go
 }
 
 func runCommand(filename string, targetFlag string, scriptArgs []string) {
-	cr := compile(filename, targetFlag, "")
+	cr := compile(filename, targetFlag, "", false)
 
 	// If stdlib is needed, extract it and ensure go.mod is configured.
 	// Keep temp source in project context so local replace directives resolve.

@@ -70,6 +70,7 @@ type Generator struct {
 	varMap               map[string]string        // Maps generated temp variable names to source descriptions (for debugging)
 	warnings             []error                  // Non-fatal diagnostics collected during code generation
 	enumTypes            map[string]bool          // Enum type names for Status.OK → StatusOK rewriting
+	stripLineDirectives  bool                     // When true, omit //line directives from generated output
 }
 
 // New creates a new code generator
@@ -185,6 +186,13 @@ func (g *Generator) SetExprTypes(types map[ast.Expression]*semantic.TypeInfo) {
 // SetMCPTarget enables special codegen for MCP servers (e.g., print to stderr)
 func (g *Generator) SetMCPTarget(v bool) {
 	g.mcpTarget = v
+}
+
+// SetStripLineDirectives disables emission of //line directives in generated Go.
+// Useful for production builds where .kuki source files are not present at
+// runtime and smaller/cleaner output is preferred over source-mapped errors.
+func (g *Generator) SetStripLineDirectives(v bool) {
+	g.stripLineDirectives = v
 }
 
 // Generate generates Go code from the AST
@@ -319,7 +327,7 @@ func (g *Generator) indentStr() string {
 // these directives, so compile errors, panics, and stack traces will reference
 // the .kuki file instead of the generated .go file.
 func (g *Generator) emitLineDirective(pos ast.Position) {
-	if pos.Line > 0 && pos.File != "" {
+	if !g.stripLineDirectives && pos.Line > 0 && pos.File != "" {
 		fmt.Fprintf(&g.output, "//line %s:%d\n", pos.File, pos.Line)
 	}
 }

@@ -15,7 +15,7 @@ import (
 )
 
 func packCommand(filename string, outputDir string) {
-	cr := compile(filename, "", "mcp")
+	cr := compile(filename, "", "mcp", false)
 
 	// Validate skill declaration exists
 	if cr.program.SkillDecl == nil {
