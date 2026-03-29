@@ -465,7 +465,7 @@ make gengostdlib          # Regenerate only internal/semantic/go_stdlib_gen.go
 kukicha check file.kuki   # Validate syntax without compiling
 kukicha check myapp/      # Validate all .kuki files in a directory
 kukicha build file.kuki   # Transpile and compile to binary
-kukicha build myapp/      # Build from directory (merges all .kuki files)
+kukicha build myapp/      # Build from directory (merges all .kuki files into main.go)
 kukicha build --wasm file.kuki       # Build for WebAssembly (GOOS=js GOARCH=wasm)
 kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run
@@ -474,6 +474,16 @@ kukicha audit             # Check dependencies for known vulnerabilities
 kukicha audit --warn-only # Audit but exit 0 even if vulns found
 kukicha audit --json      # Audit with JSON output
 ```
+
+## Multi-File Directory Builds
+
+`kukicha build myapp/` merges all `.kuki` files in a directory into a single `main.go` and compiles it.
+
+- Exactly **one file** defines `func main()` — the entry point
+- Other files use `func init()` for startup code that runs before `main`
+- All files must use the same `petiole` declaration (or all omit it)
+- Imports are deduplicated; duplicate function names (except `init`) are rejected
+- Test files (`*_test.kuki`) are excluded from the merge
 
 ## File Map
 

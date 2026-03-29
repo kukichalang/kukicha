@@ -17,31 +17,28 @@ function main()
 
 Run with: `kukicha run hello.kuki`
 
-**Multi-file packages:** Use `petiole <name>` at the top of each file. Files in the same directory with the same `petiole` name share a namespace. One file must define `function main()`.
+**Multi-file packages:** Build a directory with `kukicha build myapp/`. All `.kuki` files in the directory are merged into a single package. Rules:
+
+- Exactly **one file** must define `func main()` — the entry point
+- Other files use `func init()` for startup code (Go allows multiple `init` functions)
+- All files must have the same `petiole` declaration (or all omit it)
+- Imports are deduplicated across files
+- Duplicate function names (except `init`) are rejected at compile time
 
 ```kukicha
-# main.kuki
-petiole myapp
+# main.kuki — entry point
+func main()
+    startServer()
 
-import "myapp/handlers"
+# routes.kuki — helper file in same directory
+func init()
+    print("routes loaded")
 
-function main()
-    handlers.Serve()
+func startServer()
+    print("listening on :8080")
 ```
 
-```kukicha
-# handlers.kuki
-petiole myapp
-
-import "net/http"
-
-function Serve()
-    http.HandleFunc("/", handleHome)
-    http.ListenAndServe(":8080", empty)
-
-function handleHome(w http.ResponseWriter, r reference http.Request)
-    w.Write("Hello!")
-```
+Build with: `kukicha build myapp/` — merges all `.kuki` files into `myapp/main.go` and compiles.
 
 ### Syntax vs Go
 
