@@ -409,8 +409,6 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		return p.parseStringLiteral()
 	case lexer.TOKEN_STRING_HEAD:
 		return p.parseInterpolatedStringLiteral()
-	case lexer.TOKEN_RUNE:
-		return p.parseRuneLiteral()
 	case lexer.TOKEN_TRUE, lexer.TOKEN_FALSE:
 		return p.parseBooleanLiteral()
 	case lexer.TOKEN_IDENTIFIER:
@@ -618,19 +616,6 @@ func (p *Parser) parseInterpolatedStringLiteral() *ast.StringLiteral {
 		Value:        valueBuf.String(),
 		Interpolated: true,
 		Parts:        parts,
-	}
-}
-
-func (p *Parser) parseRuneLiteral() *ast.RuneLiteral {
-	token := p.advance()
-	// The lexeme contains the character as a string
-	var value rune
-	if len(token.Lexeme) > 0 {
-		value = []rune(token.Lexeme)[0]
-	}
-	return &ast.RuneLiteral{
-		Token: token,
-		Value: value,
 	}
 }
 

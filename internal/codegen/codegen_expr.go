@@ -73,8 +73,6 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return fmt.Sprintf("%d", e.Value)
 	case *ast.FloatLiteral:
 		return e.Token.Lexeme
-	case *ast.RuneLiteral:
-		return fmt.Sprintf("'%s'", g.escapeRune(e.Value))
 	case *ast.StringLiteral:
 		return g.generateStringLiteral(e)
 	case *ast.BooleanLiteral:
@@ -365,26 +363,6 @@ func (g *Generator) inferExprType(expr ast.Expression) string {
 		return "bool"
 	}
 	return ""
-}
-
-// escapeRune returns the Go escape sequence for a rune
-func (g *Generator) escapeRune(r rune) string {
-	switch r {
-	case '\n':
-		return "\\n"
-	case '\t':
-		return "\\t"
-	case '\r':
-		return "\\r"
-	case '\\':
-		return "\\\\"
-	case '\'':
-		return "\\'"
-	case '\x00':
-		return "\\x00"
-	default:
-		return string(r)
-	}
 }
 
 // escapeString returns a string with special characters escaped for Go string literals

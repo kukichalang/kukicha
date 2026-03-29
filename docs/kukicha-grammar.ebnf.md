@@ -366,18 +366,20 @@ Literal ::=
     | IntegerLiteral
     | FloatLiteral
     | StringLiteral
-    | RuneLiteral
     | BooleanLiteral
 
 IntegerLiteral ::= DIGIT { DIGIT }
 
 FloatLiteral ::= DIGIT { DIGIT } "." DIGIT { DIGIT }
 
-StringLiteral ::= '"' { StringChar | Interpolation } '"'
+StringLiteral ::=
+    | '"' { StringChar | Interpolation } '"'
+    | "'" { SingleQuoteStringChar | Interpolation } "'"
 
 StringChar ::= /* any character except ", newline, or { */
 
-RuneChar ::= /* any character except ', newline, or escape */
+SingleQuoteStringChar ::= /* any character except unescaped ', or { */
+    /* single-quote strings are multi-line with auto-dedent */
 
 Interpolation ::= "{" Expression "}"
 
@@ -449,7 +451,7 @@ ErrorExpression ::= "error" Expression
 DiscardExpression ::= "discard"
 CloseExpression ::= "close" Expression
 PanicExpression ::= "panic" Expression
-RuneLiteral ::= "'" RuneChar "'"
+/* Rune literals removed — use strings for all text */
 ```
 
 ---

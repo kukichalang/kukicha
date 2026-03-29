@@ -644,17 +644,6 @@ func (e *FloatLiteral) Pos() Position {
 }
 func (e *FloatLiteral) exprNode() {}
 
-type RuneLiteral struct {
-	Token lexer.Token
-	Value rune
-}
-
-func (e *RuneLiteral) TokenLiteral() string { return e.Token.Lexeme }
-func (e *RuneLiteral) Pos() Position {
-	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
-}
-func (e *RuneLiteral) exprNode() {}
-
 type StringLiteral struct {
 	Token        lexer.Token
 	Value        string

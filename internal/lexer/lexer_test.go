@@ -366,36 +366,36 @@ func TestStringInterpolationTokens(t *testing.T) {
 	}
 }
 
-func TestRuneLiterals(t *testing.T) {
+func TestSingleQuoteStrings(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
 		expected string
 	}{
 		{
-			name:     "simple rune",
+			name:     "simple single char",
 			input:    `'a'`,
 			expected: "a",
 		},
 		{
-			name:     "newline escape",
-			input:    `'\n'`,
-			expected: "\n",
+			name:     "single-quote string",
+			input:    `'hello world'`,
+			expected: "hello world",
 		},
 		{
-			name:     "tab escape",
-			input:    `'\t'`,
-			expected: "\t",
+			name:     "escaped single quote",
+			input:    `'it\'s'`,
+			expected: "it's",
 		},
 		{
-			name:     "single quote escape",
-			input:    `'\''`,
-			expected: "'",
-		},
-		{
-			name:     "digit rune",
+			name:     "digit",
 			input:    `'0'`,
 			expected: "0",
+		},
+		{
+			name:     "html with double quotes",
+			input:    `'<div class="foo">bar</div>'`,
+			expected: `<div class="foo">bar</div>`,
 		},
 	}
 
@@ -408,14 +408,30 @@ func TestRuneLiterals(t *testing.T) {
 				t.Fatalf("Unexpected error: %v", err)
 			}
 
-			if len(tokens) < 1 || tokens[0].Type != TOKEN_RUNE {
-				t.Fatalf("Expected RUNE token, got %v", tokens[0].Type)
+			if len(tokens) < 1 || tokens[0].Type != TOKEN_STRING {
+				t.Fatalf("Expected STRING token, got %v", tokens[0].Type)
 			}
 
 			if tokens[0].Lexeme != tt.expected {
-				t.Errorf("Expected rune %q, got %q", tt.expected, tokens[0].Lexeme)
+				t.Errorf("Expected %q, got %q", tt.expected, tokens[0].Lexeme)
 			}
 		})
+	}
+}
+
+func TestSingleQuoteMultiLine(t *testing.T) {
+	input := "'\n        <div>\n            hello\n        </div>\n    '"
+	lexer := NewLexer(input, "test.kuki")
+	tokens, err := lexer.ScanTokens()
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if len(tokens) < 1 || tokens[0].Type != TOKEN_STRING {
+		t.Fatalf("Expected STRING token, got %v (len=%d)", tokens[0].Type, len(tokens))
+	}
+	expected := "<div>\n    hello\n</div>\n"
+	if tokens[0].Lexeme != expected {
+		t.Errorf("Expected dedented %q, got %q", expected, tokens[0].Lexeme)
 	}
 }
 

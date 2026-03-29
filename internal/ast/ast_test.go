@@ -172,7 +172,6 @@ func TestNodeInterface_Expressions(t *testing.T) {
 		&Identifier{Token: lexer.Token{Lexeme: "x", Line: 1, Column: 1}, Value: "x"},
 		&IntegerLiteral{Token: lexer.Token{Lexeme: "42", Line: 2, Column: 1}},
 		&FloatLiteral{Token: lexer.Token{Lexeme: "3.14", Line: 3, Column: 1}},
-		&RuneLiteral{Token: lexer.Token{Lexeme: "'a'", Line: 4, Column: 1}},
 		&StringLiteral{Token: lexer.Token{Lexeme: `"hello"`, Line: 5, Column: 1}},
 		&BooleanLiteral{Token: lexer.Token{Lexeme: "true", Line: 6, Column: 1}},
 		&BinaryExpr{Token: lexer.Token{Lexeme: "+", Line: 7, Column: 1}},

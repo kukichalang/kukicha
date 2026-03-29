@@ -102,7 +102,11 @@ For interpolated strings (containing `{expr}`), the lexer emits multiple tokens 
 
 Between HEAD→MID and MID→MID/TAIL, normal expression tokens are emitted. The parser calls `parseExpression()` directly on these tokens — no sub-parser needed.
 
-**Brace depth tracking:** `interpStack []int` on the `Lexer` tracks nesting within each interpolation level. `{` inside an interpolation increments `interpStack[top]`; `}` at depth 0 ends the interpolation and resumes string scanning via `scanStringContinuation()`. This correctly handles nested braces like `{MyStruct{field: 1}}`.
+**Brace depth tracking:** `interpStack []interpState` on the `Lexer` tracks nesting within each interpolation level. Each `interpState` stores `braceDepth int` and `quote rune` (either `'"'` or `'\''`). `{` inside an interpolation increments the top entry's `braceDepth`; `}` at depth 0 ends the interpolation and resumes string scanning via `scanStringContinuation(quote)`, which uses the stored quote to know which delimiter terminates the string. This correctly handles nested braces like `{MyStruct{field: 1}}` and interpolation in both double-quoted and single-quoted strings.
+
+### Single-quote multi-line strings
+
+`scanSingleQuoteString()` scans `'...'` strings. These are multi-line with auto-dedent (same as `"""..."""`), but use single quotes — ideal for HTML templating where double quotes are used for attributes. The raw content is collected, then passed to `dedentTripleQuote()` and `scanStringFromContent()` for interpolation tokenization. Escape `\'` for literal single quotes inside.
 
 **Interpolation detection:** `isInterpStart()` checks if the character after `{` is alpha or `_`. Non-identifier starts like `{2,}` are treated as literal text.
 

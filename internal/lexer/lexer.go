@@ -45,8 +45,15 @@ type Lexer struct {
 	// String interpolation support: when scanning a string and encountering
 	// {expr}, the lexer emits TOKEN_STRING_HEAD, returns to normal tokenization
 	// for the expression, and resumes string scanning when the matching } is found.
-	// Each entry in interpStack is the brace depth within that interpolation level.
-	interpStack []int
+	// Each entry in interpStack tracks the brace depth and the quote character
+	// ('"' or '\'') so the continuation scanner knows which delimiter to look for.
+	interpStack []interpState
+}
+
+// interpState tracks the context for a string interpolation level.
+type interpState struct {
+	braceDepth int  // nesting of {} within this interpolation expression
+	quote      rune // '"' for double-quoted strings, '\'' for single-quoted strings
 }
 
 // NewLexer creates a new lexer for the given source code
@@ -172,7 +179,7 @@ func (l *Lexer) scanToken() {
 	case '"':
 		l.scanString()
 	case '\'':
-		l.scanRune()
+		l.scanSingleQuoteString()
 	case '(':
 		l.parenDepth++
 		l.addToken(TOKEN_LPAREN)
@@ -194,20 +201,21 @@ func (l *Lexer) scanToken() {
 		l.addToken(TOKEN_RBRACKET)
 	case '{':
 		if len(l.interpStack) > 0 {
-			l.interpStack[len(l.interpStack)-1]++
+			l.interpStack[len(l.interpStack)-1].braceDepth++
 		}
 		l.braceDepth++
 		l.addToken(TOKEN_LBRACE)
 	case '}':
-		if len(l.interpStack) > 0 && l.interpStack[len(l.interpStack)-1] == 0 {
+		if len(l.interpStack) > 0 && l.interpStack[len(l.interpStack)-1].braceDepth == 0 {
 			// End of string interpolation expression — resume string scanning
+			quote := l.interpStack[len(l.interpStack)-1].quote
 			l.interpStack = l.interpStack[:len(l.interpStack)-1]
 			l.start = l.current
-			l.scanStringContinuation()
+			l.scanStringContinuation(quote)
 			return
 		}
 		if len(l.interpStack) > 0 {
-			l.interpStack[len(l.interpStack)-1]--
+			l.interpStack[len(l.interpStack)-1].braceDepth--
 		}
 		if l.braceDepth > 0 {
 			l.braceDepth--
@@ -401,7 +409,7 @@ func (l *Lexer) scanString() {
 		l.addTokenWithLexeme(TOKEN_STRING, "")
 		return
 	}
-	l.scanStringBody(TOKEN_STRING_HEAD, TOKEN_STRING)
+	l.scanStringBody(TOKEN_STRING_HEAD, TOKEN_STRING, '"')
 }
 
 // scanTripleQuoteString scans a triple-quoted string literal ("""...""").
@@ -567,26 +575,36 @@ func (l *Lexer) scanStringFromContent(content string) {
 	newSource = append(newSource, inject...)
 	newSource = append(newSource, l.source[l.current:]...)
 	l.source = newSource
-	l.scanStringBody(TOKEN_STRING_HEAD, TOKEN_STRING)
+	l.scanStringBody(TOKEN_STRING_HEAD, TOKEN_STRING, '"')
 }
 
 // scanStringContinuation resumes string scanning after a } closes an
-// interpolation expression. Emits TOKEN_STRING_MID if another interpolation
+// interpolation expression. The quote parameter indicates which delimiter
+// to look for ('"' or '\''). Emits TOKEN_STRING_MID if another interpolation
 // follows, or TOKEN_STRING_TAIL at the closing quote.
-func (l *Lexer) scanStringContinuation() {
-	l.scanStringBody(TOKEN_STRING_MID, TOKEN_STRING_TAIL)
+func (l *Lexer) scanStringContinuation(quote rune) {
+	l.scanStringBody(TOKEN_STRING_MID, TOKEN_STRING_TAIL, quote)
 }
 
 // scanStringBody is the shared string scanning logic.
 // interpTokenType is emitted when a {expr} interpolation is found (HEAD or MID).
-// endTokenType is emitted when the string ends with " (STRING or TAIL).
-func (l *Lexer) scanStringBody(interpTokenType TokenType, endTokenType TokenType) {
+// endTokenType is emitted when the string ends with the closing quote (STRING or TAIL).
+// quote is the terminator character ('"' for double-quoted, '\'' for single-quoted).
+func (l *Lexer) scanStringBody(interpTokenType TokenType, endTokenType TokenType, quote rune) {
 	value := strings.Builder{}
 
-	for !l.isAtEnd() && l.peek() != '"' {
+	for !l.isAtEnd() && l.peek() != quote {
 		if l.peek() == '\n' {
-			l.error("Unterminated string")
-			return
+			// Single-quote strings are multi-line; double-quote strings are not
+			if quote == '"' {
+				l.error("Unterminated string")
+				return
+			}
+			// For single-quote strings, include the newline in content
+			value.WriteRune(l.advance())
+			l.line++
+			l.column = 0
+			continue
 		}
 
 		if l.peek() == '\\' {
@@ -596,7 +614,7 @@ func (l *Lexer) scanStringBody(interpTokenType TokenType, endTokenType TokenType
 			// interp state, and return so the expression gets tokenized.
 			l.advance() // consume '{'
 			l.addTokenWithLexeme(interpTokenType, value.String())
-			l.interpStack = append(l.interpStack, 0)
+			l.interpStack = append(l.interpStack, interpState{braceDepth: 0, quote: quote})
 			return
 		} else {
 			value.WriteRune(l.advance())
@@ -686,57 +704,54 @@ func (l *Lexer) scanStringEscape(value *strings.Builder) {
 	}
 }
 
-// scanRune scans a single-quoted character/rune literal
-func (l *Lexer) scanRune() {
-	if l.isAtEnd() {
-		l.error("Unterminated character literal")
-		return
-	}
+// scanSingleQuoteString scans a single-quoted multi-line string literal ('...').
+//
+// Behavior:
+//   - Content spans multiple lines until the closing '
+//   - Leading common indentation (dedent) is stripped (same as triple-quoted strings)
+//   - The first newline after the opening ' is stripped
+//   - The last newline before the closing ' is stripped
+//   - String interpolation ({expr}) works inside, same as double-quoted strings
+//   - Escape sequences work: \', \\, \{, \}, \n, \t, etc.
+//
+// This makes single-quoted strings ideal for HTML where double quotes are used
+// for attributes: html.Render('<div class="hero">{html.Escape(title)}</div>')
+func (l *Lexer) scanSingleQuoteString() {
+	startLine := l.line
+	raw := strings.Builder{}
 
-	var char rune
-	if l.peek() == '\\' {
-		// Handle escape sequences
-		l.advance() // consume \
-		if l.isAtEnd() {
-			l.error("Unterminated escape sequence in character literal")
-			return
+	for !l.isAtEnd() {
+		if l.peek() == '\'' {
+			l.advance() // consume closing '
+			break
 		}
-		escaped := l.advance()
-		switch escaped {
-		case 'n':
-			char = '\n'
-		case 't':
-			char = '\t'
-		case 'r':
-			char = '\r'
-		case '\\':
-			char = '\\'
-		case '\'':
-			char = '\''
-		case '"':
-			char = '"'
-		case '0':
-			char = '\x00'
-		default:
-			char = escaped
+		if l.peek() == '\\' && l.current+1 < len(l.source) && l.source[l.current+1] == '\'' {
+			// Escaped single quote — include literal '
+			l.advance() // consume \
+			l.advance() // consume '
+			raw.WriteRune('\'')
+			continue
 		}
-	} else if l.peek() == '\'' {
-		l.error("Empty character literal")
-		return
-	} else {
-		char = l.advance()
+		ch := l.advance()
+		if ch == '\n' {
+			l.line++
+			l.column = 0
+		}
+		raw.WriteRune(ch)
 	}
 
-	if l.isAtEnd() || l.peek() != '\'' {
-		l.error("Unterminated character literal (use double quotes for strings)")
-		return
-	}
+	endLine := l.line
+	endColumn := l.column
 
-	l.advance() // consume closing quote
+	content := dedentTripleQuote(raw.String())
 
-	// Store the rune as a string (the value will be the character)
-	l.addTokenWithLexeme(TOKEN_RUNE, string(char))
+	l.line = startLine
+	l.scanStringFromContent(content)
+	l.line = endLine
+	l.column = endColumn
 }
+
+
 
 // scanNumber scans a number (integer or float)
 func (l *Lexer) scanNumber() {

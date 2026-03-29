@@ -106,6 +106,24 @@ Use `\{` and `\}` to produce literal `{` and `}` characters in strings. Without 
 
 Use `\sep` to produce the OS-specific path separator (`/` on Unix, `\` on Windows) at runtime. It expands to `string(filepath.Separator)` in generated Go and auto-imports `path/filepath`.
 
+### Single-Quote Multi-Line Strings
+```kukicha
+# Single-quote strings are multi-line with auto-dedent — ideal for HTML
+page := '
+    <div class="hero">
+        <h1>{html.Escape(title)}</h1>
+    </div>
+'
+```
+
+Single-quote strings (`'...'`) behave like triple-quoted strings (`"""..."""`) but use `'` as the delimiter. This avoids escaping double quotes inside HTML attributes. Features:
+- Multi-line with automatic indentation stripping (based on closing `'` position)
+- String interpolation with `{expr}` works identically to double-quoted strings
+- Escape sequences: `\'` for literal single quote, `\{` `\}` for literal braces
+- First newline after opening `'` and last newline before closing `'` are stripped
+
+**Note:** Kukicha does not have rune/character literals. Use strings for all text.
+
 ### Functions (explicit types required)
 ```kukicha
 func Add(a int, b int) int
