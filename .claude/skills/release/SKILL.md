@@ -33,10 +33,11 @@ Replace all with the new version.
 
 ### 3b. Update version and WASM in kukicha.org
 
-Update the two version strings in `~/repos/kukicha/kukicha.org`:
+Update the three version strings in `~/repos/kukicha/kukicha.org`:
 
 - `components/hero.kuki` — badge text: `v0.0.OLD` (two occurrences on one line: `title` attribute and link text)
 - `components/layout.kuki` — footer text: `Kukicha v0.0.OLD`
+- `Dockerfile` — `go install github.com/kukichalang/kukicha/cmd/kukicha@vOLD`
 
 Then rebuild the playground WASM from the just-built compiler (the new version is now baked into the binary):
 
@@ -48,7 +49,7 @@ Commit and push in the kukicha.org repo:
 
 ```bash
 cd ~/repos/kukicha/kukicha.org
-git add components/hero.kuki components/layout.kuki static/wasm/kukicha.wasm
+git add components/hero.kuki components/layout.kuki Dockerfile static/wasm/kukicha.wasm
 git commit -m "chore: bump version to vX.X.X"
 git push origin main
 ```
@@ -134,5 +135,6 @@ git push origin vX.X.X
 - [ ] Tag created and pushed
 - [ ] `git ls-remote --tags origin` confirms tag is present
 - [ ] `~/repos/kukicha/kukicha.org` — `components/hero.kuki` and `components/layout.kuki` updated
+- [ ] `~/repos/kukicha/kukicha.org` — `Dockerfile` pinned to new version
 - [ ] `~/repos/kukicha/kukicha.org` — `static/wasm/kukicha.wasm` rebuilt via `make build-wasm`
 - [ ] `~/repos/kukicha/kukicha.org` — committed and pushed
