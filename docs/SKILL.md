@@ -392,11 +392,30 @@ petiole main                   # package declaration (Go's `package main`)
 kukicha init [module]          # initialize project (go mod init + extract stdlib)
 kukicha check file.kuki        # validate syntax without compiling
 kukicha run file.kuki          # transpile, compile, and run
-kukicha build file.kuki        # transpile and compile to binary
+kukicha build file.kuki        # transpile and compile to binary (named after source file stem)
+kukicha build myapp/           # build directory — binary named after the directory
+kukicha build .                # build current directory — binary named after working dir
 kukicha fmt -w file.kuki       # format in place
 kukicha pack skill.kuki        # package skill into directory with SKILL.md + binary
 kukicha audit                  # check dependencies for known vulnerabilities
 ```
+
+**Build flags:**
+
+```bash
+kukicha build --wasm file.kuki          # WebAssembly output (GOOS=js GOARCH=wasm)
+kukicha build --vulncheck file.kuki     # build + check for known vulnerabilities
+```
+
+**Binary output location and name:**
+
+The binary is placed in the same directory as the source file (or the project directory for directory builds). The name comes from:
+
+- `kukicha build hello.kuki` → `./hello` (stem of the `.kuki` file)
+- `kukicha build myapp/` → `myapp/myapp` (base name of the directory)
+- `kukicha build .` → `./myproject` (base name of the working directory — e.g. building in `/src/myproject` produces `./myproject`)
+
+On Windows the binary gets a `.exe` suffix automatically. WASM builds produce a `.wasm` file instead.
 
 ---
 

@@ -557,6 +557,9 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 		// Security: detect http.Redirect with non-literal URL (open redirect)
 		a.checkRedirectNonLiteral(qualifiedName, expr, pipedArg)
 
+		// Security: detect inline <script> and on*= event handlers in html.Render
+		a.checkHTMLRenderInlineJS(qualifiedName, expr, pipedArg)
+
 		// Check generated Go stdlib registry first (has full type info)
 		if entry, ok := generatedGoStdlib[qualifiedName]; ok {
 			a.checkDeprecated(expr, methodName, qualifiedName)

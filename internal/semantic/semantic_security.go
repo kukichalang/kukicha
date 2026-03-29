@@ -7,6 +7,67 @@ import (
 	"github.com/kukichalang/kukicha/internal/ast"
 )
 
+// inlineScriptPattern matches <script in HTML content (case-insensitive check done in code).
+// onEventPattern matches inline event handlers like onclick=, onload=, onerror=, etc.
+
+// checkHTMLRenderInlineJS warns when html.Render() contains inline <script> tags or
+// on*= event handler attributes. These are XSS vectors that bypass html.Escape().
+// Use static files (<script src="...">) or html.Escape() for dynamic content instead.
+func (a *Analyzer) checkHTMLRenderInlineJS(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+	if qualifiedName != "html.Render" {
+		return
+	}
+
+	// Content is the first arg (index 0) in a plain call,
+	// or the piped value (not in args) when piped.
+	contentArgIndex := 0
+	if pipedArg != nil {
+		// When content is piped, it's not in the argument list — we can't inspect it statically.
+		return
+	}
+	if contentArgIndex >= len(expr.Arguments) {
+		return
+	}
+
+	contentArg := expr.Arguments[contentArgIndex]
+	strLit, ok := contentArg.(*ast.StringLiteral)
+	if !ok {
+		return
+	}
+
+	lower := strings.ToLower(strLit.Value)
+
+	if strings.Contains(lower, "<script") {
+		a.warn(strLit.Pos(),
+			"inline <script> in html.Render is an XSS risk — use a static .js file with <script src=\"...\"> instead")
+	}
+
+	if containsEventHandler(lower) {
+		a.warn(strLit.Pos(),
+			"inline event handler (on*=) in html.Render is an XSS risk — use addEventListener in a static .js file instead")
+	}
+}
+
+// containsEventHandler checks if a lowercased HTML string contains inline event
+// handler attributes like onclick=, onload=, onerror=, etc.
+func containsEventHandler(lower string) bool {
+	// Common event handler attributes that are XSS vectors.
+	handlers := []string{
+		" onclick=", " onload=", " onerror=", " onmouseover=",
+		" onfocus=", " onblur=", " onsubmit=", " onchange=",
+		" onkeydown=", " onkeyup=", " onkeypress=", " oninput=",
+		" onmousedown=", " onmouseup=", " ondblclick=",
+		" oncontextmenu=", " onwheel=", " onscroll=",
+		" ondrag=", " ondrop=", " onpaste=", " oncopy=",
+	}
+	for _, h := range handlers {
+		if strings.Contains(lower, h) {
+			return true
+		}
+	}
+	return false
+}
+
 // securityCategory returns the security check category for a qualified function
 // name, checking both the generated registry and known aliases (e.g., httphelper.X → http.X).
 func securityCategory(qualifiedName string) string {

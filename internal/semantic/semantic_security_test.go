@@ -385,6 +385,84 @@ func Good(pool db.Pool)
 	assertNoSecurityError(t, source, "SQL injection risk")
 }
 
+// --- Inline JS in html.Render ---
+
+func TestHTMLRenderInlineScript_Warns(t *testing.T) {
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<div><script>alert('xss')</script></div>")
+`
+	assertSecurityWarning(t, source, "inline <script>")
+}
+
+func TestHTMLRenderInlineScript_CaseInsensitive(t *testing.T) {
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<div><SCRIPT>alert('xss')</SCRIPT></div>")
+`
+	assertSecurityWarning(t, source, "inline <script>")
+}
+
+func TestHTMLRenderScriptSrc_Warns(t *testing.T) {
+	// Even <script src="..."> inside html.Render should warn —
+	// use a <script src> in the static HTML layout instead.
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<script src='/static/app.js'></script>")
+`
+	assertSecurityWarning(t, source, "inline <script>")
+}
+
+func TestHTMLRenderNoScript_NoWarning(t *testing.T) {
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<div>{html.Escape(name)}</div>")
+`
+	assertNoSecurityWarning(t, source, "inline <script>")
+}
+
+func TestHTMLRenderOnclick_Warns(t *testing.T) {
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<button onclick='alert(1)'>Click</button>")
+`
+	assertSecurityWarning(t, source, "inline event handler")
+}
+
+func TestHTMLRenderOnload_Warns(t *testing.T) {
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<img onerror='alert(1)' src='x'>")
+`
+	assertSecurityWarning(t, source, "inline event handler")
+}
+
+func TestHTMLRenderHxGet_NoWarning(t *testing.T) {
+	// HTMX attributes like hx-get are NOT event handlers.
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<div hx-get='/data'>Load</div>")
+`
+	assertNoSecurityWarning(t, source, "inline event handler")
+}
+
+func TestHTMLRenderOnErr_NoFalsePositive(t *testing.T) {
+	// "onerr" in Kukicha is NOT an event handler — make sure it doesn't trigger.
+	source := `import "stdlib/html"
+
+func Page() html.Fragment
+    return html.Render("<p>Use onerr to handle errors</p>")
+`
+	assertNoSecurityWarning(t, source, "inline event handler")
+}
+
 // =============================================================================
 // Test helpers
 // =============================================================================
@@ -425,6 +503,18 @@ func assertSecurityWarning(t *testing.T, source string, substr string) {
 		}
 	}
 	t.Fatalf("expected warning containing %q, got warnings: %v", substr, analyzer.Warnings())
+}
+
+// assertNoSecurityWarning parses source and asserts NO warning containing substr.
+func assertNoSecurityWarning(t *testing.T, source string, substr string) {
+	t.Helper()
+	analyzer, _ := analyzeSource(t, source)
+
+	for _, w := range analyzer.Warnings() {
+		if strings.Contains(w.Error(), substr) {
+			t.Fatalf("unexpected warning containing %q: %v", substr, w)
+		}
+	}
 }
 
 // analyzeIgnoringNonSecurity parses source and ensures it doesn't panic,
