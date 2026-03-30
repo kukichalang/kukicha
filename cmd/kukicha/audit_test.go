@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -36,9 +37,13 @@ func TestFindProjectRoot_NoGoMod(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := findProjectRoot(subDir)
+	result, err := findProjectRoot(subDir)
 	if err == nil {
-		t.Fatal("expected error when no go.mod exists")
+		// An ancestor go.mod (e.g. /tmp/go.mod) may exist on some systems.
+		// In that case the function correctly finds it; verify it's not inside our temp dir.
+		if strings.HasPrefix(result, dir) {
+			t.Fatal("expected error or a result outside the temp dir")
+		}
 	}
 }
 

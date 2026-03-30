@@ -135,6 +135,58 @@ func (s *Server) findDefinition(doc *Document, word string) *lsp.Location {
 					}
 				}
 			}
+		case *ast.EnumDecl:
+			if d.Name.Value == word {
+				return &lsp.Location{
+					URI: doc.URI,
+					Range: lsp.Range{
+						Start: lsp.Position{
+							Line:      d.Name.Pos().Line - 1,
+							Character: d.Name.Pos().Column - 1,
+						},
+						End: lsp.Position{
+							Line:      d.Name.Pos().Line - 1,
+							Character: d.Name.Pos().Column - 1 + len(word),
+						},
+					},
+				}
+			}
+			// Check for enum case definitions
+			for _, c := range d.Cases {
+				if c.Name.Value == word {
+					return &lsp.Location{
+						URI: doc.URI,
+						Range: lsp.Range{
+							Start: lsp.Position{
+								Line:      c.Name.Pos().Line - 1,
+								Character: c.Name.Pos().Column - 1,
+							},
+							End: lsp.Position{
+								Line:      c.Name.Pos().Line - 1,
+								Character: c.Name.Pos().Column - 1 + len(word),
+							},
+						},
+					}
+				}
+			}
+		case *ast.ConstDecl:
+			for _, spec := range d.Specs {
+				if spec.Name.Value == word {
+					return &lsp.Location{
+						URI: doc.URI,
+						Range: lsp.Range{
+							Start: lsp.Position{
+								Line:      spec.Name.Pos().Line - 1,
+								Character: spec.Name.Pos().Column - 1,
+							},
+							End: lsp.Position{
+								Line:      spec.Name.Pos().Line - 1,
+								Character: spec.Name.Pos().Column - 1 + len(word),
+							},
+						},
+					}
+				}
+			}
 		}
 	}
 

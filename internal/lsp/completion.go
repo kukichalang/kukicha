@@ -109,6 +109,27 @@ func (s *Server) getCompletions(doc *Document, pos lsp.Position) []lsp.Completio
 					Kind:   lsp.CIKInterface,
 					Detail: "interface",
 				})
+			case *ast.EnumDecl:
+				items = append(items, lsp.CompletionItem{
+					Label:  d.Name.Value,
+					Kind:   lsp.CIKEnum,
+					Detail: "enum",
+				})
+				for _, c := range d.Cases {
+					items = append(items, lsp.CompletionItem{
+						Label:  d.Name.Value + "." + c.Name.Value,
+						Kind:   lsp.CIKEnumMember,
+						Detail: "enum member",
+					})
+				}
+			case *ast.ConstDecl:
+				for _, spec := range d.Specs {
+					items = append(items, lsp.CompletionItem{
+						Label:  spec.Name.Value,
+						Kind:   lsp.CIKConstant,
+						Detail: "const",
+					})
+				}
 			}
 		}
 	}
@@ -228,6 +249,53 @@ func (s *Server) getDocumentSymbols(doc *Document) []lsp.SymbolInformation {
 						Range: lsp.Range{
 							Start: pos(method.Name.Pos().Line, mStartCol+1),
 							End:   pos(method.Name.Pos().Line, mEndCol+1),
+						},
+					},
+				})
+			}
+		case *ast.EnumDecl:
+			startCol := d.Pos().Column - 1
+			endCol := startCol + len(d.Name.Value)
+			symbols = append(symbols, lsp.SymbolInformation{
+				Name: d.Name.Value,
+				Kind: lsp.SKEnum,
+				Location: lsp.Location{
+					URI: doc.URI,
+					Range: lsp.Range{
+						Start: pos(d.Pos().Line, startCol+1),
+						End:   pos(d.Pos().Line, endCol+1),
+					},
+				},
+			})
+			// Add enum cases
+			for _, c := range d.Cases {
+				cStartCol := c.Name.Pos().Column - 1
+				cEndCol := cStartCol + len(c.Name.Value)
+				symbols = append(symbols, lsp.SymbolInformation{
+					Name:          c.Name.Value,
+					Kind:          lsp.SKEnumMember,
+					ContainerName: d.Name.Value,
+					Location: lsp.Location{
+						URI: doc.URI,
+						Range: lsp.Range{
+							Start: pos(c.Name.Pos().Line, cStartCol+1),
+							End:   pos(c.Name.Pos().Line, cEndCol+1),
+						},
+					},
+				})
+			}
+		case *ast.ConstDecl:
+			for _, spec := range d.Specs {
+				startCol := spec.Name.Pos().Column - 1
+				endCol := startCol + len(spec.Name.Value)
+				symbols = append(symbols, lsp.SymbolInformation{
+					Name: spec.Name.Value,
+					Kind: lsp.SKConstant,
+					Location: lsp.Location{
+						URI: doc.URI,
+						Range: lsp.Range{
+							Start: pos(spec.Name.Pos().Line, startCol+1),
+							End:   pos(spec.Name.Pos().Line, endCol+1),
 						},
 					},
 				})

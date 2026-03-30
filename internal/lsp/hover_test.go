@@ -315,6 +315,73 @@ func TestGetHoverContent_VariadicParameter(t *testing.T) {
 	}
 }
 
+func TestGetHoverContent_EnumDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `enum Status
+    OK = 200
+    NotFound = 404
+`, 1)
+
+	doc := store.Get(uri)
+	content := s.getHoverContent(doc, "Status", lsp.Position{Line: 0, Character: 5})
+
+	if content == "" {
+		t.Fatal("expected hover content for enum 'Status'")
+	}
+	if !strings.Contains(content, "Status") {
+		t.Errorf("expected 'Status' in hover, got: %s", content)
+	}
+	if !strings.Contains(content, "OK") {
+		t.Errorf("expected 'OK' case in hover, got: %s", content)
+	}
+}
+
+func TestGetHoverContent_EnumMember(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `enum Status
+    OK = 200
+    NotFound = 404
+`, 1)
+
+	doc := store.Get(uri)
+	content := s.getHoverContent(doc, "OK", lsp.Position{Line: 1, Character: 4})
+
+	if content == "" {
+		t.Fatal("expected hover content for enum member 'OK'")
+	}
+	if !strings.Contains(content, "Status.OK") {
+		t.Errorf("expected 'Status.OK' in hover, got: %s", content)
+	}
+	if !strings.Contains(content, "enum member") {
+		t.Errorf("expected 'enum member' in hover, got: %s", content)
+	}
+}
+
+func TestGetHoverContent_ConstDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `const MaxRetries = 5
+`, 1)
+
+	doc := store.Get(uri)
+	content := s.getHoverContent(doc, "MaxRetries", lsp.Position{Line: 0, Character: 6})
+
+	if content == "" {
+		t.Fatal("expected hover content for const 'MaxRetries'")
+	}
+	if !strings.Contains(content, "const") {
+		t.Errorf("expected 'const' in hover, got: %s", content)
+	}
+	if !strings.Contains(content, "MaxRetries") {
+		t.Errorf("expected 'MaxRetries' in hover, got: %s", content)
+	}
+}
+
 func TestLookupBuiltin_Unknown(t *testing.T) {
 	result := lookupBuiltin("nonexistent_builtin")
 	if result != "" {

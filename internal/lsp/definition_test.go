@@ -138,6 +138,64 @@ func TestFindDefinition_NilProgram(t *testing.T) {
 	}
 }
 
+func TestFindDefinition_EnumDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `enum Status
+    OK = 200
+    NotFound = 404
+`, 1)
+
+	doc := store.Get(uri)
+	loc := s.findDefinition(doc, "Status")
+
+	if loc == nil {
+		t.Fatal("expected definition location for 'Status'")
+	}
+	if loc.Range.Start.Line != 0 {
+		t.Errorf("expected definition on line 0, got %d", loc.Range.Start.Line)
+	}
+}
+
+func TestFindDefinition_EnumCase(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `enum Status
+    OK = 200
+    NotFound = 404
+`, 1)
+
+	doc := store.Get(uri)
+	loc := s.findDefinition(doc, "NotFound")
+
+	if loc == nil {
+		t.Fatal("expected definition location for enum case 'NotFound'")
+	}
+	if loc.Range.Start.Line != 2 {
+		t.Errorf("expected definition on line 2, got %d", loc.Range.Start.Line)
+	}
+}
+
+func TestFindDefinition_ConstDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `const MaxRetries = 5
+`, 1)
+
+	doc := store.Get(uri)
+	loc := s.findDefinition(doc, "MaxRetries")
+
+	if loc == nil {
+		t.Fatal("expected definition location for 'MaxRetries'")
+	}
+	if loc.Range.Start.Line != 0 {
+		t.Errorf("expected definition on line 0, got %d", loc.Range.Start.Line)
+	}
+}
+
 func TestFindDefinition_MultipleDeclarations(t *testing.T) {
 	s := NewServer(nil, nil)
 	store := s.documents

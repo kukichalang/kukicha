@@ -253,3 +253,114 @@ func TestGetDocumentSymbols_InterfaceWithMethods(t *testing.T) {
 		t.Errorf("expected Set to be Method, got %d", kind)
 	}
 }
+
+func TestGetCompletions_IncludesEnumDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `enum Status
+    OK = 200
+    NotFound = 404
+`, 1)
+
+	doc := store.Get(uri)
+	items := s.getCompletions(doc, lsp.Position{Line: 2, Character: 0})
+
+	itemMap := make(map[string]lsp.CompletionItem)
+	for _, item := range items {
+		itemMap[item.Label] = item
+	}
+
+	// Enum type itself
+	if item, ok := itemMap["Status"]; !ok {
+		t.Error("missing enum completion: Status")
+	} else if item.Kind != lsp.CIKEnum {
+		t.Errorf("expected Status to be Enum kind, got %d", item.Kind)
+	}
+
+	// Enum members
+	if item, ok := itemMap["Status.OK"]; !ok {
+		t.Error("missing enum member completion: Status.OK")
+	} else if item.Kind != lsp.CIKEnumMember {
+		t.Errorf("expected Status.OK to be EnumMember kind, got %d", item.Kind)
+	}
+
+	if _, ok := itemMap["Status.NotFound"]; !ok {
+		t.Error("missing enum member completion: Status.NotFound")
+	}
+}
+
+func TestGetCompletions_IncludesConstDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `const MaxRetries = 5
+`, 1)
+
+	doc := store.Get(uri)
+	items := s.getCompletions(doc, lsp.Position{Line: 0, Character: 0})
+
+	itemMap := make(map[string]lsp.CompletionItem)
+	for _, item := range items {
+		itemMap[item.Label] = item
+	}
+
+	if item, ok := itemMap["MaxRetries"]; !ok {
+		t.Error("missing const completion: MaxRetries")
+	} else if item.Kind != lsp.CIKConstant {
+		t.Errorf("expected MaxRetries to be Constant kind, got %d", item.Kind)
+	}
+}
+
+func TestGetDocumentSymbols_EnumWithCases(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `enum Color
+    Red = 1
+    Green = 2
+    Blue = 3
+`, 1)
+
+	doc := store.Get(uri)
+	symbols := s.getDocumentSymbols(doc)
+
+	symbolNames := make(map[string]lsp.SymbolKind)
+	for _, sym := range symbols {
+		symbolNames[sym.Name] = sym.Kind
+	}
+
+	if kind, ok := symbolNames["Color"]; !ok {
+		t.Error("missing enum symbol: Color")
+	} else if kind != lsp.SKEnum {
+		t.Errorf("expected Color to be Enum, got %d", kind)
+	}
+
+	if kind, ok := symbolNames["Red"]; !ok {
+		t.Error("missing enum member symbol: Red")
+	} else if kind != lsp.SKEnumMember {
+		t.Errorf("expected Red to be EnumMember, got %d", kind)
+	}
+}
+
+func TestGetDocumentSymbols_ConstDecl(t *testing.T) {
+	s := NewServer(nil, nil)
+	store := s.documents
+	uri := lsp.DocumentURI("file:///tmp/test.kuki")
+	store.Open(uri, `const MaxRetries = 5
+`, 1)
+
+	doc := store.Get(uri)
+	symbols := s.getDocumentSymbols(doc)
+
+	symbolNames := make(map[string]lsp.SymbolKind)
+	for _, sym := range symbols {
+		symbolNames[sym.Name] = sym.Kind
+	}
+
+	if kind, ok := symbolNames["MaxRetries"]; !ok {
+		t.Error("missing const symbol: MaxRetries")
+	} else if kind != lsp.SKConstant {
+		t.Errorf("expected MaxRetries to be Constant, got %d", kind)
+	}
+}

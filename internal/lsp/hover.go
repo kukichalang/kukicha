@@ -81,6 +81,21 @@ func (s *Server) getHoverContent(doc *Document, word string, pos lsp.Position) s
 			if d.Name.Value == word {
 				return formatInterfaceDecl(d)
 			}
+		case *ast.EnumDecl:
+			if d.Name.Value == word {
+				return formatEnumDecl(d)
+			}
+			for _, c := range d.Cases {
+				if c.Name.Value == word {
+					return fmt.Sprintf("%s.%s (enum member)", d.Name.Value, c.Name.Value)
+				}
+			}
+		case *ast.ConstDecl:
+			for _, spec := range d.Specs {
+				if spec.Name.Value == word {
+					return fmt.Sprintf("const %s", spec.Name.Value)
+				}
+			}
 		}
 	}
 
@@ -187,6 +202,21 @@ func formatInterfaceDecl(decl *ast.InterfaceDecl) string {
 				}
 			}
 			result.WriteString("\n")
+		}
+	}
+
+	return result.String()
+}
+
+// formatEnumDecl formats an enum declaration for hover display
+func formatEnumDecl(decl *ast.EnumDecl) string {
+	var result strings.Builder
+	result.WriteString(fmt.Sprintf("enum %s\n", decl.Name.Value))
+
+	if len(decl.Cases) > 0 {
+		result.WriteString("Cases:\n")
+		for _, c := range decl.Cases {
+			result.WriteString(fmt.Sprintf("  %s\n", c.Name.Value))
 		}
 	}
 
