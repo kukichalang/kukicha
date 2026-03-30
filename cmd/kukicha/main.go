@@ -56,16 +56,17 @@ func main() {
 		runFlags := flag.NewFlagSet("run", flag.ContinueOnError)
 		runFlags.SetOutput(os.Stderr)
 		target := runFlags.String("target", "", "Run target")
+		playground := runFlags.Bool("playground", false, "Playground mode: reject dangerous imports (os/exec, net, syscall, unsafe, plugin)")
 		if err := runFlags.Parse(args); err != nil {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] <file.kuki> [args...]")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] [--playground] <file.kuki> [args...]")
 			os.Exit(1)
 		}
 		runArgs := runFlags.Args()
 		if len(runArgs) < 1 {
-			fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] <file.kuki> [args...]")
+			fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] [--playground] <file.kuki> [args...]")
 			os.Exit(1)
 		}
-		runCommand(runArgs[0], *target, runArgs[1:])
+		runCommand(runArgs[0], *target, *playground, runArgs[1:])
 	case "check":
 		checkFlags := flag.NewFlagSet("check", flag.ContinueOnError)
 		checkFlags.SetOutput(os.Stderr)
@@ -733,8 +734,38 @@ WebAssembly.instantiateStreaming(fetch("%s.wasm"), go.importObject).then(r => go
 	}
 }
 
-func runCommand(filename string, targetFlag string, scriptArgs []string) {
+// playgroundBlockedImports lists Go packages that are rejected in playground mode.
+// These are blocked as defense-in-depth — the nsjail sandbox also prevents network
+// and process spawning, but compile-time rejection gives clearer error messages.
+var playgroundBlockedImports = map[string]string{
+	"os/exec":  "command execution is not allowed in playground mode",
+	"net":      "network access is not allowed in playground mode",
+	"net/http": "network access is not allowed in playground mode",
+	"syscall":  "syscall access is not allowed in playground mode",
+	"unsafe":   "unsafe operations are not allowed in playground mode",
+	"plugin":   "plugin loading is not allowed in playground mode",
+}
+
+func validatePlaygroundImports(program *ast.Program) error {
+	for _, imp := range program.Imports {
+		path := strings.Trim(imp.Path.Value, "\"")
+		if reason, blocked := playgroundBlockedImports[path]; blocked {
+			return fmt.Errorf("%s:%d: import %q is not allowed: %s",
+				imp.Token.File, imp.Token.Line, path, reason)
+		}
+	}
+	return nil
+}
+
+func runCommand(filename string, targetFlag string, playground bool, scriptArgs []string) {
 	cr := compile(filename, targetFlag, "", false)
+
+	if playground {
+		if err := validatePlaygroundImports(cr.program); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
 
 	// If stdlib is needed, extract it and ensure go.mod is configured.
 	// Keep temp source in project context so local replace directives resolve.
