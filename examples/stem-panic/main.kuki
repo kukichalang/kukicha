@@ -112,6 +112,7 @@ type Station
     lane int
     funcName string
     isFlaky bool
+    isBusy bool
     outputState StemState
 
 type Catcher
@@ -152,6 +153,11 @@ variable orderSpawnInterval int = 180
 
 variable stemSpeed float64 = stemSpeed1
 
+# ── Screen Shake ──
+
+variable shakeTimer int = 0
+variable shakeIntensity float64 = 0.0
+
 variable levelNames list of string = list of string{"First Steep", "Quality Control", "The Full Blend"}
 variable levelDescs list of string = list of string{
     "Two lanes. Match the order.",
@@ -168,12 +174,6 @@ variable levelHints list of string = list of string{
 
 function laneY(lane int) float64
     return laneBaseY + lane as float64 * laneSpacing
-
-function stemOnLane(lane int) bool
-    for i from 0 to len(stems)
-        if stems[i].active and stems[i].lane equals lane
-            return true
-    return false
 
 function stationsOnLane(lane int) list of Station
     result := make(list of Station, 0)
@@ -278,6 +278,8 @@ function spawnOrder()
     if level equals 1
         # Alternate between steamed and dried
         lane := game.Random(0, 2)
+        if activeOrderOnLane(lane) >= 0
+            return # already an order here
         wantState := StemState.Steamed
         wantLabel := "steamed"
         if lane equals 1
@@ -293,6 +295,8 @@ function spawnOrder()
         })
     else if level equals 2
         lane := game.Random(0, 3)
+        if activeOrderOnLane(lane) >= 0
+            return
         states := list of StemState{StemState.Rolled, StemState.Sorted, StemState.Dried}
         labels := list of string{"rolled", "sorted", "dried"}
         orders = append(orders, Order{
@@ -307,6 +311,8 @@ function spawnOrder()
         # Orders for steamed, dried, or blended
         pick := game.Random(0, 3)
         lanes := list of int{0, 1, 2}
+        if activeOrderOnLane(lanes[pick]) >= 0
+            return
         states := list of StemState{StemState.Steamed, StemState.Dried, StemState.Blended}
         labels := list of string{"steamed", "dried", "blended"}
         orders = append(orders, Order{
@@ -372,7 +378,13 @@ function updatePlaying()
 
     # Send stem
     if game.IsKeyPressed(game.KeyEnter) or game.IsKeyPressed(game.KeySpace)
-        if not stemOnLane(currentLane) and len(stems) < maxStems
+        # Allow multiple stems per lane, but keep distance
+        canSend := len(stems) < maxStems
+        for i from 0 to len(stems)
+            if stems[i].active and stems[i].lane equals currentLane and stems[i].x < laneStartX + 40.0
+                canSend = false
+        
+        if canSend
             stems = append(stems, Stem{
                 x: laneStartX,
                 y: laneY(currentLane),
@@ -469,17 +481,21 @@ function updateStems()
 
 function checkStationHit(si int)
     for j from 0 to len(stations)
-        if stations[j].lane isnt stems[si].lane
+        if stations[j].lane isnt stems[si].lane or stations[j].isBusy
             continue
-        # Check if stem just reached the station
-        stationLeft := stations[j].x
-        if stems[si].x + stemRadius >= stationLeft and stems[si].x - stemRadius <= stationLeft + 5.0
+        
+        # Robust collision check using game.CircleOverlapsRect
+        sRect := game.Rect{X: stations[j].x, Y: laneY(stations[j].lane) - stationH/2.0, Width: stationW, Height: stationH}
+        sCircle := game.Circle{X: stems[si].x, Y: stems[si].y, Radius: stemRadius}
+        
+        if game.CircleOverlapsRect(sCircle, sRect) and stems[si].x < stations[j].x + 10.0
             # Begin suck
             stems[si].dx = 0.0
             stems[si].suckTimer = 1
             stems[si].suckStationLane = stations[j].lane
             stems[si].suckStationIdx = j
             stems[si].suckStartX = stems[si].x
+            stations[j].isBusy = true
             return
 
 function updateStemSuck(si int)
@@ -501,13 +517,17 @@ function updateStemSuck(si int)
         stems[si].x = s.x + stationW + stemRadius
         stems[si].dx = stemSpeed
         stems[si].suckTimer = 0
+        stations[idx].isBusy = false
 
-        # Flaky station: 30% chance of bitter output
-        if s.isFlaky and game.Random(0, 100) < 30
-            stems[si].state = StemState.Bitter
-        else
-            stems[si].state = s.outputState
-            score = score + 25
+        # State propagation: Bitter remains Bitter!
+        # Normal stations only process non-bitter stems.
+        if stems[si].state isnt StemState.Bitter
+            # Flaky station: 30% chance of bitter output
+            if s.isFlaky and game.Random(0, 100) < 30
+                stems[si].state = StemState.Bitter
+            else
+                stems[si].state = s.outputState
+                score = score + 25
 
 function checkCatcherHit(si int)
     if stems[si].state isnt StemState.Bitter
@@ -532,6 +552,8 @@ function handleStemArrival(si int)
         # Bitter leaf reached customer — panic!
         panicReason = "bitter leaf not caught"
         scene = Scene.BitterPanic
+        shakeTimer = 30
+        shakeIntensity = 6.0
         return
     if stems[si].state equals orders[oi].wantState
         # Correct tea delivered!
@@ -542,6 +564,8 @@ function handleStemArrival(si int)
         # Wrong tea — panic!
         panicReason = "wrong tea delivered"
         scene = Scene.BitterPanic
+        shakeTimer = 30
+        shakeIntensity = 6.0
 
 function updateBatchComplete()
     if game.IsKeyPressed(game.KeyEnter)
@@ -556,6 +580,11 @@ function updateBitterPanic()
 # ── Draw ──
 
 function draw(screen game.Screen)
+    # Tick screen shake
+    if shakeTimer > 0
+        shakeTimer = shakeTimer - 1
+        shakeIntensity = shakeIntensity * 0.9
+
     game.Clear(screen, darkWood)
     switch scene
         when Scene.Title
@@ -602,7 +631,7 @@ function drawTitle(screen game.Screen)
     if frame % 60 < 40
         game.DrawText(screen, "Press ENTER to start", 240, 360, warmWhite)
 
-    game.DrawText(screen, "v0.2", 305, 440, dimText)
+    game.DrawText(screen, "v0.3", 305, 440, dimText)
 
 function drawTeaMenu(screen game.Screen)
     drawBambooBorder(screen)
@@ -692,14 +721,28 @@ function drawPlaying(screen game.Screen)
     game.DrawRect(screen, masterX, my - masterH / 2.0, masterW, masterH, teaMasterColor)
     game.DrawText(screen, "|>", masterX as int + 10, my as int - 6, darkWood)
 
-    # HUD
-    game.DrawText(screen, "Brew Quality: {score}", 480, 12, amber)
-    game.DrawText(screen, "Lives: {lives}", 10, 12, warmWhite)
-    game.DrawText(screen, "{levelName}  {fulfilled}/{fulfilledTarget}", 230, 12, bamboo)
+    # HUD background bar
+    game.DrawRect(screen, 0.0, 0.0, screenW as float64, 28.0, game.MakeColor(25, 18, 14, 200))
+    game.DrawRect(screen, 0.0, 28.0, screenW as float64, 1.0, bamboo)
+    # HUD text
+    game.DrawText(screen, "Brew Quality: {score}", 480, 8, amber)
+    # Lives as tea cups
+    livesStr := ""
+    for _ from 0 to lives
+        livesStr = livesStr + "♨ "
+    game.DrawText(screen, livesStr, 10, 8, warmWhite)
+    game.DrawText(screen, "{levelName}  {fulfilled}/{fulfilledTarget}", 230, 8, bamboo)
     game.DrawText(screen, levelHints[level - 1], 10, screenH - 20, dimText)
 
 function drawStation(screen game.Screen, s Station)
     ly := laneY(s.lane)
+    # Processing glow when busy
+    if s.isBusy
+        frame := game.FrameCount()
+        pulseAlpha := 40 + (frame % 20) as int * 3
+        if pulseAlpha > 100
+            pulseAlpha = 100
+        game.DrawRect(screen, s.x - 3.0, ly - stationH / 2.0 - 3.0, stationW + 6.0, stationH + 6.0, game.MakeColor(220, 160, 40, pulseAlpha))
     # Station body
     game.DrawRect(screen, s.x, ly - stationH / 2.0, stationW, stationH, stationClay)
     # Intake notch (left side)
@@ -707,7 +750,10 @@ function drawStation(screen game.Screen, s Station)
     # Exit notch (right side)
     game.DrawRect(screen, s.x + stationW - 4.0, ly - 4.0, 6.0, 8.0, game.MakeColor(50, 35, 25, 255))
     # Function label
-    game.DrawText(screen, s.funcName, s.x as int + 4, ly as int - 6, cream)
+    labelColor := cream
+    if s.isBusy
+        labelColor = warmGold
+    game.DrawText(screen, s.funcName, s.x as int + 4, ly as int - 6, labelColor)
     # Flaky warning
     if s.isFlaky
         game.DrawText(screen, "~err", s.x as int + 4, ly as int + 8, game.MakeColor(180, 100, 60, 200))
@@ -782,23 +828,29 @@ function drawBitterPanic(screen game.Screen)
     flashIntensity := 0
     if frame % 30 < 10
         flashIntensity = 40
+    # Screen shake offset
+    sx := 0
+    sy := 0
+    if shakeTimer > 0
+        sx = game.RandomFloat(0.0 - shakeIntensity, shakeIntensity) as int
+        sy = game.RandomFloat(0.0 - shakeIntensity, shakeIntensity) as int
     game.Clear(screen, game.MakeColor(35 + flashIntensity, 25, 20, 255))
     drawBambooBorder(screen)
 
-    game.DrawText(screen, "BITTER PANIC: unhandled contamination", 170, 150, bitterRed)
-    game.DrawText(screen, "onerr panic \"{panicReason}\"", 195, 185, game.MakeColor(180, 100, 80, 255))
+    game.DrawText(screen, "BITTER PANIC: unhandled contamination", 170 + sx, 150 + sy, bitterRed)
+    game.DrawText(screen, "onerr panic \"{panicReason}\"", 195 + sx, 185 + sy, game.MakeColor(180, 100, 80, 255))
 
     if panicReason equals "bitter leaf not caught"
-        game.DrawText(screen, "hint: activate onerr catcher with SPACE", 165, 210, game.MakeColor(140, 120, 80, 255))
+        game.DrawText(screen, "hint: activate onerr catcher with SPACE", 165 + sx, 210 + sy, game.MakeColor(140, 120, 80, 255))
     else if panicReason equals "wrong tea delivered"
-        game.DrawText(screen, "hint: match the pipeline to the order", 170, 210, game.MakeColor(140, 120, 80, 255))
+        game.DrawText(screen, "hint: match the pipeline to the order", 170 + sx, 210 + sy, game.MakeColor(140, 120, 80, 255))
 
-    game.DrawText(screen, "Brew Quality: {score}", 250, 250, amber)
-    game.DrawText(screen, "at main.kuki:42  updatePlaying()", 200, 290, game.MakeColor(140, 100, 70, 255))
-    game.DrawText(screen, "at main.kuki:17  main()", 200, 310, game.MakeColor(140, 100, 70, 255))
+    game.DrawText(screen, "Brew Quality: {score}", 250 + sx, 250 + sy, amber)
+    game.DrawText(screen, "at main.kuki:42  updatePlaying()", 200 + sx, 290 + sy, game.MakeColor(140, 100, 70, 255))
+    game.DrawText(screen, "at main.kuki:17  main()", 200 + sx, 310 + sy, game.MakeColor(140, 100, 70, 255))
 
     if frame % 60 < 40
-        game.DrawText(screen, "Press SPACE to retry", 240, 360, warmWhite)
+        game.DrawText(screen, "Press SPACE to retry", 240 + sx, 360 + sy, warmWhite)
 
 function drawBambooBorder(screen game.Screen)
     game.DrawRect(screen, 0.0, 0.0, screenW as float64, 3.0, bamboo)
