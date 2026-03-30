@@ -232,10 +232,29 @@ server endpoint calling `go run`, rate limiting, and streaming stdout/stderr bac
 ### v0.3 — Playground execution + Docs migration
 
 #### Playground execution
-- [ ] Server endpoint: receive Kukicha source, run `go run` in sandbox, stream stdout/stderr
-- [ ] Sandboxing: gVisor, firecracker, or rate-limited Docker container
-- [ ] "Run" button in playground — HTMX partial swaps output pane
-- [ ] Resource limits: timeout, memory cap, no network access in sandbox
+
+**Architecture:** Single `POST /api/run` endpoint. Receives `{"source": "..."}` (max 64 KB), returns `Content-Type: text/event-stream`. HTMX 4's SSE extension auto-detects the stream — no two-step flow needed (HTMX 4 uses `fetch()` instead of `EventSource`, so POST → SSE works natively). Unnamed SSE messages carry HTML fragments (stdout/stderr lines) and are auto-swapped by HTMX into the output pane. Named `exit` event carries `{"code", "duration_ms"}` and is handled by a small JS listener.
+
+**Sandbox:** nsjail (Google's lightweight process isolator). Runs `kukicha run --playground temp.kuki` in an isolated namespace with no network, read-only filesystem (except `/tmp` tmpfs), 10s timeout, 256 MB memory, 32 max processes. Go module cache pre-warmed at Docker build time and bind-mounted read-only (`GOPROXY=off`).
+
+**Defense-in-depth:** `--playground` flag on `kukicha run` (change in kukichalang/kukicha repo) rejects imports of `os/exec`, `net`, `net/http`, `syscall`, `unsafe`, `plugin` at compile time with clear error messages — before nsjail even gets involved.
+
+##### Server & sandbox
+- [ ] `handlers/run.kuki` — POST /api/run: validate body (64 KB max), rate-limit, write temp .kuki file, spawn nsjail, stream SSE
+- [ ] `nsjail.cfg` — nsjail protobuf config (ONCE mode, 10s timeout, 256 MB mem, no network, read-only mounts)
+- [ ] `scripts/warmup.sh` — Pre-warm Go module cache during Docker build (stdlib transitive deps)
+- [ ] `Dockerfile` updates — Add nsjail, Go toolchain, kukicha binary, module cache warmup
+- [ ] `--playground` flag on `kukicha run` (kukichalang/kukicha repo) — import blocklist for dangerous packages
+
+##### Rate limiting & concurrency
+- [ ] `handlers/ratelimit.kuki` — In-memory token bucket (10 req/min per IP, 50 req/hr per IP)
+- [ ] Global concurrency semaphore — Max 5 concurrent sandbox executions, 503 if at capacity
+
+##### HTMX 4 frontend
+- [ ] "Run" button with `hx-post="/api/run"` + `hx-vals='js:{"source": editor.getValue()}'` + `hx-swap="beforeend"` + `hx-target="#output-pane"`
+- [ ] Output pane: unnamed SSE messages (HTML fragments) auto-swapped by HTMX 4
+- [ ] `static/js/playground.js` — JS listener for named `exit` event → status bar update
+- [ ] `<meta name="htmx-config" content='{"extensions": "sse"}'>` to activate SSE extension
 
 #### Docs migration
 - [ ] Move tutorials into the website (render markdown → `html.Fragment` at build time or startup)
