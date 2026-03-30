@@ -61,7 +61,7 @@ cd my-kukicha-project
 kukicha init             
 ```
 
-The `kukicha init` command creates a the ncessary framework for kukicha to run in that directory.
+The `kukicha init` command creates the necessary framework for Kukicha to run in that directory.
 
 ### Writing Your First Program
 
@@ -256,10 +256,10 @@ Every piece of data has a **type** - it tells the computer what kind of informat
 
 | Type | What it stores | Examples |
 |------|----------------|----------|
-| `int` | Whole numbers | `42`, `-10`, `0` |
-| `float64` | Decimal numbers | `3.14`, `-0.5`, `2.0` |
-| `string` | Text | `"Hello"`, `"Kukicha"` |
-| `bool` | True or false | `true`, `false` |
+| `int` | Whole numbers (short for "integer") | `42`, `-10`, `0` |
+| `float64` | Decimal numbers ("float" = floating-point, "64" = 64-bit precision) | `3.14`, `-0.5`, `2.0` |
+| `string` | Text — called a "string" because it's a string of characters | `"Hello"`, `"Kukicha"` |
+| `bool` | True or false (short for "boolean", named after mathematician George Boole) | `true`, `false` |
 
 ### Type Inference
 
@@ -1072,7 +1072,7 @@ Odd numbers from 1 to 10:
 - `for i from X through Y` counts from X up to (and including) Y
 - `for condition` repeats while the condition is true
 - `break` exits the loop early; `continue` skips to the next iteration
-- `%` is the modulo operator - `i % 2` gives the remainder when dividing by 2
+- `%` is the **modulo** (remainder) operator — `i % 2` gives the remainder when dividing by 2. If the remainder is 0, the number is even; if it's 1, the number is odd
 
 ---
 

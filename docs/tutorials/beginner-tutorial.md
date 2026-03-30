@@ -143,10 +143,10 @@ Bash treats everything as a string. Kukicha knows what kind of data you're worki
 
 | Type | What it stores | Examples |
 |------|----------------|----------|
-| `int` | Whole numbers | `42`, `-10`, `0` |
-| `float64` | Decimal numbers | `3.14`, `-0.5` |
-| `string` | Text | `"Hello"`, `"/tmp/file"` |
-| `bool` | True or false | `true`, `false` |
+| `int` | Whole numbers (short for "integer") | `42`, `-10`, `0` |
+| `float64` | Decimal numbers ("float" = floating-point, "64" = 64-bit precision) | `3.14`, `-0.5` |
+| `string` | Text (a "string" of characters) | `"Hello"`, `"/tmp/file"` |
+| `bool` | True or false (short for "boolean") | `true`, `false` |
 
 You usually don't need to write types explicitly - Kukicha figures them out:
 

@@ -606,6 +606,7 @@ function HandleRequest(w http.ResponseWriter, r reference http.Request)
     httphelper.SetSecureHeaders(w)
 
     # Read JSON body — limit body to 1 MB to prevent OOM
+    # (1 << 20 is a bit-shift: 1 shifted left 20 places = 1,048,576 bytes = 1 MB)
     input := ShortenRequest{}
     r |> httphelper.ReadJSONLimit(1 << 20, reference of input) onerr
         httphelper.JSONBadRequest(w, "Invalid JSON")

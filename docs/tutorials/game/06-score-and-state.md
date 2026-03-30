@@ -90,7 +90,7 @@ function draw(screen game.Screen)
 2. The target falls from the top. Catching it adds a point; missing costs a life.
 3. `and` combines conditions: move left only if the key is down **and** we're not at the edge.
 4. `game.IsKeyPressed` fires once per press — unlike `IsKeyDown` which fires every frame.
-5. Every 5 points, `targetSpeed` increases, making the game harder.
+5. Every 5 points, `targetSpeed` increases, making the game harder. The `%` operator gives the **remainder** after division — `score % 5 equals 0` is true when score is 5, 10, 15, etc.
 6. When `gameOver` is true, the update function skips game logic and waits for SPACE.
 
 ## IsKeyDown vs IsKeyPressed

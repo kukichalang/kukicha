@@ -77,7 +77,7 @@ function draw(screen game.Screen)
 ## How it works
 
 1. `game.OnSetup(setup)` runs `setup()` once before the game loop starts.
-2. Inside `setup`, we initialize the player position and create an initial list of targets.
+2. Inside `setup`, we initialize the player position and create an initial list of targets. `make(list of game.Rect, 0)` creates an empty list — the `0` is the starting capacity (how many items to pre-allocate space for).
 3. The `makeTarget()` helper creates a target at a random X position above the screen.
 4. When a target is caught or falls off-screen, it's recycled with `makeTarget()`.
 

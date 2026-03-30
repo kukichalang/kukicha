@@ -219,7 +219,7 @@ function generateCode on store reference LinkStore() string
     return strconv.FormatInt(int64(store.nextId), 36)
 ```
 
-This gives codes like `"1"`, `"2"`, ..., `"a"`, `"b"`, ..., `"10"`, `"11"`. Short, URL-safe, and predictable. The production tutorial will add proper random codes.
+`int64(store.nextId)` converts the counter to a 64-bit integer, which is what `FormatInt` expects. The `36` means base-36 encoding — it uses digits 0–9 plus letters a–z, giving codes like `"1"`, `"2"`, ..., `"a"`, `"b"`, ..., `"10"`, `"11"`. Short, URL-safe, and predictable. The production tutorial will add proper random codes.
 
 ---
 

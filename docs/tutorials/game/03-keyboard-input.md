@@ -43,7 +43,7 @@ function draw(screen game.Screen)
 
 ## How it works
 
-1. `variable playerX float64 = 300` creates a file-scope variable — it keeps its value between frames.
+1. `variable playerX float64 = 300` creates a file-scope variable — it keeps its value between frames. `float64` means a decimal number ("float" = floating-point, "64" = 64-bit precision). We use it instead of `int` (whole numbers) because game positions need sub-pixel accuracy for smooth movement.
 2. `game.OnUpdate(update)` registers our `update` function to run every frame (60 times per second).
 3. Inside `update`, we check each arrow key with `game.IsKeyDown` and adjust the position.
 4. `game.OnDraw(draw)` renders the square at the current position every frame.

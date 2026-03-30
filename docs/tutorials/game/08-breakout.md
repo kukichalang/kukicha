@@ -153,7 +153,7 @@ bricks[i]                                # Access by index
 
 1. **Setup**: Create a 5x10 grid of bricks, position the paddle and ball
 2. **Update**: Move ball, check wall/paddle/brick collisions, detect win/lose
-3. **Draw**: Render everything — bricks get row-based colors
+3. **Draw**: Render everything — bricks get row-based colors. `i / 10` is **integer division** (dividing two whole numbers drops the remainder, so bricks 0–9 give row 0, bricks 10–19 give row 1, etc.). `row % len(colors)` uses the modulo operator to cycle through the color list — it wraps back to 0 when the row exceeds the number of colors
 
 ### CircleOverlapsRect
 

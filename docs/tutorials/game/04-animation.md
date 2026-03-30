@@ -53,7 +53,8 @@ function draw(screen game.Screen)
 1. `constant` defines values that never change — the compiler prevents reassignment.
 2. Each frame, `update` adds velocity to position, making the ball move.
 3. When the ball hits a wall, we reverse the velocity (`* -1`) to make it bounce.
-4. `or` combines two conditions: bounce if the ball hits the left **or** right wall.
+4. `screenWidth as float64` converts the integer constant to a decimal number so it can be compared with `ballX` (which is `float64`). Kukicha doesn't mix types automatically — you use `as` to convert explicitly.
+5. `or` combines two conditions: bounce if the ball hits the left **or** right wall.
 
 ## The animation loop
 
