@@ -1,34 +1,12 @@
 # Kukicha
 
-**AI-assisted coding.**
+A programming language designed to be read by humans and written by AI agents. Compiles to Go — single binaries, goroutines, strong typing, no runtime dependencies.
 
-You describe what you want. AI writes the code. Kukicha lets you *read* it.
-
-Kukicha is a programming language designed to be read by humans and written by AI agents. It compiles to Go, so your programs run fast and deploy as a single binary with no dependencies.
-
-## The Workflow
-
-```
-You describe what you want
-        ↓
-AI agent writes Kukicha
-        ↓
-You read and approve it  ← Kukicha makes this step possible
-        ↓
-kukicha build → single binary
-        ↓
-Ship it
-```
-
-You don't need to know how to write Kukicha as long as you can *read* it and spot when something looks wrong.
-
-See the [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) to get started immediately.
+**[kukicha.org](https://kukicha.org)** | [Tutorials](https://kukicha.org/#getting-started) | [Stdlib Reference](stdlib/AGENTS.md) | [Quick Reference](docs/kukicha-quick-reference.md)
 
 ---
 
-## Here's What AI-Generated Kukicha Looks Like
-
-See if you can follow it:
+## See If You Can Follow This
 
 ```kukicha
 import "stdlib/fetch"
@@ -57,180 +35,68 @@ function main()
     t |> table.Print()
 ```
 
-**What just happened:** Fetch repos from GitHub, keep the popular ones, sort by stars, print a formatted table. The `|>` pipe passes results between steps. `onerr panic` means "if something fails, stop and show this message." Four stdlib packages, zero boilerplate.
+Fetch repos from GitHub, keep the popular ones, sort by stars, print a table. `|>` pipes results between steps. `onerr panic` means "if this fails, stop." Four stdlib packages, zero boilerplate.
 
 ---
 
 ## Quickstart
 
-### Prerequisites
-
-**Go 1.26+** is required. If you don't have Go installed, [download it here](https://go.dev/dl/).
-
-### Install Kukicha
-
-**Option A — Binary download (no Go toolchain needed after install):**
-
-Download a pre-built binary from [GitHub Releases](https://github.com/kukichalang/kukicha/releases).
-
-**Option B — Install with Go:**
+**Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```bash
 go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.30
-kukicha version
-```
-
-### Your First Project
-
-```bash
 mkdir myapp && cd myapp
-kukicha init          # sets up your project and stdlib
+kukicha init
 ```
 
-Create a file called `hello.kuki`:
+Create `hello.kuki`:
 
 ```kukicha
-# hello.kuki
 function main()
     name := "World"
     print("Hello, {name}!")
 ```
 
-Then run it:
-
 ```bash
 kukicha run hello.kuki
 ```
 
-### Which Command Do I Use?
+### Commands
 
-| Command | What it does | When to use it |
-|---------|-------------|----------------|
-| `kukicha check file.kuki` | Validates syntax without running anything | Before committing — catches errors early |
-| `kukicha run file.kuki` | Compiles and runs immediately | While developing and testing |
-| `kukicha build file.kuki` | Compiles to a standalone binary | When you're ready to ship |
-| `kukicha pack skill.kuki` | Packages a skill into SKILL.md + binary | When building tools for agent pipelines |
-
----
-
-## What Can You Build?
-
-### A Tool for Your AI Agent (MCP Server)
-
-```kukicha
-import "stdlib/mcp"
-import "stdlib/fetch"
-
-function getPrice(symbol string) string
-    price := fetch.Get("https://api.example.com/price/{symbol}")
-        |> fetch.CheckStatus()
-        |> fetch.Text() onerr return "unavailable"
-    return "{symbol}: {price}"
-
-# you can use functon or func to define a function
-func main()
-    server := mcp.NewServer()
-    server |> mcp.Tool("get_price", "Get stock price by ticker symbol", getPrice)
-    server |> mcp.Serve()
-```
-
-Compile to a single binary and register it with Claude Desktop or any MCP-compatible agent. Add a `skill` declaration and run `kukicha pack` to generate a machine-readable manifest alongside the binary — see the [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md#packaging-skills-for-agent-pipelines).
-
-**More examples:** [Automation scripts](docs/tutorials/data-scripting-tutorial.md), [CLI tools](docs/tutorials/cli-explorer-tutorial.md), [Concurrent health checker](docs/tutorials/concurrent-url-health-checker.md), [REST API server](docs/tutorials/web-app-tutorial.md), [Release tooling](examples/gh-semver-release/main.kuki)
+| Command | What it does |
+|---------|-------------|
+| `kukicha check file.kuki` | Validate syntax without compiling |
+| `kukicha run file.kuki` | Compile and run immediately |
+| `kukicha build file.kuki` | Compile to a standalone binary |
+| `kukicha pack skill.kuki` | Package a skill for agent pipelines |
 
 ---
 
-## Beyond Readability
+## Why Kukicha
 
-Kukicha compiles to Go — single binaries, goroutines, strong typing, memory safety, fast cold starts. No runtime dependencies.
-
-But readability alone isn't enough. AI writes [nearly half of all committed code](https://shiftmag.dev/state-of-code-2025-7978/), yet [45% of it contains security flaws](https://www.veracode.com/blog/genai-code-security-report/) and AI-generated code introduces [1.7x more issues](https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report). In 2026, [security debt hit 82% of organizations](https://www.veracode.com/resources/analyst-reports/state-of-software-security-2026/) and AI-generated code [introduces 15–18% more security vulnerabilities](https://opsera.ai/resources/report/ai-coding-impact-2025-benchmark-report/) at enterprise scale.
-
-The Kukicha compiler catches common AI-generated vulnerabilities **at build time** — SQL injection, XSS, SSRF, path traversal, command injection, and open redirects while telling both you and the AI agent what safe alternative to use instead.
-
----
-
-## For Developers
-
-If you already know Go or Python, here's how Kukicha compares:
-
-| | Go | Python | Kukicha |
-|-|----|---------|----|
-| Reads like English | Partially | Yes | Yes |
-| Classes / OOP required | No | Common | No |
-| Special symbols (`&&`, `__`, `**`) | `&&` | `__`, `**` | No |
-| Compiles to single binary | Yes | No | Yes (via Go) |
-| Built for AI generation + human review | No | No | Yes |
-| Transfers to Go/Python | — | — | 1:1 |
-
-Every Kukicha concept maps 1:1 to Go and Python — see the [Quick Reference](docs/kukicha-quick-reference.md) for a full translation table.
-
----
-
-## Standard Library
-
-42+ packages, pipe-friendly, error-handled with `onerr`.
-
-| Category | Packages |
-|---------|---------|
-| **Data** | `fetch`, `files`, `json`, `parse`, `encoding`, `cast` |
-| **Logic** | `slice`, `maps`, `string`, `sort` (custom comparators, ByKey), `iterator` (lazy iter.Seq pipelines), `random` |
-| **Security** | `crypto` (SHA-256, HMAC, secure random), `netguard`, `sandbox` |
-| **Infrastructure** | `container`, `shell`, `net` |
-| **AI & Agents** | `llm`, `mcp`, `a2a`, `skills` |
-| **Web** | `html` (component fragments, auto-escaping), `http`, `fetch`, `validate`, `template` |
-| **Config & Ops** | `env`, `must`, `cli`, `semver`, `obs`, `retry`, `ctx`, `datetime`, `concurrent` |
-| **Output** | `table` (terminal tables: plain, box, markdown), `input` (interactive prompts) |
-| **Errors & Testing** | `errors`, `test` |
-
-See the full [Stdlib Reference](stdlib/AGENTS.md).
+- **Readable** — English keywords (`and`, `or`, `not`, `equals`), indentation instead of braces, no `&&`/`||`/`__`
+- **Safe** — The compiler catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
+- **42+ stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](stdlib/AGENTS.md)
+- **Pipes + error handling** — `|> step onerr handler` chains replace nested `if err != nil`
+- **Compiles to Go** — Single binary, cross-compile, WASM support
 
 ---
 
 ## Editor Support
 
-**VS Code:** Search `kukicha-lang` in extensions, or see [kukichalang/vscode-kukicha](https://github.com/kukichalang/vscode-kukicha).
-
-**Zed:** See [kukichalang/zed-kukicha](https://github.com/kukichalang/zed-kukicha).
-
-**Other editors:** `make install-lsp` and configure your editor to run `kukicha-lsp` for `.kuki` files.
-
-All editors get syntax highlighting, hover, go-to-definition, completions, and diagnostics via the LSP.
+- **VS Code:** Search `kukicha-lang` in extensions ([repo](https://github.com/kukichalang/vscode-kukicha))
+- **Zed:** [kukichalang/zed-kukicha](https://github.com/kukichalang/zed-kukicha)
+- **Other:** `make install-lsp` and point your editor at `kukicha-lsp`
 
 ---
 
 ## Documentation
 
-**New to Kukicha?**
-- [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, read and approve, ship
-- [Absolute Beginner Tutorial](docs/tutorials/absolute-beginner-tutorial.md) — first program, variables, functions, lists, loops
-
-**Build something real:**
-- [Data & AI Scripting](docs/tutorials/data-scripting-tutorial.md) — maps, CSV, shell, LLM
-- [CLI Repo Explorer](docs/tutorials/cli-explorer-tutorial.md) — types, methods, API data
-- [Link Shortener](docs/tutorials/web-app-tutorial.md) — HTTP servers, JSON, REST APIs
-- [Concurrent Health Checker](docs/tutorials/concurrent-url-health-checker.md) — goroutines and channels
-
-**Make a game:**
-- [Game Tutorials](docs/tutorials/game/01-hello-world.md) — 8 lessons from hello world to Breakout (WASM)
-
-**Go deeper:**
-- [Shell Scripters Guide](docs/tutorials/beginner-tutorial.md) — for bash users
-- [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, validation, retry, auth
-- [FAQ](docs/faq.md) — coming from bash, Python, or Go
-- [Quick Reference](docs/kukicha-quick-reference.md) — Go-to-Kukicha translation table
-- [Stdlib Reference](stdlib/AGENTS.md) — all packages
+- [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
+- [Absolute Beginner Tutorial](docs/tutorials/absolute-beginner-tutorial.md) — first program, variables, functions
+- [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, auth, retry
+- [FAQ](docs/faq.md) | [Contributing](docs/contributing.md)
 
 ---
 
-## Contributing
-
-See [Contributing Guide](docs/contributing.md) for development setup, tests, and architecture.
-
----
-
-## Status
-
-**Version:** 0.0.30 — Ready for testing
-**Go:** 1.26.1+ required
-**License:** See [LICENSE](LICENSE)
+**Version:** 0.0.30 | **License:** [MIT](LICENSE)

@@ -87,8 +87,8 @@ When adding new language features, follow this process:
 ### Step 1: Update Documentation
 
 1. Update the grammar in `docs/kukicha-grammar.ebnf.md`
-2. Update  `docs/kukicha-quick-reference.md`
-3. Update the relevant `AGENTS.md` files (root, `stdlib/`, `internal/`) with any new syntax or API changes.
+2. Update `docs/kukicha-quick-reference.md`
+3. Update `docs/SKILL.md` with any new syntax, and `stdlib/AGENTS.md` with any new stdlib API changes.
 
 ### Step 2: Implement in the Compiler
 
@@ -272,7 +272,7 @@ You only need `make genstdlibregistry` or `make gengostdlib` as standalone comma
 2. Create `stdlib/<pkg>/<pkg>_test.kuki` with table-driven tests (see below)
 3. Run `make generate && make build`
 4. Run `kukicha check stdlib/<pkg>/<pkg>.kuki` to validate
-5. Add the package to `stdlib/AGENTS.md` and `stdlib/CLAUDE.md` so AI agents know it exists
+5. Add the package to `stdlib/AGENTS.md` and `docs/SKILL.md` so AI agents know it exists
 
 ### Writing stdlib tests
 

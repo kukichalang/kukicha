@@ -405,8 +405,9 @@ kukicha audit                  # check dependencies for known vulnerabilities
 **Build flags:**
 
 ```bash
-kukicha build --wasm file.kuki          # WebAssembly output (GOOS=js GOARCH=wasm)
-kukicha build --vulncheck file.kuki     # build + check for known vulnerabilities
+kukicha build --wasm file.kuki                # WebAssembly output (GOOS=js GOARCH=wasm)
+kukicha build --vulncheck file.kuki           # build + check for known vulnerabilities
+kukicha build --no-line-directives file.kuki  # omit //line directives (cleaner output for production)
 ```
 
 **Binary output location and name:**
@@ -824,6 +825,118 @@ if netutil.Contains(network, ip) and netutil.IsPrivate(ip)
     print("private range")
 ```
 
+**stdlib/crypto** — Hashing, HMAC, and secure random generation
+
+```kukicha
+hash  := crypto.SHA256("hello world")                # hex-encoded SHA-256
+mac   := crypto.HMAC("secret-key", "message-body")   # hex-encoded HMAC-SHA256
+token := crypto.RandomToken(32) onerr panic "{error}" # 64-char hex string
+bytes := crypto.RandomBytes(16) onerr panic "{error}" # raw random bytes
+
+# Binary variants for byte-level pipelines
+raw   := crypto.SHA256Bytes(data)
+rawMac := crypto.HMACBytes(keyBytes, dataBytes)
+
+# Constant-time comparison (prevents timing attacks)
+if crypto.Equal(expected, actual)
+    print("match")
+```
+
+**stdlib/sort** — Sorting slices (returns sorted copies, originals unchanged)
+
+```kukicha
+sorted := sort.Strings(names)                          # ascending, lexicographic
+sorted := sort.Ints(scores)                            # ascending, numeric
+sorted := sort.Float64s(values)                        # ascending, float64
+
+# Custom comparator (stable sort)
+sorted := sort.By(repos, (a, b) => a.stars < b.stars)
+
+# Sort by extracted key (pipe-friendly)
+sorted := repos |> sort.ByKey(r => r.name)
+
+# Reverse sort
+sorted := sort.Reverse(repos, (a, b) => a.stars < b.stars)
+```
+
+**stdlib/netguard** — SSRF protection and network restriction
+
+```kukicha
+# Block all private/reserved IPs (standard SSRF protection)
+guard := netguard.NewSSRFGuard()
+client := netguard.HTTPClient(guard)
+
+# Allow only specific CIDRs
+guard := netguard.NewAllow(list of string{"93.184.216.0/24"}) onerr panic "{error}"
+
+# Block specific CIDRs
+guard := netguard.NewBlock(list of string{"10.0.0.0/8"}) onerr panic "{error}"
+
+# Check a single IP
+if netguard.Check(guard, "10.0.0.1")
+    print("allowed")
+
+# Use with fetch via guarded HTTP transport
+transport := netguard.HTTPTransport(guard)
+```
+
+**stdlib/a2a** — A2A protocol client (agent-to-agent communication)
+
+```kukicha
+# Discover an agent and send a message
+agent := a2a.Discover("https://agent.example.com") onerr panic "{error}"
+defer a2a.Close(agent)
+
+# One-shot ask
+reply := a2a.Ask(agent, "What's the weather?") onerr panic "{error}"
+
+# Builder pattern with retry
+task := a2a.New(agent)
+    |> a2a.Text("Summarize this document")
+    |> a2a.Context(conversationID)
+    |> a2a.Retry(3, 500)
+    |> a2a.Send() onerr panic "{error}"
+print(task.Text)
+
+# Streaming with callbacks
+task := a2a.New(agent)
+    |> a2a.Text("Generate a report")
+    |> a2a.OnText(chunk => print(chunk))
+    |> a2a.OnStatus(s => print("status: {s.State}"))
+    |> a2a.Stream() onerr panic "{error}"
+
+# List agent skills from its card
+for skill in a2a.Skills(agent)
+    print("{skill.Name}: {skill.Description}")
+```
+
+**stdlib/html** — Component-style HTML rendering with auto-escaping
+
+```kukicha
+# Render a fragment — use Escape() for user input, Embed() for child fragments
+page := html.Render("<h1>{html.Escape(title)}</h1>")
+nav  := html.Render("<nav>{html.Embed(links)}</nav>")
+
+# Write to HTTP response
+html.WriteTo(w, page) onerr discard
+html.WriteStatusTo(w, errorPage, 404) onerr discard
+
+# Compose fragments
+full := html.Join(header, content, footer)
+
+# Render a list
+items := html.Map(users, (u User) =>
+    return html.Render("<li>{html.Escape(u.Name)}</li>")
+)
+
+# Conditional rendering
+badge := html.When(isAdmin, adminBadge)
+nav   := html.WhenElse(loggedIn, userNav, guestNav)
+
+# Attribute escaping
+link := html.Render("<a href='{html.Attr(url)}'>click</a>")
+```
+
 ---
 
 ### Security — Compiler-Enforced Checks
@@ -961,7 +1074,7 @@ Assertions: `test.AssertEqual`, `test.AssertNotEqual`, `test.AssertTrue`, `test.
 
 ---
 
-**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `math`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
+**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
 
 ---
 

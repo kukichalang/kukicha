@@ -99,7 +99,7 @@ Inline error handling for functions that return `(T, error)`.
 
 ```kukicha
 # Panic on error
-data := files.Read("config.json") onerr panic "failed to read"
+data := files.Read("config.json") onerr panic "failed to read: {error}"
 
 # Return default value
 config := parse(data) onerr DefaultConfig
@@ -107,13 +107,24 @@ config := parse(data) onerr DefaultConfig
 # Propagate — passes the original error to the caller
 data := files.Read("config.json") onerr return
 
+# Wrap and propagate — adds context before returning
+data := files.Read("config.json") onerr explain "loading config"
+
+# Discard — explicitly ignore the error
+_ := riskyOp() onerr discard
+
 # Loop control — skip or exit on error (inside for loops)
 v := parse(item) onerr continue
 v := parse(item) onerr break
 
 # Block handler — caught error is always named `error`, never `err`
 user := fetchUser(id) onerr
-    log.Printf("failed for user {id}: {error}")   # {error} = caught error
+    log.Printf("failed for user {id}: {error}")
+    return empty
+
+# Block handler with named alias
+user := fetchUser(id) onerr as e
+    log.Printf("failed: {e}")    # {e} and {error} both work
     return empty
 ```
 
@@ -141,6 +152,12 @@ name := "Kukicha"
 version := 1.0
 print("Welcome to {name} v{version}!")
 print("Math: 1 + 1 = {1 + 1}")
+
+# Escape braces with \{ and \}
+json := "key: \{value\}"             # literal braces in output
+
+# OS path separator
+path := "{dir}\sep{file}"            # \ on Windows, / on Unix
 ```
 
 ### 8. Indentation-based Blocks
@@ -176,6 +193,15 @@ switch command
         print("Help")
     otherwise
         print("Unknown command")
+
+# Bare switch (condition-based, no expression)
+switch
+    when stars >= 1000
+        print("popular")
+    when stars >= 100
+        print("growing")
+    otherwise
+        print("new")
 
 # Type switch
 switch event as e
@@ -263,12 +289,15 @@ delete(scores, "Alice")         # Delete key (Go builtin, valid in Kukicha)
 ch := make channel of string, 10
 ```
 
-### 14. Top-level Variables
-Declare global state or constants at the top level of a file. You can use the full name `variable` or the abbreviation `var`.
+### 14. Top-level Variables and Constants
+Declare global state or constants at the top level of a file. `func`/`var`/`const` have English aliases that compile identically.
 
 ```kukicha
 variable API_URL string = "https://api.example.com"
 var IS_PRODUCTION bool = false
+
+constant MaxRetries = 5
+const DefaultPort = 8080
 ```
 
 ### 15. Methods
@@ -300,11 +329,33 @@ for i from 10 through 0     # 10 down to 0
 for item in items           # Values only
 for i, item in items        # Index and value
 
+# Bare loop (infinite — use break to exit)
+for
+    msg := receive from ch
+    if msg equals "quit"
+        break
+
+# If with init statement
+if val, ok := cache[key]; ok
+    return val
+
 # Ternary-like expressions
 status := "Active" if user.active else "Inactive"
 ```
 
-### 17. Named Arguments
+### 17. Defer
+```kukicha
+# Single call — runs when function exits
+defer resource.Close()
+
+# Block form — multiple statements (emits defer func() { ... }())
+defer
+    if r := recover(); r != empty
+        tx.Rollback()
+        panic(r)
+```
+
+### 18. Named Arguments
 Call functions with explicit argument names for clarity.
 
 ```kukicha
@@ -323,7 +374,7 @@ Configure("localhost", port: 8080, secure: true)
 Configure("localhost", secure: true)  # Use default port
 ```
 
-### 18. Default Parameter Values
+### 19. Default Parameter Values
 Define functions with optional parameters that have default values.
 
 ```kukicha
@@ -345,7 +396,7 @@ func Connect(host string, port int = 8080, timeout int = 30)
     # ...
 ```
 
-### 19. Enums
+### 20. Enums
 Define a fixed set of named constants with type safety and exhaustiveness checking.
 
 ```kukicha
@@ -417,8 +468,12 @@ switch status
 | `append(slice, item)` | `append(slice, item)` |
 | `make([]T, len)` | `make list of T, len` |
 | `defer f()` | `defer f()` |
+| `defer func() { ... }()` | `defer` + indented block |
 | `go f()` | `go f()` |
 | `go func() { ... }()` | `go` + indented block |
+| `for { ... }` | `for` + indented block (bare loop) |
+| `if v, ok := m[k]; ok { ... }` | `if v, ok := m[k]; ok` |
+| `const X = 5` | `const X = 5` or `constant X = 5` |
 | `select { case v := <-ch: ... }` | `select` / `when v := receive from ch` / `otherwise` |
 | `func(x T) T { return expr }` | `(x T) => expr` |
 | `switch x { case a: ... }` | `switch x` / `when a` / `otherwise` |
@@ -427,6 +482,9 @@ switch status
 | (no equivalent) | `func F(x int = 10)` (default parameters) |
 | (no equivalent) | `expr \|> switch` / `when` / `otherwise` (piped switch) |
 | (no equivalent) | pipeline `onerr` across multi-step pipe chains |
+| `fmt.Errorf("context: %w", err)` | `onerr explain "context"` |
+| `"\x7b"` (literal brace) | `"\{" "\}"` (escaped braces in interpolation) |
+| `string(os.PathSeparator)` | `"\sep"` (OS path separator) |
 | `type T int` + `const (...)` iota | `enum T` with `Case = value` |
 
 ---
