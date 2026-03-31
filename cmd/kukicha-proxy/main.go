@@ -6,7 +6,7 @@
 // configurable cooldown period are served.
 //
 // Two modes:
-//   - local:  caches to disk, upstream is proxy.kukicha.org (or configurable)
+//   - local:  caches to disk, upstream is proxy.kukicha.dev (or configurable)
 //   - hosted: SQLite for first-seen tracking, upstream is proxy.golang.org
 //
 // See: https://github.com/golang/go/issues/76485
@@ -319,7 +319,7 @@ func main() {
 	cooldown := flag.String("cooldown", "7d", "cooldown duration (e.g., 7d, 168h)")
 	upstream := flag.String("upstream", "", "upstream proxy URL (auto-detected from mode if empty)")
 	dataDir := flag.String("data", "", "data directory (default: ~/.kukicha/proxy)")
-	trusted := flag.String("trusted", "github.com/kukichalang/", "comma-separated trusted module prefixes (bypass cooldown)")
+	trusted := flag.String("trusted", "github.com/kukichalang/,golang.org/x/,gopkg.in/", "comma-separated trusted module prefixes (bypass cooldown)")
 	flag.Parse()
 
 	cooldownDur, err := parseDuration(*cooldown)
@@ -343,7 +343,7 @@ func main() {
 	if up == "" {
 		switch *mode {
 		case "local":
-			up = "https://proxy.kukicha.org"
+			up = "https://proxy.kukicha.dev"
 		case "hosted":
 			up = "https://proxy.golang.org"
 		default:

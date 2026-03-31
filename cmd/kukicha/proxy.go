@@ -17,7 +17,7 @@ import (
 const (
 	defaultProxyPort = 8250
 	defaultProxyHost = "127.0.0.1"
-	hostedProxyURL   = "https://proxy.kukicha.org"
+	hostedProxyURL   = "https://proxy.kukicha.dev"
 	goProxyURL       = "https://proxy.golang.org"
 )
 
@@ -56,7 +56,7 @@ func printProxyUsage() {
 	fmt.Fprintln(os.Stderr, "  status                                Show proxy status")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "The local proxy caches Go modules and layers additional cooldown")
-	fmt.Fprintln(os.Stderr, "filtering on top of proxy.kukicha.org.")
+	fmt.Fprintln(os.Stderr, "filtering on top of proxy.kukicha.dev.")
 }
 
 func proxyStartCommand(args []string) {
