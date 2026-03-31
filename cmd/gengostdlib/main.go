@@ -82,7 +82,10 @@ var packages = []funcSpec{
 		"NewReader", "NewReplacer",
 	}},
 	{pkg: "bytes", funcs: []string{
-		"NewBuffer", "NewReader",
+		"NewBuffer", "NewBufferString", "NewReader",
+	}},
+	{pkg: "encoding/csv", funcs: []string{
+		"NewReader", "NewWriter",
 	}},
 	{pkg: "bufio", funcs: []string{
 		"NewScanner", "NewReader", "NewWriter",
@@ -240,6 +243,8 @@ func kukichaAlias(pkg string) string {
 		return "url"
 	case "net/http":
 		return "http"
+	case "encoding/csv":
+		return "csv"
 	case "encoding/json":
 		return "json"
 	case "path/filepath":
