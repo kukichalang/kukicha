@@ -281,6 +281,8 @@ The semantic analyzer validates struct literal field names and types at compile 
 
 `TypeInfo.Methods` maps method names to their function `TypeInfo`. During `collectDeclarations()`, `registerMethod()` attaches each method's signature to its receiver type's symbol. At analysis time, `FieldAccessExpr` nodes resolve through `resolveFieldType()`, while `MethodCallExpr` nodes resolve through `resolveMethodType()`. Both handle pointer/reference receivers by dereferencing first.
 
+**Shorthand pipe syntax (`.Field` / `.Method()`):** The parser accepts dot-prefixed expressions without a left-hand side, producing AST nodes with `Object == nil`. These are only valid inside pipe expressions (e.g., `user |> .Name`), where `pipedArg` provides the receiver. Both `analyzeFieldAccessExpr` and `analyzeMethodCallExpr` reject shorthand syntax when `Object == nil && pipedArg == nil`, reporting a compile error.
+
 ### exprReturnCounts
 
 The analyzer infers how many values an expression returns and stores it in `a.exprReturnCounts[expr]`. Codegen reads this to decide whether to emit `val, err := f()` (2-return) vs `val := f()` (1-return) for pipe + onerr chains.

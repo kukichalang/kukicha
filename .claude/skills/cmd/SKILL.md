@@ -17,7 +17,7 @@ The primary `kukicha` binary. Subcommands:
 |---------|------|-------------|
 | `build` | `main.go` | Transpile `.kuki` to `.go`, then `go build`. Flags: `--target`, `--skip-build`, `--if-changed`, `--vulncheck`, `--wasm` |
 | `run` | `main.go` | Transpile to a temp `.go` file and `go run` it. Passes extra args to the script |
-| `check` | `main.go` | Parse + semantic analysis only (no codegen). Flag: `--strict-onerr` |
+| `check` | `main.go` | Parse + semantic analysis only (no codegen). Accepts multiple targets. Flags: `--strict-onerr`, `--json` |
 | `fmt` | `fmt.go` | Format `.kuki` files (tabs→spaces, trailing whitespace, brace conversion). Flags: `-w`, `--check` |
 | `pack` | `pack.go` | Package a skill declaration into a directory with `SKILL.md` + compiled binary |
 | `audit` | `audit.go` | Run `govulncheck` against project dependencies. Flags: `--json`, `--warn-only` |

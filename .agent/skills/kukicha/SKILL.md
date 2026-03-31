@@ -152,6 +152,20 @@ switch status
 - Auto-generated `String()` method (skipped if user defines one)
 - Cross-package enums from stdlib are resolved automatically
 
+### Shorthand `.Field` / `.Method()` — pipe context only
+
+```kukicha
+# CORRECT — shorthand in a pipe
+name := user |> .Name
+result := data |> .Process()
+
+# WRONG — shorthand outside a pipe (compile error)
+name := .Name
+result := .Process()
+```
+
+Shorthand dot syntax is syntactic sugar for pipe receivers. Using it outside a pipe expression is a compile error: `shorthand .X can only be used in a pipe expression`.
+
 ### `any2` in stdlib source is a compiler placeholder — not user syntax
 
 When reading stdlib `.kuki` files you will see `any2` in function signatures. Do not use it in application code — it is a compiler-reserved name for a second generic type parameter.

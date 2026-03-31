@@ -391,6 +391,8 @@ petiole main                   # package declaration (Go's `package main`)
 ```bash
 kukicha init [module]          # initialize project (go mod init + extract stdlib)
 kukicha check file.kuki        # validate syntax without compiling
+kukicha check --json file.kuki # structured JSON diagnostics
+kukicha check a.kuki myapp/    # check multiple targets
 kukicha run file.kuki          # transpile, compile, and run
 kukicha build file.kuki        # transpile and compile to binary (named after source file stem)
 kukicha build myapp/           # build directory — binary named after the directory

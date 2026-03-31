@@ -281,6 +281,8 @@ The semantic analyzer validates struct literal field names and types at compile 
 
 `TypeInfo.Methods` maps method names to their function `TypeInfo`. During `collectDeclarations()`, `registerMethod()` attaches each method's signature to its receiver type's symbol. At analysis time, `FieldAccessExpr` nodes resolve through `resolveFieldType()`, while `MethodCallExpr` nodes resolve through `resolveMethodType()`. Both handle pointer/reference receivers by dereferencing first.
 
+**Shorthand pipe syntax (`.Field` / `.Method()`):** The parser accepts dot-prefixed expressions without a left-hand side, producing AST nodes with `Object == nil`. These are only valid inside pipe expressions (e.g., `user |> .Name`), where `pipedArg` provides the receiver. Both `analyzeFieldAccessExpr` and `analyzeMethodCallExpr` reject shorthand syntax when `Object == nil && pipedArg == nil`, reporting a compile error.
+
 ### exprReturnCounts
 
 The analyzer infers how many values an expression returns and stores it in `a.exprReturnCounts[expr]`. Codegen reads this to decide whether to emit `val, err := f()` (2-return) vs `val := f()` (1-return) for pipe + onerr chains.
@@ -443,6 +445,13 @@ Error-only detection uses `isErrorOnlyReturn()` which checks both `exprReturnCou
 The non-onerr `generatePipeExpr` wraps multi-return **Left** sides in an IIFE to extract the first value (discarding trailing returns). The **Right** (final) side is NOT wrapped — its full return signature becomes the pipe expression's result, so `val, err := data |> parse()` works naturally. `warnPipeDiscardedErrors` in semantic analysis warns when intermediate steps discard errors without `onerr`. This is intentional: the Go compiler catches type mismatches if the final step's multi-return is used in a single-value context. IIFE return types are inferred via `inferExprReturnType`, which resolves user-defined function return types through `returnTypeForFunctionName` (scanning program declarations) — avoiding the `any` fallback for known functions.
 
 **Shorthand `.Method()` and placeholders:** In `data |> .Method(args)`, the piped value becomes the **receiver** (not an argument), so `_` placeholders in the argument list are not meaningful and are treated as literal underscore identifiers. This differs from `data |> pkg.Func(_, x)` where `_` marks the insertion point for the piped value as a function argument.
+
+### `empty` keyword in codegen
+
+When codegen encounters an `Identifier` with value `"empty"`, it consults `exprTypes` to decide what to emit:
+
+- **`TypeKindNil`** (not shadowed) → emit `nil`. In generic stdlib context with a placeholder return type, `exprToString` returns `*new(T)` or `*new(K)` as an intermediate marker; `replaceGenericZeroExprs` (called from `generateReturnStmt`) converts this to `var _zeroN T; return _zeroN`.
+- **Not `TypeKindNil`** (shadowed by a user variable) → emit `empty` as-is, preserving the variable name.
 
 ### Arrow lambda parameter type inference
 
