@@ -734,16 +734,24 @@ WebAssembly.instantiateStreaming(fetch("%s.wasm"), go.importObject).then(r => go
 	}
 }
 
-// playgroundBlockedImports lists Go packages that are rejected in playground mode.
-// These are blocked as defense-in-depth — the nsjail sandbox also prevents network
-// and process spawning, but compile-time rejection gives clearer error messages.
+// playgroundBlockedImports lists packages that are rejected in --playground mode.
+// This is a UX feature: it gives users a clear compile-time error message instead
+// of a cryptic runtime failure. The actual security boundary is the nsjail sandbox
+// (network namespace isolation, read-only filesystem, resource limits). These checks
+// do not replace the sandbox — they just tell users what went wrong before execution.
+//
+// Note: pure utility sub-packages like "net/url" and "net/netip" are intentionally
+// not blocked since they do no I/O and are useful in playground programs.
 var playgroundBlockedImports = map[string]string{
-	"os/exec":  "command execution is not allowed in playground mode",
-	"net":      "network access is not allowed in playground mode",
-	"net/http": "network access is not allowed in playground mode",
-	"syscall":  "syscall access is not allowed in playground mode",
-	"unsafe":   "unsafe operations are not allowed in playground mode",
-	"plugin":   "plugin loading is not allowed in playground mode",
+	"os/exec":      "command execution is not allowed in playground mode",
+	"net":          "network access is not allowed in playground mode",
+	"net/http":     "network access is not allowed in playground mode",
+	"net/rpc":      "network access is not allowed in playground mode",
+	"net/rpc/jsonrpc": "network access is not allowed in playground mode",
+	"net/smtp":     "network access is not allowed in playground mode",
+	"syscall":      "syscall access is not allowed in playground mode",
+	"unsafe":       "unsafe operations are not allowed in playground mode",
+	"plugin":       "plugin loading is not allowed in playground mode",
 }
 
 func validatePlaygroundImports(program *ast.Program) error {

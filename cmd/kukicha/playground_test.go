@@ -16,7 +16,11 @@ func makeImport(path string) *ast.ImportDecl {
 }
 
 func TestValidatePlaygroundImports_Blocked(t *testing.T) {
-	blocked := []string{"os/exec", "net", "net/http", "syscall", "unsafe", "plugin"}
+	blocked := []string{
+		"os/exec",
+		"net", "net/http", "net/rpc", "net/rpc/jsonrpc", "net/smtp",
+		"syscall", "unsafe", "plugin",
+	}
 	for _, pkg := range blocked {
 		program := &ast.Program{
 			Imports: []*ast.ImportDecl{makeImport(pkg)},
@@ -44,6 +48,8 @@ func TestValidatePlaygroundImports_Allowed(t *testing.T) {
 		"regexp",
 		"unicode",
 		"os",
+		"net/url",   // pure URL parsing — no I/O
+		"net/netip", // pure IP address types — no I/O
 		"stdlib/json",
 		"stdlib/slice",
 		"stdlib/http",

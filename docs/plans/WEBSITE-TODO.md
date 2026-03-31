@@ -241,7 +241,7 @@ server endpoint calling `go run`, rate limiting, and streaming stdout/stderr bac
 
 ##### Server & sandbox
 - [ ] `handlers/run.kuki` — POST /api/run: validate body (64 KB max), rate-limit, write temp .kuki file, spawn nsjail, stream SSE
-- [ ] `nsjail.cfg` — nsjail protobuf config (ONCE mode, 10s timeout, 256 MB mem, no network, read-only mounts)
+- [ ] `nsjail.cfg` — nsjail protobuf config (ONCE mode, 10s timeout, 256 MB mem, no network, read-only mounts, `CGO_ENABLED=0`)
 - [ ] `scripts/warmup.sh` — Pre-warm Go module cache during Docker build (stdlib transitive deps)
 - [ ] `Dockerfile` updates — Add nsjail, Go toolchain, kukicha binary, module cache warmup
 - [ ] `--playground` flag on `kukicha run` (kukichalang/kukicha repo) — import blocklist for dangerous packages
