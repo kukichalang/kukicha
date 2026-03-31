@@ -92,6 +92,23 @@ make modernize
 
 All tests must pass, lint/vet must be clean, and `make modernize` must find no outdated patterns before tagging. Do not proceed if any fails.
 
+### 5b. Run fuzz tests and validate examples
+
+Run the two fuzz targets briefly (10 seconds each) as a smoke test:
+
+```bash
+go test ./internal/lexer/ -fuzz=FuzzLexer -fuzztime=10s
+go test ./internal/codegen/ -fuzz=FuzzPipeline -fuzztime=10s
+```
+
+Then validate all example files with structured diagnostics (use the locally-built binary from step 4):
+
+```bash
+./kukicha check --json examples/*.kuki
+```
+
+The fuzz tests must not find any crashes, and `kukicha check` must report no errors on the examples. Do not proceed if either fails.
+
 ### 6. Commit
 
 Stage and commit in a single commit (per the contributing guide — do NOT split into multiple commits):
@@ -131,6 +148,8 @@ git push origin vX.X.X
 - [ ] `make lint` — zero issues
 - [ ] `make vet` — zero issues (covers stdlib, which golangci-lint excludes)
 - [ ] `make modernize` — no outdated Go patterns in generated code
+- [ ] Fuzz tests (`FuzzLexer`, `FuzzPipeline`) — no crashes in 10s runs
+- [ ] `kukicha check --json examples/*.kuki` — no errors on examples
 - [ ] Single commit with all changes
 - [ ] Tag created and pushed
 - [ ] `git ls-remote --tags origin` confirms tag is present

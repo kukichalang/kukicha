@@ -92,6 +92,11 @@ func isBasicSemver(v string) bool {
 func (a *Analyzer) collectDeclarations() {
 	// Collect imports
 	for _, imp := range a.program.Imports {
+		path := imp.Path.Value
+		if strings.ContainsAny(path, "\"\\") {
+			a.error(imp.Pos(), "import path must not contain '\"' or '\\'")
+			continue
+		}
 		name := a.extractPackageName(imp)
 		err := a.symbolTable.Define(&Symbol{
 			Name:    name,

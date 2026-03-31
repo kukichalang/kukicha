@@ -1,0 +1,2 @@
+go test fuzz v1
+string("type Node#0000000000000\n    A0000000000000 Node \nfunc A000000#00000000000000000000000000000\n    A0:=return ")

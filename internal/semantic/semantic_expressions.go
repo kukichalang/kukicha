@@ -220,6 +220,9 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 		}
 		return &TypeInfo{Kind: TypeKindUnknown}
 	case *ast.ReturnExpr:
+		if !a.inOnerr {
+			a.error(e.Pos(), "'return' expression is only valid inside an onerr handler")
+		}
 		for _, v := range e.Values {
 			a.analyzeExpression(v)
 		}
