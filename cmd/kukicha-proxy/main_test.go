@@ -37,6 +37,9 @@ func fakeUpstream(t *testing.T) *httptest.Server {
 				"Time":    time.Now().UTC().Format(time.RFC3339),
 			})
 
+		case path == "gone/mod/@v/v1.0.0.mod":
+			w.WriteHeader(http.StatusGone)
+
 		case strings.HasSuffix(path, ".mod"):
 			fmt.Fprintln(w, "module example.com/mod\n\ngo 1.21")
 
@@ -50,14 +53,14 @@ func fakeUpstream(t *testing.T) *httptest.Server {
 	}))
 }
 
-func newTestProxy(t *testing.T, upstream string, cooldown time.Duration, trusted []string) *proxy {
+func newTestProxy(t *testing.T, upstream string, cooldown time.Duration, trusted []string) (*proxy, *seenDB) {
 	t.Helper()
 	dir := t.TempDir()
 	db, err := newSeenDB(filepath.Join(dir, "seen.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return &proxy{
+	p := &proxy{
 		upstream:   upstream,
 		cooldown:   cooldown,
 		db:         db,
@@ -65,13 +68,14 @@ func newTestProxy(t *testing.T, upstream string, cooldown time.Duration, trusted
 		trusted:    trusted,
 		httpClient: http.DefaultClient,
 	}
+	return p, db
 }
 
 func TestListFiltersCooldown(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
 
 	// First request — all versions are first-seen NOW, so all are in cooldown.
 	req := httptest.NewRequest("GET", "/example.com/mod/@v/list", nil)
@@ -91,19 +95,13 @@ func TestListServesAfterCooldown(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
 
 	// Pre-seed versions with old first-seen timestamps.
 	oldTime := time.Now().UTC().Add(-10 * 24 * time.Hour) // 10 days ago
-	p.db.mu.Lock()
-	p.db.records["example.com/mod@v0.1.0"] = versionRecord{
-		Module: "example.com/mod", Version: "v0.1.0", FirstSeen: oldTime,
-	}
-	p.db.records["example.com/mod@v0.2.0"] = versionRecord{
-		Module: "example.com/mod", Version: "v0.2.0", FirstSeen: oldTime,
-	}
+	db.seedRecord("example.com/mod", "v0.1.0", oldTime)
+	db.seedRecord("example.com/mod", "v0.2.0", oldTime)
 	// v0.3.0 is new (not pre-seeded, will be first-seen NOW).
-	p.db.mu.Unlock()
 
 	req := httptest.NewRequest("GET", "/example.com/mod/@v/list", nil)
 	w := httptest.NewRecorder()
@@ -131,7 +129,7 @@ func TestTrustedBypassesCooldown(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, []string{"github.com/kukichalang/"})
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, []string{"github.com/kukichalang/"})
 
 	// Request a trusted module — all versions should pass even without cooldown.
 	req := httptest.NewRequest("GET", "/github.com/kukichalang/infer/@v/list", nil)
@@ -153,7 +151,7 @@ func TestLatestInCooldownReturns404(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
 
 	req := httptest.NewRequest("GET", "/example.com/mod/@latest", nil)
 	w := httptest.NewRecorder()
@@ -169,15 +167,10 @@ func TestLatestAfterCooldown(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
 
 	// Pre-seed v0.3.0 as seen 10 days ago so it passes cooldown.
-	oldTime := time.Now().UTC().Add(-10 * 24 * time.Hour)
-	p.db.mu.Lock()
-	p.db.records["example.com/mod@v0.3.0"] = versionRecord{
-		Module: "example.com/mod", Version: "v0.3.0", FirstSeen: oldTime,
-	}
-	p.db.mu.Unlock()
+	db.seedRecord("example.com/mod", "v0.3.0", time.Now().UTC().Add(-10*24*time.Hour))
 
 	req := httptest.NewRequest("GET", "/example.com/mod/@latest", nil)
 	w := httptest.NewRecorder()
@@ -196,11 +189,32 @@ func TestLatestAfterCooldown(t *testing.T) {
 	}
 }
 
-func TestInfoPassthrough(t *testing.T) {
+func TestInfoInCooldownReturns404(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.info", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	// Version first-seen NOW → in cooldown → 404.
+	if w.Code != 404 {
+		t.Fatalf("expected 404 (in cooldown), got %d", w.Code)
+	}
+	// First-seen should still be recorded.
+	if !db.hasRecord("example.com/mod", "v0.1.0") {
+		t.Error("expected first-seen record for v0.1.0")
+	}
+}
+
+func TestInfoAfterCooldown(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	db.seedRecord("example.com/mod", "v0.1.0", time.Now().UTC().Add(-10*24*time.Hour))
 
 	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.info", nil)
 	w := httptest.NewRecorder()
@@ -209,21 +223,44 @@ func TestInfoPassthrough(t *testing.T) {
 	if w.Code != 200 {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
-
-	// Should record first-seen.
-	p.db.mu.RLock()
-	_, exists := p.db.records["example.com/mod@v0.1.0"]
-	p.db.mu.RUnlock()
-	if !exists {
-		t.Error("expected first-seen record for v0.1.0")
-	}
 }
 
-func TestModPassthrough(t *testing.T) {
+func TestInfoTrustedBypassesCooldown(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, []string{"github.com/kukichalang/"})
+
+	req := httptest.NewRequest("GET", "/github.com/kukichalang/infer/@v/v0.1.0.info", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Fatalf("expected 200 (trusted bypass), got %d", w.Code)
+	}
+}
+
+func TestModInCooldownReturns404(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.mod", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 404 {
+		t.Fatalf("expected 404 (in cooldown), got %d", w.Code)
+	}
+}
+
+func TestModAfterCooldown(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	db.seedRecord("example.com/mod", "v0.1.0", time.Now().UTC().Add(-10*24*time.Hour))
 
 	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.mod", nil)
 	w := httptest.NewRecorder()
@@ -237,11 +274,131 @@ func TestModPassthrough(t *testing.T) {
 	}
 }
 
+func TestZipInCooldownReturns404(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.zip", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 404 {
+		t.Fatalf("expected 404 (in cooldown), got %d", w.Code)
+	}
+}
+
+func TestDiskCacheServesMod(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	db.seedRecord("example.com/mod", "v0.1.0", time.Now().UTC().Add(-10*24*time.Hour))
+
+	// First request — fetches from upstream and writes cache.
+	req1 := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.mod", nil)
+	w1 := httptest.NewRecorder()
+	p.ServeHTTP(w1, req1)
+	if w1.Code != 200 {
+		t.Fatalf("first request: expected 200, got %d", w1.Code)
+	}
+
+	// Verify cache file was written.
+	cachePath := filepath.Join(p.cacheDir, "example.com", "mod", "@v", "v0.1.0.mod")
+	if _, err := os.Stat(cachePath); err != nil {
+		t.Fatalf("cache file not written: %v", err)
+	}
+
+	// Kill the upstream so any miss would fail.
+	up.Close()
+
+	// Second request — must be served from cache.
+	req2 := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.mod", nil)
+	w2 := httptest.NewRecorder()
+	p.ServeHTTP(w2, req2)
+	if w2.Code != 200 {
+		t.Fatalf("cached request: expected 200, got %d", w2.Code)
+	}
+	if !strings.Contains(w2.Body.String(), "module example.com/mod") {
+		t.Error("expected cached go.mod content")
+	}
+}
+
+func TestDiskCacheServesZip(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	db.seedRecord("example.com/mod", "v0.1.0", time.Now().UTC().Add(-10*24*time.Hour))
+
+	// Prime the cache.
+	req1 := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.zip", nil)
+	w1 := httptest.NewRecorder()
+	p.ServeHTTP(w1, req1)
+	if w1.Code != 200 {
+		t.Fatalf("first request: expected 200, got %d", w1.Code)
+	}
+
+	up.Close()
+
+	// Second request from cache.
+	req2 := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.zip", nil)
+	w2 := httptest.NewRecorder()
+	p.ServeHTTP(w2, req2)
+	if w2.Code != 200 {
+		t.Fatalf("cached request: expected 200, got %d", w2.Code)
+	}
+}
+
+func TestSumDBProxy(t *testing.T) {
+	// Start a fake sumdb server.
+	fakeSumDB := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "fake-sumdb-response")
+	}))
+	defer fakeSumDB.Close()
+
+	// Point the proxy at the fake sumdb by overriding the httpClient transport.
+	// Instead, we test via the ServeHTTP path with a real sumdb request path,
+	// using a custom httpClient that redirects sum.golang.org to our fake.
+	p, _ := newTestProxy(t, "https://proxy.golang.org", 7*24*time.Hour, nil)
+
+	// Confirm the sumdb/ path is routed (we can't easily override the target
+	// URL in this unit test, so just verify routing doesn't 404).
+	req := httptest.NewRequest("GET", "/sumdb/sum.golang.org/lookup/golang.org/x/text@v0.3.0", nil)
+	w := httptest.NewRecorder()
+	// Use a client that will fail fast (no real network in tests).
+	p.httpClient = &http.Client{Timeout: 1 * time.Millisecond}
+	p.ServeHTTP(w, req)
+
+	// Either 200 (real network) or 502 (no network) — but NOT 404.
+	// The important thing is that the sumdb/ prefix was routed correctly.
+	if w.Code == http.StatusNotFound {
+		t.Fatalf("sumdb path should be routed, not 404")
+	}
+}
+
+func Test410PropagatesGone(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	p, db := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	db.seedRecord("gone/mod", "v1.0.0", time.Now().UTC().Add(-10*24*time.Hour))
+
+	req := httptest.NewRequest("GET", "/gone/mod/@v/v1.0.0.mod", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != http.StatusGone {
+		t.Fatalf("expected 410 Gone, got %d", w.Code)
+	}
+}
+
 func TestHealthEndpoint(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
 
 	req := httptest.NewRequest("GET", "/_health", nil)
 	w := httptest.NewRecorder()
@@ -279,11 +436,29 @@ func TestSeenDBPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db2.mu.RLock()
-	_, exists := db2.records["example.com/mod@v1.0.0"]
-	db2.mu.RUnlock()
-	if !exists {
+	if !db2.hasRecord("example.com/mod", "v1.0.0") {
 		t.Error("expected record to survive reload")
+	}
+}
+
+func TestSQLiteSeenStore(t *testing.T) {
+	dir := t.TempDir()
+	s, err := newSQLiteSeenStore(filepath.Join(dir, "seen.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.close()
+
+	// First call records now.
+	t1 := s.firstSeen("example.com/mod", "v1.0.0")
+	if t1.IsZero() {
+		t.Fatal("firstSeen returned zero time")
+	}
+
+	// Second call returns same timestamp.
+	t2 := s.firstSeen("example.com/mod", "v1.0.0")
+	if !t1.Equal(t2) {
+		t.Errorf("second call returned different time: %v vs %v", t1, t2)
 	}
 }
 
@@ -314,7 +489,7 @@ func TestMethodNotAllowed(t *testing.T) {
 	up := fakeUpstream(t)
 	defer up.Close()
 
-	p := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
 
 	req := httptest.NewRequest("POST", "/example.com/mod/@v/list", nil)
 	w := httptest.NewRecorder()
