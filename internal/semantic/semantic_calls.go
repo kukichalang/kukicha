@@ -501,6 +501,13 @@ func resolveGenericPlaceholders(types []*TypeInfo, argTypes []*TypeInfo, pipedAr
 }
 
 func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *TypeInfo) []*TypeInfo {
+	// Shorthand .Method() requires a pipe context
+	if expr.Object == nil && pipedArg == nil {
+		a.error(expr.Pos(), fmt.Sprintf("shorthand .%s() can only be used in a pipe expression", expr.Method.Value))
+		a.recordReturnCount(expr, 1)
+		return []*TypeInfo{{Kind: TypeKindUnknown}}
+	}
+
 	// Analyze object
 	objType := pipedArg
 	if expr.Object != nil {
@@ -655,6 +662,13 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 				}
 			}
 		}
+	}
+
+	// Shorthand .Field requires a pipe context
+	if expr.Object == nil && pipedArg == nil {
+		a.error(expr.Pos(), fmt.Sprintf("shorthand .%s can only be used in a pipe expression", expr.Field.Value))
+		a.recordReturnCount(expr, 1)
+		return &TypeInfo{Kind: TypeKindUnknown}
 	}
 
 	objType := pipedArg
