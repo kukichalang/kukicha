@@ -105,7 +105,7 @@ Yes. Import any Go package (standard library or third-party) and use it directly
 
 ### Which languages was this inspired by
 
-Besides go, so far Python, Elixir and Nim
+Besides Go, so far Python, Elixir and Nim
 
 ### Why bother making an AI Agent friendly language? In the future we won't be able read what they generate anyway
 
