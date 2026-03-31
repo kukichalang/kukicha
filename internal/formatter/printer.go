@@ -129,9 +129,9 @@ func (p *Printer) printInterfaceDecl(decl *ast.InterfaceDecl) {
 		returns := p.returnTypesToString(method.Returns)
 
 		if returns != "" {
-			p.writeLine(fmt.Sprintf("func %s(%s) %s", method.Name.Value, params, returns))
+			p.writeLine(fmt.Sprintf("%s(%s) %s", method.Name.Value, params, returns))
 		} else {
-			p.writeLine(fmt.Sprintf("func %s(%s)", method.Name.Value, params))
+			p.writeLine(fmt.Sprintf("%s(%s)", method.Name.Value, params))
 		}
 	}
 

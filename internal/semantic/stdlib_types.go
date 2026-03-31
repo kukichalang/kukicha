@@ -58,3 +58,15 @@ func GetStdlibEnum(qualifiedName string) ([]string, bool) {
 func GetAllStdlibEnums() map[string][]string {
 	return generatedStdlibEnums
 }
+
+// GetAllStdlibEntries returns the full Kukicha stdlib registry as a read-only map.
+// Callers must not modify the returned map.
+func GetAllStdlibEntries() map[string]goStdlibEntry {
+	return generatedStdlibRegistry
+}
+
+// GetAllSecurityFunctions returns the full map of security-checked function names
+// to their category. Callers must not modify the returned map.
+func GetAllSecurityFunctions() map[string]string {
+	return generatedSecurityFunctions
+}
