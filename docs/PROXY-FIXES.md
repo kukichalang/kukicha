@@ -10,7 +10,7 @@ Rewritten from Go to Kukicha (`cmd/kukicha-proxy/main.kuki`).
 Changed `proxy.kukicha.dev` to `proxy.kukicha.org` in `main.kuki` and `cmd/kukicha/proxy.go`.
 
 ### 1. Missing SQLite go.mod dependency
-`github.com/glebarez/go-sqlite` is now imported via `import "..." as _` in the `.kuki` source. Dependency resolved by `kukicha build` via `go mod tidy`.
+`github.com/ncruces/go-sqlite3/driver` is now imported via `import "..." as _` in the `.kuki` source. Dependency resolved by `kukicha build` via `go mod tidy`.
 
 ### 3. Non-atomic JSON persistence
 `persist()` now writes to a `.tmp` file and renames atomically via `os.Rename`.

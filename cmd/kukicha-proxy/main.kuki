@@ -27,7 +27,7 @@ import "strings" as strpkg
 import "sync"
 import "syscall"
 import "time"
-import "github.com/glebarez/go-sqlite" as _
+import "github.com/ncruces/go-sqlite3/driver" as _
 
 # versionRecord tracks when a module version was first observed.
 type versionRecord
@@ -116,7 +116,7 @@ type sqliteSeenStore
 
 func newSQLiteSeenStore(path string) (reference sqliteSeenStore, error)
     os.MkdirAll(filepath.Dir(path), 0o755) onerr discard
-    conn := sql.Open("sqlite", path + "?_pragma=journal_mode(WAL)") onerr return empty, error "open sqlite: {error}"
+    conn := sql.Open("sqlite3", path + "?_pragma=journal_mode(WAL)") onerr return empty, error "open sqlite: {error}"
     _, err := conn.Exec("CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)")
     if err != empty
         conn.Close() onerr discard

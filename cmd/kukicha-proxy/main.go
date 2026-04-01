@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/ncruces/go-sqlite3/driver"
 	"io"
 	"log"
 	"net/http"
@@ -167,7 +167,7 @@ func newSQLiteSeenStore(path string) (*sqliteSeenStore, error) {
 //line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:118
 	_ = os.MkdirAll(filepath.Dir(path), 0755)
 //line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:119
-	conn, err_1 := sql.Open("sqlite", (path + "?_pragma=journal_mode(WAL)"))
+	conn, err_1 := sql.Open("sqlite3", (path + "?_pragma=journal_mode(WAL)"))
 //line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:119
 	if err_1 != nil {
 //line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:119

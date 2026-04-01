@@ -5,7 +5,7 @@ package db_test
 import (
 	"errors"
 	"fmt"
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/ncruces/go-sqlite3/driver"
 	"github.com/kukichalang/kukicha/stdlib/db"
 	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
@@ -21,7 +21,7 @@ type User struct {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:16
 func setupTestDB(t *testing.T) db.Pool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:17
-	pool, err_1 := db.Open("sqlite", ":memory:")
+	pool, err_1 := db.Open("sqlite3", ":memory:")
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:17
 	if err_1 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:17
@@ -77,7 +77,7 @@ func TestOpenAndClose(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:33
 		t.Run(tc.name, func(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:34
-			pool, err_1 := db.Open("sqlite", ":memory:")
+			pool, err_1 := db.Open("sqlite3", ":memory:")
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:34
 			if err_1 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:34
@@ -484,7 +484,7 @@ type NullCase struct {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:255
 func TestNullHandling(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:256
-	pool, err_6 := db.Open("sqlite", ":memory:")
+	pool, err_6 := db.Open("sqlite3", ":memory:")
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:256
 	if err_6 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:256
