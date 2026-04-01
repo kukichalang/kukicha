@@ -11,6 +11,7 @@
 #
 # See: https://github.com/golang/go/issues/76485
 
+import "bytes"
 import "context"
 import "database/sql"
 import "encoding/json"
@@ -27,7 +28,7 @@ import "strings" as strpkg
 import "sync"
 import "syscall"
 import "time"
-import "github.com/glebarez/go-sqlite" as _
+import "github.com/ncruces/go-sqlite3/driver" as _
 
 # versionRecord tracks when a module version was first observed.
 type versionRecord
@@ -116,7 +117,7 @@ type sqliteSeenStore
 
 func newSQLiteSeenStore(path string) (reference sqliteSeenStore, error)
     os.MkdirAll(filepath.Dir(path), 0o755) onerr discard
-    conn := sql.Open("sqlite", path + "?_pragma=journal_mode(WAL)") onerr return empty, error "open sqlite: {error}"
+    conn := sql.Open("sqlite3", path + "?_pragma=journal_mode(WAL)") onerr return empty, error "open sqlite: {error}"
     _, err := conn.Exec("CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)")
     if err != empty
         conn.Close() onerr discard
@@ -145,6 +146,106 @@ func FirstSeen on s reference sqliteSeenStore (module string, version string) ti
 func Shutdown on s reference sqliteSeenStore error
     return s.db.Close()
 
+# --- Vulnerability fast-track ---
+#
+# Queries the OSV vulnerability database to determine whether a module version
+# is a security fix.  When it is, the cooldown is bypassed so that critical
+# patches reach users immediately.
+
+type vulnChecker
+    mu       sync.Mutex
+    cache    map of string to vulnCacheEntry
+    client   reference http.Client
+    dbURL    string
+    cacheTTL time.Duration
+
+type vulnCacheEntry
+    fixedVersions map of string to bool
+    fetchedAt     time.Time
+
+# OSV API types (https://ossf.github.io/osv-schema/)
+
+type osvQueryReq
+    Package osvPackage as "package"
+
+type osvPackage
+    Name      string as "name"
+    Ecosystem string as "ecosystem"
+
+type osvQueryResp
+    Vulns list of osvVuln as "vulns"
+
+type osvVuln
+    ID       string             as "id"
+    Affected list of osvAffected as "affected"
+
+type osvAffected
+    Ranges list of osvRange as "ranges"
+
+type osvRange
+    Type   string           as "type"
+    Events list of osvEvent as "events"
+
+type osvEvent
+    Introduced string as "introduced"
+    Fixed      string as "fixed"
+
+func newVulnChecker(client reference http.Client) reference vulnChecker
+    return reference of vulnChecker{
+        cache:    make(map of string to vulnCacheEntry),
+        client:   client,
+        dbURL:    "https://api.osv.dev/v1/query",
+        cacheTTL: 1 * time.Hour,
+    }
+
+# IsSecurityFix reports whether the given version is listed as a fix for a
+# known vulnerability of the module.
+func IsSecurityFix on vc reference vulnChecker (module string, version string) bool
+    vc.mu.Lock()
+    entry, ok := vc.cache[module]
+    if ok and time.Since(entry.fetchedAt) < vc.cacheTTL
+        vc.mu.Unlock()
+        return entry.fixedVersions[version]
+    vc.mu.Unlock()
+
+    fixedVersions := vc.fetchFixedVersions(module)
+
+    vc.mu.Lock()
+    vc.cache[module] = vulnCacheEntry{fixedVersions: fixedVersions, fetchedAt: time.Now()}
+    vc.mu.Unlock()
+
+    return fixedVersions[version]
+
+func fetchFixedVersions on vc reference vulnChecker (module string) map of string to bool
+    result := make(map of string to bool)
+
+    body := json.Marshal(osvQueryReq{Package: osvPackage{Name: module, Ecosystem: "Go"}}) onerr return result
+    resp, httpErr := vc.client.Post(vc.dbURL, "application/json", bytes.NewReader(body))
+    if httpErr != empty
+        log.Printf("vulncheck: fetch error for %s: %v", module, httpErr)
+        return result
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK
+        return result
+
+    data := osvQueryResp{}
+    json.NewDecoder(resp.Body).Decode(reference of data) onerr return result
+
+    for _, vuln in data.Vulns
+        for _, affected in vuln.Affected
+            for _, r in affected.Ranges
+                if r.Type != "SEMVER"
+                    continue
+                for _, event in r.Events
+                    if event.Fixed != ""
+                        fixed := event.Fixed
+                        if not strpkg.HasPrefix(fixed, "v")
+                            fixed = "v" + fixed
+                        result[fixed] = true
+
+    return result
+
 # --- Proxy server ---
 
 # errGone is returned by fetchUpstream when the upstream responds with 410 Gone.
@@ -157,12 +258,18 @@ type proxy
     cacheDir   string
     trusted    list of string
     httpClient reference http.Client
+    vuln       reference vulnChecker
 
 func isTrusted on p reference proxy (module string) bool
     for _, prefix in p.trusted
         if strpkg.HasPrefix(module, prefix)
             return true
     return false
+
+func isSecurityFix on p reference proxy (module string, version string) bool
+    if p.vuln == empty
+        return false
+    return p.vuln.IsSecurityFix(module, version)
 
 # ServeHTTP handles GOPROXY protocol requests.
 func ServeHTTP on p reference proxy (w http.ResponseWriter, r reference http.Request)
@@ -246,7 +353,7 @@ func handleList on p reference proxy (w http.ResponseWriter, _ reference http.Re
             continue
         seen := p.db.FirstSeen(module, v)
         age := now.Sub(seen)
-        if age >= p.cooldown
+        if age >= p.cooldown or p.isSecurityFix(module, v)
             filtered = append(filtered, v)
 
     w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -281,7 +388,7 @@ func handleLatest on p reference proxy (w http.ResponseWriter, _ reference http.
 
     seen := p.db.FirstSeen(module, info.Version)
     age := time.Now().UTC().Sub(seen)
-    if age < p.cooldown
+    if age < p.cooldown and not p.isSecurityFix(module, info.Version)
         # Latest version is too new — return 404 so Go falls back to next proxy.
         http.Error(w, "latest version in cooldown", http.StatusNotFound)
         return
@@ -292,21 +399,21 @@ func handleLatest on p reference proxy (w http.ResponseWriter, _ reference http.
 func handleInfo on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
     # Always record first-seen to start the cooldown clock.
     seen := p.db.FirstSeen(module, version)
-    if not p.isTrusted(module) and time.Since(seen) < p.cooldown
+    if not p.isTrusted(module) and time.Since(seen) < p.cooldown and not p.isSecurityFix(module, version)
         http.Error(w, "version in cooldown", http.StatusNotFound)
         return
     p.proxyPassthrough(w, module + "/@v/" + version + ".info", "application/json")
 
 func handleMod on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
     seen := p.db.FirstSeen(module, version)
-    if not p.isTrusted(module) and time.Since(seen) < p.cooldown
+    if not p.isTrusted(module) and time.Since(seen) < p.cooldown and not p.isSecurityFix(module, version)
         http.Error(w, "version in cooldown", http.StatusNotFound)
         return
     p.cachedProxyPassthrough(w, module + "/@v/" + version + ".mod", "text/plain; charset=utf-8")
 
 func handleZip on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
     seen := p.db.FirstSeen(module, version)
-    if not p.isTrusted(module) and time.Since(seen) < p.cooldown
+    if not p.isTrusted(module) and time.Since(seen) < p.cooldown and not p.isSecurityFix(module, version)
         http.Error(w, "version in cooldown", http.StatusNotFound)
         return
     p.cachedProxyPassthrough(w, module + "/@v/" + version + ".zip", "application/zip")
@@ -414,6 +521,7 @@ func main()
     upstreamFlag := ""
     dataDir := ""
     trustedStr := "github.com/kukichalang/,golang.org/x/,gopkg.in/"
+    vulncheck := true
 
     # Parse flags from os.Args
     args := os.Args[1:]
@@ -451,6 +559,10 @@ func main()
                 trustedStr = args[i]
             when strpkg.HasPrefix(arg, "--trusted=")
                 trustedStr = strpkg.TrimPrefix(arg, "--trusted=")
+            when arg == "--vulncheck=false" or arg == "--no-vulncheck"
+                vulncheck = false
+            when arg == "--vulncheck=true" or arg == "--vulncheck"
+                vulncheck = true
         i = i + 1
 
     cooldown := parseDuration(cooldownStr) onerr panic "invalid cooldown: {error}"
@@ -484,7 +596,13 @@ func main()
         if t != ""
             trustedPrefixes = append(trustedPrefixes, t)
 
-    p := reference of proxy{upstream: up, cooldown: cooldown, db: store, cacheDir: filepath.Join(dir, "cache"), trusted: trustedPrefixes, httpClient: reference of http.Client{Timeout: 30 * time.Second}}
+    httpClient := reference of http.Client{Timeout: 30 * time.Second}
+
+    vc := empty reference vulnChecker
+    if vulncheck
+        vc = newVulnChecker(httpClient)
+
+    p := reference of proxy{upstream: up, cooldown: cooldown, db: store, cacheDir: filepath.Join(dir, "cache"), trusted: trustedPrefixes, httpClient: httpClient, vuln: vc}
 
     srv := reference of http.Server{Addr: addr, Handler: p}
 
@@ -493,6 +611,7 @@ func main()
     log.Printf("  upstream: %s", up)
     log.Printf("  cooldown: %s", cooldown)
     log.Printf("  trusted:  %v", trustedPrefixes)
+    log.Printf("  vulncheck: %v", vulncheck)
     log.Printf("  data:     %s", dir)
 
     # Graceful shutdown on SIGINT/SIGTERM.

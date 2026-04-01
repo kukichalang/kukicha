@@ -1,12 +1,12 @@
 # Tests for Kukicha Standard Library - DB Package
-# Uses glebarez/go-sqlite (pure Go SQLite) for in-memory testing.
+# Uses ncruces/go-sqlite3 (Wasm SQLite) for in-memory testing.
 
 petiole db_test
 
 import "stdlib/db"
 import "stdlib/test"
 import "testing"
-import "github.com/glebarez/go-sqlite" as _
+import "github.com/ncruces/go-sqlite3/driver" as _
 
 type User
     Id int64 as "id"
@@ -14,7 +14,7 @@ type User
     Email string as "email"
 
 func setupTestDB(t reference testing.T) db.Pool
-    pool := db.Open("sqlite", ":memory:") onerr panic "open failed: {error}"
+    pool := db.Open("sqlite3", ":memory:") onerr panic "open failed: {error}"
     db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)") onerr panic "create failed: {error}"
     db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 1, "Alice", "alice@example.com") onerr panic "insert failed: {error}"
     db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 2, "Bob", "bob@example.com") onerr panic "insert failed: {error}"
@@ -31,7 +31,7 @@ func TestOpenAndClose(t reference testing.T)
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            pool := db.Open("sqlite", ":memory:") onerr panic "open: {error}"
+            pool := db.Open("sqlite3", ":memory:") onerr panic "open: {error}"
             err := db.Ping(pool)
             test.AssertNoError(t, err)
             err = db.Close(pool)
@@ -253,7 +253,7 @@ type NullCase
     name string
 
 func TestNullHandling(t reference testing.T)
-    pool := db.Open("sqlite", ":memory:") onerr panic "open: {error}"
+    pool := db.Open("sqlite3", ":memory:") onerr panic "open: {error}"
     defer db.Close(pool)
     db.Exec(pool, "CREATE TABLE null_test (id INTEGER PRIMARY KEY, name TEXT, bio TEXT)") onerr panic "create: {error}"
     db.Exec(pool, "INSERT INTO null_test (id, name) VALUES (?, ?)", 1, "Alice") onerr panic "insert: {error}"

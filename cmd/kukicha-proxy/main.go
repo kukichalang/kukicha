@@ -3,12 +3,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/ncruces/go-sqlite3/driver"
 	"io"
 	"log"
 	"net/http"
@@ -22,210 +23,367 @@ import (
 	"time"
 )
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:33
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:34
 type versionRecord struct {
 	Module    string    `json:"module"`
 	Version   string    `json:"version"`
 	FirstSeen time.Time `json:"first_seen"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:39
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:40
 type latestInfo struct {
 	Version string    `json:"Version"`
 	Time    time.Time `json:"Time"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:44
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:45
 type seenStore interface {
 	FirstSeen(module string, version string) time.Time
 	Shutdown() error
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:50
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:51
 type seenDB struct {
 	mu      sync.RWMutex
 	path    string
 	records map[string]versionRecord
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:55
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:56
 func newSeenDB(path string) (*seenDB, error) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:56
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:57
 	db := &seenDB{path: path, records: make(map[string]versionRecord)}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:57
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:58
 	data, readErr := os.ReadFile(path)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:58
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:59
 	if readErr == nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:59
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:60
 		records := make([]versionRecord, 0)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:60
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:61
 		unmarshalErr := json.Unmarshal(data, &records)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:61
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:62
 		if unmarshalErr == nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:62
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:63
 			for _, r := range records {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:63
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:64
 				db.records[((r.Module + "@") + r.Version)] = r
 			}
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:64
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:65
 	return db, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:66
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:67
 func (db *seenDB) FirstSeen(module string, version string) time.Time {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:67
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:68
 	db.mu.Lock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:68
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:69
 	defer db.mu.Unlock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:70
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:71
 	key := ((module + "@") + version)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:71
-	if //line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:71
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:72
+	if //line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:72
 	r, ok := db.records[key]; ok {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:72
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:73
 		return r.FirstSeen
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:75
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:76
 	now := time.Now().UTC()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:76
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:77
 	db.records[key] = versionRecord{Module: module, Version: version, FirstSeen: now}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:77
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:78
 	db.persist()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:78
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:79
 	return now
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:80
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:81
 func (db *seenDB) persist() {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:81
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:82
 	records := make([]versionRecord, 0, len(db.records))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:82
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:83
 	for _, r := range db.records {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:83
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:84
 		records = append(records, r)
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:84
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:85
 	data, marshalErr := json.MarshalIndent(records, "", "  ")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:85
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:86
 	if marshalErr != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:86
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:87
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:88
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:89
 	tmpPath := (db.path + ".tmp")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:89
-	_ = os.MkdirAll(filepath.Dir(db.path), 0755)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:90
-	writeErr := os.WriteFile(tmpPath, data, 0644)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:91
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:90
+	_ = os.MkdirAll(filepath.Dir(db.path), 0o755)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:91
+	writeErr := os.WriteFile(tmpPath, data, 0o644)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:92
 	if writeErr != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:92
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:93
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:93
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:94
 	_ = os.Rename(tmpPath, db.path)
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:95
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:96
 func (db *seenDB) Shutdown() error {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:96
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:97
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:99
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:100
 func (db *seenDB) seedRecord(module string, version string, t time.Time) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:100
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:101
 	db.mu.Lock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:101
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:102
 	defer db.mu.Unlock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:102
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:103
 	db.records[((module + "@") + version)] = versionRecord{Module: module, Version: version, FirstSeen: t}
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:105
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:106
 func (db *seenDB) hasRecord(module string, version string) bool {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:106
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:107
 	db.mu.RLock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:107
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:108
 	defer db.mu.RUnlock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:108
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:109
 	_, ok := db.records[((module + "@") + version)]
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:109
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:110
 	return ok
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:113
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:114
 type sqliteSeenStore struct {
 	mu sync.Mutex
 	db *sql.DB
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:117
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:118
 func newSQLiteSeenStore(path string) (*sqliteSeenStore, error) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:118
-	_ = os.MkdirAll(filepath.Dir(path), 0755)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:119
-	conn, err_1 := sql.Open("sqlite", (path + "?_pragma=journal_mode(WAL)"))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:119
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:119
+	_ = os.MkdirAll(filepath.Dir(path), 0o755)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:120
+	conn, err_1 := sql.Open("sqlite3", (path + "?_pragma=journal_mode(WAL)"))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:120
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:119
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:120
 		return nil, fmt.Errorf("open sqlite: %v", err_1)
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:120
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:121
 	_, err := conn.Exec("CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:121
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:122
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:122
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:123
 		_ = conn.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:123
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:124
 		return nil, fmt.Errorf("create table: %v", err)
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:124
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:125
 	return &sqliteSeenStore{db: conn}, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:126
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:127
 func (s *sqliteSeenStore) FirstSeen(module string, version string) time.Time {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:127
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:128
 	s.mu.Lock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:128
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:129
 	defer s.mu.Unlock()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:130
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:131
 	key := ((module + "@") + version)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:133
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:134
 	raw := ""
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:134
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:135
 	scanErr := s.db.QueryRow("SELECT first_seen FROM seen WHERE key = ?", key).Scan(&raw)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:135
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:136
 	if scanErr == nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:136
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:137
 		t, parseErr := time.Parse(time.RFC3339Nano, raw)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:137
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:138
 		if parseErr == nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:138
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:139
 			return t
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:141
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:142
 	now := time.Now().UTC()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:142
-	_, _ = s.db.Exec("INSERT OR IGNORE INTO seen(key, module, version, first_seen) VALUES(?,?,?,?)", key, module, version, now.Format(time.RFC3339Nano))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:143
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:143
+	_ = s.db.Exec("INSERT OR IGNORE INTO seen(key, module, version, first_seen) VALUES(?,?,?,?)", key, module, version, now.Format(time.RFC3339Nano))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:144
 	return now
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:145
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:146
 func (s *sqliteSeenStore) Shutdown() error {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:146
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:147
 	return s.db.Close()
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:151
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:155
+type vulnChecker struct {
+	mu       sync.Mutex
+	cache    map[string]vulnCacheEntry
+	client   *http.Client
+	dbURL    string
+	cacheTTL time.Duration
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:162
+type vulnCacheEntry struct {
+	fixedVersions map[string]bool
+	fetchedAt     time.Time
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:168
+type osvQueryReq struct {
+	Package osvPackage `json:"package"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:171
+type osvPackage struct {
+	Name      string `json:"name"`
+	Ecosystem string `json:"ecosystem"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:175
+type osvQueryResp struct {
+	Vulns []osvVuln `json:"vulns"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:178
+type osvVuln struct {
+	ID       string        `json:"id"`
+	Affected []osvAffected `json:"affected"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:182
+type osvAffected struct {
+	Ranges []osvRange `json:"ranges"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:185
+type osvRange struct {
+	Type   string     `json:"type"`
+	Events []osvEvent `json:"events"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:189
+type osvEvent struct {
+	Introduced string `json:"introduced"`
+	Fixed      string `json:"fixed"`
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:193
+func newVulnChecker(client *http.Client) *vulnChecker {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:194
+	return &vulnChecker{cache: make(map[string]vulnCacheEntry), client: client, dbURL: "https://api.osv.dev/v1/query", cacheTTL: (1 * time.Hour)}
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:203
+func (vc *vulnChecker) IsSecurityFix(module string, version string) bool {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:204
+	vc.mu.Lock()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:205
+	entry, ok := vc.cache[module]
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:206
+	if ok && (time.Since(entry.fetchedAt) < vc.cacheTTL) {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:207
+		vc.mu.Unlock()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:208
+		return entry.fixedVersions[version]
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:209
+	vc.mu.Unlock()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:211
+	fixedVersions := vc.fetchFixedVersions(module)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:213
+	vc.mu.Lock()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:214
+	vc.cache[module] = vulnCacheEntry{fixedVersions: fixedVersions, fetchedAt: time.Now()}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:215
+	vc.mu.Unlock()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:217
+	return fixedVersions[version]
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:219
+func (vc *vulnChecker) fetchFixedVersions(module string) map[string]bool {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:220
+	result := make(map[string]bool)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:222
+	body, err_2 := json.Marshal(osvQueryReq{Package: osvPackage{Name: module, Ecosystem: "Go"}})
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:222
+	if err_2 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:222
+		return result
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:223
+	resp, httpErr := vc.client.Post(vc.dbURL, "application/json", bytes.NewReader(body))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:224
+	if httpErr != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:225
+		log.Printf("vulncheck: fetch error for %s: %v", module, httpErr)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:226
+		return result
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:227
+	defer resp.Body.Close()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:229
+	if resp.StatusCode != http.StatusOK {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:230
+		return result
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:232
+	data := osvQueryResp{}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:233
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:233
+	err_3 := json.NewDecoder(resp.Body).Decode(&data)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:233
+	if err_3 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:233
+		return result
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:235
+	for _, vuln := range data.Vulns {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:236
+		for _, affected := range vuln.Affected {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:237
+			for _, r := range affected.Ranges {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:238
+				if r.Type != "SEMVER" {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:239
+					continue
+				}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:240
+				for _, event := range r.Events {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:241
+					if event.Fixed != "" {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:242
+						fixed := event.Fixed
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:243
+						if !strpkg.HasPrefix(fixed, "v") {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:244
+							fixed = ("v" + fixed)
+						}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:245
+						result[fixed] = true
+					}
+				}
+			}
+		}
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:247
+	return result
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:252
 var errGone = errors.New("410 Gone")
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:153
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:254
 type proxy struct {
 	upstream   string
 	cooldown   time.Duration
@@ -233,674 +391,700 @@ type proxy struct {
 	cacheDir   string
 	trusted    []string
 	httpClient *http.Client
+	vuln       *vulnChecker
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:161
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:263
 func (p *proxy) isTrusted(module string) bool {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:162
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:264
 	for _, prefix := range p.trusted {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:163
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:265
 		if strpkg.HasPrefix(module, prefix) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:164
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:266
 			return true
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:165
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:267
 	return false
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:168
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:269
+func (p *proxy) isSecurityFix(module string, version string) bool {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:270
+	if p.vuln == nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:271
+		return false
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:272
+	return p.vuln.IsSecurityFix(module, version)
+}
+
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:275
 func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:169
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:276
 	if r.Method != http.MethodGet {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:170
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:277
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:171
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:278
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:173
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:280
 	path := strpkg.TrimPrefix(r.URL.Path, "/")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:174
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:281
 	if path == "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:175
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:282
 		fmt.Fprintf(w, "kukicha-proxy — cooldown: %s\n", p.cooldown)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:176
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:283
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:179
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:286
 	if path == "_health" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:180
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:287
 		w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:181
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:288
 		_ = json.NewEncoder(w).Encode(map[string]any{"status": "ok", "cooldown": p.cooldown.String(), "upstream": p.upstream})
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:182
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:289
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:185
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:292
 	if strpkg.HasPrefix(path, "sumdb/") {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:186
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:293
 		p.handleSumDB(w, r, strpkg.TrimPrefix(path, "sumdb/"))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:187
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:294
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:190
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:297
 	atIdx := strpkg.Index(path, "/@v/")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:191
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:298
 	latestIdx := strpkg.Index(path, "/@latest")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:193
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:300
 	if (atIdx < 0) && (latestIdx < 0) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:194
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:301
 		http.Error(w, "not found", http.StatusNotFound)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:195
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:302
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:197
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:304
 	if (latestIdx >= 0) && ((atIdx < 0) || (latestIdx < atIdx)) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:198
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:305
 		module := path[:latestIdx]
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:199
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:306
 		p.handleLatest(w, r, module)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:200
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:307
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:202
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:309
 	module := path[:atIdx]
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:203
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:310
 	rest := path[(atIdx + len("/@v/")):]
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:205
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:312
 	if rest == "list" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:206
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:313
 		p.handleList(w, r, module)
 	} else if strpkg.HasSuffix(rest, ".info") {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:208
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:315
 		ver, _ := strpkg.CutSuffix(rest, ".info")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:209
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:316
 		p.handleInfo(w, r, module, ver)
 	} else if strpkg.HasSuffix(rest, ".mod") {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:211
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:318
 		ver, _ := strpkg.CutSuffix(rest, ".mod")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:212
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:319
 		p.handleMod(w, r, module, ver)
 	} else if strpkg.HasSuffix(rest, ".zip") {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:214
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:321
 		ver, _ := strpkg.CutSuffix(rest, ".zip")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:215
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:322
 		p.handleZip(w, r, module, ver)
 	} else {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:217
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:324
 		http.Error(w, "not found", http.StatusNotFound)
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:219
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:326
 func (p *proxy) handleList(w http.ResponseWriter, _ *http.Request, module string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:220
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:327
 	body, err := p.fetchUpstream((module + "/@v/list"))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:221
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:328
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:222
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:329
 		if errors.Is(err, errGone) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:223
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:330
 			http.Error(w, "gone", http.StatusGone)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:225
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:332
 			http.Error(w, err.Error(), http.StatusBadGateway)
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:226
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:333
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:227
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:334
 	defer body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:229
-	data, err_2 := io.ReadAll(body)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:229
-	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:229
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:230
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:336
+	data, err_4 := io.ReadAll(body)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:336
+	if err_4 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:336
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:337
 		http.Error(w, "upstream read error", http.StatusBadGateway)
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:231
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:338
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:234
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:341
 	if p.isTrusted(module) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:235
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:342
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:236
-		_, _ = w.Write(data)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:237
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:343
+		_ = w.Write(data)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:344
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:240
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:347
 	versions := strpkg.Split(strpkg.TrimSpace(string(data)), "\n")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:241
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:348
 	now := time.Now().UTC()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:242
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:349
 	filtered := make([]string, 0)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:243
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:350
 	for _, v := range versions {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:244
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:351
 		v = strpkg.TrimSpace(v)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:245
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:352
 		if v == "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:246
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:353
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:247
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:354
 		seen := p.db.FirstSeen(module, v)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:248
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:355
 		age := now.Sub(seen)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:249
-		if age >= p.cooldown {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:250
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:356
+		if (age >= p.cooldown) || p.isSecurityFix(module, v) {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:357
 			filtered = append(filtered, v)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:252
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:359
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:253
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:360
 	if len(filtered) > 0 {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:254
-		_, _ = fmt.Fprintln(w, strpkg.Join(filtered, "\n"))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:361
+		_ = fmt.Fprintln(w, strpkg.Join(filtered, "\n"))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:256
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:363
 func (p *proxy) handleLatest(w http.ResponseWriter, _ *http.Request, module string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:257
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:364
 	body, err := p.fetchUpstream((module + "/@latest"))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:258
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:365
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:259
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:366
 		if errors.Is(err, errGone) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:260
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:367
 			http.Error(w, "gone", http.StatusGone)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:262
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:369
 			http.Error(w, err.Error(), http.StatusBadGateway)
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:263
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:370
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:264
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:371
 	defer body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:266
-	data, err_3 := io.ReadAll(body)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:266
-	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:266
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:267
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:373
+	data, err_5 := io.ReadAll(body)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:373
+	if err_5 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:373
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:374
 		http.Error(w, "upstream read error", http.StatusBadGateway)
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:268
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:375
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:271
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:378
 	if p.isTrusted(module) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:272
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:379
 		w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:273
-		_, _ = w.Write(data)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:274
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:380
+		_ = w.Write(data)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:381
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:277
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:384
 	info := latestInfo{}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:278
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:278
-	err_4 := json.Unmarshal(data, &info)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:278
-	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:278
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:279
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:385
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:385
+	err_6 := json.Unmarshal(data, &info)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:385
+	if err_6 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:385
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:386
 		http.Error(w, "upstream parse error", http.StatusBadGateway)
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:280
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:387
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:282
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:389
 	seen := p.db.FirstSeen(module, info.Version)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:283
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:390
 	age := time.Now().UTC().Sub(seen)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:284
-	if age < p.cooldown {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:286
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:391
+	if (age < p.cooldown) && !p.isSecurityFix(module, info.Version) {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:393
 		http.Error(w, "latest version in cooldown", http.StatusNotFound)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:287
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:394
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:289
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:396
 	w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:290
-	_, _ = w.Write(data)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:397
+	_ = w.Write(data)
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:292
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:399
 func (p *proxy) handleInfo(w http.ResponseWriter, _ *http.Request, module string, version string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:294
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:401
 	seen := p.db.FirstSeen(module, version)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:295
-	if !p.isTrusted(module) && (time.Since(seen) < p.cooldown) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:296
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:402
+	if (!p.isTrusted(module) && (time.Since(seen) < p.cooldown)) && !p.isSecurityFix(module, version) {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:403
 		http.Error(w, "version in cooldown", http.StatusNotFound)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:297
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:404
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:298
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:405
 	p.proxyPassthrough(w, (((module + "/@v/") + version) + ".info"), "application/json")
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:300
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:407
 func (p *proxy) handleMod(w http.ResponseWriter, _ *http.Request, module string, version string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:301
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:408
 	seen := p.db.FirstSeen(module, version)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:302
-	if !p.isTrusted(module) && (time.Since(seen) < p.cooldown) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:303
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:409
+	if (!p.isTrusted(module) && (time.Since(seen) < p.cooldown)) && !p.isSecurityFix(module, version) {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:410
 		http.Error(w, "version in cooldown", http.StatusNotFound)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:304
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:411
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:305
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:412
 	p.cachedProxyPassthrough(w, (((module + "/@v/") + version) + ".mod"), "text/plain; charset=utf-8")
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:307
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:414
 func (p *proxy) handleZip(w http.ResponseWriter, _ *http.Request, module string, version string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:308
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:415
 	seen := p.db.FirstSeen(module, version)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:309
-	if !p.isTrusted(module) && (time.Since(seen) < p.cooldown) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:310
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:416
+	if (!p.isTrusted(module) && (time.Since(seen) < p.cooldown)) && !p.isSecurityFix(module, version) {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:417
 		http.Error(w, "version in cooldown", http.StatusNotFound)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:311
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:418
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:312
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:419
 	p.cachedProxyPassthrough(w, (((module + "/@v/") + version) + ".zip"), "application/zip")
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:316
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:423
 func (p *proxy) handleSumDB(w http.ResponseWriter, _ *http.Request, subpath string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:317
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:424
 	target := ("https://sum.golang.org/" + subpath)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:318
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:425
 	resp, httpErr := p.httpClient.Get(target)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:319
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:426
 	if httpErr != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:320
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:427
 		http.Error(w, "sumdb upstream error", http.StatusBadGateway)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:321
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:428
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:322
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:429
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:323
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:430
 	ct := resp.Header.Get("Content-Type")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:324
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:431
 	if ct != "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:325
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:432
 		w.Header().Set("Content-Type", ct)
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:326
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:433
 	w.WriteHeader(resp.StatusCode)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:327
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:434
 	_, _ = io.Copy(w, resp.Body)
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:329
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:436
 func (p *proxy) proxyPassthrough(w http.ResponseWriter, path string, contentType string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:330
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:437
 	body, err := p.fetchUpstream(path)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:331
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:438
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:332
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:439
 		if errors.Is(err, errGone) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:333
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:440
 			http.Error(w, "gone", http.StatusGone)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:335
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:442
 			http.Error(w, err.Error(), http.StatusBadGateway)
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:336
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:443
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:337
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:444
 	defer body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:338
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:445
 	w.Header().Set("Content-Type", contentType)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:339
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:446
 	_, _ = io.Copy(w, body)
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:343
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:450
 func (p *proxy) cachedProxyPassthrough(w http.ResponseWriter, path string, contentType string) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:344
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:451
 	if p.cacheDir != "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:345
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:452
 		cachePath := filepath.Join(p.cacheDir, filepath.FromSlash(path))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:346
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:453
 		cached, cacheErr := os.ReadFile(cachePath)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:347
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:454
 		if cacheErr == nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:348
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:455
 			w.Header().Set("Content-Type", contentType)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:349
-			_, _ = w.Write(cached)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:350
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:456
+			_ = w.Write(cached)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:457
 			return
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:352
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:459
 	body, err := p.fetchUpstream(path)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:353
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:460
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:354
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:461
 		if errors.Is(err, errGone) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:355
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:462
 			http.Error(w, "gone", http.StatusGone)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:357
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:464
 			http.Error(w, err.Error(), http.StatusBadGateway)
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:358
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:465
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:359
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:466
 	defer body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:361
-	data, err_5 := io.ReadAll(body)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:361
-	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:361
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:362
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:468
+	data, err_7 := io.ReadAll(body)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:468
+	if err_7 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:468
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:469
 		http.Error(w, "upstream read error", http.StatusBadGateway)
-		//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:363
+		//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:470
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:366
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:473
 	if p.cacheDir != "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:367
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:474
 		cachePath := filepath.Join(p.cacheDir, filepath.FromSlash(path))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:368
-		_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:369
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:475
+		_ = os.MkdirAll(filepath.Dir(cachePath), 0o755)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:476
 		tmpPath := (cachePath + ".tmp")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:370
-		writeErr := os.WriteFile(tmpPath, data, 0644)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:371
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:477
+		writeErr := os.WriteFile(tmpPath, data, 0o644)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:478
 		if writeErr == nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:372
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:479
 			_ = os.Rename(tmpPath, cachePath)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:374
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:481
 	w.Header().Set("Content-Type", contentType)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:375
-	_, _ = w.Write(data)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:482
+	_ = w.Write(data)
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:377
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:484
 func (p *proxy) fetchUpstream(path string) (io.ReadCloser, error) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:378
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:485
 	upstreamURL := ((p.upstream + "/") + path)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:379
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:486
 	resp, httpErr := p.httpClient.Get(upstreamURL)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:380
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:487
 	if httpErr != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:381
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:488
 		return nil, fmt.Errorf("upstream error: %v", httpErr)
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:382
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:489
 	switch resp.StatusCode {
 	case http.StatusOK:
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:384
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:491
 		return resp.Body, nil
 	case http.StatusGone:
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:386
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:493
 		_ = resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:387
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:494
 		return nil, errGone
 	case http.StatusNotFound:
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:389
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:496
 		_ = resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:390
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:497
 		return nil, fmt.Errorf("not found upstream: %v", resp.Status)
 	default:
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:392
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:499
 		_ = resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:393
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:500
 		return nil, fmt.Errorf("upstream returned %v", resp.Status)
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:397
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:504
 func parseDuration(s string) (time.Duration, error) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:399
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:506
 	if strpkg.HasSuffix(s, "d") {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:400
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:507
 		s = strpkg.TrimSuffix(s, "d")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:401
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:508
 		days := 0
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:402
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:509
 		_, scanErr := fmt.Sscanf(s, "%d", &days)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:403
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:510
 		if scanErr != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:404
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:511
 			return 0, fmt.Errorf("invalid day duration: %v", s)
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:405
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:512
 		return time.Duration(((time.Duration(days) * 24) * time.Hour)), nil
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:406
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:513
 	return time.ParseDuration(s)
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:410
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:517
 func main() {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:411
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:518
 	mode := "local"
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:412
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:519
 	addr := ":8250"
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:413
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:520
 	cooldownStr := "7d"
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:414
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:521
 	upstreamFlag := ""
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:415
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:522
 	dataDir := ""
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:416
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:523
 	trustedStr := "github.com/kukichalang/,golang.org/x/,gopkg.in/"
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:419
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:524
+	vulncheck := true
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:527
 	args := os.Args[1:]
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:420
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:528
 	i := 0
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:421
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:529
 	for i < len(args) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:422
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:530
 		arg := args[i]
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:423
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:531
 		switch {
 		case ((arg == "--mode") && ((i + 1) < len(args))):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:425
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:533
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:426
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:534
 			mode = args[i]
 		case strpkg.HasPrefix(arg, "--mode="):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:428
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:536
 			mode = strpkg.TrimPrefix(arg, "--mode=")
 		case ((arg == "--addr") && ((i + 1) < len(args))):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:430
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:538
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:431
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:539
 			addr = args[i]
 		case strpkg.HasPrefix(arg, "--addr="):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:433
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:541
 			addr = strpkg.TrimPrefix(arg, "--addr=")
 		case ((arg == "--cooldown") && ((i + 1) < len(args))):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:435
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:543
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:436
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:544
 			cooldownStr = args[i]
 		case strpkg.HasPrefix(arg, "--cooldown="):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:438
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:546
 			cooldownStr = strpkg.TrimPrefix(arg, "--cooldown=")
 		case ((arg == "--upstream") && ((i + 1) < len(args))):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:440
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:548
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:441
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:549
 			upstreamFlag = args[i]
 		case strpkg.HasPrefix(arg, "--upstream="):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:443
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:551
 			upstreamFlag = strpkg.TrimPrefix(arg, "--upstream=")
 		case ((arg == "--data") && ((i + 1) < len(args))):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:445
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:553
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:446
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:554
 			dataDir = args[i]
 		case strpkg.HasPrefix(arg, "--data="):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:448
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:556
 			dataDir = strpkg.TrimPrefix(arg, "--data=")
 		case ((arg == "--trusted") && ((i + 1) < len(args))):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:450
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:558
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:451
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:559
 			trustedStr = args[i]
 		case strpkg.HasPrefix(arg, "--trusted="):
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:453
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:561
 			trustedStr = strpkg.TrimPrefix(arg, "--trusted=")
+		case ((arg == "--vulncheck=false") || (arg == "--no-vulncheck")):
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:563
+			vulncheck = false
+		case ((arg == "--vulncheck=true") || (arg == "--vulncheck")):
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:565
+			vulncheck = true
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:454
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:566
 		i = (i + 1)
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:456
-	cooldown, err_6 := parseDuration(cooldownStr)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:456
-	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:456
-		panic(fmt.Sprintf("invalid cooldown: %v", err_6))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:568
+	cooldown, err_8 := parseDuration(cooldownStr)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:568
+	if err_8 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:568
+		panic(fmt.Sprintf("invalid cooldown: %v", err_8))
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:459
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:571
 	dir := dataDir
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:460
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:572
 	if dir == "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:461
-		home, err_7 := os.UserHomeDir()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:461
-		if err_7 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:461
-			panic(fmt.Sprintf("home dir: %v", err_7))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:573
+		home, err_9 := os.UserHomeDir()
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:573
+		if err_9 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:573
+			panic(fmt.Sprintf("home dir: %v", err_9))
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:462
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:574
 		dir = filepath.Join(home, ".kukicha", "proxy")
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:463
-	_ = os.MkdirAll(dir, 0755)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:466
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:575
+	_ = os.MkdirAll(dir, 0o755)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:578
 	up := upstreamFlag
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:467
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:579
 	if up == "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:468
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:580
 		switch mode {
 		case "local":
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:470
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:582
 			up = "https://proxy.kukicha.org"
 		case "hosted":
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:472
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:584
 			up = "https://proxy.golang.org"
 		default:
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:474
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:586
 			log.Fatalf("unknown mode: %s", mode)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:476
-	var err_8 error
-	_, err_8 = url.Parse(up)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:476
-	if err_8 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:476
-		panic(fmt.Sprintf("invalid upstream URL: %v", err_8))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:588
+	var err_10 error
+	_, err_10 = url.Parse(up)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:588
+	if err_10 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:588
+		panic(fmt.Sprintf("invalid upstream URL: %v", err_10))
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:479
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:591
 	store := createStore(mode, dir)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:481
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:593
 	trustedPrefixes := make([]string, 0)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:482
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:594
 	for _, t := range strpkg.Split(trustedStr, ",") {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:483
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:595
 		t = strpkg.TrimSpace(t)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:484
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:596
 		if t != "" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:485
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:597
 			trustedPrefixes = append(trustedPrefixes, t)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:487
-	p := &proxy{upstream: up, cooldown: cooldown, db: store, cacheDir: filepath.Join(dir, "cache"), trusted: trustedPrefixes, httpClient: &http.Client{Timeout: (30 * time.Second)}}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:489
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:599
+	httpClient := &http.Client{Timeout: (30 * time.Second)}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:601
+	vc := nil
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:602
+	if vulncheck {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:603
+		vc = newVulnChecker(httpClient)
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:605
+	p := &proxy{upstream: up, cooldown: cooldown, db: store, cacheDir: filepath.Join(dir, "cache"), trusted: trustedPrefixes, httpClient: httpClient, vuln: vc}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:607
 	srv := &http.Server{Addr: addr, Handler: p}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:491
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:609
 	log.Printf("kukicha-proxy starting (%s mode)", mode)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:492
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:610
 	log.Printf("  listen:   %s", addr)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:493
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:611
 	log.Printf("  upstream: %s", up)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:494
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:612
 	log.Printf("  cooldown: %s", cooldown)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:495
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:613
 	log.Printf("  trusted:  %v", trustedPrefixes)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:496
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:614
+	log.Printf("  vulncheck: %v", vulncheck)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:615
 	log.Printf("  data:     %s", dir)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:499
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:618
 	quit := make(chan os.Signal, 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:500
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:619
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:501
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:620
 	go func() {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:502
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:621
 		<-quit
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:503
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:622
 		log.Println("shutting down...")
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:504
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:623
 		ctx, cancel := context.WithTimeout(context.Background(), (5 * time.Second))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:505
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:624
 		defer cancel()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:506
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:625
 		_ = store.Shutdown()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:507
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:626
 		_ = srv.Shutdown(ctx)
 	}()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:509
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:628
 	listenErr := srv.ListenAndServe()
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:510
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:629
 	if (listenErr != nil) && !errors.Is(listenErr, http.ErrServerClosed) {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:511
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:630
 		log.Fatal(listenErr)
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:516
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:633
 func createStore(mode string, dir string) seenStore {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:517
-	stores := make([]seenStore, 0, 1)
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:518
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:634
 	if mode == "hosted" {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:519
-		s, err_9 := newSQLiteSeenStore(filepath.Join(dir, "seen.db"))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:519
-		if err_9 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:519
-			panic(fmt.Sprintf("failed to open seen database: %v", err_9))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:635
+		s, err_11 := newSQLiteSeenStore(filepath.Join(dir, "seen.db"))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:635
+		if err_11 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:635
+			panic(fmt.Sprintf("failed to open seen database: %v", err_11))
 		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:520
-		stores = append(stores, s)
-	} else {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:522
-		db, err_10 := newSeenDB(filepath.Join(dir, "seen.json"))
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:522
-		if err_10 != nil {
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:522
-			panic(fmt.Sprintf("failed to open seen database: %v", err_10))
-		}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:523
-		stores = append(stores, db)
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:636
+		return s
 	}
-//line /var/home/tluker/repos/go/kukicha/cmd/kukicha-proxy/main.kuki:524
-	return stores[0]
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:637
+	db, err_12 := newSeenDB(filepath.Join(dir, "seen.json"))
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:637
+	if err_12 != nil {
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:637
+		panic(fmt.Sprintf("failed to open seen database: %v", err_12))
+	}
+//line /home/user/kukicha/cmd/kukicha-proxy/main.kuki:638
+	return db
 }
