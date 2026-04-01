@@ -177,14 +177,14 @@ Let's store links in SQLite so they persist across restarts.
 ### Installing the Driver
 
 ```bash
-go get github.com/mattn/go-sqlite3
+go get github.com/ncruces/go-sqlite3
 ```
 
 ### Database Helper Type
 
 ```kukicha
 import "database/sql"
-import _ "github.com/mattn/go-sqlite3"
+import _ "github.com/ncruces/go-sqlite3/driver"
 
 type Database
     db reference sql.DB
@@ -295,7 +295,7 @@ import "stdlib/env"
 import "stdlib/random"
 
 # Third-party
-import _ "github.com/mattn/go-sqlite3"
+import _ "github.com/ncruces/go-sqlite3/driver"
 
 # --- Types ---
 
