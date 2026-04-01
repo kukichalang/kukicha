@@ -1,0 +1,524 @@
+# kukicha-proxy is a Go module proxy with dependency cooldown filtering.
+#
+# It implements the GOPROXY protocol and adds first-seen timestamp tracking
+# to filter out recently published module versions — mitigating supply chain
+# attacks by ensuring only versions that have been publicly available for a
+# configurable cooldown period are served.
+#
+# Two modes:
+#   local:  caches to disk, upstream is proxy.kukicha.org (or configurable)
+#   hosted: SQLite for first-seen tracking, upstream is proxy.golang.org
+#
+# See: https://github.com/golang/go/issues/76485
+
+import "context"
+import "database/sql"
+import "encoding/json"
+import "errors"
+import "fmt"
+import "io"
+import "log"
+import "net/http"
+import "net/url"
+import "os"
+import "os/signal"
+import "path/filepath"
+import "strings" as strpkg
+import "sync"
+import "syscall"
+import "time"
+import "github.com/glebarez/go-sqlite" as _
+
+# versionRecord tracks when a module version was first observed.
+type versionRecord
+    Module    string as "module"
+    Version   string as "version"
+    FirstSeen time.Time as "first_seen"
+
+# latestInfo holds the JSON shape of an /@latest response.
+type latestInfo
+    Version string as "Version"
+    Time    time.Time as "Time"
+
+# seenStore is the interface for first-seen timestamp storage.
+interface seenStore
+    FirstSeen(module string, version string) time.Time
+    Shutdown() error
+
+# --- JSON-backed store (local mode) ---
+
+type seenDB
+    mu      sync.RWMutex
+    path    string
+    records map of string to versionRecord
+
+func newSeenDB(path string) (reference seenDB, error)
+    db := reference of seenDB{path: path, records: make(map of string to versionRecord)}
+    data, readErr := os.ReadFile(path)
+    if readErr == empty
+        records := make(list of versionRecord, 0)
+        unmarshalErr := json.Unmarshal(data, reference of records)
+        if unmarshalErr == empty
+            for _, r in records
+                db.records[r.Module + "@" + r.Version] = r
+    return db, empty
+
+func FirstSeen on db reference seenDB (module string, version string) time.Time
+    db.mu.Lock()
+    defer db.mu.Unlock()
+
+    key := module + "@" + version
+    if r, ok := db.records[key]; ok
+        return r.FirstSeen
+
+    # First time seeing this version — record now.
+    now := time.Now().UTC()
+    db.records[key] = versionRecord{Module: module, Version: version, FirstSeen: now}
+    db.persist()
+    return now
+
+func persist on db reference seenDB
+    records := make(list of versionRecord, 0, len(db.records))
+    for _, r in db.records
+        records = append(records, r)
+    data, marshalErr := json.MarshalIndent(records, "", "  ")
+    if marshalErr != empty
+        return
+    # Atomic write: write to temp file, then rename.
+    tmpPath := db.path + ".tmp"
+    os.MkdirAll(filepath.Dir(db.path), 0755) onerr discard
+    writeErr := os.WriteFile(tmpPath, data, 0644)
+    if writeErr != empty
+        return
+    os.Rename(tmpPath, db.path) onerr discard
+
+func Shutdown on db reference seenDB error
+    return empty
+
+# seedRecord sets a record directly; used only in tests.
+func seedRecord on db reference seenDB (module string, version string, t time.Time)
+    db.mu.Lock()
+    defer db.mu.Unlock()
+    db.records[module + "@" + version] = versionRecord{Module: module, Version: version, FirstSeen: t}
+
+# hasRecord reports whether a first-seen record exists; used only in tests.
+func hasRecord on db reference seenDB (module string, version string) bool
+    db.mu.RLock()
+    defer db.mu.RUnlock()
+    _, ok := db.records[module + "@" + version]
+    return ok
+
+# --- SQLite-backed store (hosted mode) ---
+
+type sqliteSeenStore
+    mu sync.Mutex
+    db reference sql.DB
+
+func newSQLiteSeenStore(path string) (reference sqliteSeenStore, error)
+    os.MkdirAll(filepath.Dir(path), 0755) onerr discard
+    conn := sql.Open("sqlite", path + "?_pragma=journal_mode(WAL)") onerr return empty, error "open sqlite: {error}"
+    _, err := conn.Exec("CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)")
+    if err != empty
+        conn.Close() onerr discard
+        return empty, error "create table: {err}"
+    return reference of sqliteSeenStore{db: conn}, empty
+
+func FirstSeen on s reference sqliteSeenStore (module string, version string) time.Time
+    s.mu.Lock()
+    defer s.mu.Unlock()
+
+    key := module + "@" + version
+
+    # Try existing record first.
+    raw := ""
+    scanErr := s.db.QueryRow("SELECT first_seen FROM seen WHERE key = ?", key).Scan(reference of raw)
+    if scanErr == empty
+        t, parseErr := time.Parse(time.RFC3339Nano, raw)
+        if parseErr == empty
+            return t
+
+    # First time seeing this version — insert now.
+    now := time.Now().UTC()
+    _, _ = s.db.Exec("INSERT OR IGNORE INTO seen(key, module, version, first_seen) VALUES(?,?,?,?)", key, module, version, now.Format(time.RFC3339Nano))
+    return now
+
+func Shutdown on s reference sqliteSeenStore error
+    return s.db.Close()
+
+# --- Proxy server ---
+
+# errGone is returned by fetchUpstream when the upstream responds with 410 Gone.
+var errGone = errors.New("410 Gone")
+
+type proxy
+    upstream   string
+    cooldown   time.Duration
+    db         seenStore
+    cacheDir   string
+    trusted    list of string
+    httpClient reference http.Client
+
+func isTrusted on p reference proxy (module string) bool
+    for _, prefix in p.trusted
+        if strpkg.HasPrefix(module, prefix)
+            return true
+    return false
+
+# ServeHTTP handles GOPROXY protocol requests.
+func ServeHTTP on p reference proxy (w http.ResponseWriter, r reference http.Request)
+    if r.Method != http.MethodGet
+        http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+        return
+
+    path := strpkg.TrimPrefix(r.URL.Path, "/")
+    if path == ""
+        fmt.Fprintf(w, "kukicha-proxy — cooldown: %s\n", p.cooldown)
+        return
+
+    # Health check endpoint.
+    if path == "_health"
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(map of string to any{"status": "ok", "cooldown": p.cooldown.String(), "upstream": p.upstream}) onerr discard
+        return
+
+    # Sumdb proxy: forward sumdb/ requests to sum.golang.org.
+    if strpkg.HasPrefix(path, "sumdb/")
+        p.handleSumDB(w, r, strpkg.TrimPrefix(path, "sumdb/"))
+        return
+
+    # Parse GOPROXY path: $module/@v/$request
+    atIdx := strpkg.Index(path, "/@v/")
+    latestIdx := strpkg.Index(path, "/@latest")
+
+    if atIdx < 0 and latestIdx < 0
+        http.Error(w, "not found", http.StatusNotFound)
+        return
+
+    if latestIdx >= 0 and (atIdx < 0 or latestIdx < atIdx)
+        module := path[:latestIdx]
+        p.handleLatest(w, r, module)
+        return
+
+    module := path[:atIdx]
+    rest := path[atIdx + len("/@v/"):]
+
+    if rest == "list"
+        p.handleList(w, r, module)
+    else if strpkg.HasSuffix(rest, ".info")
+        ver, _ := strpkg.CutSuffix(rest, ".info")
+        p.handleInfo(w, r, module, ver)
+    else if strpkg.HasSuffix(rest, ".mod")
+        ver, _ := strpkg.CutSuffix(rest, ".mod")
+        p.handleMod(w, r, module, ver)
+    else if strpkg.HasSuffix(rest, ".zip")
+        ver, _ := strpkg.CutSuffix(rest, ".zip")
+        p.handleZip(w, r, module, ver)
+    else
+        http.Error(w, "not found", http.StatusNotFound)
+
+func handleList on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string)
+    body, err := p.fetchUpstream(module + "/@v/list")
+    if err != empty
+        if errors.Is(err, errGone)
+            http.Error(w, "gone", http.StatusGone)
+        else
+            http.Error(w, err.Error(), http.StatusBadGateway)
+        return
+    defer body.Close()
+
+    data := io.ReadAll(body) onerr
+        http.Error(w, "upstream read error", http.StatusBadGateway)
+        return
+
+    # If trusted publisher, return unfiltered.
+    if p.isTrusted(module)
+        w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+        _, _ = w.Write(data)
+        return
+
+    # Filter versions by cooldown.
+    versions := strpkg.Split(strpkg.TrimSpace(data as string), "\n")
+    now := time.Now().UTC()
+    filtered := make(list of string, 0)
+    for _, v in versions
+        v = strpkg.TrimSpace(v)
+        if v == ""
+            continue
+        seen := p.db.FirstSeen(module, v)
+        age := now.Sub(seen)
+        if age >= p.cooldown
+            filtered = append(filtered, v)
+
+    w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+    if len(filtered) > 0
+        _, _ = fmt.Fprintln(w, strpkg.Join(filtered, "\n"))
+
+func handleLatest on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string)
+    body, err := p.fetchUpstream(module + "/@latest")
+    if err != empty
+        if errors.Is(err, errGone)
+            http.Error(w, "gone", http.StatusGone)
+        else
+            http.Error(w, err.Error(), http.StatusBadGateway)
+        return
+    defer body.Close()
+
+    data := io.ReadAll(body) onerr
+        http.Error(w, "upstream read error", http.StatusBadGateway)
+        return
+
+    # If trusted, pass through.
+    if p.isTrusted(module)
+        w.Header().Set("Content-Type", "application/json")
+        _, _ = w.Write(data)
+        return
+
+    # Parse and check cooldown.
+    info := latestInfo{}
+    json.Unmarshal(data, reference of info) onerr
+        http.Error(w, "upstream parse error", http.StatusBadGateway)
+        return
+
+    seen := p.db.FirstSeen(module, info.Version)
+    age := time.Now().UTC().Sub(seen)
+    if age < p.cooldown
+        # Latest version is too new — return 404 so Go falls back to next proxy.
+        http.Error(w, "latest version in cooldown", http.StatusNotFound)
+        return
+
+    w.Header().Set("Content-Type", "application/json")
+    _, _ = w.Write(data)
+
+func handleInfo on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
+    # Always record first-seen to start the cooldown clock.
+    seen := p.db.FirstSeen(module, version)
+    if not p.isTrusted(module) and time.Since(seen) < p.cooldown
+        http.Error(w, "version in cooldown", http.StatusNotFound)
+        return
+    p.proxyPassthrough(w, module + "/@v/" + version + ".info", "application/json")
+
+func handleMod on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
+    seen := p.db.FirstSeen(module, version)
+    if not p.isTrusted(module) and time.Since(seen) < p.cooldown
+        http.Error(w, "version in cooldown", http.StatusNotFound)
+        return
+    p.cachedProxyPassthrough(w, module + "/@v/" + version + ".mod", "text/plain; charset=utf-8")
+
+func handleZip on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
+    seen := p.db.FirstSeen(module, version)
+    if not p.isTrusted(module) and time.Since(seen) < p.cooldown
+        http.Error(w, "version in cooldown", http.StatusNotFound)
+        return
+    p.cachedProxyPassthrough(w, module + "/@v/" + version + ".zip", "application/zip")
+
+# handleSumDB proxies requests to sum.golang.org, preventing module fetch
+# patterns from leaking to Google's infrastructure.
+func handleSumDB on p reference proxy (w http.ResponseWriter, _ reference http.Request, subpath string)
+    target := "https://sum.golang.org/" + subpath
+    resp, httpErr := p.httpClient.Get(target)
+    if httpErr != empty
+        http.Error(w, "sumdb upstream error", http.StatusBadGateway)
+        return
+    defer resp.Body.Close()
+    ct := resp.Header.Get("Content-Type")
+    if ct != ""
+        w.Header().Set("Content-Type", ct)
+    w.WriteHeader(resp.StatusCode)
+    io.Copy(w, resp.Body) onerr discard
+
+func proxyPassthrough on p reference proxy (w http.ResponseWriter, path string, contentType string)
+    body, err := p.fetchUpstream(path)
+    if err != empty
+        if errors.Is(err, errGone)
+            http.Error(w, "gone", http.StatusGone)
+        else
+            http.Error(w, err.Error(), http.StatusBadGateway)
+        return
+    defer body.Close()
+    w.Header().Set("Content-Type", contentType)
+    io.Copy(w, body) onerr discard
+
+# cachedProxyPassthrough serves from disk cache when available, falling back
+# to upstream. Suitable for immutable responses (.mod and .zip).
+func cachedProxyPassthrough on p reference proxy (w http.ResponseWriter, path string, contentType string)
+    if p.cacheDir != ""
+        cachePath := filepath.Join(p.cacheDir, filepath.FromSlash(path))
+        cached, cacheErr := os.ReadFile(cachePath)
+        if cacheErr == empty
+            w.Header().Set("Content-Type", contentType)
+            _, _ = w.Write(cached)
+            return
+
+    body, err := p.fetchUpstream(path)
+    if err != empty
+        if errors.Is(err, errGone)
+            http.Error(w, "gone", http.StatusGone)
+        else
+            http.Error(w, err.Error(), http.StatusBadGateway)
+        return
+    defer body.Close()
+
+    data := io.ReadAll(body) onerr
+        http.Error(w, "upstream read error", http.StatusBadGateway)
+        return
+
+    # Persist to cache (best-effort, atomic write).
+    if p.cacheDir != ""
+        cachePath := filepath.Join(p.cacheDir, filepath.FromSlash(path))
+        os.MkdirAll(filepath.Dir(cachePath), 0755) onerr discard
+        tmpPath := cachePath + ".tmp"
+        writeErr := os.WriteFile(tmpPath, data, 0644)
+        if writeErr == empty
+            os.Rename(tmpPath, cachePath) onerr discard
+
+    w.Header().Set("Content-Type", contentType)
+    _, _ = w.Write(data)
+
+func fetchUpstream on p reference proxy (path string) (io.ReadCloser, error)
+    upstreamURL := p.upstream + "/" + path
+    resp, httpErr := p.httpClient.Get(upstreamURL)
+    if httpErr != empty
+        return empty, error "upstream error: {httpErr}"
+    switch resp.StatusCode
+        when http.StatusOK
+            return resp.Body, empty
+        when http.StatusGone
+            resp.Body.Close() onerr discard
+            return empty, errGone
+        when http.StatusNotFound
+            resp.Body.Close() onerr discard
+            return empty, error "not found upstream: {resp.Status}"
+        otherwise
+            resp.Body.Close() onerr discard
+            return empty, error "upstream returned {resp.Status}"
+
+# --- Duration parsing ---
+
+func parseDuration(s string) (time.Duration, error)
+    # Support day suffix: "7d" -> 7 * 24h
+    if strpkg.HasSuffix(s, "d")
+        s = strpkg.TrimSuffix(s, "d")
+        days := 0
+        _, scanErr := fmt.Sscanf(s, "%d", reference of days)
+        if scanErr != empty
+            return 0, error "invalid day duration: {s}"
+        return time.Duration(days) * 24 * time.Hour, empty
+    return time.ParseDuration(s)
+
+# --- Entry point ---
+
+func main()
+    mode := "local"
+    addr := ":8250"
+    cooldownStr := "7d"
+    upstreamFlag := ""
+    dataDir := ""
+    trustedStr := "github.com/kukichalang/,golang.org/x/,gopkg.in/"
+
+    # Parse flags from os.Args
+    args := os.Args[1:]
+    i := 0
+    for i < len(args)
+        arg := args[i]
+        switch
+            when arg == "--mode" and i + 1 < len(args)
+                i = i + 1
+                mode = args[i]
+            when strpkg.HasPrefix(arg, "--mode=")
+                mode = strpkg.TrimPrefix(arg, "--mode=")
+            when arg == "--addr" and i + 1 < len(args)
+                i = i + 1
+                addr = args[i]
+            when strpkg.HasPrefix(arg, "--addr=")
+                addr = strpkg.TrimPrefix(arg, "--addr=")
+            when arg == "--cooldown" and i + 1 < len(args)
+                i = i + 1
+                cooldownStr = args[i]
+            when strpkg.HasPrefix(arg, "--cooldown=")
+                cooldownStr = strpkg.TrimPrefix(arg, "--cooldown=")
+            when arg == "--upstream" and i + 1 < len(args)
+                i = i + 1
+                upstreamFlag = args[i]
+            when strpkg.HasPrefix(arg, "--upstream=")
+                upstreamFlag = strpkg.TrimPrefix(arg, "--upstream=")
+            when arg == "--data" and i + 1 < len(args)
+                i = i + 1
+                dataDir = args[i]
+            when strpkg.HasPrefix(arg, "--data=")
+                dataDir = strpkg.TrimPrefix(arg, "--data=")
+            when arg == "--trusted" and i + 1 < len(args)
+                i = i + 1
+                trustedStr = args[i]
+            when strpkg.HasPrefix(arg, "--trusted=")
+                trustedStr = strpkg.TrimPrefix(arg, "--trusted=")
+        i = i + 1
+
+    cooldown := parseDuration(cooldownStr) onerr panic "invalid cooldown: {error}"
+
+    # Resolve data directory.
+    dir := dataDir
+    if dir == ""
+        home := os.UserHomeDir() onerr panic "home dir: {error}"
+        dir = filepath.Join(home, ".kukicha", "proxy")
+    os.MkdirAll(dir, 0755) onerr discard
+
+    # Resolve upstream.
+    up := upstreamFlag
+    if up == ""
+        switch mode
+            when "local"
+                up = "https://proxy.kukicha.org"
+            when "hosted"
+                up = "https://proxy.golang.org"
+            otherwise
+                log.Fatalf("unknown mode: %s", mode)
+    # Validate upstream URL.
+    _ = url.Parse(up) onerr panic "invalid upstream URL: {error}"
+
+    # Choose seenStore implementation based on mode.
+    store := createStore(mode, dir)
+
+    trustedPrefixes := make(list of string, 0)
+    for _, t in strpkg.Split(trustedStr, ",")
+        t = strpkg.TrimSpace(t)
+        if t != ""
+            trustedPrefixes = append(trustedPrefixes, t)
+
+    p := reference of proxy{upstream: up, cooldown: cooldown, db: store, cacheDir: filepath.Join(dir, "cache"), trusted: trustedPrefixes, httpClient: reference of http.Client{Timeout: 30 * time.Second}}
+
+    srv := reference of http.Server{Addr: addr, Handler: p}
+
+    log.Printf("kukicha-proxy starting (%s mode)", mode)
+    log.Printf("  listen:   %s", addr)
+    log.Printf("  upstream: %s", up)
+    log.Printf("  cooldown: %s", cooldown)
+    log.Printf("  trusted:  %v", trustedPrefixes)
+    log.Printf("  data:     %s", dir)
+
+    # Graceful shutdown on SIGINT/SIGTERM.
+    quit := make(channel of os.Signal, 1)
+    signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+    go
+        receive from quit
+        log.Println("shutting down...")
+        ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+        defer cancel()
+        store.Shutdown() onerr discard
+        srv.Shutdown(ctx) onerr discard
+
+    listenErr := srv.ListenAndServe()
+    if listenErr != empty and not errors.Is(listenErr, http.ErrServerClosed)
+        log.Fatal(listenErr)
+
+# createStore returns a seenStore based on the mode.
+# Uses []seenStore workaround for concrete-to-interface coercion
+# (Kukicha semantic checker doesn't yet verify interface satisfaction).
+func createStore(mode string, dir string) seenStore
+    stores := make(list of seenStore, 0, 1)
+    if mode == "hosted"
+        s := newSQLiteSeenStore(filepath.Join(dir, "seen.db")) onerr panic "failed to open seen database: {error}"
+        stores = append(stores, s)
+    else
+        db := newSeenDB(filepath.Join(dir, "seen.json")) onerr panic "failed to open seen database: {error}"
+        stores = append(stores, db)
+    return stores[0]

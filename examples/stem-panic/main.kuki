@@ -346,11 +346,24 @@ function update()
             updateBitterPanic()
 
 function updateTitle()
-    if game.IsKeyPressed(game.KeyEnter)
+    if game.IsKeyPressed(game.KeyEnter) or game.TouchJustClicked()
         menuCursor = 0
         scene = Scene.TeaMenu
 
 function updateTeaMenu()
+    tx, ty, touched := game.TouchPosition()
+    if game.TouchJustClicked() and touched
+        for i from 0 to 3
+            y := 130 + i * 70
+            if ty > (y as float64 - 20.0) and ty < (y as float64 + 40.0)
+                menuCursor = i
+                selectedLevel := menuCursor + 1
+                if selectedLevel <= highestUnlocked
+                    level = selectedLevel
+                    scene = Scene.Playing
+                    setup()
+                return
+
     if game.IsKeyPressed(game.KeyUp) and menuCursor > 0
         menuCursor = menuCursor - 1
     if game.IsKeyPressed(game.KeyDown) and menuCursor < 2
@@ -369,6 +382,39 @@ function updatePlaying()
     if fulfilled >= fulfilledTarget
         scene = Scene.BatchComplete
         return
+
+    # Handle Touchscreen Interactions
+    tx, ty, touched := game.TouchPosition()
+    if game.TouchJustClicked() and touched
+        # Determine the lane taped
+        l := 0
+        if ty > laneY(0) + laneSpacing / 2.0
+            l = 1
+        if activeLaneCount() > 2 and ty > laneY(1) + laneSpacing / 2.0
+            l = 2
+        currentLane = l
+
+        # Always trigger the Catcher (if level 2) when playing touch mode
+        if level equals 2
+            ci := catcherOnLane(currentLane)
+            if ci >= 0 and not catchers[ci].active and catchers[ci].cooldown <= 0
+                catchers[ci].active = true
+                catchers[ci].timer = catcherActiveFrames
+
+        # Always send stem down the selected lane
+        canSend := len(stems) < maxStems
+        for i from 0 to len(stems)
+            if stems[i].active and stems[i].lane equals currentLane and stems[i].x < laneStartX + 40.0
+                canSend = false
+        if canSend
+            stems = append(stems, Stem{
+                x: laneStartX,
+                y: laneY(currentLane),
+                lane: currentLane,
+                dx: stemSpeed,
+                state: StemState.Raw,
+                active: true,
+            })
 
     # Tea Master movement
     if game.IsKeyPressed(game.KeyUp) and currentLane > 0
@@ -568,13 +614,13 @@ function handleStemArrival(si int)
         shakeIntensity = 6.0
 
 function updateBatchComplete()
-    if game.IsKeyPressed(game.KeyEnter)
+    if game.IsKeyPressed(game.KeyEnter) or game.TouchJustClicked()
         if level + 1 > highestUnlocked and level < 3
             highestUnlocked = level + 1
         scene = Scene.TeaMenu
 
 function updateBitterPanic()
-    if game.IsKeyPressed(game.KeySpace)
+    if game.IsKeyPressed(game.KeySpace) or game.TouchJustClicked()
         scene = Scene.TeaMenu
 
 # ── Draw ──
@@ -626,10 +672,11 @@ function drawTitle(screen game.Screen)
 
     # Controls
     game.DrawText(screen, "UP/DOWN: switch lane   ENTER/SPACE: send stem", 140, 290, dimText)
-    game.DrawText(screen, "Match the right pipeline to each tea order!", 160, 310, dimText)
+    game.DrawText(screen, "MOBILE: tap a lane to move and process tea", 140, 310, dimText)
+    game.DrawText(screen, "Match the right pipeline to each tea order!", 160, 330, dimText)
 
     if frame % 60 < 40
-        game.DrawText(screen, "Press ENTER to start", 240, 360, warmWhite)
+        game.DrawText(screen, "Press ENTER or TAP to start", 220, 380, warmWhite)
 
     game.DrawText(screen, "v0.3", 305, 440, dimText)
 
@@ -661,7 +708,7 @@ function drawTeaMenu(screen game.Screen)
     cursorY := 130 + menuCursor * 70
     game.DrawText(screen, "|>", 140, cursorY, bamboo)
 
-    game.DrawText(screen, "UP/DOWN to select, ENTER to play, ESC for title", 130, 420, dimText)
+    game.DrawText(screen, "UP/DOWN or TAP to select, ENTER to play, ESC for title", 100, 420, dimText)
 
 function drawPlaying(screen game.Screen)
     drawBambooBorder(screen)
@@ -821,7 +868,7 @@ function drawBatchComplete(screen game.Screen)
     game.DrawText(screen, "Orders filled: {fulfilled}", 255, 245, warmWhite)
 
     if frame % 60 < 40
-        game.DrawText(screen, "Press ENTER to continue", 230, 300, warmWhite)
+        game.DrawText(screen, "Press ENTER or TAP to continue", 210, 300, warmWhite)
 
 function drawBitterPanic(screen game.Screen)
     frame := game.FrameCount()
@@ -850,7 +897,7 @@ function drawBitterPanic(screen game.Screen)
     game.DrawText(screen, "at main.kuki:17  main()", 200 + sx, 310 + sy, game.MakeColor(140, 100, 70, 255))
 
     if frame % 60 < 40
-        game.DrawText(screen, "Press SPACE to retry", 240 + sx, 360 + sy, warmWhite)
+        game.DrawText(screen, "Press SPACE or TAP to retry", 220 + sx, 360 + sy, warmWhite)
 
 function drawBambooBorder(screen game.Screen)
     game.DrawRect(screen, 0.0, 0.0, screenW as float64, 3.0, bamboo)

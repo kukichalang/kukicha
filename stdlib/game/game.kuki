@@ -177,6 +177,19 @@ func MousePosition() (float64, float64)
 func MouseClicked() bool
     return inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
 
+# TouchJustClicked returns true if any touchscreen touch just started this frame
+func TouchJustClicked() bool
+    ids := inpututil.AppendJustPressedTouchIDs(empty)
+    return len(ids) > 0
+
+# TouchPosition returns the first active touch position, along with a bool indicating if a touch exists
+func TouchPosition() (float64, float64, bool)
+    ids := ebiten.AppendTouchIDs(empty)
+    if len(ids) > 0
+        x, y := ebiten.TouchPosition(ids[0])
+        return x as float64, y as float64, true
+    return 0.0, 0.0, false
+
 # ── Collision Functions ──
 
 # Overlaps returns true if two rectangles overlap

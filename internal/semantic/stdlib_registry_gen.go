@@ -280,6 +280,8 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"game.Random":                     {Count: 1, Types: []goStdlibType{{Kind: TypeKindInt}}, ParamNames: []string{"min", "max"}},
 	"game.RandomFloat":                {Count: 1, Types: []goStdlibType{{Kind: TypeKindFloat}}, ParamNames: []string{"min", "max"}},
 	"game.Run":                        {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"app"}},
+	"game.TouchJustClicked":           {Count: 1, Types: []goStdlibType{{Kind: TypeKindBool}}, ParamNames: []string{}},
+	"game.TouchPosition":              {Count: 3, Types: []goStdlibType{{Kind: TypeKindFloat}, {Kind: TypeKindFloat}, {Kind: TypeKindBool}}, ParamNames: []string{}},
 	"game.Window":                     {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "game.App"}}, ParamNames: []string{"title", "width", "height"}},
 	"git.Clone":                       {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"url", "path"}},
 	"git.CloneShallow":                {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"url", "path", "depth"}},
