@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -497,5 +498,157 @@ func TestMethodNotAllowed(t *testing.T) {
 
 	if w.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("expected 405, got %d", w.Code)
+	}
+}
+
+// fakeOSV creates a test server that mimics the OSV API (api.osv.dev/v1/query).
+// It responds with a single vulnerability whose "fixed" version is fixedVersion.
+func fakeOSV(t *testing.T, module, fixedVersion string) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var req osvQueryReq
+		json.Unmarshal(body, &req)
+
+		if req.Package.Name != module {
+			json.NewEncoder(w).Encode(osvQueryResp{})
+			return
+		}
+
+		json.NewEncoder(w).Encode(osvQueryResp{
+			Vulns: []osvVuln{{
+				ID: "GO-2026-9999",
+				Affected: []osvAffected{{
+					Ranges: []osvRange{{
+						Type: "SEMVER",
+						Events: []osvEvent{
+							{Introduced: "0"},
+							{Fixed: fixedVersion},
+						},
+					}},
+				}},
+			}},
+		})
+	}))
+}
+
+func newTestProxyWithVuln(t *testing.T, upstream string, cooldown time.Duration, osvURL string) (*proxy, *seenDB) {
+	t.Helper()
+	dir := t.TempDir()
+	db, err := newSeenDB(filepath.Join(dir, "seen.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := http.DefaultClient
+	vc := newVulnChecker(client)
+	vc.dbURL = osvURL
+	p := &proxy{
+		upstream:   upstream,
+		cooldown:   cooldown,
+		db:         db,
+		cacheDir:   filepath.Join(dir, "cache"),
+		httpClient: client,
+		vuln:       vc,
+	}
+	return p, db
+}
+
+func TestVulnFixBypassesCooldownOnList(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	// OSV says v0.2.0 is the fix version (without "v" prefix, as in OSV format).
+	osv := fakeOSV(t, "example.com/mod", "0.2.0")
+	defer osv.Close()
+
+	p, _ := newTestProxyWithVuln(t, up.URL, 7*24*time.Hour, osv.URL)
+
+	// All versions are first-seen NOW → in cooldown.
+	// But v0.2.0 is a security fix → should bypass cooldown.
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/list", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+
+	body := strings.TrimSpace(w.Body.String())
+	if body != "v0.2.0" {
+		t.Fatalf("expected only v0.2.0 (security fix), got: %q", body)
+	}
+}
+
+func TestVulnFixBypassesCooldownOnInfo(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	osv := fakeOSV(t, "example.com/mod", "0.2.0")
+	defer osv.Close()
+
+	p, _ := newTestProxyWithVuln(t, up.URL, 7*24*time.Hour, osv.URL)
+
+	// v0.2.0 is in cooldown but is a security fix → should return 200.
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.2.0.info", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Fatalf("expected 200 (security fix bypass), got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestVulnFixBypassesCooldownOnLatest(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	// upstream /@latest returns v0.3.0; mark that as the security fix.
+	osv := fakeOSV(t, "example.com/mod", "0.3.0")
+	defer osv.Close()
+
+	p, _ := newTestProxyWithVuln(t, up.URL, 7*24*time.Hour, osv.URL)
+
+	req := httptest.NewRequest("GET", "/example.com/mod/@latest", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Fatalf("expected 200 (security fix bypass), got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestNoVulnStillBlockedByCooldown(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	// OSV says v0.9.0 is the fix — NOT any version in the upstream list.
+	osv := fakeOSV(t, "example.com/mod", "0.9.0")
+	defer osv.Close()
+
+	p, _ := newTestProxyWithVuln(t, up.URL, 7*24*time.Hour, osv.URL)
+
+	// v0.1.0 is in cooldown and is NOT a security fix → should be blocked.
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.1.0.info", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 404 {
+		t.Fatalf("expected 404 (in cooldown, not a fix), got %d", w.Code)
+	}
+}
+
+func TestVulnCheckerDisabled(t *testing.T) {
+	up := fakeUpstream(t)
+	defer up.Close()
+
+	// Proxy with vuln=nil (disabled) — security fixes should NOT bypass.
+	p, _ := newTestProxy(t, up.URL, 7*24*time.Hour, nil)
+
+	req := httptest.NewRequest("GET", "/example.com/mod/@v/v0.2.0.info", nil)
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, req)
+
+	if w.Code != 404 {
+		t.Fatalf("expected 404 (vulncheck disabled), got %d", w.Code)
 	}
 }
