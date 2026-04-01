@@ -111,7 +111,7 @@ func TestIsDir(t reference testing.T)
             err = files.WriteString("test", testFile)
             test.AssertNoError(t, err)
 
-            err = os.Mkdir(testDir, 0755)
+            err = os.Mkdir(testDir, 0o755)
             test.AssertNoError(t, err)
 
             test.AssertTrue(t, files.IsDir(testDir))
@@ -134,7 +134,7 @@ func TestList(t reference testing.T)
 
             files.WriteString("test1", filepath.Join(tmpDir, "file1.txt"))
             files.WriteString("test2", filepath.Join(tmpDir, "file2.txt"))
-            os.Mkdir(filepath.Join(tmpDir, "subdir"), 0755)
+            os.Mkdir(filepath.Join(tmpDir, "subdir"), 0o755)
 
             entries, listErr := files.List(tmpDir)
             test.AssertNoError(t, listErr)

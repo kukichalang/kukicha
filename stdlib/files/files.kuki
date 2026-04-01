@@ -31,7 +31,7 @@ func ReadBytes(path string) (list of byte, error)
 func Write(data any, path string) error
     data
         |> json.MarshalPretty()
-        |> os.WriteFile(path, _, 0644)
+        |> os.WriteFile(path, _, 0o644)
         onerr return
     return empty
 
@@ -41,7 +41,7 @@ func Write(data any, path string) error
 # kuki:security "files"
 func WriteString(data string, path string) error
     bytesData := data as list of byte
-    return os.WriteFile(path, bytesData, 0644)
+    return os.WriteFile(path, bytesData, 0o644)
 
 # Append appends data to a file, creating it if it doesn't exist
 # Marshals data to JSON
@@ -49,7 +49,7 @@ func WriteString(data string, path string) error
 # Example: "new line\n" |> files.Append("log.txt")
 # kuki:security "files"
 func Append(data any, path string) error
-    file := os.OpenFile(path, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0644) onerr return
+    file := os.OpenFile(path, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0o644) onerr return
     defer file.Close()
 
     jsonData := json.Marshal(data) onerr return
@@ -64,7 +64,7 @@ func Append(data any, path string) error
 # Example: "new line\n" |> files.AppendString("log.txt")
 # kuki:security "files"
 func AppendString(data string, path string) error
-    file := os.OpenFile(path, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0644) onerr return
+    file := os.OpenFile(path, os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0o644) onerr return
     defer file.Close()
 
     bytesData := data as list of byte
@@ -162,13 +162,13 @@ func Move(src string, dst string) error
 # Returns any error if the directory cannot be created
 # Example: "/tmp/mydir" |> files.MkDir()
 func MkDir(path string) error
-    return os.Mkdir(path, 0755)
+    return os.Mkdir(path, 0o755)
 
 # MkDirAll creates a directory and all necessary parent directories
 # Returns any error that occurred
 # Example: "/tmp/a/b/c" |> files.MkDirAll()
 func MkDirAll(path string) error
-    return os.MkdirAll(path, 0755)
+    return os.MkdirAll(path, 0o755)
 
 # TempFile creates a temporary file and returns its path
 # The file will have the specified prefix in its name
