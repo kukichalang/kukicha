@@ -207,6 +207,25 @@ switch
         print("good")
 ```
 
+### "type declarations must be at the top level, not inside a function"
+
+**Cause:** Declaring a type inside a function body. Kukicha only supports top-level type declarations.
+
+```kukicha
+# Wrong — type inside function
+func Process()
+    type Result
+        Value string
+    # ...
+
+# Correct — type at top level
+type Result
+    Value string
+
+func Process()
+    r := Result{Value: "ok"}
+```
+
 ## Indentation Issues
 
 ### Mixed Tabs and Spaces

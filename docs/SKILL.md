@@ -99,6 +99,17 @@ result := Greet("Alice", greeting: "Hi")
 files.Copy(from: src, to: dst)
 ```
 
+### Number Literals
+
+```kukicha
+count := 42              # decimal
+mask := 0xFF             # hexadecimal (0x or 0X)
+perms := 0o755           # octal (0o or 0O)
+flags := 0b1010          # binary (0b or 0B)
+legacy := 0755           # legacy octal (also supported)
+pi := 3.14               # float
+```
+
 ### Strings and Interpolation
 
 ```kukicha

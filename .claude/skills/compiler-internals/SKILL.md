@@ -66,6 +66,10 @@ Kukicha is indentation-sensitive. The lexer converts 4-space indentation changes
 
 For each INDENT absorbed, a corresponding DEDENT is also absorbed later in the stream.
 
+### Number literal prefixes
+
+`scanNumber()` supports decimal, hexadecimal (`0x`/`0X`), octal (`0o`/`0O`), and binary (`0b`/`0B`) integer literals. Legacy octal (`0755`) also works. Helper functions `isHexDigit()` and `isOctalDigit()` validate digits after the prefix. Invalid prefixes (e.g., `0o` with no digits) produce an error.
+
 ### Adding a new keyword
 
 Add the keyword string → `TokenType` mapping in `token.go`'s `keywords` map and define the `TokenType` constant there.
@@ -137,6 +141,8 @@ Non-interpolated strings still emit a single `TOKEN_STRING`.
 - **Error collection** (not fail-fast): errors are appended to `p.errors`, parsing continues. This allows multiple errors per compile.
 - `peekToken()` calls `skipIgnoredTokens()` first, which skips `TOKEN_COMMENT` and `TOKEN_SEMICOLON`
 - Context-sensitive keywords: `list`, `map`, `channel` are only keywords when followed by `of` in a type context — this allows them as variable names elsewhere. `empty` and `error` are context-sensitive too: `isIdentifierFollower()` checks if the next token indicates identifier usage (`:=`, `=`, `&`, `.`, `[`, `:`, `|>`, `)`, `,`, string interpolation mid/tail, etc.); if so, they parse as identifiers instead of `EmptyExpr`/`ErrorExpr`. This means `empty |> iterator.Values()`, `print(empty)`, and `empty.field` all work when `empty` is a user-defined variable.
+- `close` is a keyword (`TOKEN_CLOSE`) for channel close expressions (`close ch`), but `parseIdentifier()` also accepts `TOKEN_CLOSE` so that `close` can be used as a method name, field name, or function declaration name (e.g., `func close on t T`).
+- `parseStatement()` rejects `TOKEN_TYPE` inside function bodies with a clear error message ("type declarations must be at the top level"). This prevents confusing parse failures when users try to declare types inside functions.
 
 ### Operator precedence (lowest → highest)
 
@@ -268,6 +274,14 @@ The `Analyze()` method runs three top-level passes in order:
 1. **`collectDirectives()`** — scans all declarations for `# kuki:deprecated` and `# kuki:panics` directives, populating `deprecatedFuncs`/`deprecatedTypes`/`panickedFuncs` maps
 2. **`collectDeclarations()`** — registers all top-level types, interfaces, and function signatures into the symbol table (so functions can call each other regardless of order); also validates package name (rejects Go stdlib names)
 3. **`analyzeDeclarations()`** — validates function bodies, infers `exprReturnCounts`, enforces security checks, warns on deprecated calls
+
+### Interface detection in typeAnnotationToTypeInfo
+
+When `typeAnnotationToTypeInfo` processes a `NamedType`, it checks if the name refers to an interface — either a user-defined interface in the symbol table (`SymbolInterface`) or a known Go/Kukicha stdlib interface via `IsKnownInterface()`. If so, it returns `TypeKindInterface` instead of `TypeKindNamed`. This allows `typesCompatible()` to correctly accept concrete types (e.g., `*MyStruct`) where an interface return type is declared (e.g., `io.Reader`).
+
+### Switch scope per case
+
+`analyzeSwitchStmt()` creates a new scope (`EnterScope`/`ExitScope`) around each `when` case body and the `otherwise` body. This prevents variable declarations in one branch from conflicting with declarations in other branches. This matches the behavior of `analyzeTypeSwitchStmt()`, which has always scoped per case.
 
 ### TypeKindNil
 
@@ -428,6 +442,8 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 2. **Emission** (`emit.go`): `emitIR` walks the IR block and produces Go source text via `g.writeLine`.
 
 Simple onerr cases (single call, no pipe) still use direct emission in `codegen_onerr.go`. Pipe chain and piped switch onerr delegate to the Lowerer. `currentOnErrVar` holds the generated error variable name so that `{error}` in string interpolation inside the block resolves to it.
+
+`emitOnErrDiscard` handles `onerr discard` for all three forms (statement, var decl, assignment). When `inferReturnCount` succeeds, it emits the correct number of `_` blanks. When inference fails (e.g., method calls on unknown types), the fallback emits a bare function call without any assignment — Go allows discarding all return values from any call.
 
 The Lowerer handles three cases per pipe step:
 1. **Multi-return** (count >= 2): split into `val, err := call()`; check err
