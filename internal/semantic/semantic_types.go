@@ -89,6 +89,16 @@ func (a *Analyzer) typeAnnotationToTypeInfo(typeAnn ast.TypeAnnotation) *TypeInf
 	case *ast.PrimitiveType:
 		return primitiveTypeFromString(t.Name)
 	case *ast.NamedType:
+		// Check if this named type is actually an interface — either a
+		// user-defined interface in the symbol table or a known Go/Kukicha
+		// stdlib interface. This lets typesCompatible correctly allow
+		// returning concrete types where an interface is expected.
+		if sym := a.symbolTable.Resolve(t.Name); sym != nil && sym.Kind == SymbolInterface {
+			return &TypeInfo{Kind: TypeKindInterface, Name: t.Name}
+		}
+		if IsKnownInterface(t.Name) {
+			return &TypeInfo{Kind: TypeKindInterface, Name: t.Name}
+		}
 		return &TypeInfo{Kind: TypeKindNamed, Name: t.Name}
 	case *ast.ReferenceType:
 		return &TypeInfo{

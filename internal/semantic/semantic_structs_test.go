@@ -257,3 +257,49 @@ func main()
 		t.Errorf("unexpected error: %v", e)
 	}
 }
+
+func TestReturnConcreteForUserInterface(t *testing.T) {
+	// Returning a concrete reference type where a user-defined interface is
+	// expected should not produce a type error — the Go compiler handles
+	// interface satisfaction checking.
+	input := `interface Greeter
+    Greet() string
+
+type Person
+    Name string
+
+func Greet on p Person string
+    return "Hello"
+
+func NewGreeter() Greeter
+    p := Person{Name: "Alice"}
+    return reference of p
+`
+
+	_, errors := analyzeSource(t, input)
+	for _, e := range errors {
+		t.Errorf("unexpected error: %v", e)
+	}
+}
+
+func TestReturnConcreteForGoStdlibInterface(t *testing.T) {
+	// Returning a concrete type where a Go stdlib interface (e.g., io.Reader)
+	// is expected should not produce a type error.
+	input := `import "io"
+
+type MyReader
+    data string
+
+func Read on r MyReader (p list of byte) (int, error)
+    return 0, empty
+
+func MakeReader() io.Reader
+    r := MyReader{data: "hello"}
+    return reference of r
+`
+
+	_, errors := analyzeSource(t, input)
+	for _, e := range errors {
+		t.Errorf("unexpected error: %v", e)
+	}
+}
