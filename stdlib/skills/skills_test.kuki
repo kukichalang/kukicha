@@ -25,26 +25,26 @@ func TestDiscover(t reference testing.T)
 
     # Create changelog/SKILL.md
     changelogDir := filepath.Join(dir, "changelog")
-    os.MkdirAll(changelogDir, 0755) onerr
+    os.MkdirAll(changelogDir, 0o755) onerr
         t.Fatal("MkdirAll changelog: {error}")
         return
     changelogContent := "# Changelog\nGenerates CHANGELOG.md entries."
-    os.WriteFile(filepath.Join(changelogDir, "SKILL.md"), changelogContent as list of byte, 0644) onerr
+    os.WriteFile(filepath.Join(changelogDir, "SKILL.md"), changelogContent as list of byte, 0o644) onerr
         t.Fatal("WriteFile changelog: {error}")
         return
 
     # Create release/SKILL.md
     releaseDir := filepath.Join(dir, "release")
-    os.MkdirAll(releaseDir, 0755) onerr
+    os.MkdirAll(releaseDir, 0o755) onerr
         t.Fatal("MkdirAll release: {error}")
         return
     releaseContent := "# Release\nCuts a release."
-    os.WriteFile(filepath.Join(releaseDir, "SKILL.md"), releaseContent as list of byte, 0644) onerr
+    os.WriteFile(filepath.Join(releaseDir, "SKILL.md"), releaseContent as list of byte, 0o644) onerr
         t.Fatal("WriteFile release: {error}")
         return
 
     # Non-SKILL.md file should be ignored
-    os.WriteFile(filepath.Join(changelogDir, "README.md"), "ignore me" as list of byte, 0644) onerr discard
+    os.WriteFile(filepath.Join(changelogDir, "README.md"), "ignore me" as list of byte, 0o644) onerr discard
 
     result := skills.Discover(dir) onerr
         t.Fatal("Discover: {error}")
