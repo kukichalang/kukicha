@@ -755,6 +755,44 @@ func (l *Lexer) scanSingleQuoteString() {
 
 // scanNumber scans a number (integer or float)
 func (l *Lexer) scanNumber() {
+	// Check for 0x (hex) or 0o (octal) or 0b (binary) prefixes
+	if l.source[l.start] == '0' {
+		next := l.peek()
+		if next == 'x' || next == 'X' {
+			l.advance() // consume 'x'
+			if !isHexDigit(l.peek()) {
+				l.error("hexadecimal literal has no digits")
+			}
+			for isHexDigit(l.peek()) {
+				l.advance()
+			}
+			l.addToken(TOKEN_INTEGER)
+			return
+		}
+		if next == 'o' || next == 'O' {
+			l.advance() // consume 'o'
+			if !isOctalDigit(l.peek()) {
+				l.error("octal literal has no digits")
+			}
+			for isOctalDigit(l.peek()) {
+				l.advance()
+			}
+			l.addToken(TOKEN_INTEGER)
+			return
+		}
+		if next == 'b' || next == 'B' {
+			l.advance() // consume 'b'
+			if l.peek() != '0' && l.peek() != '1' {
+				l.error("binary literal has no digits")
+			}
+			for l.peek() == '0' || l.peek() == '1' {
+				l.advance()
+			}
+			l.addToken(TOKEN_INTEGER)
+			return
+		}
+	}
+
 	for isDigit(l.peek()) {
 		l.advance()
 	}
@@ -885,6 +923,14 @@ func hexDigit(c rune) (int, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func isHexDigit(c rune) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+}
+
+func isOctalDigit(c rune) bool {
+	return c >= '0' && c <= '7'
 }
 
 func isAlpha(c rune) bool {

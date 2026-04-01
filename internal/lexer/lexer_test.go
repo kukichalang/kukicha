@@ -461,6 +461,36 @@ func TestNumbers(t *testing.T) {
 			input:    "123456789",
 			expected: TOKEN_INTEGER,
 		},
+		{
+			name:     "octal 0o prefix",
+			input:    "0o755",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "octal 0O prefix",
+			input:    "0O644",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "hex 0x prefix",
+			input:    "0xFF",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "hex 0X prefix",
+			input:    "0X1A",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "binary 0b prefix",
+			input:    "0b1010",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "legacy octal 0755",
+			input:    "0755",
+			expected: TOKEN_INTEGER,
+		},
 	}
 
 	for _, tt := range tests {
@@ -478,6 +508,9 @@ func TestNumbers(t *testing.T) {
 
 			if tokens[0].Type != tt.expected {
 				t.Errorf("Expected %s, got %s", tt.expected, tokens[0].Type)
+			}
+			if tokens[0].Lexeme != tt.input {
+				t.Errorf("Expected lexeme %q, got %q", tt.input, tokens[0].Lexeme)
 			}
 		})
 	}

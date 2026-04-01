@@ -672,15 +672,20 @@ func Use()
 		t.Errorf("should not emit warning comment when semantic return counts are available, got: %s", output)
 	}
 
-	// Without semantic analysis, inferReturnCount fails — should have warning comment
+	// Without semantic analysis, inferReturnCount fails — should emit bare call (no assignment)
 	gen2 := New(program)
 	output2, err := gen2.Generate()
 	if err != nil {
 		t.Fatalf("codegen error: %v", err)
 	}
 
-	if !strings.Contains(output2, "// kukicha: could not infer") {
-		t.Errorf("expected warning comment when return count inference fails, got: %s", output2)
+	// Should NOT have the old warning comment
+	if strings.Contains(output2, "// kukicha: could not infer") {
+		t.Errorf("should not emit warning comment, got: %s", output2)
+	}
+	// Should emit bare function call without _ = prefix
+	if strings.Contains(output2, "_ = os.LookupEnv") {
+		t.Errorf("should not emit _ = for unknown return count, got: %s", output2)
 	}
 }
 

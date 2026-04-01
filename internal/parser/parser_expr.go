@@ -506,7 +506,7 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 
 func (p *Parser) parseIdentifier() *ast.Identifier {
 	token := p.advance()
-	if token.Type != lexer.TOKEN_IDENTIFIER && token.Type != lexer.TOKEN_EMPTY && token.Type != lexer.TOKEN_ERROR {
+	if token.Type != lexer.TOKEN_IDENTIFIER && token.Type != lexer.TOKEN_EMPTY && token.Type != lexer.TOKEN_ERROR && token.Type != lexer.TOKEN_CLOSE {
 		p.error(token, "expected identifier")
 		// Return a sentinel so callers don't need nil checks.
 		// The error is already recorded; codegen will not run.

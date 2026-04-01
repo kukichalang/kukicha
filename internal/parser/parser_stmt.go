@@ -108,6 +108,10 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseContinueStmt()
 	case lexer.TOKEN_BREAK:
 		return p.parseBreakStmt()
+	case lexer.TOKEN_TYPE:
+		p.error(p.peekToken(), "type declarations must be at the top level, not inside a function")
+		p.advance() // consume 'type' to avoid infinite loop
+		return nil
 	default:
 		return p.parseExpressionOrAssignmentStmt()
 	}

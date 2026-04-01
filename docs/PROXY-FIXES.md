@@ -41,9 +41,9 @@ Changed `proxy.kukicha.dev` to `proxy.kukicha.org` in `main.kuki` and `cmd/kukic
 ## Compiler Limitations Found
 
 - **Interface return type**: Kukicha semantic checker rejects `return concretePtr` when function returns an interface type. Workaround: append to `list of Interface` and return `list[0]`.
-- **`onerr discard` on multi-return**: `w.Write(data) onerr discard` generates `_ = w.Write(data)` but `Write` returns `(int, error)`. Workaround: use `_, _ = w.Write(data)`.
-- **`close` is a keyword**: Can't use `close` as a method name. Renamed to `Shutdown`.
-- **`0o755` octal literals**: Not recognized by the lexer. Use `0755` instead.
+- ~~**`onerr discard` on multi-return**: `w.Write(data) onerr discard` generates `_ = w.Write(data)` but `Write` returns `(int, error)`. Workaround: use `_, _ = w.Write(data)`.~~ **Fixed** — fallback now emits a bare call, valid for any return count.
+- ~~**`close` is a keyword**: Can't use `close` as a method name. Renamed to `Shutdown`.~~ **Fixed** — `close` is now accepted as an identifier in name contexts (method names, field names).
+- ~~**`0o755` octal literals**: Not recognized by the lexer. Use `0755` instead.~~ **Fixed** — lexer now supports `0o`, `0x`, and `0b` prefixes.
 - **`onerr as e` standalone**: `{e}` works in string interpolation but `e` is not accessible as a standalone identifier (e.g., `log.Fatal(e)` fails). Use `onerr panic "{error}"` instead.
-- **Switch scope sharing**: Variables declared in different `when` branches share scope, causing redeclaration errors. Use `if/else if` instead.
-- **Type inside function**: `type` declarations inside function bodies are not supported. Must be at top level.
+- ~~**Switch scope sharing**: Variables declared in different `when` branches share scope, causing redeclaration errors. Use `if/else if` instead.~~ **Fixed** — each `when` branch now has its own scope.
+- ~~**Type inside function**: `type` declarations inside function bodies are not supported. Must be at top level.~~ **Fixed** — parser now emits a clear error message instead of silently failing.

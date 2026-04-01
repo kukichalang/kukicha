@@ -168,11 +168,9 @@ func (g *Generator) emitOnErrDiscard(clause *ast.OnErrClause, lhsParts []string,
 				g.writeLine(fmt.Sprintf("%s = %s", strings.Join(blanks, ", "), g.exprToString(expr)))
 			}
 		} else {
-			// Fallback: return count inference failed — emit a single blank assignment.
-			// This may discard extra return values. If incorrect, use explicit
-			// variable capture: _ := f() onerr discard
-			g.writeLine("// kukicha: could not infer return count; using _ = ... (use explicit capture if incorrect)")
-			g.writeLine(fmt.Sprintf("_ = %s", g.exprToString(expr)))
+			// Fallback: return count inference failed — call without assignment.
+			// Go allows discarding all return values from a function call.
+			g.writeLine(g.exprToString(expr))
 		}
 		return true
 	}

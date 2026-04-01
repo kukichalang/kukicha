@@ -246,11 +246,15 @@ func (a *Analyzer) analyzeSwitchStmt(stmt *ast.SwitchStmt) {
 				a.error(val.Pos(), "switch condition branch must be bool")
 			}
 		}
+		a.symbolTable.EnterScope()
 		a.analyzeBlock(c.Body)
+		a.symbolTable.ExitScope()
 	}
 
 	if stmt.Otherwise != nil {
+		a.symbolTable.EnterScope()
 		a.analyzeBlock(stmt.Otherwise.Body)
+		a.symbolTable.ExitScope()
 	}
 
 	// Exhaustiveness check for enum switches without otherwise
