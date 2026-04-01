@@ -562,8 +562,8 @@ You now have a working web service! But it's not production-ready yet. In the ne
 
 | # | Tutorial | What You'll Learn |
 |---|----------|-------------------|
-| 1 | **[Beginner Tutorial](beginner-tutorial.md)** | Variables, functions, strings, decisions, lists, loops, pipes |
-| 2 | **[Data & AI Scripting](data-scripting-tutorial.md)** | Maps (Key-Value), parsing CSVs, shell commands, AI scripting |
+| 1 | **[Beginner Tutorial](beginner-tutorial.md)** | Variables, functions, strings, decisions, lists, loops, imports |
+| 2 | **[Data & AI Scripting](data-scripting-tutorial.md)** | Maps (Key-Value), parsing CSVs, shell commands, AI scripting, pipes |
 | 3 | **[CLI Explorer](cli-explorer-tutorial.md)** | Custom types, methods, API data, arrow lambdas, error handling |
 | 4 | ✅ **Link Shortener** | HTTP servers, JSON, REST APIs, redirects |
 | 5 | **[Health Checker](concurrent-url-health-checker.md)** ← Next! | Concurrency (Goroutines, Channels), Interfaces |

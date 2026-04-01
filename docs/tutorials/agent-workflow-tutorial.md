@@ -423,7 +423,7 @@ Kukicha is Go with English keywords and indentation instead of symbols and brace
 
 ## Next Steps
 
-- [Absolute Beginner Tutorial](absolute-beginner-tutorial.md) — syntax from scratch
+- [Beginner Tutorial](beginner-tutorial.md) — syntax from scratch
 - [Data & AI Scripting](data-scripting-tutorial.md) — maps, CSV, LLM integration
 - [Production Patterns](production-patterns-tutorial.md) — databases, validation, retry, auth
 

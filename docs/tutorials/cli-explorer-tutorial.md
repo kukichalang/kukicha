@@ -203,6 +203,21 @@ function FilterByLanguage(repos list of Repo, language string) list of Repo
 
 The `r => ...` form is an **arrow lambda** — a concise inline function used heavily with `slice.Filter` and `slice.Map`. The compiler infers the parameter type from context, so you don't need to write `(r Repo) =>` explicitly.
 
+Now let's add a search function that checks both the name and description:
+
+```kukicha
+# Search returns repos whose name or description contains a term (case-insensitive)
+function Search(repos list of Repo, term string) list of Repo
+    lower := term |> string.ToLower()
+    return repos |> slice.Filter(r =>
+        name := r.Name |> string.ToLower()
+        desc := r.Description |> string.ToLower()
+        return name |> string.Contains(lower) or desc |> string.Contains(lower)
+    )
+```
+
+This uses the **block form** of an arrow lambda — when the body needs multiple statements, indent them and use an explicit `return`.
+
 ### Let's Try It
 
 Add import "stdlib/string" and import "stdlib/slice" to the imports at the top
@@ -256,7 +271,18 @@ type Explorer
     username string
 ```
 
-Now add methods for it:
+Now add methods for it. First, a helper to display repos — we'll reuse this pattern several times:
+
+```kukicha
+# PrintRepos displays a labeled list of repos
+function PrintRepos(title string, repos list of Repo)
+    print("\n{title}")
+    for i, repo in repos
+        print(repo.Summary(i + 1))
+    print("")
+```
+
+Now the explorer methods:
 
 ```kukicha
 # Fetch loads repos for a GitHub user
@@ -271,11 +297,7 @@ function ShowList on ex Explorer
     if len(ex.repos) equals 0
         print("\nNo repos loaded. Use 'fetch <username>' first.\n")
         return
-
-    print("\n=== Repos for {ex.username} ===")
-    for i, repo in ex.repos
-        print(repo.Summary(i + 1))
-    print("")
+    PrintRepos("=== Repos for {ex.username} ===", ex.repos)
 ```
 
 **Note on receiver naming:** We use `ex` as the receiver variable name (short for "explorer"). Keep receiver names short and consistent.
@@ -307,11 +329,7 @@ function ShowFavorites on ex Explorer
     if len(ex.favorites) equals 0
         print("\nNo favorites yet! Use 'fav <number>' to save one.\n")
         return
-
-    print("\n=== Your Favorites ===")
-    for i, repo in ex.favorites
-        print(repo.Summary(i + 1))
-    print("")
+    PrintRepos("=== Your Favorites ===", ex.favorites)
 ```
 
 **Why `reference`?**
@@ -363,6 +381,14 @@ function Summary on repo Repo(index int) string
     lang = lang |> string.PadRight(12)
     return "  {index}. {name}  ⭐ {repo.Stars}  {lang}  {repo.Description}"
 
+# --- Display Helpers ---
+
+function PrintRepos(title string, repos list of Repo)
+    print("\n{title}")
+    for i, repo in repos
+        print(repo.Summary(i + 1))
+    print("")
+
 # --- Data Fetching ---
 
 function FetchRepos(username string) list of Repo
@@ -374,10 +400,18 @@ function FetchRepos(username string) list of Repo
             return empty list of Repo
     return repos
 
-# --- Filter Functions ---
+# --- Filter & Search ---
 
 function FilterByLanguage(repos list of Repo, language string) list of Repo
     return repos |> slice.Filter(r => r.Language |> string.ToLower() |> string.Contains(language |> string.ToLower()))
+
+function Search(repos list of Repo, term string) list of Repo
+    lower := term |> string.ToLower()
+    return repos |> slice.Filter(r =>
+        name := r.Name |> string.ToLower()
+        desc := r.Description |> string.ToLower()
+        return name |> string.Contains(lower) or desc |> string.Contains(lower)
+    )
 
 # --- Explorer Methods ---
 
@@ -391,11 +425,7 @@ function ShowList on ex Explorer
     if len(ex.repos) equals 0
         print("\nNo repos loaded. Use 'fetch <username>' first.\n")
         return
-
-    print("\n=== Repos for {ex.username} ===")
-    for i, repo in ex.repos
-        print(repo.Summary(i + 1))
-    print("")
+    PrintRepos("=== Repos for {ex.username} ===", ex.repos)
 
 function AddFavorite on ex reference Explorer(index int)
     if index < 1 or index > len(ex.repos)
@@ -415,11 +445,7 @@ function ShowFavorites on ex Explorer
     if len(ex.favorites) equals 0
         print("\nNo favorites yet! Use 'fav <number>' to save one.\n")
         return
-
-    print("\n=== Your Favorites ===")
-    for i, repo in ex.favorites
-        print(repo.Summary(i + 1))
-    print("")
+    PrintRepos("=== Your Favorites ===", ex.favorites)
 
 function PrintHelp()
     print("Commands:")
@@ -478,11 +504,10 @@ function main()
 
             when "filter"
                 if len(parts) < 2
-                    # No argument — build a menu from languages in the current repo list
-                    languages := make(list of string, 0)
-                    for repo in ex.repos
-                        if repo.Language isnt "" and not slice.Contains(languages, repo.Language)
-                            languages = append(languages, repo.Language)
+                    languages := ex.repos
+                        |> slice.Filter(r => r.Language isnt "")
+                        |> slice.Map(r => r.Language)
+                        |> slice.Unique()
                     if slice.IsEmpty(languages)
                         print("No language data in current repos.")
                         continue
@@ -490,37 +515,22 @@ function main()
                         print("Cancelled.")
                         continue
                     filtered := FilterByLanguage(ex.repos, languages[idx])
-                    print("\nShowing {len(filtered)} repos in {languages[idx]}")
-                    for i, repo in filtered
-                        print(repo.Summary(i + 1))
-                    print("")
+                    PrintRepos("Showing {len(filtered)} repos in {languages[idx]}", filtered)
                     continue
                 filtered := FilterByLanguage(ex.repos, parts[1])
-                print("\nShowing {len(filtered)} repos matching '{parts[1]}'")
-                for i, repo in filtered
-                    print(repo.Summary(i + 1))
-                print("")
+                PrintRepos("Showing {len(filtered)} repos matching '{parts[1]}'", filtered)
 
             when "search"
                 if len(parts) < 2
                     print("Usage: search <text>")
                     continue
-                term := parts[1] |> string.ToLower()
-                results := ex.repos |> slice.Filter(r =>
-                    name := r.Name |> string.ToLower()
-                    desc := r.Description |> string.ToLower()
-                    return name |> string.Contains(term) or desc |> string.Contains(term)
-                )
-                print("\nFound {len(results)} repos matching '{parts[1]}'")
-                for i, repo in results
-                    print(repo.Summary(i + 1))
-                print("")
+                results := Search(ex.repos, parts[1])
+                PrintRepos("Found {len(results)} repos matching '{parts[1]}'", results)
 
             when "fav"
                 if len(parts) < 2
                     print("Usage: fav <number>")
                     continue
-                # Parse the number — print a message and skip if it's not valid
                 id := cast.ToInt(parts[1]) onerr
                     print("Invalid number: {parts[1]}")
                     continue
@@ -714,6 +724,27 @@ Arrow lambdas come in two forms:
 In the block form, you **must use `return`** explicitly because the lambda contains multiple statements. The expression form works without `return` because there's only one expression — the result is automatically returned.
 
 They're especially useful with `slice.Filter`, `slice.Map`, and other functional helpers where a full `function(...)` literal would be verbose.
+
+### Functional Pipelines — `slice.Map`, `slice.Filter`, `slice.Unique`
+
+```kukicha
+languages := ex.repos
+    |> slice.Filter(r => r.Language isnt "")
+    |> slice.Map(r => r.Language)
+    |> slice.Unique()
+```
+
+This pipeline replaces what would otherwise be a manual loop with an accumulator:
+
+```kukicha
+# The pipeline above replaces all of this:
+languages := make(list of string, 0)
+for repo in ex.repos
+    if repo.Language isnt "" and not slice.Contains(languages, repo.Language)
+        languages = append(languages, repo.Language)
+```
+
+Each step transforms the data: `slice.Filter` keeps repos with a language set, `slice.Map` extracts the language string from each repo, and `slice.Unique` removes duplicates. Pipelines like this read top-to-bottom as a data transformation and are a hallmark of Kukicha's style.
 
 ### `continue` in Context
 
@@ -945,8 +976,8 @@ You now have solid programming skills with Kukicha! Continue with the tutorial s
 
 | # | Tutorial | What You'll Learn |
 |---|----------|-------------------|
-| 1 | **[Beginner Tutorial](beginner-tutorial.md)** | Variables, functions, strings, decisions, lists, loops, pipes |
-| 2 | **[Data & AI Scripting](data-scripting-tutorial.md)** | Maps (Key-Value), parsing CSVs, shell commands, AI scripting |
+| 1 | **[Beginner Tutorial](beginner-tutorial.md)** | Variables, functions, strings, decisions, lists, loops, imports |
+| 2 | **[Data & AI Scripting](data-scripting-tutorial.md)** | Maps (Key-Value), parsing CSVs, shell commands, AI scripting, pipes |
 | 3 | ✅ **CLI Explorer** | Custom types, methods, API data, arrow lambdas, error handling *(you are here)* |
 | 4 | **[Link Shortener](web-app-tutorial.md)** ← Next! | HTTP servers, JSON, REST APIs, redirects |
 | 5 | **[Production Patterns](production-patterns-tutorial.md)** | Databases, concurrency, Go conventions |

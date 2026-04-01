@@ -93,7 +93,7 @@ kukicha run hello.kuki
 ## Documentation
 
 - [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
-- [Absolute Beginner Tutorial](docs/tutorials/absolute-beginner-tutorial.md) — first program, variables, functions
+- [Beginner Tutorial](docs/tutorials/beginner-tutorial.md) — first program, variables, functions
 - [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, auth, retry
 - [FAQ](docs/faq.md) | [Contributing](docs/contributing.md)
 

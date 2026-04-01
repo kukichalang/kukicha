@@ -1,242 +1,597 @@
-# Kukicha for Shell Scripters
+# Kukicha Programming Tutorial for Complete Beginners
 
-You already know how to get things done in bash. You can pipe commands together, write functions, loop over files, and set variables. But your scripts are getting longer, harder to debug, and full of quoting nightmares. You want something more structured without losing the directness you're used to.
-
-Kukicha is a programming language that compiles to Go. It keeps the things you like about shell scripting - pipes, readable flow, running commands - and gives you types, real error handling, and compiled binaries you can deploy anywhere.
-
-This tutorial maps what you already know in bash to how it works in Kukicha.
+Welcome! This tutorial will teach you programming from scratch using **Kukicha** (茎), a beginner-friendly language. By the end, you'll understand the basics and be able to work with text (strings) in your programs.
 
 ## Table of Contents
 
-1. [Setup](#setup)
-2. [Hello World - Your First Script](#hello-world---your-first-script)
-3. [Variables - No More Dollar Signs](#variables---no-more-dollar-signs)
-4. [Comments](#comments)
-5. [Types - What Kind of Data?](#types---what-kind-of-data)
-6. [Strings - No More Quoting Hell](#strings---no-more-quoting-hell)
-7. [Conditionals - If Without Then/Fi](#conditionals---if-without-thenfi)
-8. [Functions - Like Shell Functions, But Better](#functions---like-shell-functions-but-better)
-9. [Lists - Like Arrays, But They Actually Work](#lists---like-arrays-but-they-actually-work)
-10. [Loops - For Without Do/Done](#loops---for-without-dodone)
-11. [Pipes - You Already Know This One](#pipes---you-already-know-this-one)
-12. [Running Commands](#running-commands)
-13. [Error Handling - Better Than set -e](#error-handling---better-than-set--e)
-14. [Putting It Together - A Log Analyzer](#putting-it-together---a-log-analyzer)
-15. [What's Next?](#whats-next)
+1. [What is Programming?](#what-is-programming)
+2. [What is Kukicha?](#what-is-kukicha)
+3. [Your First Program](#your-first-program)
+4. [Comments - Leaving Notes for Yourself](#comments---leaving-notes-for-yourself)
+5. [Variables - Storing Information](#variables---storing-information)
+6. [Types - What Kind of Data?](#types---what-kind-of-data)
+7. [Functions - Reusable Recipes](#functions---reusable-recipes)
+8. [Strings - Working with Text](#strings---working-with-text)
+9. [String Interpolation - Combining Text and Data](#string-interpolation---combining-text-and-data)
+10. [Making Decisions - If, Else If, and Else](#making-decisions---if-else-if-and-else)
+11. [Lists - Storing Multiple Items](#lists---storing-multiple-items)
+12. [Loops - Repeating Actions](#loops---repeating-actions)
+13. [Putting It Together - A Grade Reporter](#putting-it-together---a-grade-reporter)
+14. [What's Next?](#whats-next)
 
 ---
 
-## Setup
+## What is Programming?
 
-Before writing code, set up a project folder:
+**Programming** is giving instructions to a computer. Just like you might follow a recipe to bake a cake, computers follow programs (sets of instructions) to perform tasks.
+
+When you write a program, you're teaching the computer:
+- What information to remember
+- What calculations to perform
+- What decisions to make
+- What actions to take
+
+Computers are very literal - they do exactly what you tell them, nothing more, nothing less!
+
+---
+
+## What is Kukicha?
+
+**Kukicha** is a programming language designed specifically for beginners. Unlike many languages that use lots of symbols (`&&`, `||`, `!=`, etc.), Kukicha uses plain English words:
+- For example, instead of `==`, we write `equals`
+
+We also allow full English words for definitions:
+- `function` (instead of `func`)
+
+Kukicha compiles to Go (another programming language), which means your Kukicha programs run fast and can use Go's huge ecosystem of tools.
+
+---
+
+## Your First Program
+
+Let's start with the traditional "Hello, World!" program. This is usually the first program anyone writes in a new language.
+
+### Setting Up Your Project
+
+Before writing code, let's set up a project folder:
 
 ```bash
 mkdir my-kukicha-project
 cd my-kukicha-project
-kukicha init              # Create Go module, extract Kukicha stdlib, configure go.mod
+kukicha init             
 ```
 
-The `kukicha init` command creates a `go.mod` file (using the directory name as the module name), then sets up the Kukicha standard library. This is needed when using `import "stdlib/..."` packages. For simple programs that don't use stdlib, you can skip this step.
+The `kukicha init` command creates the necessary framework for Kukicha to run in that directory.
 
----
+### Writing Your First Program
 
-## Hello World - Your First Script
+Create a file called `hello.kuki` with this content:
 
-**Bash:**
-```bash
-#!/bin/bash
-echo "Hello, World!"
-```
-
-**Kukicha:**
 ```kukicha
 function main()
     print("Hello, World!")
 ```
 
-Save this as `hello.kuki` and run it:
+**What's happening here?**
+
+1. `function main()` - This defines a function named "main". Every Kukicha program starts by running the `main` function
+2. `print("Hello, World!")` - This built-in function prints the text "Hello, World!" to the screen 
+3. Kukicha uses indentation (spaces) to understand where code blocks begin and end
+
+**Try it yourself:**
 
 ```bash
 kukicha run hello.kuki
 ```
 
-Two differences to notice:
-1. Every Kukicha program starts from a `main()` function, like a script's entry point
-2. Indentation (4 spaces) defines blocks - no `fi`, `done`, `esac`, or curly braces
+You should see:
+```
+Hello, World!
+```
+
+Congratulations! You're now a programmer! 🎉
 
 ---
 
-## Variables - No More Dollar Signs
+## Imports
 
-In bash, variables are untyped strings with inconsistent syntax (`$var`, `${var}`, `"$var"`). In Kukicha, variables are straightforward.
+When you want to use functionality from other packages (either Kukicha's standard library or external packages), you import them at the top of your file.
 
-**Bash:**
-```bash
-name="Alice"
-age=25
-echo "$name is $age"
+### Where to Place Imports
 
-# Reassign
-age=26
+Imports always go **before** any other code — at the very top of the file:
+
+```kukicha
+import "stdlib/string"    # Import at the top
+import "stdlib/slice"
+
+function main()
+    # Your code here
 ```
 
-**Kukicha:**
+### Common Standard Library Packages
+
+Kukicha comes with a standard library of useful packages:
+
+| Package | What it provides |
+|---------|------------------|
+| `stdlib/string` | String manipulation (trim, split, contains, etc.) A string is text. |
+| `stdlib/slice` | List operations (filter, map, sort, etc.) A list is group of words |
+| `stdlib/fetch` | Make web requests |
+| `stdlib/files` | File reading and writing |
+
+### Using Imported Functions
+
+Once imported, use the package name followed by the function:
+
+```kukicha
+import "stdlib/string"
+
+function main()
+    text := "  Hello World  "
+    clean := text |> string.TrimSpace()  #  string.Trim() comes from stdlib/string
+    print(clean)  # Prints: Hello World
+```
+
+---
+
+## Comments - Leaving Notes for Yourself
+
+As you write programs, you'll want to leave notes explaining what your code does. These notes are called **comments**.
+
+In Kukicha, any line starting with `#` is a comment - the computer ignores it completely.
+
+Let's update our `hello.kuki` file to include some comments:
+
+```kukicha
+# This is a comment - the computer skips this line
+
+# Comments help you remember what your code does
+function main()
+    # Print a greeting to the screen
+    print("Hello!")
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run hello.kuki
+```
+
+**When to use comments:**
+- Explain *why* you wrote code a certain way
+- Leave reminders for yourself
+- Help other people understand your code
+
+**Pro tip:** Good code should be clear enough that it doesn't need too many comments. Comments should explain the "why", not the "what".
+
+---
+
+## Variables - Storing Information
+
+A **variable** is like a labeled box where you store information. You give it a name and put data in it.
+
+### Creating Variables
+
+Create a file called `variables.kuki`:
+
 ```kukicha
 function main()
-    name := "Alice"
+    # Create a variable named 'age' and store 25 in it
     age := 25
-    print("{name} is {age}")
 
-    # Reassign
-    age = 26
+    # Create a variable named 'name' and store "Alice" in it
+    name := "Alice"
+
+    # Use the variables
+    print(name)
+    print(age)
 ```
 
-Save this as `variables.kuki` and run it:
+**Try it yourself:**
 
 ```bash
 kukicha run variables.kuki
 ```
 
-Key differences:
-- `:=` creates a new variable (like first assignment in bash)
-- `=` updates an existing variable
-- No `$` needed to read a variable - just use the name
-- No quoting issues - spaces in strings just work
+**Output:**
+```
+Alice
+25
+```
 
-### Top-Level Variables
+### Updating Variables
 
-Sometimes you want a variable accessible across your whole file, like a config value at the top of a bash script. Use the `variable` keyword:
+Once a variable exists, use a single `=` to change its value. Let's update `variables.kuki`:
 
-**Bash:**
+```kukicha
+function main()
+    score := 0          # Create score, set to 0
+    print(score)  # Prints: 0
+
+    score = 10          # Update score to 10
+    print(score)  # Prints: 10
+
+    score = score + 5   # Add 5 to current score
+    print(score)  # Prints: 15
+```
+
+**Try it yourself:**
+
 ```bash
-APP_NAME="My Tool"
-MAX_RETRIES=3
+kukicha run variables.kuki
 ```
 
-**Kukicha:**
-```kukicha
-variable APP_NAME string = "My Tool"
-variable MAX_RETRIES int = 3
+**Key difference:**
+- `:=` creates a **new** variable
+- `=` updates an **existing** variable
 
-function main()
-    print("Starting {APP_NAME}, max retries: {MAX_RETRIES}")
-```
-
----
-
-## Comments
-
-Same as bash - lines starting with `#` are comments.
+### Top-level Variables
+Sometimes you want a variable to be accessible throughout your whole file, like a configuration setting. For this, you use the `variable` keyword at the top level. Let's update `variables.kuki` again:
 
 ```kukicha
-# This is a comment
+variable APP_NAME string = "My Awesome App"
+variable MAX_STRENGTH int = 100
+
 function main()
-    # Print a greeting
-    print("Hello!")
+    print("Welcome to {APP_NAME}!")
+    print("Max strength is {MAX_STRENGTH}")
 ```
+
+**Try it yourself:**
+
+```bash
+kukicha run variables.kuki
+```
+
+> **💡 Note:** Kukicha is designed to read like English. While you might see `func` or `var` in some advanced code, we recommend using `function` and `variable` to keep your code readable and friendly.
 
 ---
 
 ## Types - What Kind of Data?
 
-Bash treats everything as a string. Kukicha knows what kind of data you're working with, which catches mistakes before your script runs.
+Every piece of data has a **type** - it tells the computer what kind of information it is.
+
+### Common Types
 
 | Type | What it stores | Examples |
 |------|----------------|----------|
 | `int` | Whole numbers (short for "integer") | `42`, `-10`, `0` |
-| `float64` | Decimal numbers ("float" = floating-point, "64" = 64-bit precision) | `3.14`, `-0.5` |
-| `string` | Text (a "string" of characters) | `"Hello"`, `"/tmp/file"` |
-| `bool` | True or false (short for "boolean") | `true`, `false` |
+| `float64` | Decimal numbers ("float" = floating-point, "64" = 64-bit precision) | `3.14`, `-0.5`, `2.0` |
+| `string` | Text — called a "string" because it's a string of characters | `"Hello"`, `"Kukicha"` |
+| `bool` | True or false (short for "boolean", named after mathematician George Boole) | `true`, `false` |
 
-You usually don't need to write types explicitly - Kukicha figures them out:
+### Type Inference
+
+Kukicha is smart - when you create a local variable, it figures out the type automatically. Let's create a new file `functions.kuki` to see this:
 
 ```kukicha
 function main()
-    count := 25           # Kukicha knows this is int
-    path := "/tmp/output" # Kukicha knows this is string
-    verbose := true       # Kukicha knows this is bool
+    age := 25              # Kukicha knows this is int
+    price := 19.99         # Kukicha knows this is float64
+    name := "Bob"          # Kukicha knows this is string
+    isStudent := true      # Kukicha knows this is bool
 ```
 
-This means you can't accidentally do math on a filename or compare a number to a string. Kukicha catches those errors at compile time, not at 3am in production.
+**Try it yourself:**
+
+```bash
+kukicha run functions.kuki
+```
+
+### Why Types Matter
+
+Types prevent mistakes. If you try to do something that doesn't make sense (like divide text by a number), Kukicha will catch the error before your program runs!
 
 ---
 
-## Strings - No More Quoting Hell
+## Functions - Reusable Recipes
 
-If you've ever debugged a bash script where spaces in filenames broke everything, or wrestled with nested quotes, this section is for you.
+A **function** is a named block of code that performs a specific task. Think of it like a recipe you can use over and over.
 
-### String Interpolation
+### 1. The `function` (or `func`) keyword
+This tells Kukicha we are starting a new function.
 
-**Bash:**
-```bash
-name="Alice"
-count=5
-echo "Hello $name, you have ${count} items"
-echo "Path is: ${BASE_DIR}/${name}/config"
+### Basic Function
+
+Update `functions.kuki`:
+
+```kukicha
+# Define a function named Greet
+function Greet()
+    print("Hello!")
+
+# The main function - where your program starts
+function main()
+    Greet()  # Call the Greet function
+    Greet()  # Call it again!
 ```
 
-**Kukicha:**
+**Try it yourself:**
+
+```bash
+kukicha run functions.kuki
+```
+
+**Output:**
+```
+Hello!
+Hello!
+```
+
+### Functions with Parameters
+
+Functions can accept **parameters** (inputs). Update `functions.kuki`:
+
+```kukicha
+# This function takes one parameter: a string named 'name'
+function Greet(name string)
+    print("Hello, {name}!")
+
+function main()
+    Greet("Alice")  # Prints: Hello, Alice!
+    Greet("Bob")    # Prints: Hello, Bob!
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run functions.kuki
+```
+
+**Important:** For function parameters, you **must** specify the type. Here, `name string` means "name is a string".
+
+### Functions that Return Values
+
+Functions can give back (return) a value. Update `functions.kuki`:
+
+```kukicha
+# This function takes two ints and returns their sum (also an int)
+function Add(a int, b int) int
+    return a + b
+
+function main()
+    result := Add(5, 3)
+    print(result)  # Prints: 8
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run functions.kuki
+```
+
+**Key points:**
+- The type after the parentheses (`int`) is the **return type**
+- `return` sends a value back to whoever called the function
+- Parameters and return types must have **explicit types** (you write them out)
+- Local variables inside functions use **type inference** (Kukicha figures it out)
+
+
+---
+
+## Strings - Working with Text
+
+A **string** is text - any sequence of characters. Strings are surrounded by double quotes.
+
+### Creating Strings
+
+Create a file called `strings.kuki`:
+
+```kukicha
+function main()
+    greeting := "Hello"
+    name := "World"
+    sentence := "Programming is fun!"
+
+    print(greeting)
+    print(name)
+    print(sentence)
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run strings.kuki
+```
+
+### Combining Strings
+
+Use the `+` operator to join (concatenate) strings. Update `strings.kuki`:
+
+```kukicha
+function main()
+    firstName := "Alice"
+    lastName := "Johnson"
+
+    # Combine strings
+    fullName := firstName + " " + lastName
+
+    print(fullName)  # Prints: Alice Johnson
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run strings.kuki
+```
+
+### String Comparisons
+
+Compare strings using English words. Update `strings.kuki`:
+
+```kukicha
+function main()
+    password := "secret123"
+
+    if password equals "secret123"
+        print("Access granted!")
+    else
+        print("Access denied!")
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run strings.kuki
+```
+
+**String comparison operators:**
+- `equals` - checks if two strings are the same
+- `isnt` - checks if two strings are different (also `not equals`)
+
+---
+
+## String Interpolation - Combining Text and Data
+
+**String interpolation** lets you insert variable values directly into strings using curly braces `{variable}`.
+
+### Basic Interpolation
+
+Update `strings.kuki`:
+
 ```kukicha
 function main()
     name := "Alice"
-    count := 5
-    print("Hello {name}, you have {count} items")
+    age := 25
 
-    baseDir := "/opt"
-    print("Path is: {baseDir}/{name}/config")
+    # Insert variables into the string using {variable}
+    message := "My name is {name} and I am {age} years old"
+
+    print(message)
+    # Prints: My name is Alice and I am 25 years old
 ```
 
-Curly braces `{variable}` insert values into strings. No `$`, no worrying about when to use `${...}` vs `$...`.
+**Try it yourself:**
 
-### Expressions in Strings
+```bash
+kukicha run strings.kuki
+```
 
-You can put calculations inside `{}` too:
+### Why Interpolation is Awesome
+
+**Without interpolation (the old way):**
+```kukicha
+function main()
+    name := "Alice"
+    age := 25
+    message := "My name is " + name + " and I am " + age + " years old"
+    print(message)
+```
+
+**With interpolation (the Kukicha way):**
+```kukicha
+function main()
+    name := "Alice"
+    age := 25
+    message := "My name is {name} and I am {age} years old"
+    print(message)
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run strings.kuki
+```
+
+### Interpolation in Functions
+
+```kukicha
+function Greet(name string, time string) string
+    return "Good {time}, {name}!"
+
+function main()
+    morning := Greet("Alice", "morning")
+    evening := Greet("Bob", "evening")
+
+    print(morning)  # Prints: Good morning, Alice!
+    print(evening)  # Prints: Good evening, Bob!
+```
+
+### Interpolation with Expressions
+
+You can put more than just variables in `{}`! Update `strings.kuki` one last time:
 
 ```kukicha
 function main()
     x := 5
     y := 3
-    print("The sum of {x} and {y} is {x + y}")
+
+    # You can do calculations inside {}
+    result := "The sum of {x} and {y} is {x + y}"
+
+    print(result)
+    # Prints: The sum of 5 and 3 is 8
 ```
 
-### String Comparison
+**Try it yourself:**
 
-**Bash:**
 ```bash
-if [ "$status" = "ready" ]; then
-    echo "Good to go"
-fi
+kukicha run strings.kuki
 ```
-
-**Kukicha:**
-```kukicha
-function main()
-    status := "ready"
-
-    if status equals "ready"
-        print("Good to go")
-```
-
-No brackets, no quoting the variable, no semicolons. `equals` and `isnt` do what you'd expect.
 
 ---
 
-## Conditionals - If Without Then/Fi
+## Making Decisions - If, Else If, and Else
 
-**Bash:**
-```bash
-if [ "$score" -ge 90 ]; then
-    echo "Grade: A"
-elif [ "$score" -ge 80 ]; then
-    echo "Grade: B"
-elif [ "$score" -ge 70 ]; then
-    echo "Grade: C"
-else
-    echo "Grade: F"
-fi
+Programs often need to make decisions. Think of it like choosing what to wear: *if* it's raining, take an umbrella; *else if* it's sunny, wear sunglasses; *else*, just head out.
+
+Kukicha uses `if`, `else if`, and `else` to make decisions. Let's see how!
+
+### Basic If
+
+Create a file called `decisions.kuki`:
+
+```kukicha
+function main()
+    temperature := 35
+
+    if temperature > 30
+        print("It's hot outside!")
 ```
 
-**Kukicha:**
+**Try it yourself:**
+
+```bash
+kukicha run decisions.kuki
+```
+
+**Output:**
+```
+It's hot outside!
+```
+
+The code inside the `if` block only runs when the condition is true. If `temperature` were 20, nothing would print.
+
+### If and Else
+
+What if we want to do something when the condition is *not* true? That's what `else` is for. Update `decisions.kuki`:
+
+```kukicha
+function main()
+    temperature := 20
+
+    if temperature > 30
+        print("It's hot outside!")
+    else
+        print("It's not too hot.")
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run decisions.kuki
+```
+
+**Output:**
+```
+It's not too hot.
+```
+
+### If, Else If, and Else Chains
+
+Sometimes you need more than two choices. Use `else if` to check additional conditions. Update `decisions.kuki`:
+
 ```kukicha
 function main()
     score := 85
@@ -247,162 +602,277 @@ function main()
         print("Grade: B")
     else if score >= 70
         print("Grade: C")
+    else if score >= 60
+        print("Grade: D")
     else
         print("Grade: F")
 ```
 
-Save this as `decisions.kuki` and run it:
+**Try it yourself:**
 
 ```bash
 kukicha run decisions.kuki
 ```
 
-No `then`, no `fi`, no `[ ]`, no `-ge` / `-lt` / `-eq`. Just the comparison operators you'd expect: `>=`, `<=`, `>`, `<`, `equals`, `isnt`.
-
-### Combining Conditions
-
-**Bash:**
-```bash
-if [ "$age" -ge 18 ] && [ "$has_ticket" = "true" ]; then
-    echo "Welcome"
-fi
+**Output:**
+```
+Grade: B
 ```
 
-**Kukicha:**
+Kukicha checks each condition from top to bottom. The first one that's true wins, and the rest are skipped.
+
+### Combining Conditions with And, Or, Not
+
+You can combine conditions using plain English words:
+
+- **`and`** - both conditions must be true
+- **`or`** - at least one condition must be true
+- **`not`** - flips true to false (and vice versa)
+
 ```kukicha
 function main()
     age := 25
     hasTicket := true
 
     if age >= 18 and hasTicket
-        print("Welcome")
+        print("Welcome to the show!")
+
+    isMember := false
+    if isMember or hasTicket
+        print("You can enter.")
+
+    if not isMember
+        print("Consider joining our membership program!")
 ```
 
-- `and` instead of `&&` or `-a`
-- `or` instead of `||` or `-o`
-- `not` instead of `!`
+**Try it yourself:**
 
-No need to remember which bracket syntax supports which operators.
+```bash
+kukicha run decisions.kuki
+```
+
+**Output:**
+```
+Welcome to the show!
+You can enter.
+Consider joining our membership program!
+```
+
+**Key points:**
+- Conditions don't need parentheses in Kukicha
+- Kukicha uses English words: `equals`, `isnt`, `and`, `or`, `not`
+- Indentation defines what code belongs to each branch
+- Only the first matching branch runs in an `if/else if/else` chain
 
 ---
 
-## Functions - Like Shell Functions, But Better
+## Lists - Storing Multiple Items
 
-Bash functions are basically named blocks of commands. They can't declare parameter types, can't return values (only exit codes), and communicate through global variables or stdout.
+So far, each variable has held one value. But what if you need to store a whole shopping list, or a collection of scores? That's what **lists** are for. A list is like a numbered shelf where each slot holds one item.
 
-**Bash:**
-```bash
-greet() {
-    local name=$1
-    echo "Hello, $name!"
-}
-greet "Alice"
-```
+### Creating Lists
 
-**Kukicha:**
-```kukicha
-function Greet(name string)
-    print("Hello, {name}!")
+Create a file called `lists.kuki`:
 
-function main()
-    Greet("Alice")
-```
-
-Save this as `functions.kuki` and run it:
-
-```bash
-kukicha run functions.kuki
-```
-
-Parameters are named and typed - no more positional `$1`, `$2`, `$3`.
-
-### Functions That Return Values
-
-In bash, you'd capture stdout or use a global variable. In Kukicha, functions return values directly:
-
-**Bash:**
-```bash
-add() {
-    echo $(( $1 + $2 ))
-}
-result=$(add 5 3)
-```
-
-**Kukicha:**
-```kukicha
-function Add(a int, b int) int
-    return a + b
-
-function main()
-    result := Add(5, 3)
-    print(result)  # Prints: 8
-```
-
-The `int` after the parentheses is the return type. `return` sends a value back to the caller. No subshells, no stdout capture.
-
-### Rules of Thumb
-
-- Function parameters need explicit types: `name string`, `count int`
-- Local variables inside functions get types inferred: `x := 5` just works
-- Functions that produce a value declare a return type and use `return`
-
----
-
-## Lists - Like Arrays, But They Actually Work
-
-Bash arrays are notoriously inconsistent. Different syntax for declaration, access, length, iteration. Kukicha lists are uniform.
-
-**Bash:**
-```bash
-fruits=("apple" "banana" "cherry")
-echo "${fruits[0]}"
-echo "${#fruits[@]}"
-fruits+=("date")
-```
-
-**Kukicha:**
 ```kukicha
 function main()
+    # Create a list of strings
     fruits := list of string{"apple", "banana", "cherry"}
-    print(fruits[0])        # apple
-    print(len(fruits))      # 3
-    fruits = append(fruits, "date")
+
+    print(fruits)
 ```
 
-Save this as `lists.kuki` and run it:
+**Try it yourself:**
 
 ```bash
 kukicha run lists.kuki
 ```
 
-- `list of string` declares what the list holds
-- Indexing starts at 0 (same as bash)
-- `fruits[-1]` gets the last item (like Python, unlike bash)
-- `len(fruits)` gives you the count (not `${#fruits[@]}`)
-- `append(fruits, item)` returns a new list with the item added
+**Output:**
+```
+[apple banana cherry]
+```
 
-### Other List Types
+The `list of string` part tells Kukicha that this list holds strings. You put the initial items inside `{ }`.
+
+### Accessing Items by Index
+
+Each item in a list has an **index** - its position number. Indexing starts at **0**, not 1. Update `lists.kuki`:
 
 ```kukicha
 function main()
-    ports := list of int{80, 443, 8080}
-    flags := list of bool{true, false, true}
+    fruits := list of string{"apple", "banana", "cherry"}
+
+    print(fruits[0])   # First item
+    print(fruits[1])   # Second item
+    print(fruits[2])   # Third item
+
+    # Negative indices count from the end
+    print(fruits[-1])  # Last item
 ```
+
+**Try it yourself:**
+
+```bash
+kukicha run lists.kuki
+```
+
+**Output:**
+```
+apple
+banana
+cherry
+cherry
+```
+
+**Why start at 0?** Almost all programming languages start counting at 0. Think of it as "how many items to skip from the beginning" - skip 0 to get the first item.
+
+### Getting a Range of Items (Slices)
+
+Single-item access is useful, but sometimes you want a portion of a list - the first three items, everything after the second, etc. You can do this with **slice** notation: `list[start:end]`.
+
+Update `lists.kuki`:
+
+```kukicha
+function main()
+    fruits := list of string{"apple", "banana", "cherry", "date", "elderberry"}
+
+    # [:n] - the first n items (up to but not including index n)
+    first3 := fruits[:3]
+    print(first3)   # [apple banana cherry]
+
+    # [n:] - everything from index n to the end
+    rest := fruits[2:]
+    print(rest)     # [cherry date elderberry]
+
+    # [start:end] - items from start up to (not including) end
+    middle := fruits[1:4]
+    print(middle)   # [banana cherry date]
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run lists.kuki
+```
+
+**Output:**
+```
+[apple banana cherry]
+[cherry date elderberry]
+[banana cherry date]
+```
+
+You can also slice directly in a `for` loop without storing the result first - this is handy when you only want to process a limited number of items:
+
+```kukicha
+    for fruit in fruits[:3]
+        print("- {fruit}")
+```
+
+**Output:**
+```
+- apple
+- banana
+- cherry
+```
+
+| Syntax | Meaning |
+|--------|---------|
+| `list[:n]` | First `n` items |
+| `list[n:]` | From index `n` to the end |
+| `list[start:end]` | Items from `start` up to (not including) `end` |
+
+### How Many Items? Use len()
+
+The built-in `len()` function tells you how many items are in a list. Update `lists.kuki`:
+
+```kukicha
+function main()
+    fruits := list of string{"apple", "banana", "cherry"}
+
+    print("Number of fruits: {len(fruits)}")
+
+    if len(fruits) > 0
+        print("The list is not empty!")
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run lists.kuki
+```
+
+**Output:**
+```
+Number of fruits: 3
+The list is not empty!
+```
+
+### Adding Items with append()
+
+Use `append()` to add items to a list. One important thing: `append()` gives you back a **new list** with the item added - you need to save the result. Update `lists.kuki`:
+
+```kukicha
+function main()
+    fruits := list of string{"apple", "banana"}
+    print("Before: {fruits}")
+
+    # append() returns a new list - save it back!
+    fruits = append(fruits, "cherry")
+    fruits = append(fruits, "date")
+    print("After: {fruits}")
+    print("Count: {len(fruits)}")
+```
+
+**Try it yourself:**
+
+```bash
+kukicha run lists.kuki
+```
+
+**Output:**
+```
+Before: [apple banana]
+After: [apple banana cherry date]
+Count: 4
+```
+
+**Key points:**
+- `list of Type{items}` creates a list with initial items
+- Indices start at **0** (first item) - negative indices count from the end
+- `list[:n]` gives the first `n` items; `list[n:]` gives items from `n` to the end; `list[start:end]` gives a range
+- `len(list)` returns the number of items
+- `append(list, item)` returns a new list with the item added at the end
+
+### Empty Lists
+
+Sometimes you need to create an empty list that will hold items later. You specify the type so Kukicha knows what kind of items the list will contain:
+
+```kukicha
+    # Create an empty list of strings
+    names := empty list of string
+    
+    # Add items later
+    names = append(names, "Alice")
+    names = append(names, "Bob")
+    
+    # Create an empty list of integers
+    scores := empty list of int
+```
+
+Think of `empty list of string` as "a list that will hold strings, but starts empty." You can also write `list of string{}` with empty braces — both forms mean the same thing.
 
 ---
 
-## Loops - For Without Do/Done
+## Loops - Repeating Actions
 
-### Iterating Over a List
+Imagine you have a list of 100 students and you want to print each name. Writing 100 `print()` calls would be terrible! **Loops** let you repeat actions automatically.
 
-**Bash:**
-```bash
-for fruit in "${fruits[@]}"; do
-    echo "I like $fruit"
-done
-```
+### For-Each: Doing Something with Each Item
 
-**Kukicha:**
+The most common loop goes through each item in a list. Create a file called `loops.kuki`:
+
 ```kukicha
 function main()
     fruits := list of string{"apple", "banana", "cherry"}
@@ -411,24 +881,37 @@ function main()
         print("I like {fruit}!")
 ```
 
-Save this as `loops.kuki` and run it:
+**Try it yourself:**
 
 ```bash
 kukicha run loops.kuki
 ```
 
-No `do`, no `done`, no `"${array[@]}"` incantation.
-
-### With Index
-
-**Bash:**
-```bash
-for i in "${!fruits[@]}"; do
-    echo "$i: ${fruits[$i]}"
-done
+**Output:**
+```
+I like apple!
+I like banana!
+I like cherry!
 ```
 
-**Kukicha:**
+The name `fruit` is one **you choose** - it's a temporary variable that holds the current item during each pass through the loop. You could call it `item`, `f`, or `snack` - whatever makes your code readable.
+
+### Shortcuts: ++ and --
+
+When counting, you often want to add or subtract 1 from a variable. Instead of writing `count = count + 1`, you can use the `++` and `--` operators:
+
+```kukicha
+count := 0
+count++       # Same as: count = count + 1
+count--       # Same as: count = count - 1
+```
+
+This is especially common in loops!
+
+### Indexed Loops: Knowing the Position
+
+Sometimes you need to know *where* you are in the list, not just *what* the item is. Add a second variable before the item name to get the index. Update `loops.kuki`:
+
 ```kukicha
 function main()
     fruits := list of string{"apple", "banana", "cherry"}
@@ -437,321 +920,258 @@ function main()
         print("{i}: {fruit}")
 ```
 
-### Counting Loops
+**Try it yourself:**
 
-**Bash:**
 ```bash
-for i in $(seq 1 5); do
-    echo "$i"
-done
+kukicha run loops.kuki
 ```
 
-**Kukicha:**
+**Output:**
+```
+0: apple
+1: banana
+2: cherry
+```
+
+Both names are **your choice**: `i` is the position number (starting at 0), and `fruit` is the item at that position. You could write `for index, item in fruits` or `for pos, snack in fruits` - the names are up to you.
+
+### Counting Loops: From and To
+
+Sometimes you need to count through a range of numbers. Kukicha has two styles:
+
+- **`to`** - stops *before* the end number (exclusive)
+- **`through`** - includes the end number (inclusive)
+
+Update `loops.kuki`:
+
 ```kukicha
 function main()
-    # 'to' is exclusive: prints 1, 2, 3, 4
+    # 'to' is exclusive: 1, 2, 3, 4 (stops before 5)
+    print("Counting with 'to':")
     for i from 1 to 5
         print(i)
 
-    # 'through' is inclusive: prints 1, 2, 3, 4, 5
+    # 'through' is inclusive: 1, 2, 3, 4, 5
+    print("Counting with 'through':")
     for i from 1 through 5
         print(i)
 
-    # Counting down works too: prints 5, 4, 3, 2, 1, 0
+    # You can also count down: 5, 4, 3, 2, 1, 0
+    print("Counting down:")
     for i from 5 through 0
         print(i)
 ```
 
-### While Loops
+**Try it yourself:**
 
-**Bash:**
 ```bash
-count=5
-while [ "$count" -gt 0 ]; do
-    echo "$count"
-    count=$((count - 1))
-done
+kukicha run loops.kuki
 ```
 
-**Kukicha:**
+**Output:**
+```
+Counting with 'to':
+1
+2
+3
+4
+Counting with 'through':
+1
+2
+3
+4
+5
+```
+
+### While-Style Loops
+
+Sometimes you want to keep looping as long as a condition is true. Just put a condition after `for`. Update `loops.kuki`:
+
 ```kukicha
 function main()
     count := 5
 
+    print("Countdown:")
     for count > 0
         print(count)
         count = count - 1
+    print("Go!")
 ```
 
-Kukicha uses `for condition` instead of `while` - one keyword for all loops.
+**Try it yourself:**
 
-### Increment and Decrement
+```bash
+kukicha run loops.kuki
+```
 
-Same as bash arithmetic - `++` adds 1, `--` subtracts 1:
-
-```kukicha
-function main()
-    count := 0
-    count++       # count is now 1
-    count++       # count is now 2
-    count--       # count is now 1
+**Output:**
+```
+Countdown:
+5
+4
+3
+2
+1
+Go!
 ```
 
 ### Break and Continue
 
-Same as bash - `break` exits the loop, `continue` skips to the next iteration:
+Two special keywords control loop behavior:
+
+- **`break`** - stop the loop immediately and move on
+- **`continue`** - skip the rest of this pass and go to the next one
+
+Update `loops.kuki`:
 
 ```kukicha
 function main()
+    # break: stop when we find what we're looking for
     names := list of string{"Alice", "Bob", "Charlie", "Diana"}
 
+    print("Searching for Charlie...")
     for name in names
         if name equals "Charlie"
             print("Found Charlie!")
             break
         print("Not {name}...")
+
+    # continue: skip items we don't want
+    print("\nOdd numbers from 1 to 10:")
+    for i from 1 through 10
+        if i % 2 equals 0
+            continue   # Skip even numbers
+        print(i)
 ```
+
+**Try it yourself:**
+
+```bash
+kukicha run loops.kuki
+```
+
+**Output:**
+```
+Searching for Charlie...
+Not Alice...
+Not Bob...
+Found Charlie!
+
+Odd numbers from 1 to 10:
+1
+3
+5
+7
+9
+```
+
+**Key points:**
+- `for item in list` loops through each item - the name is your choice
+- `for i, item in list` gives you both position and item - both names are your choice
+- `for i from X to Y` counts from X up to (but not including) Y
+- `for i from X through Y` counts from X up to (and including) Y
+- `for condition` repeats while the condition is true
+- `break` exits the loop early; `continue` skips to the next iteration
+- `%` is the **modulo** (remainder) operator — `i % 2` gives the remainder when dividing by 2. If the remainder is 0, the number is even; if it's 1, the number is odd
 
 ---
 
-## Pipes - You Already Know This One
+## Putting It Together - A Grade Reporter
 
-This is where your shell instincts pay off. In bash, you pipe data between commands:
+Let's combine decisions, lists, and loops into one program. This mini project takes a list of student scores and prints a report.
+
+Create a file called `grades.kuki`:
+
+```kukicha
+function LetterGrade(score int) string
+    if score >= 90
+        return "A"
+    else if score >= 80
+        return "B"
+    else if score >= 70
+        return "C"
+    else if score >= 60
+        return "D"
+    return "F"
+
+function main()
+    names := list of string{"Alice", "Bob", "Charlie", "Diana", "Eve"}
+    scores := list of int{92, 75, 88, 61, 45}
+
+    print("=== Grade Report ===")
+    for i, name in names
+        grade := LetterGrade(scores[i])
+        print("{name}: {scores[i]} ({grade})")
+
+    print("\nTotal students: {len(names)}")
+```
+
+**Try it yourself:**
 
 ```bash
-cat users.csv | grep "active" | sort | head -5
+kukicha run grades.kuki
 ```
 
-Kukicha has the same concept with `|>`, but for functions:
+**Output:**
+```
+=== Grade Report ===
+Alice: 92 (A)
+Bob: 75 (C)
+Charlie: 88 (B)
+Diana: 61 (D)
+Eve: 45 (F)
 
-```kukicha
-import "stdlib/string"
-
-function main()
-    text := "  HELLO world  "
-
-    clean := text |> string.TrimSpace() |> string.ToLower() |> string.Title()
-    print(clean)  # "Hello World"
+Total students: 5
 ```
 
-The data flows left to right, just like a shell pipeline. The result of each step feeds into the next.
-
-Without pipes, this would be nested function calls (like bash without pipes would be temp files everywhere):
-
-```kukicha
-# Without pipes - harder to read
-clean := string.Title(string.ToLower(string.TrimSpace(text)))
-```
-
-### More Pipe Examples
-
-```kukicha
-import "stdlib/string"
-
-function main()
-    # Split a string and join with a different separator
-    result := "apple,banana,cherry" |> string.Split(",") |> string.Join(" | ")
-    print(result)  # "apple | banana | cherry"
-
-    # Check if a string contains something
-    if "Hello World" |> string.Contains("World")
-        print("Found it!")
-```
-
-Pipes work with any function that takes an input and returns an output - they're not limited to strings. You'll see them used heavily with error handling and data processing in later tutorials.
+**What this program demonstrates:**
+1. A function with `if/else if` that returns different values
+2. Two lists working together (names and scores, matched by index)
+3. An indexed `for` loop to walk through both lists at once
+4. `len()` to count items
+5. String interpolation pulling it all together
 
 ---
 
-## Running Commands
-
-One of the biggest reasons to use a "real" language for scripts is better command execution. No more unquoted variables breaking your `rm` command.
-
-```kukicha
-import "stdlib/shell"
-
-function main()
-    # Run a command, capture the output
-    status := shell.Output("git", "status", "--short") onerr ""
-
-    if status equals ""
-        print("Working directory clean (or not a git repo).")
-        return
-
-    print("Changed files:")
-    print(status)
-```
-
-Save this as `git_check.kuki` and run it in a git repo:
-
-```bash
-kukicha run git_check.kuki
-```
-
-Each argument is a separate string - no word splitting, no glob expansion, no quoting issues. `shell.Output("rm", "-rf", path)` is always safe, even if `path` has spaces.
-
-The `onerr ""` part is Kukicha's error handling, which we'll cover next.
-
----
-
-## Error Handling - Better Than set -e
-
-In bash, error handling is rough. You either ignore errors, use `set -e` (which has surprising behavior), or check `$?` after every command:
-
-```bash
-output=$(some_command 2>/dev/null)
-if [ $? -ne 0 ]; then
-    echo "Failed"
-    exit 1
-fi
-```
-
-Kukicha has `onerr` - inline error handling that's clear about what happens when something fails:
-
-```kukicha
-import "stdlib/shell"
-
-function main()
-    # If the command fails, use an empty string instead
-    output := shell.Output("git", "log", "--oneline", "-5") onerr ""
-
-    # If the command fails, stop the program with a message
-    output := shell.Output("git", "log", "--oneline", "-5") onerr panic "git failed: {error}"
-
-    # If the command fails, return from the function
-    output := shell.Output("git", "log", "--oneline", "-5") onerr return
-```
-
-The `onerr` goes right at the end of the line that might fail. You can:
-- Provide a fallback value: `onerr ""`, `onerr 0`, `onerr empty`
-- Stop the program: `onerr panic "message"`
-- Return from the function: `onerr return`
-- Wrap error with a hint: `onerr explain "hint message"` or `onerr "default" explain "hint message"`
-- Run a block of code:
-
-```kukicha
-    output := shell.Output("git", "status") onerr
-        print("Command failed: {error}")
-        return
-```
-
-The `{error}` variable is automatically available inside `onerr` blocks - it contains the error message.
-
-This is clearer than `set -e` because you decide **per operation** what should happen on failure, instead of one global behavior for your whole script.
-
----
-
-## Putting It Together - A Log Analyzer
-
-Let's combine what you've learned into something practical - a script that processes log lines, counts errors, and reports results. This is the kind of thing you'd normally write as a bash one-liner that grew into an unmaintainable 200-line script.
-
-Create a file called `log_analyzer.kuki`:
-
-```kukicha
-import "stdlib/string"
-
-function Severity(line string) string
-    if line |> string.Contains("ERROR:")
-        return "ERROR"
-    else if line |> string.Contains("WARN:")
-        return "WARN"
-    return "INFO"
-
-function main()
-    # Simulated log lines (in practice, you'd read a file)
-    logs := list of string{
-        "2024-01-15 ERROR: disk full on /dev/sda1",
-        "2024-01-15 INFO: backup started",
-        "2024-01-15 WARN: high memory usage (92%)",
-        "2024-01-15 ERROR: connection timeout to db-primary",
-        "2024-01-15 INFO: backup completed",
-        "2024-01-15 WARN: certificate expires in 7 days",
-        "2024-01-15 ERROR: failed to rotate logs",
-    }
-
-    errors := 0
-    warns := 0
-    infos := 0
-
-    print("=== Log Analysis ===\n")
-
-    for line in logs
-        level := Severity(line)
-
-        if level equals "ERROR"
-            errors++
-            print("[!] {line}")
-        else if level equals "WARN"
-            warns++
-
-    print("\n=== Summary ===")
-    print("Total lines: {len(logs)}")
-    print("Errors:      {errors}")
-    print("Warnings:    {warns}")
-    print("Info:        {len(logs) - errors - warns}")
-
-    if errors > 0
-        print("\nAction required: {errors} error(s) found.")
-```
-
-Run it:
-
-```bash
-kukicha run log_analyzer.kuki
-```
-
-Expected output:
-```
-=== Log Analysis ===
-
-[!] 2024-01-15 ERROR: disk full on /dev/sda1
-[!] 2024-01-15 ERROR: connection timeout to db-primary
-[!] 2024-01-15 ERROR: failed to rotate logs
-
-=== Summary ===
-Total lines: 7
-Errors:      3
-Warnings:    2
-Info:        2
-
-Action required: 3 error(s) found.
-```
-
-This is the kind of script that in bash would involve `grep -c`, `awk`, temp files, and careful quoting. In Kukicha, it's typed, structured, and compiles to a fast binary.
 
 ---
 
 ## What's Next?
 
-You now know how to translate your shell scripting knowledge into Kukicha:
+Congratulations! You now know:
 
-| Shell Concept | Kukicha Equivalent |
-|---|---|
-| `VAR="value"` | `name := "value"` |
-| `echo "$VAR"` | `print("{name}")` |
-| `$1`, `$2` (positional args) | Named, typed function parameters |
-| `if [ ... ]; then ... fi` | `if condition` with indentation |
-| `-eq`, `-gt`, `-lt` | `equals`, `>`, `<` |
-| `&&`, `\|\|` | `and`, `or` |
-| `for x in ...; do ... done` | `for x in ...` with indentation |
-| `for i in $(seq 5 -1 0)` | `for i from 5 through 0` |
-| `cmd1 \| cmd2 \| cmd3` | `val \|> func1() \|> func2()` |
-| `result=$(command)` | `result := shell.Output(...)` |
-| `set -e` / `$?` | `onerr` |
-| `array=("a" "b")` | `list of string{"a", "b"}` |
-| `${#array[@]}` | `len(list)` |
+- ✅ What programming is and why it matters
+- ✅ How to write and run Kukicha programs
+- ✅ How to use variables to store data
+- ✅ How to create functions to organize code
+- ✅ How to work with strings (text)
+- ✅ How to use string interpolation
+- ✅ How to make decisions with `if`, `else if`, and `else`
+- ✅ How to store multiple items in **lists**
+- ✅ How to get a portion of a list with **slices** (`list[:n]`, `list[n:]`, `list[start:end]`)
+- ✅ How to repeat actions with **loops** (`for`, `break`, `continue`)
+- ✅ How to import and use packages from the standard library
 
 ### Continue Your Journey
 
+Ready for the next step? Follow this learning path:
+
 | # | Tutorial | What You'll Learn |
 |---|----------|-------------------|
-| 1 | **You are here** | Variables, functions, strings, conditionals, lists, loops, pipes |
-| 2 | **[Data & AI Scripting](data-scripting-tutorial.md)** | Maps (key-value), parsing CSVs, shell commands, AI scripting |
+| 1 | ✅ *You are here* | Variables, functions, strings, decisions, lists, loops, imports |
+| 2 | **[Data & AI Scripting](data-scripting-tutorial.md)** ← Next! | Maps (Key-Value), parsing CSVs, shell commands, AI scripting, pipes |
 | 3 | **[CLI Explorer](cli-explorer-tutorial.md)** | Custom types, methods, API data, arrow lambdas, error handling |
 | 4 | **[Link Shortener](web-app-tutorial.md)** | HTTP servers, JSON, REST APIs, redirects |
-| 5 | **[Production Patterns](production-patterns-tutorial.md)** | Databases, concurrency, Go conventions |
+| 5 | **[Health Checker](concurrent-url-health-checker.md)** | Concurrency, goroutines, channels, interfaces |
+| 6 | **[Production Patterns](production-patterns-tutorial.md)** | Databases, advanced patterns |
 
 ### Additional Resources
 
 - **[Kukicha Grammar](../kukicha-grammar.ebnf.md)** - Complete language grammar reference
-- **[Stdlib Reference](../../stdlib/AGENTS.md)** - Standard library documentation
+- **[Stdlib Reference](../../stdlib/AGENTS.md)** - Standard library documentation - additional functions to make your life easier!
 - **[Examples](../../examples/)** directory - More example programs
+
+---
+
+**Welcome to the world of programming with Kukicha! Happy coding!**
+

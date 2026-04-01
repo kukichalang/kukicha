@@ -13,7 +13,7 @@
 | `if [ ... ]; then ... fi` | `if condition` with indentation |
 | Arrays (`"${arr[@]}"`) | `list of string{"a", "b"}` |
 
-**Where to start:** [Shell Scripters Guide](tutorials/beginner-tutorial.md)
+**Where to start:** [Kukicha for Shell Scripters](tutorials/shell-to-kukicha.md)
 
 ---
 
@@ -38,7 +38,7 @@ The syntax will feel familiar — `and`/`or`/`not`, indentation, `for x in items
 
 If your work is ML/data science, stick with Python — Kukicha is aimed at CLI tools, automation, and AI agent tooling.
 
-**Where to start:** [Beginner Tutorial](tutorials/absolute-beginner-tutorial.md) or skim and jump to the [Quick Reference](kukicha-quick-reference.md).
+**Where to start:** [Beginner Tutorial](tutorials/beginner-tutorial.md) or skim and jump to the [Quick Reference](kukicha-quick-reference.md).
 
 ---
 

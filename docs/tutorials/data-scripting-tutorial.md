@@ -2,7 +2,7 @@
 
 **Level:** Beginner/Intermediate
 **Time:** 15 minutes
-**Prerequisite:** [Beginner Tutorial](beginner-tutorial.md)
+**Prerequisite:** [Kukicha for Shell Scripters](shell-to-kukicha.md)
 
 In the first tutorial, you learned the core syntax: variables, lists, loops, pipes, shell commands, and `onerr`. This tutorial builds on that foundation for data-heavy scripting workflows.
 
@@ -375,6 +375,17 @@ You now have the tools to fetch data, organize it, and even use AI to understand
 Next, we'll build a full interactive application that fetches data from the internet:
 
 👉 **[Tutorial 3: CLI Explorer](cli-explorer-tutorial.md)**
+
+### Tutorial Path
+
+| # | Tutorial | What You'll Learn |
+|---|----------|-------------------|
+| 1 | **[Beginner Tutorial](beginner-tutorial.md)** | Variables, functions, strings, decisions, lists, loops, imports |
+| 2 | ✅ **Data & AI Scripting** | Maps (Key-Value), parsing CSVs, shell commands, AI scripting, pipes *(you are here)* |
+| 3 | **[CLI Explorer](cli-explorer-tutorial.md)** ← Next! | Custom types, methods, API data, arrow lambdas, error handling |
+| 4 | **[Link Shortener](web-app-tutorial.md)** | HTTP servers, JSON, REST APIs, redirects |
+| 5 | **[Health Checker](concurrent-url-health-checker.md)** | Concurrency, goroutines, channels, interfaces |
+| 6 | **[Production Patterns](production-patterns-tutorial.md)** | Databases, advanced patterns |
 
 ---
 **Summary of New/Updated Concepts:**
