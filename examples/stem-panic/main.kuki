@@ -351,7 +351,7 @@ function updateTitle()
         scene = Scene.TeaMenu
 
 function updateTeaMenu()
-    tx, ty, touched := game.TouchPosition()
+    _, ty, touched := game.TouchPosition()
     if game.TouchJustClicked() and touched
         for i from 0 to 3
             y := 130 + i * 70
@@ -384,7 +384,7 @@ function updatePlaying()
         return
 
     # Handle Touchscreen Interactions
-    tx, ty, touched := game.TouchPosition()
+    _, ty, touched := game.TouchPosition()
     if game.TouchJustClicked() and touched
         # Determine the lane taped
         l := 0

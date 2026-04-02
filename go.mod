@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/a2aproject/a2a-go v0.3.6
 	github.com/docker/docker v27.5.1+incompatible
-	github.com/kukichalang/game v0.0.0-20260324102817-19305f7ee53a
+	github.com/kukichalang/game v0.0.0-20260402113406-8225110af5c6
 	github.com/marcboeker/go-duckdb v1.8.5
 	github.com/modelcontextprotocol/go-sdk v1.3.0
 	github.com/ncruces/go-sqlite3 v0.33.2
