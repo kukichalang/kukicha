@@ -17,6 +17,7 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 | `nil` | `empty` (also usable as variable name) |
 | `{ }` braces | 4-space indentation |
 | `==` | `equals` (or `==`) |
+| `!=` | `isnt` (or `!=`) |
 | `func (t T) Method()` | `func Method on t T` |
 | `func(x T) T { return expr }` | `(x T) => expr` |
 | `go func() { ... }()` | `go` + indented block |

@@ -9,7 +9,7 @@ import "stdlib/llm"
 import "stdlib/json" as jsonpkg
 import "stdlib/string" as strpkg
 
-constant defaultSystemPrompt = "You are a helpful assistant with access to a sandboxed Linux environment via tool calls. You can execute commands, read/write files, search, and manage the filesystem. Use these tools to help the user accomplish their goals. Be concise in your explanations but thorough in your tool usage."
+const defaultSystemPrompt = "You are a helpful assistant with access to a sandboxed Linux environment via tool calls. You can execute commands, read/write files, search, and manage the filesystem. Use these tools to help the user accomplish their goals. Be concise in your explanations but thorough in your tool usage."
 
 type Agent
     Bridge reference Bridge
@@ -27,15 +27,15 @@ type RunResult
 
 func runAgent(ctx context.Context, a reference Agent, userPrompt string, history list of llm.Message) (reference RunResult, error)
     maxRounds := a.MaxRounds
-    if maxRounds == 0
+    if maxRounds equals 0
         maxRounds = 15
 
     messages := append(list of llm.Message{}, many history)
 
     # System prompt at conversation start
-    if len(messages) == 0
+    if len(messages) equals 0
         sys := a.SystemPrompt
-        if sys == ""
+        if sys equals ""
             sys = defaultSystemPrompt
         messages = append(messages, llm.Message{Role: "system", Content: sys})
 
@@ -57,7 +57,7 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
             client = llm.AddTool(client, t.Function.Name, t.Function.Description, t.Function.Parameters)
 
         # Enable streaming if a handler is provided
-        if a.OnText != empty
+        if a.OnText isnt empty
             client = llm.Stream(client, a.OnText)
 
         if len(tools) > 0
@@ -82,13 +82,13 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
             })
 
             for _, tc in toolCalls
-                if a.OnToolCall != empty
+                if a.OnToolCall isnt empty
                     a.OnToolCall(tc.Function.Name, tc.Function.Arguments)
 
                 toolResult := callBridgeTool(ctx, a.Bridge, tc.Function.Name, tc.Function.Arguments) onerr
                     toolResult = "ERROR: {error}"
 
-                if a.OnToolResult != empty
+                if a.OnToolResult isnt empty
                     a.OnToolResult(tc.Function.Name, truncateStr(toolResult, 500))
 
                 # Add tool result as a message

@@ -8,7 +8,7 @@ import "stdlib/sandbox"
 func readFileTool(box sandbox.Root, args map of string to any) (any, error)
     path := args["path"].(string)
     data, readErr := sandbox.ReadString(box, path)
-    if readErr != empty
+    if readErr isnt empty
         return mcp.ErrorResult(readErr.Error()), empty
     return data as any, empty
 
@@ -16,7 +16,7 @@ func writeFileTool(box sandbox.Root, args map of string to any) (any, error)
     path := args["path"].(string)
     content := args["content"].(string)
     writeErr := sandbox.WriteString(box, content, path)
-    if writeErr != empty
+    if writeErr isnt empty
         return mcp.ErrorResult(writeErr.Error()), empty
     return "wrote {path}" as any, empty
 
@@ -25,7 +25,7 @@ func listFilesTool(box sandbox.Root, args map of string to any) (any, error)
     if p, ok := args["path"].(string); ok
         path = p
     names, listErr := sandbox.List(box, path)
-    if listErr != empty
+    if listErr isnt empty
         return mcp.ErrorResult(listErr.Error()), empty
     return names as any, empty
 

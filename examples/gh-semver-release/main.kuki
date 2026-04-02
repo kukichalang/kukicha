@@ -76,7 +76,7 @@ func highestSemverTag(repo string) (string, error)
         return "", empty
 
     best, err := semver.Highest(tags)
-    if err not equals empty
+    if err isnt empty
         return "", empty
     return best, empty
 
@@ -128,7 +128,7 @@ func listReposWhereICommitted(org string) (list of string, error)
         |> slice.Unique()
         |> sort.Strings()
 
-    if org not equals ""
+    if org isnt ""
         repos = repos |> slice.Filter(r => r |> string.HasPrefix("{org}/"))
 
     return repos, empty
@@ -163,14 +163,14 @@ func doList(args cli.Args, initialTag string)
 
     # Fetch tags in parallel (at most 4 concurrent GitHub API calls)
     entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
-        |> slice.Filter(e => e.name not equals "")
+        |> slice.Filter(e => e.name isnt "")
         |> sort.ByKey(e => e.name)
 
     if jsonOut
         result := list of ListEntryJSON{}
         for entry in entries
             je := ListEntryJSON{repo: entry.name, next_tag: entry.next}
-            if entry.current not equals ""
+            if entry.current isnt ""
                 ct := entry.current
                 je.current_tag = reference of ct
             result = append(result, je)
@@ -206,7 +206,7 @@ func doRelease(args cli.Args, initialTag string)
             os.Exit(1)
         fatal("release requires --repo OWNER/REPO")
 
-    if org not equals "" and not (repo |> string.HasPrefix("{org}/"))
+    if org isnt "" and not (repo |> string.HasPrefix("{org}/"))
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "repo '{repo}' is not under org '{org}'"})
             os.Exit(1)
@@ -270,7 +270,7 @@ func doRelease(args cli.Args, initialTag string)
         print("Current tag:    {displayCurrent}")
         print("Next tag:       {next}")
         print("Default branch: {branch}")
-        if org not equals ""
+        if org isnt ""
             print("Org filter:     {org}")
         if tagAlreadyExists
             print("Tag exists:     yes")
@@ -308,7 +308,7 @@ func doPick(args cli.Args, initialTag string)
 
     # Fetch tags in parallel and compute next versions
     entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
-        |> slice.Filter(e => e.name not equals "")
+        |> slice.Filter(e => e.name isnt "")
 
     if slice.IsEmpty(entries)
         print("No repos found.")

@@ -9,7 +9,7 @@ func Risky(input string) (string, error)
 func TestFeatures()
     # 1. Slice filtering
     users := list of string{"alice", "bob", "charlie"}
-    active := users |> slice.Filter(u => u != "bob")
+    active := users |> slice.Filter(u => u isnt "bob")
     
     print("Filtered users:")
     for user in active
@@ -32,7 +32,7 @@ func TestFeatures()
             
     # 3. Pipe-Aware Iterators
     print("\nIterating over piped filter:")
-    for user in users |> slice.Filter(u => u == "bob")
+    for user in users |> slice.Filter(u => u equals "bob")
         print("Found {user}")
         
     # 4. Pipeline-Level onerr

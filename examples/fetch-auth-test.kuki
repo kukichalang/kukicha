@@ -6,7 +6,7 @@ import "stdlib/fetch"
 func startServer()
     http.HandleFunc("/bearer", func(w http.ResponseWriter, r reference http.Request)
         auth := r.Header.Get("Authorization")
-        if auth == "Bearer my-secret-token"
+        if auth equals "Bearer my-secret-token"
             w.Write("OK" as list of byte)
         else
             w.WriteHeader(401)
@@ -16,7 +16,7 @@ func startServer()
     http.HandleFunc("/basic", func(w http.ResponseWriter, r reference http.Request)
         auth := r.Header.Get("Authorization")
         # "user:pass" base64 encoded is "dXNlcjpwYXNz"
-        if auth == "Basic dXNlcjpwYXNz"
+        if auth equals "Basic dXNlcjpwYXNz"
             w.Write("OK" as list of byte)
         else
             w.WriteHeader(401)
@@ -24,19 +24,19 @@ func startServer()
     )
 
     http.HandleFunc("/form", func(w http.ResponseWriter, r reference http.Request)
-        if r.Method != "POST"
+        if r.Method isnt "POST"
             w.WriteHeader(405)
             return
 
         ct := r.Header.Get("Content-Type")
-        if ct != "application/x-www-form-urlencoded"
+        if ct isnt "application/x-www-form-urlencoded"
             w.WriteHeader(400)
             w.Write("Bad Content-Type" as list of byte)
             return
 
         r.ParseForm()
         val := r.Form.Get("hello")
-        if val == "world"
+        if val equals "world"
             w.Write("OK" as list of byte)
         else
             w.WriteHeader(400)
@@ -44,13 +44,13 @@ func startServer()
     )
 
     http.HandleFunc("/session", func(w http.ResponseWriter, r reference http.Request)
-        if cookie, err := r.Cookie("mysession"); err != empty
+        if cookie, err := r.Cookie("mysession"); err isnt empty
             # Cookie is not present, set it
             http.SetCookie(w, reference of http.Cookie{Name: "mysession", Value: "active"})
             w.Write("Cookie Set" as list of byte)
         else
             # Cookie is present
-            if cookie.Value == "active"
+            if cookie.Value equals "active"
                 w.Write("Cookie Present" as list of byte)
             else
                 w.WriteHeader(400)
@@ -74,7 +74,7 @@ func main()
     resp1 := fetch.New("{baseUrl}/bearer") |> fetch.BearerAuth("my-secret-token") |> fetch.Do() onerr panic "Bearer request failed: {error}"
     text1 := fetch.Text(resp1) onerr panic "Text read failed: {error}"
     print("Response: {text1}")
-    if text1 != "OK"
+    if text1 isnt "OK"
         panic("Bearer auth failed")
 
     # 2. Test Basic Auth
@@ -82,7 +82,7 @@ func main()
     resp2 := fetch.New("{baseUrl}/basic") |> fetch.BasicAuth("user", "pass") |> fetch.Do() onerr panic "Basic request failed: {error}"
     text2 := fetch.Text(resp2) onerr panic "Text read failed: {error}"
     print("Response: {text2}")
-    if text2 != "OK"
+    if text2 isnt "OK"
         panic("Basic auth failed")
 
     # 3. Test Form Data
@@ -91,7 +91,7 @@ func main()
     resp3 := fetch.New("{baseUrl}/form") |> fetch.FormData(data) |> fetch.Method("POST") |> fetch.Do() onerr panic "Form request failed: {error}"
     text3 := fetch.Text(resp3) onerr panic "Text read failed: {error}"
     print("Response: {text3}")
-    if text3 != "OK"
+    if text3 isnt "OK"
         panic("Form data failed")
 
     # 4. Test Session
@@ -108,7 +108,7 @@ func main()
     text4b := fetch.Text(resp4b) onerr panic "Text read failed: {error}"
     print("Request 2: {text4b}")
 
-    if text4b != "Cookie Present"
+    if text4b isnt "Cookie Present"
         panic("Session cookie persistence failed")
 
     print("\nAll tests passed successfully!")

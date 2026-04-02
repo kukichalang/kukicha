@@ -39,7 +39,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Quick completion ---")
     reply, err1 := llm.Complete("openai:gpt-4o-mini", "What is Kukicha tea in one sentence?")
-    if (err1 not equals empty)
+    if (err1 isnt empty)
         print("Error: {err1}")
     else
         print("Reply: {reply}")
@@ -49,7 +49,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Builder with system prompt ---")
     answer, err2 := llm.New("openai:gpt-4o-mini") |> llm.System("You are a concise assistant. Reply in one sentence.") |> llm.Temperature(0.3) |> llm.MaxTokens(100) |> llm.Ask("What is the pipe operator?")
-    if (err2 not equals empty)
+    if (err2 isnt empty)
         print("Error: {err2}")
     else
         print("Answer: {answer}")
@@ -59,7 +59,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Multi-turn conversation ---")
     response, err3 := llm.New("openai:gpt-4o-mini") |> llm.System("You are a friendly tutor.") |> llm.User("What is a goroutine?") |> llm.Assistant("A goroutine is a lightweight thread managed by the Go runtime.") |> llm.User("How do I create one?") |> llm.Send
-    if (err3 not equals empty)
+    if (err3 isnt empty)
         print("Error: {err3}")
     else
         print("Response: {response}")
@@ -69,7 +69,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Streaming ---")
     streamed, err4 := llm.New("openai:gpt-4o-mini") |> llm.Temperature(0.9) |> llm.Stream(printChunk) |> llm.Ask("Write a haiku about programming")
-    if (err4 not equals empty)
+    if (err4 isnt empty)
         print("\nStream error: {err4}")
     else
         print("")
@@ -80,7 +80,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Full response ---")
     comp, err5 := llm.New("openai:gpt-4o-mini") |> llm.User("Say hello in three languages") |> llm.SendRaw
-    if (err5 not equals empty)
+    if (err5 isnt empty)
         print("Error: {err5}")
     else
         print("Content: {llm.GetContent(comp)}")
@@ -92,7 +92,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Gateway usage ---")
     gatewayReply, err6 := llm.New("gpt-4o-mini") |> llm.Gateway("http://localhost:8000") |> llm.APIKey("my-gateway-key") |> llm.Ask("Hello from the gateway!")
-    if (err6 not equals empty)
+    if (err6 isnt empty)
         print("Gateway error (expected if not running): {err6}")
     else
         print("Gateway reply: {gatewayReply}")
@@ -106,7 +106,7 @@ func main()
     # ──────────────────────────────────────
     print("--- OpenResponses: Quick response ---")
     orReply, err7 := llm.Respond("openai:gpt-4o", "What is Kukicha tea in one sentence?")
-    if (err7 not equals empty)
+    if (err7 isnt empty)
         print("Error: {err7}")
     else
         print("Reply: {orReply}")
@@ -116,7 +116,7 @@ func main()
     # ──────────────────────────────────────
     print("--- OpenResponses: With instructions ---")
     orAnswer, err8 := llm.NewResponse("openai:gpt-4o") |> llm.Instructions("You are a concise assistant. Reply in one sentence.") |> llm.RTemperature(0.3) |> llm.RMaxOutputTokens(100) |> llm.RAsk("What is the pipe operator?")
-    if (err8 not equals empty)
+    if (err8 isnt empty)
         print("Error: {err8}")
     else
         print("Answer: {orAnswer}")
@@ -126,7 +126,7 @@ func main()
     # ──────────────────────────────────────
     print("--- OpenResponses: Streaming ---")
     orStreamed, err9 := llm.NewResponse("openai:gpt-4o") |> llm.RTemperature(0.9) |> llm.RStream(printChunk) |> llm.RAsk("Write a haiku about programming")
-    if (err9 not equals empty)
+    if (err9 isnt empty)
         print("\nStream error: {err9}")
     else
         print("")
@@ -137,7 +137,7 @@ func main()
     # ──────────────────────────────────────
     print("--- OpenResponses: Full response ---")
     orResp, err10 := llm.NewResponse("openai:gpt-4o") |> llm.RUserMessage("Say hello in three languages") |> llm.RSendRaw
-    if (err10 not equals empty)
+    if (err10 isnt empty)
         print("Error: {err10}")
     else
         print("Text: {llm.GetResponseText(orResp)}")
@@ -150,13 +150,13 @@ func main()
     # ──────────────────────────────────────
     print("--- OpenResponses: Multi-turn ---")
     firstResp, err11 := llm.NewResponse("openai:gpt-4o") |> llm.RStore |> llm.RAskRaw("What is a goroutine?")
-    if (err11 not equals empty)
+    if (err11 isnt empty)
         print("Error: {err11}")
     else
         print("First: {llm.GetResponseText(firstResp)}")
         # Continue the conversation using previous_response_id
         followUp, err12 := llm.NewResponse("openai:gpt-4o") |> llm.PreviousResponse(firstResp.ID) |> llm.RAsk("How do I create one?")
-        if (err12 not equals empty)
+        if (err12 isnt empty)
             print("Follow-up error: {err12}")
         else
             print("Follow-up: {followUp}")
@@ -167,7 +167,7 @@ func main()
     print("--- OpenResponses: Event handler ---")
     ignored13, err13 := llm.NewResponse("openai:gpt-4o") |> llm.RStreamEvents(printResponseEvent) |> llm.RAsk("Count to five")
     _ = ignored13
-    if (err13 not equals empty)
+    if (err13 isnt empty)
         print("Error: {err13}")
     print("")
     # ──────────────────────────────────────
@@ -175,7 +175,7 @@ func main()
     # ──────────────────────────────────────
     print("--- OpenResponses: Custom endpoint ---")
     customReply, err14 := llm.NewResponse("gpt-4o") |> llm.RBaseURL("https://chat.example.edu") |> llm.RPath("/api/responses") |> llm.RAPIKey("your-key") |> llm.RAsk("Hello from custom endpoint!")
-    if (err14 not equals empty)
+    if (err14 isnt empty)
         print("Custom endpoint error (expected): {err14}")
     else
         print("Custom reply: {customReply}")
@@ -189,7 +189,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: Quick completion ---")
     aReply, err15 := llm.AnthropicComplete("claude-opus-4-6", "What is Kukicha tea in one sentence?")
-    if (err15 not equals empty)
+    if (err15 isnt empty)
         print("Error: {err15}")
     else
         print("Reply: {aReply}")
@@ -199,7 +199,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: With system prompt ---")
     aAnswer, err16 := llm.NewMessages("claude-opus-4-6") |> llm.MSystem("You are a concise assistant. Reply in one sentence.") |> llm.MTemperature(0.3) |> llm.MMaxTokens(100) |> llm.MAsk("What is the pipe operator?")
-    if (err16 not equals empty)
+    if (err16 isnt empty)
         print("Error: {err16}")
     else
         print("Answer: {aAnswer}")
@@ -209,11 +209,11 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: Adaptive thinking ---")
     thinkResp, err16b := llm.NewMessages("claude-opus-4-6") |> llm.MAdaptiveThinking |> llm.MEffort("high") |> llm.MMaxTokens(16000) |> llm.MAskRaw("What is the sum of the first 100 prime numbers?")
-    if (err16b not equals empty)
+    if (err16b isnt empty)
         print("Error: {err16b}")
     else
         thinking := llm.GetThinking(thinkResp)
-        if (thinking not equals "")
+        if (thinking isnt "")
             # Truncate thinking for display
             if (len(thinking) > 200)
                 thinking = (thinking[:200] + "...")
@@ -226,7 +226,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: Multi-turn ---")
     aMulti, err17 := llm.NewMessages("claude-opus-4-6") |> llm.MSystem("You are a friendly tutor.") |> llm.MMaxTokens(500) |> llm.MUser("What is a goroutine?") |> llm.MAssistant("A goroutine is a lightweight thread managed by the Go runtime.") |> llm.MUser("How do I create one?") |> llm.MSend
-    if (err17 not equals empty)
+    if (err17 isnt empty)
         print("Error: {err17}")
     else
         print("Response: {aMulti}")
@@ -236,7 +236,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: Streaming ---")
     aStreamed, err18 := llm.NewMessages("claude-opus-4-6") |> llm.MMaxTokens(200) |> llm.MTemperature(0.9) |> llm.MStream(printChunk) |> llm.MAsk("Write a haiku about programming")
-    if (err18 not equals empty)
+    if (err18 isnt empty)
         print("\nStream error: {err18}")
     else
         print("")
@@ -247,7 +247,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: Full response ---")
     aResp, err19 := llm.NewMessages("claude-opus-4-6") |> llm.MMaxTokens(200) |> llm.MUser("Say hello in three languages") |> llm.MSendRaw
-    if (err19 not equals empty)
+    if (err19 isnt empty)
         print("Error: {err19}")
     else
         print("Text: {llm.GetAnthropicText(aResp)}")
@@ -262,7 +262,7 @@ func main()
     print("--- Anthropic: Event handler ---")
     ignored20, err20 := llm.NewMessages("claude-opus-4-6") |> llm.MMaxTokens(200) |> llm.MStreamEvents(printAnthropicEvent) |> llm.MAsk("Count to five")
     _ = ignored20
-    if (err20 not equals empty)
+    if (err20 isnt empty)
         print("Error: {err20}")
     print("")
     # ──────────────────────────────────────
@@ -270,7 +270,7 @@ func main()
     # ──────────────────────────────────────
     print("--- Anthropic: Custom endpoint ---")
     dartmouthReply, err21 := llm.NewMessages("claude-opus-4-6") |> llm.MBaseURL("https://chat.dartmouth.edu") |> llm.MPath("/api/messages") |> llm.MAPIKey("your-dartmouth-key") |> llm.MMaxTokens(200) |> llm.MAsk("Hello from Dartmouth!")
-    if (err21 not equals empty)
+    if (err21 isnt empty)
         print("Custom endpoint error (expected): {err21}")
     else
         print("Dartmouth reply: {dartmouthReply}")
