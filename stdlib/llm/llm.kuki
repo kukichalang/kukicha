@@ -127,6 +127,8 @@ import "bufio"
 type Message
     Role string json:"role"
     Content string json:"content"
+    ToolCalls list of ToolCall json:"tool_calls,omitempty"
+    ToolCallID string json:"tool_call_id,omitempty"
 
 # ToolFunction describes a function that the model can call
 type ToolFunction
@@ -177,10 +179,23 @@ type Completion
     Choices list of Choice json:"choices"
     Usage Usage json:"usage"
 
+# ChunkToolCallFunction holds incremental tool call function deltas
+type ChunkToolCallFunction
+    Name string json:"name,omitempty"
+    Arguments string json:"arguments,omitempty"
+
+# ChunkToolCall represents a tool call delta in a streaming chunk
+type ChunkToolCall
+    Index int json:"index"
+    ID string json:"id,omitempty"
+    Type string json:"type,omitempty"
+    Function ChunkToolCallFunction json:"function,omitempty"
+
 # ChunkDelta holds incremental content in a streaming chunk
 type ChunkDelta
     Role string json:"role,omitempty"
     Content string json:"content,omitempty"
+    ToolCalls list of ChunkToolCall json:"tool_calls,omitempty"
 
 # ChunkChoice represents a single choice in a streaming chunk
 type ChunkChoice
@@ -618,14 +633,14 @@ func buildRequest(c Client) CompletionRequest
 
 # Internal: execute a completion and return just the text
 func execute(c Client) (string, error)
-    if c.streamHandler != empty
-        return executeStream(c)
-
     comp := executeRaw(c) onerr return
     return GetContent(comp), empty
 
 # Internal: execute a completion and return the full response
 func executeRaw(c Client) (Completion, error)
+    if c.streamHandler != empty
+        return executeStreamRaw(c)
+
     baseURL := resolveBaseURL(c)
     apiKey := resolveAPIKey(c)
     chatPath := resolvePath(c)
@@ -658,6 +673,11 @@ func executeRaw(c Client) (Completion, error)
 
 # Internal: execute a streaming completion
 func executeStream(c Client) (string, error)
+    comp := executeStreamRaw(c) onerr return
+    return GetContent(comp), empty
+
+# Internal: execute a streaming completion and return the full response
+func executeStreamRaw(c Client) (Completion, error)
     baseURL := resolveBaseURL(c)
     apiKey := resolveAPIKey(c)
     chatPath := resolvePath(c)
@@ -678,11 +698,12 @@ func executeStream(c Client) (string, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return "", error "API request failed with status {resp.StatusCode}"
-        return "", error("API request failed ({resp.StatusCode}): {errBody as string}")
+        errBody := fetch.Bytes(resp) onerr return Completion{}, error "API request failed with status {resp.StatusCode}"
+        return Completion{}, error("API request failed ({resp.StatusCode}): {errBody as string}")
 
     # Read SSE stream line by line
     fullContent := ""
+    callsMap := make(map of int to ToolCall)
     scanner := bufio.NewScanner(resp.Body)
     for scanner.Scan()
         line := scanner.Text()
@@ -703,14 +724,47 @@ func executeStream(c Client) (string, error)
                 continue
 
             if len(chunk.Choices) > 0
-                content := chunk.Choices[0].Delta.Content
-                if content != ""
-                    fullContent = fullContent + content
-                    c.streamHandler(content)
+                delta := chunk.Choices[0].Delta
+                if delta.Content != ""
+                    fullContent = fullContent + delta.Content
+                    c.streamHandler(delta.Content)
+                
+                if len(delta.ToolCalls) > 0
+                    for _, tcDelta in delta.ToolCalls
+                        idx := tcDelta.Index
+                        call := callsMap[idx]
+                        if tcDelta.ID != ""
+                            call.ID = tcDelta.ID
+                        if tcDelta.Type != ""
+                            call.Type = tcDelta.Type
+                        if tcDelta.Function.Name != ""
+                            call.Function.Name = call.Function.Name + tcDelta.Function.Name
+                        if tcDelta.Function.Arguments != ""
+                            call.Function.Arguments = call.Function.Arguments + tcDelta.Function.Arguments
+                        callsMap[idx] = call
 
-    scanner.Err() onerr return fullContent, error "{error}"
+    scanner.Err() onerr return Completion{}, error "{error}"
 
-    return fullContent, empty
+    # Convert map to list
+    toolCalls := make(list of ToolCall, 0)
+    for i from 0 to 20
+        _, ok := callsMap[i]
+        if ok
+            toolCalls = append(toolCalls, callsMap[i])
+
+    comp := Completion{
+        Choices: list of Choice{
+            Choice{
+                Index: 0,
+                Message: ResponseMessage{
+                    Role: "assistant",
+                    Content: fullContent,
+                    ToolCalls: toolCalls,
+                },
+            },
+        },
+    }
+    return comp, empty
 # ═══════════════════════════════════════════════════════════════════════
 # OpenResponses API (https://www.openresponses.org/specification)
 # POST /v1/responses - a different API from Chat Completions
@@ -1280,14 +1334,14 @@ func rBuildRequest(c ResponseClient) ResponseRequest
 
 # Internal: execute an OpenResponses request and return just the text
 func rExecute(c ResponseClient) (string, error)
-    if c.streamHandler != empty or c.eventHandler != empty
-        return rExecuteStream(c)
-
     resp := rExecuteRaw(c) onerr return
     return GetResponseText(resp), empty
 
 # Internal: execute an OpenResponses request and return the full Response
 func rExecuteRaw(c ResponseClient) (Response, error)
+    if c.streamHandler != empty or c.eventHandler != empty
+        return rExecuteStreamRaw(c)
+
     baseURL := rResolveBaseURL(c)
     apiKey := rResolveAPIKey(c)
     responsePath := rResolvePath(c)
@@ -1320,6 +1374,11 @@ func rExecuteRaw(c ResponseClient) (Response, error)
 
 # Internal: execute a streaming OpenResponses request
 func rExecuteStream(c ResponseClient) (string, error)
+    resp := rExecuteStreamRaw(c) onerr return
+    return GetResponseText(resp), empty
+
+# Internal: execute a streaming OpenResponses request and return the full Response
+func rExecuteStreamRaw(c ResponseClient) (Response, error)
     baseURL := rResolveBaseURL(c)
     apiKey := rResolveAPIKey(c)
     responsePath := rResolvePath(c)
@@ -1340,16 +1399,13 @@ func rExecuteStream(c ResponseClient) (string, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return "", error "API request failed with status {resp.StatusCode}"
-        return "", error "API request failed ({resp.StatusCode}): {errBody as string}"
+        errBody := fetch.Bytes(resp) onerr return Response{}, error "API request failed with status {resp.StatusCode}"
+        return Response{}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read SSE stream line by line
-    # OpenResponses uses semantic event types like:
-    #   response.output_text.delta - text chunks
-    #   response.output_text.done - final text
-    #   response.function_call_arguments.delta - tool call args
-    #   response.completed - response complete
+    # OpenResponses uses semantic event types
     fullContent := ""
+    callsMap := make(map of int to OutputItem)
     scanner := bufio.NewScanner(resp.Body)
     for scanner.Scan()
         line := scanner.Text()
@@ -1380,16 +1436,46 @@ func rExecuteStream(c ResponseClient) (string, error)
                     if c.streamHandler != empty
                         c.streamHandler(evt.Delta)
 
+            # Handle function call deltas
+            if evt.Type == "response.function_call.delta" or evt.Type == "response.function_call_arguments.delta"
+                idx := evt.OutputIndex
+                call := callsMap[idx]
+                call.Type = "function_call"
+                if evt.ItemID != ""
+                    call.ID = evt.ItemID
+                if evt.Name != ""
+                    call.Name = call.Name + evt.Name
+                if evt.Arguments != ""
+                    call.Arguments = call.Arguments + evt.Arguments
+                callsMap[idx] = call
+
             # Handle error events
             if evt.Type == "error"
-                errMsg := evt.Message
-                if errMsg == ""
-                    errMsg = "streaming error: {evt.Code}"
-                return fullContent, error(errMsg)
+                return Response{}, error(evt.Message)
 
-    scanner.Err() onerr return fullContent, error "{error}"
+    scanner.Err() onerr return Response{}, error "{error}"
 
-    return fullContent, empty
+    # Convert map to output items
+    output := list of OutputItem{}
+    # Simple accumulation since indices are usually 0, 1...
+    for i from 0 to 20
+        _, ok := callsMap[i]
+        if ok
+            output = append(output, callsMap[i])
+    
+    # Add text message as well if we have content
+    if fullContent != ""
+        msgPart := map of string to any{"type": "output_text", "text": fullContent}
+        output = append(output, OutputItem{
+            Type: "message",
+            Role: "assistant",
+            Content: list of any{msgPart},
+        })
+
+    result := Response{
+        Output: output,
+    }
+    return result, empty
 # ═══════════════════════════════════════════════════════════════════════
 # Anthropic Messages API (https://docs.anthropic.com/en/api/messages)
 # POST /v1/messages - Anthropic's native API format
@@ -1916,16 +2002,12 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error)
     return result, empty
 
 # Internal: execute a streaming Anthropic Messages request
-# Anthropic SSE uses "event:" and "data:" lines:
-#   event: message_start
-#   data: {"type":"message_start","message":{...}}
-#
-#   event: content_block_delta
-#   data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}
-#
-#   event: message_stop
-#   data: {"type":"message_stop"}
 func mExecuteStream(c MessagesClient) (string, error)
+    resp := mExecuteStreamRaw(c) onerr return
+    return GetAnthropicText(resp), empty
+
+# Internal: execute a streaming Anthropic Messages request and return the full response
+func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
     baseURL := mResolveBaseURL(c)
     apiKey := mResolveAPIKey(c)
     msgPath := mResolvePath(c)
@@ -1948,12 +2030,12 @@ func mExecuteStream(c MessagesClient) (string, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return "", error "Anthropic API request failed with status {resp.StatusCode}"
-        return "", error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
+        errBody := fetch.Bytes(resp) onerr return AnthropicResponse{}, error "Anthropic API request failed with status {resp.StatusCode}"
+        return AnthropicResponse{}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read Anthropic SSE stream
-    # Format: "event: <type>\ndata: <json>\n\n"
-    fullContent := ""
+    contentBlocks := make(map of int to ContentBlock)
+    inputAccum := make(map of int to string)
     scanner := bufio.NewScanner(resp.Body)
     for scanner.Scan()
         line := scanner.Text()
@@ -1973,16 +2055,40 @@ func mExecuteStream(c MessagesClient) (string, error)
             if c.eventHandler != empty
                 c.eventHandler(evt)
 
-            # Handle content_block_delta with text_delta
+            # Handle content_block_start
+            if evt.Type == "content_block_start"
+                idx := evt.Index
+                contentBlocks[idx] = evt.ContentBlock
+
+            # Handle content_block_delta
             if evt.Type == "content_block_delta"
-                if evt.Delta.Type == "text_delta" and evt.Delta.Text != ""
-                    fullContent = fullContent + evt.Delta.Text
+                idx := evt.Index
+                block := contentBlocks[idx]
+                if evt.Delta.Type == "text_delta"
+                    block.Type = "text"
+                    block.Text = block.Text + evt.Delta.Text
                     if c.streamHandler != empty
                         c.streamHandler(evt.Delta.Text)
+                if evt.Delta.Type == "input_json_delta"
+                    block.Type = "tool_use"
+                    inputAccum[idx] = inputAccum[idx] + evt.Delta.PartialJSON
+                    block.Input = inputAccum[idx]
+                contentBlocks[idx] = block
 
             # Handle error events
             if evt.Type == "error"
-                return fullContent, error("Anthropic streaming error")
+                return AnthropicResponse{}, error("Anthropic streaming error")
 
-    scanner.Err() onerr return fullContent, error "{error}"
-    return fullContent, empty
+    scanner.Err() onerr return AnthropicResponse{}, error "{error}"
+
+    # Convert map to content blocks
+    blocks := list of ContentBlock{}
+    for i from 0 to 20
+        _, ok := contentBlocks[i]
+        if ok
+            blocks = append(blocks, contentBlocks[i])
+
+    result := AnthropicResponse{
+        Content: blocks,
+    }
+    return result, empty

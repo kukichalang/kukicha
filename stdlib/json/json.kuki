@@ -94,6 +94,12 @@ func MarshalPretty(value any) (list of byte, error)
 func Unmarshal(data list of byte, target any) error
     return json.Unmarshal(data, target)
 
+# UnmarshalString parses a JSON string into a target value
+# Target must be a pointer (use "reference of" in Kukicha)
+# Example: json.UnmarshalString(jsonStr, reference of config) onerr return
+func UnmarshalString(data string, target any) error
+    return json.Unmarshal(data as list of byte, target)
+
 # MarshalWrite writes JSON directly to an io.Writer
 # Perfect for HTTP responses and streaming scenarios
 # Uses placeholder strategy: todo |> MarshalWrite(response, _)

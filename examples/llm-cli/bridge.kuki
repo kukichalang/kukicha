@@ -1,0 +1,77 @@
+# Bridge — MCP client that discovers tools and dispatches tool calls
+# Connects to Open Terminal (or any MCP server) via streamable HTTP transport
+# Converts between MCP tool format and stdlib/llm tool format
+
+petiole main
+
+import "context"
+import "stdlib/json" as jsonpkg
+import "stdlib/llm"
+import "stdlib/string" as strpkg
+import "stdlib/mcp"
+
+type Bridge
+    session mcp.ClientSession
+    mcpTools list of mcp.ClientTool
+
+func connectBridge(ctx context.Context, endpoint string) (reference Bridge, error)
+    session := mcp.Connect(ctx, endpoint) onerr return empty, error "{error}"
+
+    b := reference of Bridge{session: session}
+
+    refreshBridgeTools(ctx, b) onerr
+        mcp.Close(session)
+        return empty, error "{error}"
+
+    return b, empty
+
+func closeBridge(b reference Bridge) error
+    return mcp.Close(b.session)
+
+func refreshBridgeTools(ctx context.Context, b reference Bridge) error
+    tools := mcp.ListTools(ctx, b.session) onerr return error "MCP ListTools failed: {error}"
+    b.mcpTools = tools
+    return empty
+
+# bridgeTools converts discovered MCP tools into llm.Tool format
+func bridgeTools(b reference Bridge) list of llm.Tool
+    tools := make(list of llm.Tool, 0, len(b.mcpTools))
+    for _, t in b.mcpTools
+        tools = append(tools, llm.Tool{
+            Type: "function",
+            Function: llm.ToolFunction{
+                Name: sanitizeName(t.Name),
+                Description: t.Description,
+                Parameters: t.InputSchema,
+            },
+        })
+    return tools
+
+func bridgeToolCount(b reference Bridge) int
+    return len(b.mcpTools)
+
+func bridgeToolNames(b reference Bridge) list of string
+    names := make(list of string, len(b.mcpTools))
+    for i, t in b.mcpTools
+        names[i] = t.Name
+    return names
+
+# callBridgeTool dispatches a tool call to the MCP server
+# name and argsJSON come from the LLM's tool_call response
+func callBridgeTool(ctx context.Context, b reference Bridge, name string, argsJSON string) (string, error)
+    args := make(map of string to any)
+    if argsJSON != "" and argsJSON != "\{\}"
+        jsonpkg.UnmarshalString(argsJSON, reference of args) onerr return "", error "invalid tool arguments: {error}"
+
+    result := mcp.CallTool(ctx, b.session, name, args) onerr return "", error "{error}"
+
+    if result.IsError
+        return "ERROR: {result.Text}", empty
+
+    return result.Text, empty
+
+func sanitizeName(name string) string
+    result := strpkg.Replace(name, "/", "_")
+    result = strpkg.Replace(result, " ", "_")
+    result = strpkg.Replace(result, "-", "_")
+    return result

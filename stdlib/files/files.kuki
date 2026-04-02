@@ -16,6 +16,14 @@ func Read(path string) (list of byte, error)
     data := path |> os.ReadFile() onerr return
     return data, empty
 
+# ReadString reads the entire contents of a file as a string
+# Returns the file contents and any error that occurred
+# Example: "config.json" |> files.ReadString()
+# kuki:security "files"
+func ReadString(path string) (string, error)
+    data := path |> os.ReadFile() onerr return
+    return data as string, empty
+
 # ReadBytes reads the entire contents of a file as a byte slice
 # Returns the file contents and any error that occurred
 # Example: "image.png" |> files.ReadBytes()

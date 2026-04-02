@@ -5,6 +5,7 @@ petiole mcp
 import "context"
 import "stdlib/ctx" as ctxpkg
 import "stdlib/json"
+import "stdlib/string" as strpkg
 import "github.com/modelcontextprotocol/go-sdk/mcp"
 
 # ToolHandler is a callback for handling MCP tool invocations.
@@ -109,3 +110,58 @@ func Tool(server reference mcp.Server, name string, description string, schema a
             Content: list of mcp.Content{reference of mcp.TextContent{Text: string(data)}},
         }, empty
     )
+
+# ClientSession is a wrapper around mcp.ClientSession
+type ClientSession
+    inner reference mcp.ClientSession
+
+# ClientTool represents an MCP tool discovered from a server
+type ClientTool
+    Name string
+    Description string
+    InputSchema map of string to any
+
+# CallToolResult represents the result of a tool call
+type CallToolResult
+    Text string
+    IsError bool
+
+# Connect creates a new MCP client and connects to the given SSE endpoint URL
+func Connect(ctx context.Context, endpoint string) (ClientSession, error)
+    client := mcp.NewClient(reference of mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"}, empty)
+    transport := reference of mcp.StreamableClientTransport{Endpoint: endpoint}
+    session := client.Connect(ctx, transport, empty) onerr return ClientSession{}, error "MCP connect to {endpoint} failed: {error}"
+    return ClientSession{inner: session}, empty
+
+# Close closes the MCP client session
+func Close(session ClientSession) error
+    return session.inner.Close()
+
+# ListTools retrieves the available tools from the connected MCP server
+func ListTools(ctx context.Context, session ClientSession) (list of ClientTool, error)
+    result := session.inner.ListTools(ctx, empty) onerr return empty list of ClientTool, error "MCP ListTools failed: {error}"
+    tools := make(list of ClientTool, len(result.Tools))
+    for i, t in result.Tools
+        schema := map of string to any{}
+        t.InputSchema |> switch as s
+            when map of string to any
+                schema = s
+        tools[i] = ClientTool{Name: t.Name, Description: t.Description, InputSchema: schema}
+    return tools, empty
+
+# CallTool calls a specific tool by name with arguments
+func CallTool(ctx context.Context, session ClientSession, name string, args map of string to any) (CallToolResult, error)
+    result := session.inner.CallTool(ctx, reference of mcp.CallToolParams{Name: name, Arguments: args}) onerr return CallToolResult{}, error "MCP CallTool \"{name}\" failed: {error}"
+    parts := make(list of string, 0)
+    for _, c in result.Content
+        c |> switch as v
+            when reference mcp.TextContent
+                parts = append(parts, v.Text)
+            when reference mcp.ImageContent
+                parts = append(parts, "[image: {v.MIMEType}]")
+            otherwise
+                data, _ := json.Marshal(c)
+                parts = append(parts, data as string)
+    text := strpkg.Join(parts, "\n")
+    return CallToolResult{Text: text, IsError: result.IsError}, empty
+

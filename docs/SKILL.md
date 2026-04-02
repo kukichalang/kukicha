@@ -483,6 +483,7 @@ ok      := slice.Contains(items, value)
 
 ```kukicha
 data := files.Read("path.txt")        onerr panic "{error}"
+text := files.ReadString("cfg.json")  onerr panic "{error}"
        files.Write(data, "out.txt")   onerr panic "{error}"
        files.Append(line, "log.txt")  onerr discard
 ok   := files.Exists("path.txt")
@@ -522,20 +523,28 @@ token  := env.Get("TOKEN")     onerr panic "TOKEN required"
 
 ```kukicha
 import "stdlib/json" as jsonpkg
-data   := jsonpkg.Marshal(value)              onerr panic "{error}"
-result := jsonpkg.Unmarshal(data, empty Repo) onerr panic "{error}"
+data   := jsonpkg.Marshal(value)                    onerr panic "{error}"
+result := jsonpkg.Unmarshal(data, empty Repo)       onerr panic "{error}"
+         jsonpkg.UnmarshalString(str, reference of v) onerr panic "{error}"
 ```
 
-**stdlib/mcp** — MCP server
+**stdlib/mcp** — MCP server and client
 
 ```kukicha
-func main()
-    server := mcp.New("stock-tool", "1.0.0")
-    schema := mcp.Schema(list of mcp.SchemaProperty{
-        mcp.Prop("symbol", "string", "Ticker symbol"),
-    }) |> mcp.Required(list of string{"symbol"})
-    mcp.Tool(server, "get_price", "Get stock price by ticker", schema, handler)
-    mcp.Serve(server) onerr panic "{error}"
+# Server
+server := mcp.New("stock-tool", "1.0.0")
+schema := mcp.Schema(list of mcp.SchemaProperty{
+    mcp.Prop("symbol", "string", "Ticker symbol"),
+}) |> mcp.Required(list of string{"symbol"})
+mcp.Tool(server, "get_price", "Get stock price by ticker", schema, handler)
+mcp.Serve(server) onerr panic "{error}"
+
+# Client
+session := mcp.Connect(ctx, "http://localhost:8000/mcp") onerr panic "{error}"
+defer mcp.Close(session)
+tools := mcp.ListTools(ctx, session) onerr panic "{error}"
+result := mcp.CallTool(ctx, session, "get_price", args) onerr panic "{error}"
+print(result.Text)
 ```
 
 **stdlib/shell** — Run commands
