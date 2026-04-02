@@ -2,7 +2,7 @@
 
 A programming language designed to be read by humans and written by AI agents. Compiles to Go — single binaries, goroutines, strong typing, no runtime dependencies.
 
-**[kukicha.org](https://kukicha.org)** | [Tutorials](https://kukicha.org/#getting-started) | [Stdlib Reference](stdlib/AGENTS.md) | [Quick Reference](docs/kukicha-quick-reference.md)
+**[kukicha.org](https://kukicha.org)** | [Tutorials](https://kukicha.org/#getting-started) | [Stdlib Reference](.claude/skills/stdlib/SKILL.md) | [Quick Reference](docs/kukicha-quick-reference.md)
 
 ---
 
