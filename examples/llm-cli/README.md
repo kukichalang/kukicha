@@ -3,9 +3,9 @@
 A terminal-native agent that gets its brain from [Open WebUI](https://github.com/open-webui/open-webui) (LLM) and its hands from [Open Terminal](https://github.com/open-webui/open-terminal) (sandboxed shell), connected via the [Model Context Protocol](https://modelcontextprotocol.io).
 
 ```
-┌─────────┐     tools (from MCP)       ┌──────────────┐
-│         │ ──── chat/completions ────→ │  Open WebUI   │
-│  owui   │ ←─── stream + tool_calls ── │  (LLM)        │
+┌─────────┐     tools (from MCP)       ┌───────────────┐
+│         │ ──── chat/completions ────→ │  Open WebUI    │
+│  owui   │ ←─── stream + tool_calls ── │  (LLM)         │
 │  (CLI)  │                             └───────────────┘
 │         │     MCP (streamable-http)   ┌───────────────┐
 │         │ ──── CallTool ────────────→ │ Open Terminal  │
@@ -18,17 +18,18 @@ MCP server and calls `ListTools` — whatever endpoints your instance exposes
 (execute, files, search, terminals, notebooks…) become available to the model
 automatically. No hardcoded tool definitions, no version drift.
 
-Built with:
-- [MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk) (official, maintained with Google)
-- [Charm](https://charm.sh) libraries (Bubble Tea, Glamour, Lip Gloss)
-- [Cobra](https://github.com/spf13/cobra) for CLI
+Built with [Kukicha](https://github.com/kukichalang/kukicha) and its standard library:
+- `stdlib/llm` — OpenAI-compatible chat completions (streaming, tool calls)
+- `stdlib/mcp` — MCP client (connect, list tools, call tools)
+- `stdlib/fetch` — HTTP requests
+- `stdlib/input` — readline prompts
+- `stdlib/json` — JSON marshalling
 
 ## Install
 
 ```bash
-git clone https://github.com/you/owui.git && cd owui
-make tidy && make build
-# binary at ./bin/owui
+kukicha build examples/llm-cli/
+# binary at ./owui
 ```
 
 ## Configure
@@ -76,10 +77,10 @@ cat main.go | owui -c "review this code"
 Tool calls show on stderr:
 ```
 MCP connected: 12 tools from http://localhost:8000/mcp
-→ execute_command {"command":"ls -la /workspace"}
-← execute_command total 24 drwxr-xr-x 3 user user 4096...
-→ write_file {"path":"/workspace/main.py","content":"from fa...
-← write_file Wrote 342 bytes to /workspace/main.py
+-> execute_command {"command":"ls -la /workspace"}
+<- execute_command total 24 drwxr-xr-x 3 user user 4096...
+-> write_file {"path":"/workspace/main.py","content":"from fa...
+<- write_file Wrote 342 bytes to /workspace/main.py
 The FastAPI project is set up...
 (3 tool rounds)
 ```
@@ -96,30 +97,27 @@ owui health    # check connectivity to both services
 
 | Flag | Short | Description |
 |------|-------|-------------|
-| `--chat` | `-c` | Interactive chat TUI |
+| `--chat` | `-c` | Interactive chat (readline loop) |
 | `--model` | `-m` | Override model |
 | `--system` | `-S` | Override system prompt |
-| `--raw` | | Raw output, no markdown rendering |
+| `--raw` | | Raw output, no formatting |
 
 ## Architecture
 
 ```
-cmd/owui/main.go              CLI entrypoint, cobra commands
-internal/
-  openwebui/client.go          Open WebUI client (streaming, tool call assembly)
-  mcpbridge/bridge.go          MCP client → discovers tools, converts to OpenAI
-                               format, dispatches CallTool via MCP protocol
-  agent/agent.go               Agent loop: LLM → tool calls → MCP dispatch → repeat
-  chat/tui.go                  Bubble Tea interactive TUI
-  config/config.go             Config loading (env > file > defaults)
+main.kuki        CLI entrypoint, flag parsing, subcommands, interactive chat
+config.kuki      Config loading (env > file > defaults)
+agent.kuki       Agent loop: LLM → tool calls → MCP dispatch → repeat
+bridge.kuki      MCP client → discovers tools, converts to stdlib/llm
+                 format, dispatches CallTool via MCP protocol
 ```
 
-The key file is `mcpbridge/bridge.go`:
+The key file is `bridge.kuki`:
 
-1. **Connect** — `mcp.NewClient` + `StreamableClientTransport` to Open Terminal
-2. **Discover** — `session.ListTools()` gets all available tools with schemas
-3. **Convert** — MCP tool schemas → OpenAI function-calling format for the LLM
-4. **Dispatch** — `session.CallTool()` executes tools and returns results
+1. **Connect** — `mcp.Connect` to Open Terminal via streamable HTTP
+2. **Discover** — `mcp.ListTools` gets all available tools with schemas
+3. **Convert** — MCP tool schemas → `llm.Tool` format for the LLM
+4. **Dispatch** — `mcp.CallTool` executes tools and returns results
 
 No hardcoded tool definitions anywhere. If Open Terminal adds a new endpoint,
 your CLI picks it up on the next run.
