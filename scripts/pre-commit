@@ -44,12 +44,13 @@ There are two sets of documentation files you may need to update:
 
 CLAUDE.md files (compiler/language reference for AI agents):
 - CLAUDE.md (root) — language syntax, keywords, pipe operator, onerr, build commands, file map, imports, critical rules
-- stdlib/CLAUDE.md — stdlib package API reference (fetch, slice, json, files, shell, llm, etc.)
+- stdlib/CLAUDE.md — stub only; full stdlib reference is in .claude/skills/stdlib/SKILL.md
 - internal/CLAUDE.md — compiler internals (lexer, parser, AST, semantic analysis, codegen)
 
 Skill files (detailed syntax reference and troubleshooting for AI tools):
 - .claude/skills/kukicha/SKILL.md — comprehensive syntax reference and examples
 - .claude/skills/kukicha/troubleshooting.md — common errors and fixes
+- .claude/skills/stdlib/SKILL.md — stdlib package API reference (fetch, slice, json, files, shell, llm, etc.)
 
 Instructions:
 1. Read each file listed above (use your Read tool)
