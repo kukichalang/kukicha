@@ -303,3 +303,25 @@ func MakeReader() io.Reader
 		t.Errorf("unexpected error: %v", e)
 	}
 }
+
+func TestReturnConcreteForExternalQualifiedType(t *testing.T) {
+	// Returning a concrete type where a qualified external type is expected
+	// should not produce a type error — we can't resolve external types at
+	// Kukicha compile time, so we defer to the Go compiler.
+	input := `import "net/http"
+
+type MyHandler
+    prefix string
+
+func ServeHTTP on h MyHandler (w http.ResponseWriter, r reference http.Request)
+    return
+
+func NewHandler() http.Handler
+    return reference of MyHandler{prefix: "/api"}
+`
+
+	_, errors := analyzeSource(t, input)
+	for _, e := range errors {
+		t.Errorf("unexpected error: %v", e)
+	}
+}

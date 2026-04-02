@@ -99,6 +99,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement) {
 		if a.loopDepth == 0 && a.switchDepth == 0 {
 			a.error(s.Pos(), "break statement outside of loop")
 		}
+	case *ast.TypeDeclStmt:
+		a.error(s.Pos(), "type declarations must be at the top level, not inside a function")
 	}
 }
 

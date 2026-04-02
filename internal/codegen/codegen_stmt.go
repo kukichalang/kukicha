@@ -99,6 +99,8 @@ func (g *Generator) generateStatement(stmt ast.Statement) {
 		} else {
 			g.writeLine(g.exprToString(s.Expression))
 		}
+	case *ast.TypeDeclStmt:
+		// Rejected by semantic analysis; nothing to emit.
 	}
 }
 

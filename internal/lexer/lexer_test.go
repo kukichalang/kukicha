@@ -452,6 +452,11 @@ func TestNumbers(t *testing.T) {
 			expected: TOKEN_FLOAT,
 		},
 		{
+			name:     "float with underscores",
+			input:    "1_000.000_1",
+			expected: TOKEN_FLOAT,
+		},
+		{
 			name:     "zero",
 			input:    "0",
 			expected: TOKEN_INTEGER,
@@ -489,6 +494,26 @@ func TestNumbers(t *testing.T) {
 		{
 			name:     "legacy octal 0755",
 			input:    "0755",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "decimal with underscores",
+			input:    "1_000_000",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "hex with underscores",
+			input:    "0xFF_FF",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "binary with underscores",
+			input:    "0b1010_0101",
+			expected: TOKEN_INTEGER,
+		},
+		{
+			name:     "octal with underscores",
+			input:    "0o7_5_5",
 			expected: TOKEN_INTEGER,
 		},
 	}

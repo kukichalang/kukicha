@@ -65,10 +65,11 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 
 		return e.Value
 	case *ast.IntegerLiteral:
-		// Preserve original representation for octal (0...), hex (0x...), binary (0b...)
+		// Preserve original lexeme for special representations:
+		// prefixed literals (0x, 0o, 0b, 0...) and underscore separators (1_000)
 		lexeme := e.Token.Lexeme
-		if len(lexeme) > 1 && lexeme[0] == '0' {
-			return lexeme // Keep original format
+		if len(lexeme) > 1 && (lexeme[0] == '0' || strings.Contains(lexeme, "_")) {
+			return lexeme
 		}
 		return fmt.Sprintf("%d", e.Value)
 	case *ast.FloatLiteral:

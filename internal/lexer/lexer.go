@@ -768,7 +768,7 @@ func (l *Lexer) scanNumber() {
 			if !isHexDigit(l.peek()) {
 				l.error("hexadecimal literal has no digits")
 			}
-			for isHexDigit(l.peek()) {
+			for isHexDigit(l.peek()) || l.peek() == '_' {
 				l.advance()
 			}
 			l.addToken(TOKEN_INTEGER)
@@ -779,7 +779,7 @@ func (l *Lexer) scanNumber() {
 			if !isOctalDigit(l.peek()) {
 				l.error("octal literal has no digits")
 			}
-			for isOctalDigit(l.peek()) {
+			for isOctalDigit(l.peek()) || l.peek() == '_' {
 				l.advance()
 			}
 			l.addToken(TOKEN_INTEGER)
@@ -790,7 +790,7 @@ func (l *Lexer) scanNumber() {
 			if l.peek() != '0' && l.peek() != '1' {
 				l.error("binary literal has no digits")
 			}
-			for l.peek() == '0' || l.peek() == '1' {
+			for l.peek() == '0' || l.peek() == '1' || l.peek() == '_' {
 				l.advance()
 			}
 			l.addToken(TOKEN_INTEGER)
@@ -798,7 +798,7 @@ func (l *Lexer) scanNumber() {
 		}
 	}
 
-	for isDigit(l.peek()) {
+	for isDigit(l.peek()) || l.peek() == '_' {
 		l.advance()
 	}
 
@@ -806,7 +806,7 @@ func (l *Lexer) scanNumber() {
 	if l.peek() == '.' && isDigit(l.peekNext()) {
 		l.advance() // consume .
 
-		for isDigit(l.peek()) {
+		for isDigit(l.peek()) || l.peek() == '_' {
 			l.advance()
 		}
 

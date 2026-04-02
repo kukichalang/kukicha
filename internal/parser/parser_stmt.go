@@ -109,9 +109,14 @@ func (p *Parser) parseStatement() ast.Statement {
 	case lexer.TOKEN_BREAK:
 		return p.parseBreakStmt()
 	case lexer.TOKEN_TYPE:
-		p.error(p.peekToken(), "type declarations must be at the top level, not inside a function")
-		p.advance() // consume 'type' to avoid infinite loop
-		return nil
+		// Parse the type declaration syntactically so that the semantic
+		// analyzer can produce the error. This keeps validation in the
+		// semantic pass rather than the parser.
+		decl := p.parseTypeDecl()
+		if decl == nil {
+			return nil
+		}
+		return &ast.TypeDeclStmt{Decl: decl.(*ast.TypeDecl)}
 	default:
 		return p.parseExpressionOrAssignmentStmt()
 	}
