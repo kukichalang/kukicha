@@ -152,26 +152,21 @@ func (g *Generator) emitOnErrDiscard(clause *ast.OnErrClause, lhsParts []string,
 		return false
 	}
 
-	// Statement-level (no named targets): use inferReturnCount to determine blank count
+	// Statement-level (no named targets): emit explicit blank-identifier discards when
+	// the return count is known, or a bare call when it is unknown. A bare call is always
+	// valid Go — the compiler discards all return values — so it is the safe fallback for
+	// external interface methods whose return count semantic analysis cannot determine.
 	if lhsParts == nil {
-		if count, ok := g.inferReturnCount(expr); ok {
-			switch count {
-			case 0:
-				g.writeLine(g.exprToString(expr))
-			case 1:
-				g.writeLine(fmt.Sprintf("_ = %s", g.exprToString(expr)))
-			default:
-				blanks := make([]string, count)
-				for i := range blanks {
-					blanks[i] = "_"
-				}
-				g.writeLine(fmt.Sprintf("%s = %s", strings.Join(blanks, ", "), g.exprToString(expr)))
-			}
-		} else {
-			// Fallback: return count inference failed — call without assignment.
-			// Go allows discarding all return values from a function call.
+		count, ok := g.inferReturnCount(expr)
+		if !ok || count == 0 {
 			g.writeLine(g.exprToString(expr))
+			return true
 		}
+		blanks := make([]string, count)
+		for i := range blanks {
+			blanks[i] = "_"
+		}
+		g.writeLine(fmt.Sprintf("%s = %s", strings.Join(blanks, ", "), g.exprToString(expr)))
 		return true
 	}
 

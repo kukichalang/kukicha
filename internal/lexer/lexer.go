@@ -617,7 +617,12 @@ func (l *Lexer) scanStringBody(interpTokenType TokenType, endTokenType TokenType
 			l.interpStack = append(l.interpStack, interpState{braceDepth: 0, quote: quote})
 			return
 		} else {
-			value.WriteRune(l.advance())
+			r := l.advance()
+			if r == '\x00' {
+				l.error("string literal contains invalid character (NUL)")
+				return
+			}
+			value.WriteRune(r)
 		}
 	}
 

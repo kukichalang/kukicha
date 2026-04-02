@@ -621,8 +621,7 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 		}
 	}
 
-	// Return count of 1 gives codegen's onerr path a safe default.
-	a.recordReturnCount(expr, 1)
+
 	return []*TypeInfo{{Kind: TypeKindUnknown}}
 }
 

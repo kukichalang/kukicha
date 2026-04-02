@@ -21,19 +21,19 @@ func fakeUpstream(t *testing.T) *httptest.Server {
 
 		switch {
 		case strings.HasSuffix(path, "/@v/list"):
-			fmt.Fprintln(w, "v0.1.0")
-			fmt.Fprintln(w, "v0.2.0")
-			fmt.Fprintln(w, "v0.3.0")
+			_, _ = fmt.Fprintln(w, "v0.1.0")
+			_, _ = fmt.Fprintln(w, "v0.2.0")
+			_, _ = fmt.Fprintln(w, "v0.3.0")
 
 		case strings.HasSuffix(path, "/@latest"):
-			json.NewEncoder(w).Encode(map[string]any{
+			_ = json.NewEncoder(w).Encode(map[string]any{
 				"Version": "v0.3.0",
 				"Time":    time.Now().UTC().Format(time.RFC3339),
 			})
 
 		case strings.HasSuffix(path, ".info"):
 			version := strings.TrimSuffix(filepath.Base(path), ".info")
-			json.NewEncoder(w).Encode(map[string]any{
+			_ = json.NewEncoder(w).Encode(map[string]any{
 				"Version": version,
 				"Time":    time.Now().UTC().Format(time.RFC3339),
 			})
@@ -42,11 +42,11 @@ func fakeUpstream(t *testing.T) *httptest.Server {
 			w.WriteHeader(http.StatusGone)
 
 		case strings.HasSuffix(path, ".mod"):
-			fmt.Fprintln(w, "module example.com/mod\n\ngo 1.21")
+				_, _ = fmt.Fprintln(w, "module example.com/mod\n\ngo 1.21")
 
 		case strings.HasSuffix(path, ".zip"):
 			w.Header().Set("Content-Type", "application/zip")
-			w.Write([]byte("fake-zip-content"))
+			_, _ = w.Write([]byte("fake-zip-content"))
 
 		default:
 			http.NotFound(w, r)
@@ -184,7 +184,9 @@ func TestLatestAfterCooldown(t *testing.T) {
 	var info struct {
 		Version string `json:"Version"`
 	}
-	json.Unmarshal(w.Body.Bytes(), &info)
+	if err := json.Unmarshal(w.Body.Bytes(), &info); err != nil {
+		t.Fatalf("json decode: %v", err)
+	}
 	if info.Version != "v0.3.0" {
 		t.Fatalf("expected v0.3.0, got %s", info.Version)
 	}
@@ -355,7 +357,7 @@ func TestDiskCacheServesZip(t *testing.T) {
 func TestSumDBProxy(t *testing.T) {
 	// Start a fake sumdb server.
 	fakeSumDB := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "fake-sumdb-response")
+		_, _ = fmt.Fprintln(w, "fake-sumdb-response")
 	}))
 	defer fakeSumDB.Close()
 
@@ -410,7 +412,9 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 
 	var health map[string]any
-	json.Unmarshal(w.Body.Bytes(), &health)
+	if err := json.Unmarshal(w.Body.Bytes(), &health); err != nil {
+		t.Fatalf("json decode: %v", err)
+	}
 	if health["status"] != "ok" {
 		t.Errorf("expected status ok, got %v", health["status"])
 	}
@@ -448,7 +452,7 @@ func TestSQLiteSeenStore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer s.Shutdown()
+	defer func() { _ = s.Shutdown() }()
 
 	// First call records now.
 	t1 := s.FirstSeen("example.com/mod", "v1.0.0")
@@ -508,14 +512,14 @@ func fakeOSV(t *testing.T, module, fixedVersion string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		var req osvQueryReq
-		json.Unmarshal(body, &req)
+		_ = json.Unmarshal(body, &req)
 
 		if req.Package.Name != module {
-			json.NewEncoder(w).Encode(osvQueryResp{})
+			_ = json.NewEncoder(w).Encode(osvQueryResp{})
 			return
 		}
 
-		json.NewEncoder(w).Encode(osvQueryResp{
+		_ = json.NewEncoder(w).Encode(osvQueryResp{
 			Vulns: []osvVuln{{
 				ID: "GO-2026-9999",
 				Affected: []osvAffected{{

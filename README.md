@@ -44,7 +44,7 @@ Fetch repos from GitHub, keep the popular ones, sort by stars, print a table. `|
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```bash
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.30
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.31
 mkdir myapp && cd myapp
 kukicha init
 ```
@@ -99,4 +99,4 @@ kukicha run hello.kuki
 
 ---
 
-**Version:** 0.0.30 | **License:** [MIT](LICENSE)
+**Version:** 0.0.31 | **License:** [MIT](LICENSE)

@@ -189,7 +189,7 @@ type ChunkToolCall
     Index int json:"index"
     ID string json:"id,omitempty"
     Type string json:"type,omitempty"
-    Function ChunkToolCallFunction json:"function,omitempty"
+    Function ChunkToolCallFunction json:"function"
 
 # ChunkDelta holds incremental content in a streaming chunk
 type ChunkDelta

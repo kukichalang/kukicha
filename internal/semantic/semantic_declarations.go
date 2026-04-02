@@ -93,8 +93,8 @@ func (a *Analyzer) collectDeclarations() {
 	// Collect imports
 	for _, imp := range a.program.Imports {
 		path := imp.Path.Value
-		if strings.ContainsAny(path, "\"\\") {
-			a.error(imp.Pos(), "import path must not contain '\"' or '\\'")
+		if strings.ContainsAny(path, "\"\\\x00") {
+			a.error(imp.Pos(), "import path must not contain '\"', '\\', or NUL")
 			continue
 		}
 		name := a.extractPackageName(imp)

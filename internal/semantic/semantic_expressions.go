@@ -615,8 +615,15 @@ func (a *Analyzer) analyzeSliceExpr(expr *ast.SliceExpr) *TypeInfo {
 func (a *Analyzer) analyzeListLiteral(expr *ast.ListLiteralExpr) *TypeInfo {
 	var elemType *TypeInfo
 
-	// Infer element type from first element
-	if len(expr.Elements) > 0 {
+	// Use explicitly declared element type when present (e.g., list of Shape{...}).
+	// This allows heterogeneous interface lists where elements have different concrete types.
+	if expr.Type != nil {
+		elemType = a.typeAnnotationToTypeInfo(expr.Type)
+		for _, elem := range expr.Elements {
+			a.analyzeExpression(elem)
+		}
+	} else if len(expr.Elements) > 0 {
+		// Infer element type from first element
 		elemType = a.analyzeExpression(expr.Elements[0])
 
 		// Check all elements have compatible types
@@ -626,8 +633,6 @@ func (a *Analyzer) analyzeListLiteral(expr *ast.ListLiteralExpr) *TypeInfo {
 				a.error(expr.Pos(), fmt.Sprintf("list element %d: incompatible type %s, expected %s", i+2, et, elemType))
 			}
 		}
-	} else if expr.Type != nil {
-		elemType = a.typeAnnotationToTypeInfo(expr.Type)
 	} else {
 		elemType = &TypeInfo{Kind: TypeKindUnknown}
 	}

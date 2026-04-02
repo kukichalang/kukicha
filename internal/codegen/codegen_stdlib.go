@@ -432,6 +432,20 @@ func (g *Generator) isUnknownSingleReturn(expr ast.Expression) bool {
 	return !ok || ti == nil || ti.Kind == semantic.TypeKindUnknown
 }
 
+// collectionIsIterator reports whether expr returns a range-over-func iterator
+// (iter.Seq or iter.Seq2). Used by for-range codegen to emit the correct number
+// of loop variables.
+func (g *Generator) collectionIsIterator(expr ast.Expression) bool {
+	if g.exprTypes == nil {
+		return false
+	}
+	t, ok := g.exprTypes[expr]
+	if !ok {
+		return false
+	}
+	return t != nil && t.Kind == semantic.TypeKindFunction
+}
+
 func (g *Generator) inferReturnCount(expr ast.Expression) (int, bool) {
 	if g.exprReturnCounts != nil {
 		if count, ok := g.exprReturnCounts[expr]; ok {

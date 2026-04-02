@@ -88,7 +88,7 @@ type ChunkToolCall struct {
 	Index    int                   `json:"index"`
 	ID       string                `json:"id,omitempty"`
 	Type     string                `json:"type,omitempty"`
-	Function ChunkToolCallFunction `json:"function,omitempty"`
+	Function ChunkToolCallFunction `json:"function"`
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:195

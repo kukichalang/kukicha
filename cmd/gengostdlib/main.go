@@ -80,6 +80,7 @@ var packages = []funcSpec{
 	}},
 	{pkg: "strings", funcs: []string{
 		"NewReader", "NewReplacer",
+		"SplitSeq", "FieldsSeq", "FieldsFuncSeq", "SplitAfterSeq", "Lines",
 	}},
 	{pkg: "bytes", funcs: []string{
 		"NewBuffer", "NewBufferString", "NewReader",

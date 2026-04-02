@@ -289,8 +289,9 @@ func ServeHTTP on p reference proxy (w http.ResponseWriter, r reference http.Req
         return
 
     # Sumdb proxy: forward sumdb/ requests to sum.golang.org.
-    if strpkg.HasPrefix(path, "sumdb/")
-        p.handleSumDB(w, r, strpkg.TrimPrefix(path, "sumdb/"))
+    sumdbRest, isSumDB := strpkg.CutPrefix(path, "sumdb/")
+    if isSumDB
+        p.handleSumDB(w, r, sumdbRest)
         return
 
     # Parse GOPROXY path: $module/@v/$request
@@ -503,12 +504,12 @@ func fetchUpstream on p reference proxy (path string) (io.ReadCloser, error)
 
 func parseDuration(s string) (time.Duration, error)
     # Support day suffix: "7d" -> 7 * 24h
-    if strpkg.HasSuffix(s, "d")
-        s = strpkg.TrimSuffix(s, "d")
+    trimmed, isDays := strpkg.CutSuffix(s, "d")
+    if isDays
         days := 0
-        _, scanErr := fmt.Sscanf(s, "%d", reference of days)
+        _, scanErr := fmt.Sscanf(trimmed, "%d", reference of days)
         if scanErr != empty
-            return 0, error "invalid day duration: {s}"
+            return 0, error "invalid day duration: {trimmed}"
         return time.Duration(days) * 24 * time.Hour, empty
     return time.ParseDuration(s)
 
@@ -591,7 +592,7 @@ func main()
     store := createStore(mode, dir)
 
     trustedPrefixes := make(list of string, 0)
-    for _, t in strpkg.Split(trustedStr, ",")
+    for t in strpkg.SplitSeq(trustedStr, ",")
         t = strpkg.TrimSpace(t)
         if t != ""
             trustedPrefixes = append(trustedPrefixes, t)

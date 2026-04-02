@@ -129,11 +129,15 @@ func (g *Generator) generateVarDeclStmt(stmt *ast.VarDeclStmt) {
 	if len(stmt.Names) == 1 && len(stmt.Values) == 1 {
 		if emptyExpr, ok := stmt.Values[0].(*ast.EmptyExpr); ok {
 			if emptyExpr.Type != nil {
-				targetType := g.generateTypeAnnotation(emptyExpr.Type)
-				if g.isLikelyInterfaceType(targetType) {
+				zeroVal := g.zeroValueForType(emptyExpr.Type)
+				if zeroVal == "nil" {
+					// Pointer/channel/function/interface types: use var declaration
+					// to get a typed nil instead of untyped nil.
+					targetType := g.generateTypeAnnotation(emptyExpr.Type)
 					g.writeLine(fmt.Sprintf("var %s %s", stmt.Names[0].Value, targetType))
 					return
 				}
+				// Slice/map/named types: fall through to use zero-value initializer.
 			} else {
 				// Untyped empty → var x any
 				g.writeLine(fmt.Sprintf("var %s any", stmt.Names[0].Value))
@@ -477,8 +481,10 @@ func (g *Generator) generateForRangeStmt(stmt *ast.ForRangeStmt) {
 			g.writeLine(fmt.Sprintf("for %s, %s := range %s {", stmt.Index.Value, stmt.Variable.Value, collection))
 		}
 	} else {
-		// In stdlib/iter, all range loops are over iter.Seq which yields one value
-		if g.isStdlibIter {
+		// Use single-variable form for iter.Seq iterators (range-over-func).
+		// Detected by: stdlib/iter package, or collection expression typed as function.
+		isIterator := g.isStdlibIter || g.collectionIsIterator(stmt.Collection)
+		if isIterator {
 			g.writeLine(fmt.Sprintf("for %s := range %s {", stmt.Variable.Value, collection))
 		} else {
 			g.writeLine(fmt.Sprintf("for _, %s := range %s {", stmt.Variable.Value, collection))

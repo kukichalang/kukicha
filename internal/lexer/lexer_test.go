@@ -874,6 +874,16 @@ func TestErrorCases(t *testing.T) {
 `,
 			expectedMsg: "indentation error: indentation can only increase by 4 spaces at a time (jumped from 0 to 8)",
 		},
+		{
+			name:        "NUL byte in double-quoted string",
+			input:       "\"hello\x00world\"",
+			expectedMsg: "invalid character (NUL)",
+		},
+		{
+			name:        "NUL byte in single-quoted string",
+			input:       "'\x00'",
+			expectedMsg: "invalid character (NUL)",
+		},
 	}
 
 	for _, tt := range tests {

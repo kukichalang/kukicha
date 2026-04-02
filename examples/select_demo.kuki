@@ -1,9 +1,9 @@
 # select_demo.kuki - demonstrates select statement for channel multiplexing
 
 func main()
-    ch := make channel of string
-    done := make channel of bool
-    out := make channel of string, 1
+    ch := make(channel of string)
+    done := make(channel of bool)
+    out := make(channel of string, 1)
 
     # Send a message in a goroutine
     go
