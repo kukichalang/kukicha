@@ -602,6 +602,17 @@ func (s *ExpressionStmt) TokenLiteral() string { return s.Expression.TokenLitera
 func (s *ExpressionStmt) Pos() Position        { return s.Expression.Pos() }
 func (s *ExpressionStmt) stmtNode()            {}
 
+// TypeDeclStmt wraps a TypeDecl that appeared inside a function body.
+// The parser accepts it syntactically so that semantic analysis can
+// produce a clear error — keeping validation in the semantic pass.
+type TypeDeclStmt struct {
+	Decl *TypeDecl
+}
+
+func (s *TypeDeclStmt) TokenLiteral() string { return s.Decl.TokenLiteral() }
+func (s *TypeDeclStmt) Pos() Position        { return s.Decl.Pos() }
+func (s *TypeDeclStmt) stmtNode()            {}
+
 // ============================================================================
 // Expressions
 // ============================================================================

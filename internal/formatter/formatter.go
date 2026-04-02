@@ -311,6 +311,15 @@ func (p *PrinterWithComments) printStatementWithComments(stmt ast.Statement) {
 		p.writeLine("continue")
 	case *ast.ExpressionStmt:
 		p.writeLine(p.exprToString(s.Expression))
+	case *ast.TypeDeclStmt:
+		// Type declarations inside functions are rejected by semantic analysis,
+		// but the formatter should preserve them so the user sees the error.
+		p.writeLine(fmt.Sprintf("type %s", s.Decl.Name.Value))
+		p.indentLevel++
+		for _, f := range s.Decl.Fields {
+			p.writeLine(fmt.Sprintf("%s %s", f.Name.Value, p.typeAnnotationToString(f.Type)))
+		}
+		p.indentLevel--
 	}
 }
 

@@ -504,9 +504,50 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 	}
 }
 
+// isIdentifierToken reports whether the token type can appear where an
+// identifier is expected.  In addition to TOKEN_IDENTIFIER itself, many
+// Kukicha keywords map to words that are valid Go identifiers and commonly
+// appear as method, field, or parameter names (e.g. obj.close(), db.select(),
+// registry.list()).  Only tokens with structural/control-flow meaning that
+// would be genuinely ambiguous in identifier position are excluded.
+func isIdentifierToken(t lexer.TokenType) bool {
+	switch t {
+	case lexer.TOKEN_IDENTIFIER,
+		// Keywords accepted as identifiers — these are Go builtins or
+		// common English words that users need as field/method names.
+		lexer.TOKEN_EMPTY,    // empty / nil — already accepted pre-existing
+		lexer.TOKEN_ERROR,    // error — Go's error type, very common field name
+		lexer.TOKEN_CLOSE,    // close — Go builtin, common method name
+		lexer.TOKEN_MAKE,     // make — factory methods
+		lexer.TOKEN_SEND,     // send — networking/messaging APIs
+		lexer.TOKEN_RECEIVE,  // receive — networking/messaging APIs
+		lexer.TOKEN_PANIC,    // panic — Go builtin, plausible method name
+		lexer.TOKEN_RECOVER,  // recover — Go builtin, plausible method name
+		lexer.TOKEN_MAP,      // map — functional .map() methods
+		lexer.TOKEN_LIST,     // list — registry.list(), very common
+		lexer.TOKEN_CHANNEL,  // channel — plausible field name
+		lexer.TOKEN_SELECT,   // select — db.select(), query builders
+		lexer.TOKEN_TYPE,     // type — node.type, very common field name
+		lexer.TOKEN_SKILL,    // skill — plausible field name
+		lexer.TOKEN_ENUM,     // enum — plausible field name
+		lexer.TOKEN_ON,       // on — event.on(), event APIs
+		lexer.TOKEN_OF,       // of — plausible field name
+		lexer.TOKEN_AS,       // as — converter.as()
+		lexer.TOKEN_FROM,     // from — range.from, query builders
+		lexer.TOKEN_TO,       // to — range.to, query builders
+		lexer.TOKEN_IN,       // in — plausible field name
+		lexer.TOKEN_DEFAULT,  // default/otherwise — config.default
+		lexer.TOKEN_DISCARD,  // discard — plausible method name
+		lexer.TOKEN_MANY:     // many — plausible field name
+		return true
+	default:
+		return false
+	}
+}
+
 func (p *Parser) parseIdentifier() *ast.Identifier {
 	token := p.advance()
-	if token.Type != lexer.TOKEN_IDENTIFIER && token.Type != lexer.TOKEN_EMPTY && token.Type != lexer.TOKEN_ERROR && token.Type != lexer.TOKEN_CLOSE {
+	if !isIdentifierToken(token.Type) {
 		p.error(token, "expected identifier")
 		// Return a sentinel so callers don't need nil checks.
 		// The error is already recorded; codegen will not run.

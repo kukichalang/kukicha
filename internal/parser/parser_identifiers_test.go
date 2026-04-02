@@ -160,6 +160,52 @@ func TestErrorKeywordStillWorks(t *testing.T) {
 	}
 }
 
+func TestKeywordsAsMethodNames(t *testing.T) {
+	// Keywords that are valid Go identifiers should work as method names
+	// after the dot operator (e.g., obj.close(), conn.send(), db.select()).
+	keywords := []string{
+		"close", "make", "send", "receive", "panic", "recover",
+		"map", "list", "channel", "select", "type", "enum",
+		"on", "of", "as", "from", "to", "in", "default", "discard", "many",
+		"skill",
+	}
+	for _, kw := range keywords {
+		t.Run(kw, func(t *testing.T) {
+			input := `func Main()
+    obj.` + kw + `()
+`
+			p, err := New(input, "test.kuki")
+			if err != nil {
+				t.Fatalf("lexer error: %v", err)
+			}
+			_, errs := p.Parse()
+			if len(errs) > 0 {
+				t.Fatalf("expected no parse errors for obj.%s(), got: %v", kw, errs)
+			}
+		})
+	}
+}
+
+func TestKeywordsAsFieldNames(t *testing.T) {
+	// Keywords should also work as field names in struct access.
+	keywords := []string{"close", "type", "list", "map", "select", "default"}
+	for _, kw := range keywords {
+		t.Run(kw, func(t *testing.T) {
+			input := `func Main()
+    x := obj.` + kw + `
+`
+			p, err := New(input, "test.kuki")
+			if err != nil {
+				t.Fatalf("lexer error: %v", err)
+			}
+			_, errs := p.Parse()
+			if len(errs) > 0 {
+				t.Fatalf("expected no parse errors for obj.%s, got: %v", kw, errs)
+			}
+		})
+	}
+}
+
 func TestDirectiveAttachedToFunction(t *testing.T) {
 	input := `# kuki:deprecated "Use NewFunc instead"
 func OldFunc() string

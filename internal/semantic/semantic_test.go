@@ -366,3 +366,26 @@ func UseAlias(h ctxpkg.Handle) ctxpkg.Handle
 		}
 	}
 }
+
+func TestTypeDeclInsideFunctionRejected(t *testing.T) {
+	input := `func Main()
+    type Foo
+        x int
+`
+
+	_, errors := analyzeSource(t, input)
+	if len(errors) == 0 {
+		t.Fatal("expected error for type declaration inside function")
+	}
+
+	found := false
+	for _, err := range errors {
+		if strings.Contains(err.Error(), "top level") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected 'top level' error, got: %v", errors)
+	}
+}

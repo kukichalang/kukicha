@@ -290,6 +290,13 @@ func (p *Printer) printStatement(stmt ast.Statement) {
 		p.writeLine("continue")
 	case *ast.ExpressionStmt:
 		p.writeLine(p.exprToString(s.Expression) + p.onErrSuffix(s.OnErr))
+	case *ast.TypeDeclStmt:
+		p.writeLine(fmt.Sprintf("type %s", s.Decl.Name.Value))
+		p.indentLevel++
+		for _, f := range s.Decl.Fields {
+			p.writeLine(fmt.Sprintf("%s %s", f.Name.Value, p.typeAnnotationToString(f.Type)))
+		}
+		p.indentLevel--
 	}
 }
 
@@ -492,8 +499,16 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 	case *ast.Identifier:
 		return e.Value
 	case *ast.IntegerLiteral:
+		// Preserve original lexeme for prefixed/underscored literals
+		if lexeme := e.Token.Lexeme; len(lexeme) > 1 && (lexeme[0] == '0' || strings.Contains(lexeme, "_")) {
+			return lexeme
+		}
 		return fmt.Sprintf("%d", e.Value)
 	case *ast.FloatLiteral:
+		// Preserve original lexeme for underscored float literals
+		if strings.Contains(e.Token.Lexeme, "_") {
+			return e.Token.Lexeme
+		}
 		return fmt.Sprintf("%g", e.Value)
 	case *ast.StringLiteral:
 		return p.stringLiteralToString(e)

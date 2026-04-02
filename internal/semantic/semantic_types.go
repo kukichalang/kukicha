@@ -248,6 +248,14 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 			return true
 		}
 
+		// Qualified named types from external packages (e.g., "mypkg.Handler")
+		// might be interfaces — we can't resolve their definitions at Kukicha
+		// compile time, so defer the check to the Go compiler.
+		if (t1.Kind == TypeKindNamed && strings.Contains(t1.Name, ".")) ||
+			(t2.Kind == TypeKindNamed && strings.Contains(t2.Name, ".")) {
+			return true
+		}
+
 		return false
 	}
 
