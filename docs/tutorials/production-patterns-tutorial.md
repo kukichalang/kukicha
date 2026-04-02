@@ -47,9 +47,9 @@ function SaveLinks(links map of string to Link, filename string) error
     return empty
 
 function LoadLinks(filename string) (map of string to Link, error)
-    data := files.Read(filename) onerr explain "failed to read links file"
+    data := files.ReadString(filename) onerr explain "failed to read links file"
     links := map of string to Link{}
-    data |> json.Unmarshal(_, reference of links) onerr explain "failed to parse links JSON"
+    json.UnmarshalString(data, reference of links) onerr explain "failed to parse links JSON"
     return links, empty
 ```
 
@@ -673,7 +673,7 @@ import "stdlib/errors"
 function LoadConfig(path string) (Config, error)
     data := files.ReadString(path) onerr return Config{}, errors.Wrap(error, "load config")
     cfg := Config{}
-    json.Unmarshal(data, reference of cfg) onerr return Config{}, errors.Wrap(error, "parse config")
+    json.UnmarshalString(data, reference of cfg) onerr return Config{}, errors.Wrap(error, "parse config")
     return cfg, empty
 ```
 

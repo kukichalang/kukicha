@@ -99,16 +99,16 @@ Inline error handling for functions that return `(T, error)`.
 
 ```kukicha
 # Panic on error
-data := files.Read("config.json") onerr panic "failed to read: {error}"
+data := files.ReadString("config.json") onerr panic "failed to read: {error}"
 
 # Return default value
 config := parse(data) onerr DefaultConfig
 
 # Propagate — passes the original error to the caller
-data := files.Read("config.json") onerr return
+data := files.ReadString("config.json") onerr return
 
 # Wrap and propagate — adds context before returning
-data := files.Read("config.json") onerr explain "loading config"
+data := files.ReadString("config.json") onerr explain "loading config"
 
 # Discard — explicitly ignore the error
 _ := riskyOp() onerr discard
