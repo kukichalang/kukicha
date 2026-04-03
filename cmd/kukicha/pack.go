@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,6 +14,22 @@ import (
 	"github.com/kukichalang/kukicha/internal/ast"
 	"gopkg.in/yaml.v3"
 )
+
+func packMain(args []string) {
+	packFlags := flag.NewFlagSet("pack", flag.ContinueOnError)
+	packFlags.SetOutput(os.Stderr)
+	outputDir := packFlags.String("output", "", "Output directory")
+	if err := packFlags.Parse(args); err != nil {
+		fmt.Fprintln(os.Stderr, "Usage: kukicha pack [--output <dir>] <skill.kuki>")
+		os.Exit(1)
+	}
+	packArgs := packFlags.Args()
+	if len(packArgs) < 1 {
+		fmt.Fprintln(os.Stderr, "Usage: kukicha pack [--output <dir>] <skill.kuki>")
+		os.Exit(1)
+	}
+	packCommand(packArgs[0], *outputDir)
+}
 
 func packCommand(filename string, outputDir string) {
 	cr := compile(filename, "", "mcp", false)

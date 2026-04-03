@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -82,17 +83,25 @@ func runAudit(opts AuditOptions) int {
 	return 0
 }
 
-// auditCommand is the entry point called from the main command switch.
-func auditCommand(args []string, jsonFlag bool, warnOnly bool) {
+func auditMain(args []string) {
+	auditFlags := flag.NewFlagSet("audit", flag.ContinueOnError)
+	auditFlags.SetOutput(os.Stderr)
+	jsonFlag := auditFlags.Bool("json", false, "Output in JSON format")
+	warnOnly := auditFlags.Bool("warn-only", false, "Exit 0 even if vulnerabilities are found")
+	if err := auditFlags.Parse(args); err != nil {
+		fmt.Fprintln(os.Stderr, "Usage: kukicha audit [--json] [--warn-only] [dir]")
+		os.Exit(1)
+	}
+
 	dir := "."
-	if len(args) > 0 {
-		dir = args[0]
+	if remaining := auditFlags.Args(); len(remaining) > 0 {
+		dir = remaining[0]
 	}
 
 	code := runAudit(AuditOptions{
 		Dir:      dir,
-		JSON:     jsonFlag,
-		WarnOnly: warnOnly,
+		JSON:     *jsonFlag,
+		WarnOnly: *warnOnly,
 	})
 	if code != 0 {
 		os.Exit(code)

@@ -15,22 +15,27 @@ The primary `kukicha` binary. Subcommands:
 
 | Command | File | Description |
 |---------|------|-------------|
-| `build` | `main.go` | Transpile `.kuki` to `.go`, then `go build`. Flags: `--target`, `--skip-build`, `--if-changed`, `--vulncheck`, `--wasm` |
-| `run` | `main.go` | Transpile to a temp `.go` file and `go run` it. Passes extra args to the script |
-| `check` | `main.go` | Parse + semantic analysis only (no codegen). Accepts multiple targets. Flags: `--strict-onerr`, `--json` |
+| `build` | `build.go` | Transpile `.kuki` to `.go`, then `go build`. Flags: `--target`, `--skip-build`, `--if-changed`, `--vulncheck`, `--wasm` |
+| `run` | `run.go` | Transpile to a temp `.go` file and `go run` it. Passes extra args to the script |
+| `check` | `check.go` | Parse + semantic analysis only (no codegen). Accepts multiple targets. Flags: `--strict-onerr`, `--json` |
 | `fmt` | `fmt.go` | Format `.kuki` files (tabs→spaces, trailing whitespace, brace conversion). Flags: `-w`, `--check` |
 | `pack` | `pack.go` | Package a skill declaration into a directory with `SKILL.md` + compiled binary |
 | `audit` | `audit.go` | Run `govulncheck` against project dependencies. Flags: `--json`, `--warn-only` |
 | `init` | `init.go` | Initialize a Kukicha project (`go mod init`, extract stdlib, update AGENTS.md) |
 | `version` | `main.go` | Print version from `internal/version/version.go` |
 
-Key internal functions in `main.go`:
+`main.go` is a thin dispatcher (~63 lines) that routes to `*Main(args)` entry points in each subcommand file.
+
+Key internal functions in `compile.go`:
 
 - **`compile()`** — Shared pipeline: resolve path → parse → analyze → detect target → codegen → gofmt. Returns `compileResult` used by `build`, `run`, and `pack`.
 - **`loadAndAnalyze()`** — Parse + semantic analysis, returns AST + return counts + expr types.
 - **`rewriteGoErrors()`** — Replaces generated `.go` file paths in Go compiler stderr with original `.kuki` paths.
 - **`rewriteVarNames()`** — Scans stderr for generated temp variable names (`pipe_N`, `err_N`) and appends a "variable hints" section mapping them to source descriptions from `compileResult.varMap`.
 - **`stripFirstLine()`** — Strips first line (header comment) for `--if-changed` body comparison.
+
+Key internal functions in `build.go`:
+
 - **`wasmScaffold()`** — Copies `wasm_exec.js` from Go installation and generates `index.html` for `--wasm` builds.
 - **`setEnvVar()`** — Sets or replaces an environment variable in an env slice (used for WASM cross-compilation).
 

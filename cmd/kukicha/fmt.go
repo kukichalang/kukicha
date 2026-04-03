@@ -9,7 +9,7 @@ import (
 	"github.com/kukichalang/kukicha/internal/formatter"
 )
 
-func fmtCommand(args []string) {
+func fmtMain(args []string) {
 	if len(args) == 0 {
 		fmt.Println("Usage: kukicha fmt [options] <file.kuki|directory>")
 		fmt.Println()
