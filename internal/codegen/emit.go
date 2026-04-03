@@ -18,6 +18,9 @@ func (g *Generator) emitIR(block *ir.Block) {
 }
 
 func (g *Generator) emitIRPos(pos ir.SourcePos) {
+	if g.stripLineDirectives {
+		return
+	}
 	if pos.Line > 0 && pos.File != "" {
 		fmt.Fprintf(&g.output, "//line %s:%d\n", pos.File, pos.Line)
 	}

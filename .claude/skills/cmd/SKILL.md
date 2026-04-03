@@ -19,6 +19,7 @@ The primary `kukicha` binary. Subcommands:
 | `run` | `run.go` | Transpile to a temp `.go` file and `go run` it. Passes extra args to the script |
 | `check` | `check.go` | Parse + semantic analysis only (no codegen). Accepts multiple targets. Flags: `--strict-onerr`, `--json` |
 | `fmt` | `fmt.go` | Format `.kuki` files (tabs→spaces, trailing whitespace, brace conversion). Flags: `-w`, `--check` |
+| `brew` | `brew.go` | Convert `.kuki` to standalone Go (no header, no `//line`). Flags: `--stdout`, `--remove-kuki` |
 | `pack` | `pack.go` | Package a skill declaration into a directory with `SKILL.md` + compiled binary |
 | `audit` | `audit.go` | Run `govulncheck` against project dependencies. Flags: `--json`, `--warn-only` |
 | `init` | `init.go` | Initialize a Kukicha project (`go mod init`, extract stdlib, update AGENTS.md) |

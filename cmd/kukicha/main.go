@@ -32,6 +32,8 @@ func main() {
 		packMain(args)
 	case "audit":
 		auditMain(args)
+	case "brew":
+		brewMain(args)
 	case "init":
 		initCommand(args)
 	case "version":
@@ -56,6 +58,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  kukicha fmt [options] <files>  Fix indentation and normalize style")
 	fmt.Fprintln(os.Stderr, "    -w          Write result to file instead of stdout")
 	fmt.Fprintln(os.Stderr, "    --check     Check if files are formatted (exit 1 if not)")
+	fmt.Fprintln(os.Stderr, "  kukicha brew [--stdout] [--remove-kuki] <file.kuki|dir>  Convert Kukicha to standalone Go")
 	fmt.Fprintln(os.Stderr, "  kukicha pack [--output dir] <skill.kuki>  Package skill for distribution")
 	fmt.Fprintln(os.Stderr, "  kukicha init [module-name]  Initialize project (go mod init + extract stdlib)")
 	fmt.Fprintln(os.Stderr, "  kukicha version             Show version information")

@@ -120,20 +120,21 @@ func (g *Generator) Warnings() []error {
 // discovered during child generation are visible to the parent.
 func (g *Generator) childGenerator(extraIndent int) *Generator {
 	return &Generator{
-		program:            g.program,
-		indent:             g.indent + extraIndent,
-		placeholderMap:     g.placeholderMap,
-		autoImports:        g.autoImports,
-		pkgAliases:         g.pkgAliases,
-		funcDefaults:       g.funcDefaults,
-		isStdlibIter:       g.isStdlibIter,
-		sourceFile:         g.sourceFile,
-		exprTypes:          g.exprTypes,
-		exprReturnCounts:   g.exprReturnCounts,
-		currentReturnIndex: -1,
-		stdlibModuleBase:   g.stdlibModuleBase,
-		reservedNames:      g.reservedNames,
-		enumTypes:          g.enumTypes,
+		program:             g.program,
+		indent:              g.indent + extraIndent,
+		placeholderMap:      g.placeholderMap,
+		autoImports:         g.autoImports,
+		pkgAliases:          g.pkgAliases,
+		funcDefaults:        g.funcDefaults,
+		isStdlibIter:        g.isStdlibIter,
+		sourceFile:          g.sourceFile,
+		exprTypes:           g.exprTypes,
+		exprReturnCounts:    g.exprReturnCounts,
+		currentReturnIndex:  -1,
+		stdlibModuleBase:    g.stdlibModuleBase,
+		reservedNames:       g.reservedNames,
+		enumTypes:           g.enumTypes,
+		stripLineDirectives: g.stripLineDirectives,
 	}
 }
 
