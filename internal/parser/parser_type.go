@@ -47,6 +47,15 @@ func (p *Parser) parseTypeAnnotation() ast.TypeAnnotation {
 			ElementType: elementType,
 		}
 
+	case lexer.TOKEN_STAR:
+		// *T — Go pointer syntax alias for "reference T"
+		token := p.advance() // consume '*'
+		elementType := p.parseTypeAnnotation()
+		return &ast.ReferenceType{
+			Token:       token,
+			ElementType: elementType,
+		}
+
 	case lexer.TOKEN_LIST:
 		token := p.advance()
 		p.consume(lexer.TOKEN_OF, "expected 'of' after 'list'")

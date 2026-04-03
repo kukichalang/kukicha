@@ -36,7 +36,7 @@ func (p *Parser) parseExpression() ast.Expression {
 func (p *Parser) parseOrExpr() ast.Expression {
 	left := p.parsePipeExpr()
 
-	for p.match(lexer.TOKEN_OR) {
+	for p.match(lexer.TOKEN_OR, lexer.TOKEN_OR_OR) {
 		operator := p.previousToken()
 		right := p.parsePipeExpr()
 		left = &ast.BinaryExpr{
@@ -88,7 +88,7 @@ func (p *Parser) parsePipeExpr() ast.Expression {
 func (p *Parser) parseAndExpr() ast.Expression {
 	left := p.parseBitwiseOrExpr()
 
-	for p.match(lexer.TOKEN_AND) {
+	for p.match(lexer.TOKEN_AND, lexer.TOKEN_AND_AND) {
 		operator := p.previousToken()
 		right := p.parseBitwiseOrExpr()
 		left = &ast.BinaryExpr{
@@ -211,6 +211,16 @@ func (p *Parser) parseUnaryExpr() ast.Expression {
 			Token:    operator,
 			Operator: operator.Lexeme,
 			Right:    right,
+		}
+	}
+
+	// Handle &expr — Go address-of syntax
+	if p.match(lexer.TOKEN_BIT_AND) {
+		ampToken := p.previousToken()
+		operand := p.parseUnaryExpr()
+		return &ast.AddressOfExpr{
+			Token:   ampToken,
+			Operand: operand,
 		}
 	}
 

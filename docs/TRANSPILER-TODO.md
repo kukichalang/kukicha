@@ -213,34 +213,38 @@ The adoption cliff kills interest before users see the value.
 unchanged. Kukicha features (`onerr`, pipes, `and`/`or`, indentation blocks,
 `list of`, `enum`) are opt-in enhancements on top of standard Go.
 
-### Phase 1: Operator and Keyword Aliases
+### Phase 1: Operator and Keyword Aliases ✅
 
 Accept Go's native forms alongside Kukicha's English forms. Both compile
 to identical output.
 
-- [ ] Lexer: accept `&&` as alias for `and`
-- [ ] Lexer: accept `||` as alias for `or`
-- [ ] Lexer: accept `!` as alias for `not`
-- [ ] Lexer: accept `nil` as alias for `empty`
-- [ ] Lexer: accept `==` as alias for `equals` (already partial?)
-- [ ] Lexer: accept `!=` as alias for `isnt` (already partial?)
-- [ ] Parser: accept `*T` as alias for `reference T`
-- [ ] Parser: accept `&x` as alias for `reference of x`
-- [ ] Parser: accept `[]T` as alias for `list of T` (already partial?)
-- [ ] Parser: accept `map[K]V` as alias for `map of K to V` (already partial?)
-- [ ] Tests: each alias produces identical codegen output as the Kukicha form
+- [x] Lexer: accept `&&` as alias for `and`
+- [x] Lexer: accept `||` as alias for `or`
+- [x] Lexer: accept `!` as alias for `not`
+- [x] Lexer: accept `nil` as alias for `empty`
+- [x] Lexer: accept `==` as alias for `equals`
+- [x] Lexer: accept `!=` as alias for `isnt`
+- [x] Parser: accept `*T` as alias for `reference T`
+- [x] Parser: accept `&x` as alias for `reference of x`
+- [x] Parser: accept `[]T` as alias for `list of T`
+- [x] Parser: accept `map[K]V` as alias for `map of K to V`
+- [x] Tests: each alias produces identical codegen output as the Kukicha form
 
-### Phase 2: Brace Blocks
+### Phase 2: Brace Blocks ✅
 
 Accept `{ }` blocks as alternative to indentation. Mixed styles within a
 file should work (indentation for Kukicha-style functions, braces for
 Go-style).
 
-- [ ] Lexer: recognize `{` / `}` as block delimiters (currently indent/dedent only)
-- [ ] Parser: accept brace-delimited blocks anywhere indent blocks are accepted
-- [ ] Handle mixed mode: braces suppress indent/dedent tracking within that block
+- [x] Lexer: recognize `{` / `}` as block delimiters — block braces emit
+  INDENT/DEDENT (transparent to parser); literal braces unchanged
+- [x] Parser: brace blocks work everywhere indent blocks are accepted
+  (no parser changes needed — lexer converts block braces to INDENT/DEDENT)
+- [x] Handle mixed mode: braces suppress indent/dedent tracking within that block
 - [ ] Ensure `kukicha fmt` normalizes to indentation style (configurable later)
-- [ ] Tests: Go-style `if err != nil { return err }` compiles as-is
+- [x] Tests: Go-style `if err != nil { return err }` compiles as-is
+- [x] Tests: nested brace blocks, single-line brace blocks, mixed files,
+  if/else/for/defer with braces, Go-style operators + braces combined
 
 ### Phase 3: Go Method and Function Syntax
 

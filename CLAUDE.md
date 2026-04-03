@@ -6,23 +6,23 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 
 ## Kukicha vs Go Syntax (Common AI Mistakes)
 
-| Go | Kukicha |
-|----|---------|
-| `&&`, `\|\|`, `!` | `and`, `or`, `not` |
-| `[]string` | `list of string` (or `[]string`) |
-| `map[string]int` | `map of string to int` (or `map[string]int`) |
-| `*User` | `reference User` |
-| `&user` | `reference of user` |
-| `*ptr` | `dereference ptr` |
-| `nil` | `empty` (also usable as variable name) |
-| `{ }` braces | 4-space indentation |
-| `==` | `equals` (or `==`) |
-| `!=` | `isnt` (or `!=`) |
-| `func (t T) Method()` | `func Method on t T` |
-| `func(x T) T { return expr }` | `(x T) => expr` |
-| `go func() { ... }()` | `go` + indented block |
-| `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` |
-| (no ternary) | `if COND then EXPR else EXPR` (if-expression) |
+| Go | Kukicha | Both accepted? |
+|----|---------|----------------|
+| `&&`, `\|\|`, `!` | `and`, `or`, `not` | Yes |
+| `[]string` | `list of string` (or `[]string`) | Yes |
+| `map[string]int` | `map of string to int` (or `map[string]int`) | Yes |
+| `*User` | `reference User` (or `*User`) | Yes |
+| `&user` | `reference of user` (or `&user`) | Yes |
+| `*ptr` | `dereference ptr` | |
+| `nil` | `empty` (or `nil`) | Yes |
+| `{ }` braces | 4-space indentation | Yes |
+| `==` | `equals` (or `==`) | Yes |
+| `!=` | `isnt` (or `!=`) | Yes |
+| `func (t T) Method()` | `func Method on t T` | Not yet |
+| `func(x T) T { return expr }` | `(x T) => expr` | |
+| `go func() { ... }()` | `go` + indented block | |
+| `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` | |
+| (no ternary) | `if COND then EXPR else EXPR` (if-expression) | |
 
 ## Keyword Aliases (English-Friendly Forms)
 

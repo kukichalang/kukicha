@@ -53,11 +53,30 @@ Kukicha is indentation-sensitive. The lexer converts 4-space indentation changes
 - Blank lines and comment-only lines do not affect the indent stack
 - Error messages include actionable detail (e.g., nearest valid indent level, valid dedent targets)
 
+### Brace block support (Go syntax passthrough)
+
+Kukicha accepts Go-style `{ }` brace blocks as an alternative to indentation. The lexer converts block braces into `TOKEN_INDENT` / `TOKEN_DEDENT`, making them transparent to the parser (zero parser changes needed).
+
+**Three new lexer fields:**
+- `blockKeywordSeen bool` — set to `true` after a block keyword (`if`, `for`, `func`, `switch`, `else`, `select`, `go`, `defer`); cleared on `TOKEN_NEWLINE`, `TOKEN_INDENT`, or `TOKEN_OF`
+- `braceStack []bool` — tracks whether each `{` was a block brace (`true`) or literal brace (`false`), so the matching `}` emits the correct token
+- `braceBlockDepth int` — count of currently open block braces; suppresses indentation handling inside brace blocks
+
+**`{` handling:** If `blockKeywordSeen` is true, the `{` is a block brace → push `true` to `braceStack`, increment `braceBlockDepth`, emit `TOKEN_INDENT`. Otherwise it's a literal brace → push `false`, increment `braceDepth`, emit `TOKEN_LBRACE`.
+
+**`}` handling:** Pop from `braceStack`. If the entry was `true` (block) → decrement `braceBlockDepth`, emit `TOKEN_DEDENT`. If `false` (literal) → decrement `braceDepth`, emit `TOKEN_RBRACE`.
+
+**Indentation suppression:** When `braceBlockDepth > 0`, leading whitespace on new lines is consumed without emitting INDENT/DEDENT tokens.
+
+**`TOKEN_OF` clearing:** `blockKeywordSeen` is cleared on `TOKEN_OF` because `for item in list of T{...}` is always a type+literal pattern, not a block brace.
+
+**Known limitation (same as Go):** Composite literals inside `if`/`for`/`switch` conditions with brace blocks require parentheses to disambiguate: `if x == (MyStruct{}) { ... }`.
+
 ### Line continuation
 
 `TOKEN_NEWLINE` is suppressed (continuation mode) in two ways:
 
-**Inline (during tokenization):** Inside `[]` or `{}` (`braceDepth > 0`), `TOKEN_NEWLINE` is suppressed and `continuationLine` is set so the next line's indentation is consumed without emitting INDENT/DEDENT. `()` (parentheses) do NOT suppress newlines when inside a function literal body — closures need `INDENT/DEDENT` for their block structure.
+**Inline (during tokenization):** Inside `[]` or literal `{}` (`braceDepth > 0`), `TOKEN_NEWLINE` is suppressed and `continuationLine` is set so the next line's indentation is consumed without emitting INDENT/DEDENT. Note: `braceDepth` only tracks `[]` and literal braces (struct/map literals), NOT block braces (which use `braceBlockDepth` instead). `()` (parentheses) do NOT suppress newlines when inside a function literal body — closures need `INDENT/DEDENT` for their block structure.
 
 **Post-pass (`mergeLineContinuations`):** Pipe continuation (`|>`) and `onerr` on continuation lines are handled after tokenization. The lexer emits NEWLINE/INDENT/DEDENT normally; the post-pass removes them around pipe chains. This decouples pipe handling from the indent stack. Three patterns are merged:
 1. Trailing pipe: `PIPE [COMMENT*] NEWLINE [INDENT*]` → remove NEWLINE and INDENTs

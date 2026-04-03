@@ -33,14 +33,22 @@ type Lexer struct {
 	indentationHandled bool  // Whether indentation has been handled for the current line
 	errors             []error
 
-	// Brace continuation support: inside [] or {}, NEWLINE tokens are
+	// Brace continuation support: inside [] or literal {}, NEWLINE tokens are
 	// suppressed and indentation is consumed without emitting INDENT/DEDENT.
 	// Pipe continuation (|>) is handled separately by mergeLineContinuations
 	// as a post-tokenization pass, decoupling it from the indent stack.
 	continuationLine  bool // true when the next line is inside a brace continuation
-	braceDepth        int  // current nesting level of [], {} (used for continuations)
+	braceDepth        int  // current nesting level of [], literal {} (used for continuations)
 	parenDepth        int  // current nesting level of () (used for closures)
 	inFunctionLiteral bool // true when we've just seen 'func' and are parsing its body
+
+	// Brace block support: { } as alternative to indentation for blocks.
+	// Block braces (after if/for/func/switch/else/select/go/defer) preserve
+	// newline emission and suppress INDENT/DEDENT from indentation.
+	// Literal braces (struct/map/list literals) keep existing behavior.
+	blockKeywordSeen bool   // true after a block keyword (if/for/func/etc.) until { or newline
+	braceStack       []bool // stack tracking block (true) vs literal (false) for each {
+	braceBlockDepth  int    // count of currently open block braces
 
 	// String interpolation support: when scanning a string and encountering
 	// {expr}, the lexer emits TOKEN_STRING_HEAD, returns to normal tokenization
@@ -111,6 +119,16 @@ func (l *Lexer) scanToken() {
 		l.start = l.current // move past consumed whitespace so it is not included in the next token
 		l.indentationHandled = true
 		// Fall through — the next token on this line is scanned normally.
+	}
+
+	// Brace block: inside { } blocks, consume indentation whitespace without
+	// emitting INDENT/DEDENT. The braces define block structure, not indentation.
+	if l.atLineStart && !l.indentationHandled && l.braceBlockDepth > 0 {
+		for !l.isAtEnd() && (l.peek() == ' ' || l.peek() == '\t') {
+			l.advance()
+		}
+		l.start = l.current
+		l.indentationHandled = true
 	}
 
 	// Handle indentation at line start
@@ -203,8 +221,21 @@ func (l *Lexer) scanToken() {
 		if len(l.interpStack) > 0 {
 			l.interpStack[len(l.interpStack)-1].braceDepth++
 		}
-		l.braceDepth++
-		l.addToken(TOKEN_LBRACE)
+		if l.blockKeywordSeen {
+			// Block brace: after if/for/func/switch/else/select/go/defer.
+			// Emit INDENT instead of LBRACE so the parser treats it as a block.
+			// Don't increment braceDepth so newlines are preserved inside.
+			l.braceStack = append(l.braceStack, true)
+			l.braceBlockDepth++
+			l.blockKeywordSeen = false
+			l.addToken(TOKEN_INDENT)
+		} else {
+			// Literal brace: struct/map/list composite literals.
+			// Increment braceDepth to suppress newlines (existing behavior).
+			l.braceStack = append(l.braceStack, false)
+			l.braceDepth++
+			l.addToken(TOKEN_LBRACE)
+		}
 	case '}':
 		if len(l.interpStack) > 0 && l.interpStack[len(l.interpStack)-1].braceDepth == 0 {
 			// End of string interpolation expression — resume string scanning
@@ -217,10 +248,25 @@ func (l *Lexer) scanToken() {
 		if len(l.interpStack) > 0 {
 			l.interpStack[len(l.interpStack)-1].braceDepth--
 		}
-		if l.braceDepth > 0 {
-			l.braceDepth--
+		// Pop brace stack to determine if this was a block or literal brace.
+		if len(l.braceStack) > 0 {
+			wasBlock := l.braceStack[len(l.braceStack)-1]
+			l.braceStack = l.braceStack[:len(l.braceStack)-1]
+			if wasBlock {
+				l.braceBlockDepth--
+				l.addToken(TOKEN_DEDENT)
+			} else {
+				if l.braceDepth > 0 {
+					l.braceDepth--
+				}
+				l.addToken(TOKEN_RBRACE)
+			}
+		} else {
+			if l.braceDepth > 0 {
+				l.braceDepth--
+			}
+			l.addToken(TOKEN_RBRACE)
 		}
-		l.addToken(TOKEN_RBRACE)
 	case ',':
 		l.addToken(TOKEN_COMMA)
 	case '.':
@@ -904,6 +950,19 @@ func (l *Lexer) addTokenWithLexeme(tokenType TokenType, lexeme string) {
 		File:   l.file,
 	}
 	l.tokens = append(l.tokens, token)
+
+	// Track block keywords for brace block detection.
+	// Set blockKeywordSeen when a keyword that introduces a block is emitted;
+	// clear it when the block actually starts (INDENT, LBRACE) or when the
+	// line ends (NEWLINE) — Go-style requires { on the same line.
+	switch tokenType {
+	case TOKEN_IF, TOKEN_FOR, TOKEN_FUNC, TOKEN_SWITCH, TOKEN_ELSE, TOKEN_SELECT, TOKEN_GO, TOKEN_DEFER:
+		l.blockKeywordSeen = true
+	case TOKEN_NEWLINE, TOKEN_INDENT, TOKEN_OF:
+		// Clear on newline/indent (block uses indentation, not braces),
+		// and on 'of' (list of T{...} / map of K to V{...} is a type literal).
+		l.blockKeywordSeen = false
+	}
 }
 
 func (l *Lexer) error(message string) {

@@ -62,7 +62,7 @@ func (p *Parser) parseBlock() *ast.BlockStmt {
 	statements := []ast.Statement{}
 
 	if !p.match(lexer.TOKEN_INDENT) {
-		p.error(token, "expected indented block")
+		p.error(token, "expected indented block or '{'")
 		return &ast.BlockStmt{Token: token, Statements: statements}
 	}
 
@@ -467,7 +467,7 @@ func (p *Parser) parseForStmt() ast.Statement {
 	// for i from start to/through end
 	// for condition
 
-	// Bare for loop: for \n
+	// Bare for loop: for \n (or for { which the lexer converts to INDENT)
 	if p.check(lexer.TOKEN_NEWLINE) || p.check(lexer.TOKEN_INDENT) {
 		p.skipNewlines()
 		body := p.parseBlock()
