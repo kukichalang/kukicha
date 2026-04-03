@@ -477,5 +477,9 @@ func (g *Generator) scanExprForAutoImports(expr ast.Expression) {
 		}
 	case *ast.PipedSwitchExpr:
 		g.scanExprForAutoImports(e.Left)
+	case *ast.IfExpression:
+		g.scanExprForAutoImports(e.Condition)
+		g.scanExprForAutoImports(e.Then)
+		g.scanExprForAutoImports(e.Else)
 	}
 }

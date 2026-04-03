@@ -22,6 +22,7 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 | `func(x T) T { return expr }` | `(x T) => expr` |
 | `go func() { ... }()` | `go` + indented block |
 | `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` |
+| (no ternary) | `if COND then EXPR else EXPR` (if-expression) |
 
 ## Keyword Aliases (English-Friendly Forms)
 

@@ -235,6 +235,14 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 	case *ast.BlockExpr:
 		a.analyzeBlock(e.Body)
 		return &TypeInfo{Kind: TypeKindUnknown}
+	case *ast.IfExpression:
+		a.analyzeExpression(e.Condition)
+		thenType := a.analyzeExpression(e.Then)
+		a.analyzeExpression(e.Else)
+		if thenType != nil {
+			return thenType
+		}
+		return &TypeInfo{Kind: TypeKindUnknown}
 	default:
 		return &TypeInfo{Kind: TypeKindUnknown}
 	}

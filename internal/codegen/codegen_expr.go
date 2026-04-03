@@ -205,6 +205,8 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return fmt.Sprintf("%s.(%s)", expr, targetType)
 	case *ast.PipedSwitchExpr:
 		return g.generatePipedSwitchExpr(e)
+	case *ast.IfExpression:
+		return g.generateIfExpression(e)
 	default:
 		pos := expr.Pos()
 		panic(fmt.Sprintf("codegen: unhandled expression type %T at %s:%d:%d", expr, pos.File, pos.Line, pos.Column))
@@ -372,6 +374,50 @@ func (g *Generator) inferExprType(expr ast.Expression) string {
 		return "bool"
 	}
 	return ""
+}
+
+// generateIfExpression emits an if-expression as a Go IIFE:
+//
+//	func() T { if COND { return THEN } else { return ELSE } }()
+func (g *Generator) generateIfExpression(expr *ast.IfExpression) string {
+	retType := g.inferExprType(expr)
+	if retType == "" {
+		// Try inferring from the Then branch
+		retType = g.inferExprType(expr.Then)
+	}
+	if retType == "" {
+		retType = "any"
+	}
+
+	cond := g.exprToString(expr.Condition)
+	thenVal := g.exprToString(expr.Then)
+
+	// For chained else-if, recurse — the nested IfExpression becomes another if/else
+	var elseCode string
+	if nested, ok := expr.Else.(*ast.IfExpression); ok {
+		elseCond := g.exprToString(nested.Condition)
+		elseThen := g.exprToString(nested.Then)
+		elseCode = g.buildIfExprElseChain(nested, elseCond, elseThen)
+	} else {
+		elseVal := g.exprToString(expr.Else)
+		elseCode = fmt.Sprintf("{ return %s }", elseVal)
+	}
+
+	return fmt.Sprintf("func() %s { if %s { return %s } else %s }()", retType, cond, thenVal, elseCode)
+}
+
+// buildIfExprElseChain recursively builds the else-if chain for nested IfExpressions.
+func (g *Generator) buildIfExprElseChain(expr *ast.IfExpression, cond, thenVal string) string {
+	var elseCode string
+	if nested, ok := expr.Else.(*ast.IfExpression); ok {
+		elseCond := g.exprToString(nested.Condition)
+		elseThen := g.exprToString(nested.Then)
+		elseCode = g.buildIfExprElseChain(nested, elseCond, elseThen)
+	} else {
+		elseVal := g.exprToString(expr.Else)
+		elseCode = fmt.Sprintf("{ return %s }", elseVal)
+	}
+	return fmt.Sprintf("if %s { return %s } else %s", cond, thenVal, elseCode)
 }
 
 // escapeString returns a string with special characters escaped for Go string literals

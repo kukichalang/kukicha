@@ -1052,3 +1052,20 @@ func (e *BlockExpr) Pos() Position {
 	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
 }
 func (e *BlockExpr) exprNode() {}
+
+// IfExpression represents an if-then-else expression that produces a value.
+//
+//	access := if age >= 18 then "Granted" else "Denied"
+//	color := if x then a else if y then b else c
+type IfExpression struct {
+	Token     lexer.Token // The 'if' token
+	Condition Expression
+	Then      Expression
+	Else      Expression // Required — must be IfExpression or a value expression
+}
+
+func (e *IfExpression) TokenLiteral() string { return e.Token.Lexeme }
+func (e *IfExpression) Pos() Position {
+	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
+}
+func (e *IfExpression) exprNode() {}

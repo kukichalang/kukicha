@@ -441,6 +441,8 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 			return &ast.Identifier{Token: token, Value: token.Lexeme}
 		}
 		return p.parseErrorExpr()
+	case lexer.TOKEN_IF:
+		return p.parseIfExpression()
 	case lexer.TOKEN_MAKE:
 		return p.parseMakeExpr()
 	case lexer.TOKEN_CLOSE:
@@ -1281,5 +1283,42 @@ func (p *Parser) parseMapLiteral() ast.Expression {
 		KeyType: keyType,
 		ValType: valType,
 		Pairs:   pairs,
+	}
+}
+
+// parseIfExpression parses an if-then-else expression:
+//
+//	if COND then EXPR else EXPR
+//	if COND then EXPR else if COND then EXPR else EXPR
+func (p *Parser) parseIfExpression() ast.Expression {
+	token := p.advance() // consume 'if'
+
+	condition := p.parseExpression()
+
+	if !p.match(lexer.TOKEN_THEN) {
+		p.error(p.peekToken(), "expected 'then' in if-expression")
+		return &ast.Identifier{Token: token, Value: "nil"}
+	}
+
+	then := p.parseExpression()
+
+	if !p.match(lexer.TOKEN_ELSE) {
+		p.error(p.peekToken(), "if-expression requires 'else' branch")
+		return &ast.Identifier{Token: token, Value: "nil"}
+	}
+
+	// else if ... is a chained if-expression
+	var elseExpr ast.Expression
+	if p.check(lexer.TOKEN_IF) {
+		elseExpr = p.parseIfExpression()
+	} else {
+		elseExpr = p.parseExpression()
+	}
+
+	return &ast.IfExpression{
+		Token:     token,
+		Condition: condition,
+		Then:      then,
+		Else:      elseExpr,
 	}
 }

@@ -459,6 +459,10 @@ func (g *Generator) walkExpr(expr ast.Expression, visit func(ast.Expression) boo
 				return true
 			}
 		}
+	case *ast.IfExpression:
+		if g.walkExpr(e.Condition, visit) || g.walkExpr(e.Then, visit) || g.walkExpr(e.Else, visit) {
+			return true
+		}
 	}
 	return false
 }
@@ -776,6 +780,10 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 			if s.Otherwise != nil && s.Otherwise.Body != nil && g.blockHasNonPrintfInterpolation(s.Otherwise.Body) {
 				return true
 			}
+		}
+	case *ast.IfExpression:
+		if g.exprHasNonPrintfInterpolation(e.Condition) || g.exprHasNonPrintfInterpolation(e.Then) || g.exprHasNonPrintfInterpolation(e.Else) {
+			return true
 		}
 	}
 	return false

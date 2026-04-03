@@ -269,7 +269,7 @@ Accept Go's `func (t T) Method()` alongside Kukicha's `func Method on t T`.
 
 ---
 
-## 5. If-Expressions
+## 5. If-Expressions ✅
 
 Another stem Go discarded. The Go team rejected ternaries, and `if` is
 statement-only — assigning a value based on a condition takes 5 lines.
