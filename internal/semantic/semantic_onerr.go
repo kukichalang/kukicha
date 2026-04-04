@@ -67,14 +67,14 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 	}
 
 	prev := a.inOnerr
-	prevAlias := a.currentOnerrrAlias
+	prevAlias := a.currentOnerrAlias
 	a.inOnerr = true
 	if clause.Alias != "" {
-		a.currentOnerrrAlias = clause.Alias
+		a.currentOnerrAlias = clause.Alias
 	}
 	a.analyzeExpression(clause.Handler)
 	a.inOnerr = prev
-	a.currentOnerrrAlias = prevAlias
+	a.currentOnerrAlias = prevAlias
 }
 
 // funcReturnsError reports whether the function's last return type is "error".
@@ -98,8 +98,8 @@ func (a *Analyzer) analyzeStringInterpolation(lit *ast.StringLiteral) {
 			if a.inOnerr {
 				if ident, ok := part.Expr.(*ast.Identifier); ok && ident.Value == "err" {
 					hint := "use {error} not {err} inside onerr — the caught error is always named 'error'"
-					if a.currentOnerrrAlias != "" {
-						hint += fmt.Sprintf(", or {%s} via your 'onerr as %s' alias", a.currentOnerrrAlias, a.currentOnerrrAlias)
+					if a.currentOnerrAlias != "" {
+						hint += fmt.Sprintf(", or {%s} via your 'onerr as %s' alias", a.currentOnerrAlias, a.currentOnerrAlias)
 					} else {
 						hint += ", or name it with 'onerr as e' and use {e}"
 					}
@@ -110,7 +110,7 @@ func (a *Analyzer) analyzeStringInterpolation(lit *ast.StringLiteral) {
 			// Skip known onerr error variables — they're injected by codegen, not user-defined
 			if a.inOnerr {
 				if ident, ok := part.Expr.(*ast.Identifier); ok {
-					if ident.Value == "error" || ident.Value == a.currentOnerrrAlias {
+					if ident.Value == "error" || ident.Value == a.currentOnerrAlias {
 						continue
 					}
 				}

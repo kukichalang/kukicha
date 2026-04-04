@@ -29,7 +29,7 @@ type Analyzer struct {
 	loopDepth          int               // Track loop nesting for break/continue
 	switchDepth        int               // Track switch nesting for break
 	inOnerr            bool              // True while analyzing an onerr handler
-	currentOnerrrAlias string            // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
+	currentOnerrAlias string            // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
 	inPipedSwitch      bool              // True while analyzing piped switch case bodies (suppresses return-count checks)
 
 	// Pass 2 output (consumed by codegen)

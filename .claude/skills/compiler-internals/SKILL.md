@@ -308,7 +308,7 @@ The `Analyzer` has 17 fields grouped by lifecycle phase:
 | Infrastructure | `symbolTable`, `security`, `errors`, `warnings` |
 | Pre-pass output | `directives *DirectiveResult` (set once by `CollectDirectives`) |
 | Pass 1 output | `importAliases` |
-| Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrrAlias`, `inPipedSwitch` |
+| Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrAlias`, `inPipedSwitch` |
 | Pass 2 output | `exprReturnCounts`, `exprTypes` |
 | Lint candidates | `lintCandidates []LintCandidate` (collected during analysis, emitted in final pass) |
 
