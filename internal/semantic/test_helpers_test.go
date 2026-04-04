@@ -45,6 +45,24 @@ func analyzeSourceWithFile(t *testing.T, input, filename string) (*Analyzer, []e
 	return analyzer, analyzer.Analyze()
 }
 
+// analyzeSourceWithFileResult runs analysis and returns the full AnalysisResult.
+// Use this when the source is associated with a specific filename (e.g. a stdlib file).
+func analyzeSourceWithFileResult(t *testing.T, input, filename string) *AnalysisResult {
+	t.Helper()
+
+	p, err := parser.New(input, filename)
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	return NewWithFile(program, filename).AnalyzeResult()
+}
+
 // analyzeSourceResult runs analysis and returns the full AnalysisResult.
 // Use this when you need ExprTypes, ExprReturnCounts, or Warnings alongside errors.
 func analyzeSourceResult(t *testing.T, input string) *AnalysisResult {

@@ -64,12 +64,6 @@ func NewWithFile(program *ast.Program, sourceFile string) *Analyzer {
 	return a
 }
 
-// Warnings returns non-fatal diagnostics collected during analysis.
-// Call after Analyze(). The caller decides whether to display or promote them to errors.
-func (a *Analyzer) Warnings() []error {
-	return a.warnings
-}
-
 // Analyze performs semantic analysis on the program
 func (a *Analyzer) Analyze() []error {
 	a.exprReturnCounts = make(map[ast.Expression]int)

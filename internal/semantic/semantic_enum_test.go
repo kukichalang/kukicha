@@ -53,8 +53,8 @@ func TestEnumDecl_ZeroValueWarning(t *testing.T) {
     OK = 200
     NotFound = 404
 `
-	analyzer, _ := analyzeSource(t, input)
-	warnings := analyzer.Warnings()
+	result := analyzeSourceResult(t, input)
+	warnings := result.Warnings
 	found := false
 	for _, w := range warnings {
 		if strings.Contains(w.Error(), "no case with value 0") {
@@ -73,8 +73,8 @@ func TestEnumDecl_NoZeroValueWarningWhenPresent(t *testing.T) {
     Red = 1
     Blue = 2
 `
-	analyzer, _ := analyzeSource(t, input)
-	for _, w := range analyzer.Warnings() {
+	result := analyzeSourceResult(t, input)
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "no case with value 0") {
 			t.Errorf("unexpected zero-value warning: %v", w)
 		}
@@ -86,8 +86,8 @@ func TestEnumDecl_NoZeroValueWarningForStringEnum(t *testing.T) {
     Debug = "debug"
     Info = "info"
 `
-	analyzer, _ := analyzeSource(t, input)
-	for _, w := range analyzer.Warnings() {
+	result := analyzeSourceResult(t, input)
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "no case with value 0") {
 			t.Errorf("unexpected zero-value warning for string enum: %v", w)
 		}
@@ -107,16 +107,16 @@ func handle(s Status)
         when Status.NotFound
             return
 `
-	analyzer, _ := analyzeSource(t, input)
+	result := analyzeSourceResult(t, input)
 	found := false
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "missing cases") && strings.Contains(w.Error(), "Status.Error") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Errorf("expected exhaustiveness warning mentioning Status.Error, got warnings: %v", analyzer.Warnings())
+		t.Errorf("expected exhaustiveness warning mentioning Status.Error, got warnings: %v", result.Warnings)
 	}
 }
 
@@ -133,8 +133,8 @@ func handle(s Status)
         otherwise
             return
 `
-	analyzer, _ := analyzeSource(t, input)
-	for _, w := range analyzer.Warnings() {
+	result := analyzeSourceResult(t, input)
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "missing cases") {
 			t.Errorf("unexpected exhaustiveness warning with otherwise clause: %v", w)
 		}
@@ -153,8 +153,8 @@ func handle(d Dir)
         when Dir.Down
             return
 `
-	analyzer, _ := analyzeSource(t, input)
-	for _, w := range analyzer.Warnings() {
+	result := analyzeSourceResult(t, input)
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "missing cases") {
 			t.Errorf("unexpected exhaustiveness warning when all cases covered: %v", w)
 		}

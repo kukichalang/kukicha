@@ -17,10 +17,9 @@ func Convert(value any) any
             return 3.14
     return result
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	warnings := analyzer.Warnings()
+	warnings := result.Warnings
 	found := false
 	for _, w := range warnings {
 		if strings.Contains(w.Error(), "piped switch cases return different types") {
@@ -45,10 +44,9 @@ func Convert(value any) string
             return "other"
     return result
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "piped switch cases return different types") {
 			t.Errorf("unexpected piped switch type warning for consistent types: %v", w)
 		}
@@ -99,10 +97,9 @@ func ExitCodeOrOne(err error) int
             return 1
     return code
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "piped switch cases return different types") {
 			t.Errorf("unexpected conflict warning when Unknown should be refined: %v", w)
 		}
@@ -118,10 +115,9 @@ func Handle(event string)
         otherwise
             print("unknown")
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "piped switch cases return different types") {
 			t.Errorf("unexpected piped switch type warning for void switch: %v", w)
 		}

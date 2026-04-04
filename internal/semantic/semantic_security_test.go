@@ -495,22 +495,22 @@ func assertNoSecurityError(t *testing.T, source string, substr string) {
 // assertSecurityWarning parses source and asserts a warning containing substr.
 func assertSecurityWarning(t *testing.T, source string, substr string) {
 	t.Helper()
-	analyzer, _ := analyzeSource(t, source)
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), substr) {
 			return
 		}
 	}
-	t.Fatalf("expected warning containing %q, got warnings: %v", substr, analyzer.Warnings())
+	t.Fatalf("expected warning containing %q, got warnings: %v", substr, result.Warnings)
 }
 
 // assertNoSecurityWarning parses source and asserts NO warning containing substr.
 func assertNoSecurityWarning(t *testing.T, source string, substr string) {
 	t.Helper()
-	analyzer, _ := analyzeSource(t, source)
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), substr) {
 			t.Fatalf("unexpected warning containing %q: %v", substr, w)
 		}

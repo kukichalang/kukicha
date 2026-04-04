@@ -15,18 +15,17 @@ func Process(path string) (string, error)
     return data, empty
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
 	found := false
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "use {error} not {err} inside onerr") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected 'use {error} not {err} inside onerr' error, got: %v", errors)
+		t.Fatalf("expected 'use {error} not {err} inside onerr' error, got: %v", result.Errors)
 	}
 }
 
@@ -39,18 +38,17 @@ func Process(path string) (string, error)
     return data, empty
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
 	found := false
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "use {error} not {err} inside onerr") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected 'use {error} not {err} inside onerr' error, got: %v", errors)
+		t.Fatalf("expected 'use {error} not {err} inside onerr' error, got: %v", result.Errors)
 	}
 }
 
@@ -63,10 +61,9 @@ func Process(path string) (string, error)
     return data, empty
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "use {error} not {err} inside onerr") {
 			t.Fatalf("unexpected onerr interpolation error: %v", e)
 		}
@@ -83,9 +80,9 @@ func Process(path string) (string, error)
     return data, empty
 `
 
-	_, errors := analyzeSource(t, input)
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "undefined identifier 'myErr'") {
 			t.Fatalf("unexpected alias interpolation error: %v", e)
 		}
@@ -97,18 +94,17 @@ func TestStringInterpolationUndefinedIdentifierIsError(t *testing.T) {
     return "Hello {name}"
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
 	found := false
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "undefined identifier 'name'") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected undefined identifier error for interpolation, got: %v", errors)
+		t.Fatalf("expected undefined identifier error for interpolation, got: %v", result.Errors)
 	}
 }
 
@@ -117,10 +113,9 @@ func TestStringInterpolationDefinedIdentifierIsValid(t *testing.T) {
     return "Hello {name}"
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "undefined identifier 'name'") {
 			t.Fatalf("unexpected interpolation identifier error: %v", e)
 		}
@@ -137,11 +132,10 @@ func main()
     print(msg)
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
 	// Should not report errors — u.name is valid
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		t.Errorf("unexpected error: %v", e)
 	}
 }
@@ -152,17 +146,16 @@ func TestComplexStringInterpolationUndefinedError(t *testing.T) {
     print(msg)
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
 	found := false
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		if strings.Contains(e.Error(), "undefined identifier 'unknown'") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected undefined identifier error for 'unknown' in interpolation, got: %v", errors)
+		t.Fatalf("expected undefined identifier error for 'unknown' in interpolation, got: %v", result.Errors)
 	}
 }

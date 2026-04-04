@@ -330,6 +330,6 @@ func analyzeInput(t *testing.T, input string) []error {
 
 func analyzeInputWithFile(t *testing.T, input, filename string) (errs []error, warnings []error) {
 	t.Helper()
-	analyzer, errs := analyzeSourceWithFile(t, input, filename)
-	return errs, analyzer.Warnings()
+	result := analyzeSourceWithFileResult(t, input, filename)
+	return result.Errors, result.Warnings
 }

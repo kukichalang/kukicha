@@ -16,11 +16,9 @@ func Process(input string) int
 func doSomething(n int) int
     return n + 1
 `
-	analyzer, errs := analyzeSource(t, source)
-	// Ignore semantic errors about unknown functions — we care about warnings
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	warnings := analyzer.Warnings()
+	warnings := result.Warnings
 	found := false
 	for _, w := range warnings {
 		if strings.Contains(w.Error(), "pipe discards error") {
@@ -44,10 +42,9 @@ func Process(input string) int
 func doSomething(n int) int
     return n + 1
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "pipe discards error") {
 			t.Errorf("unexpected pipe discard warning when onerr is present: %v", w)
 		}
@@ -69,10 +66,9 @@ func addOne(n int) int
 func toString(n int) string
     return "{n}"
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	warnings := analyzer.Warnings()
+	warnings := result.Warnings
 	found := false
 	for _, w := range warnings {
 		if strings.Contains(w.Error(), "pipe discards error") && strings.Contains(w.Error(), "Atoi") {
@@ -95,10 +91,9 @@ func Process(input int) int
 func addOne(n int) int
     return n + 1
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "pipe discards error") {
 			t.Errorf("unexpected pipe discard warning for single-return step: %v", w)
 		}
@@ -117,10 +112,9 @@ func Process(input string) int
 func addOne(n int) int
     return n + 1
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	warnings := analyzer.Warnings()
+	warnings := result.Warnings
 	found := false
 	for _, w := range warnings {
 		if strings.Contains(w.Error(), "pipe discards error") {
@@ -145,10 +139,9 @@ func Process(input string) int
 func addOne(n int) int
     return n + 1
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "pipe discards error") {
 			t.Errorf("unexpected pipe discard warning when onerr is present: %v", w)
 		}

@@ -158,7 +158,7 @@ func Process(h OldHandler) string
 	}
 
 	// Verify warning is emitted at usage site
-	warnings := analyzer.Warnings()
+	warnings := analyzer.warnings
 	found := false
 	for _, w := range warnings {
 		if strings.Contains(w.Error(), "deprecated") && strings.Contains(w.Error(), "OldHandler") {
