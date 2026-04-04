@@ -63,10 +63,10 @@ git push origin main
 Generated `.go` headers no longer contain the version number, so a version-only bump does not require force-regenerating stdlib files. Just regenerate the registry files and rebuild:
 
 ```bash
-make generate && make build
+make generate && make build && make blend
 ```
 
-This regenerates `internal/semantic/stdlib_registry_gen.go` and `go_stdlib_gen.go`, then rebuilds the compiler.
+This regenerates `internal/semantic/stdlib_registry_gen.go` and `go_stdlib_gen.go`, rebuilds the compiler, and builds `kukicha-blend` (the Go-to-Kukicha converter — separate binary, same module, installed from the same tag).
 
 Then rebuild the playground WASM so it embeds the new version (must happen after `make build`):
 
@@ -143,7 +143,7 @@ git push origin vX.X.X
 - [ ] `README.md` — both version strings updated
 - [ ] `CLAUDE.md` — version line updated
 - [ ] `AGENTS.md` — version line updated (must match CLAUDE.md)
-- [ ] `make generate && make build` succeeded
+- [ ] `make generate && make build && make blend` succeeded
 - [ ] `make test` — all packages pass
 - [ ] `make lint` — zero issues
 - [ ] `make vet` — zero issues (covers stdlib, which golangci-lint excludes)

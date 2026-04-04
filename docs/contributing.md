@@ -348,9 +348,9 @@ Follow these steps in order. Skipping step 3 is how the stdlib `.go` files end u
 
 1. Bump the version constant in `internal/version/version.go`.
 2. Update the version references in `README.md` (the `go install` snippet and the **Status** section at the bottom), `CLAUDE.md`, and `AGENTS.md`.
-3. Run `make generate && make build` to regenerate registry files and rebuild the compiler. (Generated `.go` headers no longer contain the version number, so a version-only bump does not require force-regenerating stdlib files.)
+3. Run `make generate && make build && make blend` to regenerate registry files, rebuild the compiler, and build `kukicha-blend`. (Generated `.go` headers no longer contain the version number, so a version-only bump does not require force-regenerating stdlib files.)
    ```bash
-   make generate && make build
+   make generate && make build && make blend
    ```
 4. Run `make test && make lint && make vet && make modernize` to confirm everything passes before tagging.
 5. Commit the version and doc updates in a single commit.
