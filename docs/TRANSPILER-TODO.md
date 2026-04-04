@@ -359,9 +359,11 @@ reasoned about, and extended independently.
   the Analyzer — it needs `symbolTable`, `typeAnnotationToTypeInfo()`, `error()`,
   `importAliases`. Extracting with a back-pointer adds indirection without real
   decoupling. Needs a deeper redesign to pass typed results between phases.
-- `Warnings()` getter remains on `Analyzer` as a convenience; `Analyze()` only
-  returns errors, so test helpers that need warnings access it separately.
-  `AnalyzeResult()` + `SetAnalysisResult()` is the preferred API for all new code.
+- `Warnings()` getter was removed from `Analyzer` — all non-fatal diagnostics are now
+  accessed via `result.Warnings` on `*AnalysisResult`. Test helpers that need warnings
+  use `analyzeSourceResult()`; those that still call `Analyze()` directly (needing
+  unexported fields like `symbolTable` or `exprTypes`) access `analyzer.warnings` directly.
+  `AnalyzeResult()` + `SetAnalysisResult()` is the API for all production and test code.
 
 ---
 
