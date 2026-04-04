@@ -57,6 +57,7 @@ func (p *Program) Pos() Position {
 // Declarations
 // ============================================================================
 
+//sumtype:decl
 type Declaration interface {
 	Node
 	declNode()
@@ -227,6 +228,7 @@ type Receiver struct {
 // Type Annotations
 // ============================================================================
 
+//sumtype:decl
 type TypeAnnotation interface {
 	Node
 	typeNode()
@@ -333,6 +335,7 @@ type OnErrClause struct {
 // Statements
 // ============================================================================
 
+//sumtype:decl
 type Statement interface {
 	Node
 	stmtNode()
@@ -617,6 +620,7 @@ func (s *TypeDeclStmt) stmtNode()            {}
 // Expressions
 // ============================================================================
 
+//sumtype:decl
 type Expression interface {
 	Node
 	exprNode()
@@ -1037,6 +1041,7 @@ func (e *PipedSwitchExpr) Pos() Position {
 }
 func (e *PipedSwitchExpr) exprNode() {}
 
+//sumtype:decl
 type PipedSwitchBody interface {
 	Node
 	pipedSwitchBodyNode()

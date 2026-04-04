@@ -211,11 +211,14 @@ or → pipe (`|>`) → and → bitwise or/and → comparison → additive → mu
 
 ```
 Node
-├── Declaration  (declNode marker)  — FunctionDecl, TypeDecl, EnumDecl, ImportDecl, …
-├── Statement    (stmtNode marker)  — IfStmt, ForRangeStmt, ReturnStmt, …
-├── Expression   (exprNode marker)  — CallExpr, PipeExpr, ArrowLambda, …
-└── TypeAnnotation (typeNode marker) — ListType, MapType, ReferenceType, …
+├── Declaration      (declNode marker, //sumtype:decl)  — FunctionDecl, TypeDecl, EnumDecl, ImportDecl, …
+├── Statement        (stmtNode marker, //sumtype:decl)  — IfStmt, ForRangeStmt, ReturnStmt, …
+├── Expression       (exprNode marker, //sumtype:decl)  — CallExpr, PipeExpr, ArrowLambda, …
+├── TypeAnnotation   (typeNode marker, //sumtype:decl)  — ListType, MapType, ReferenceType, …
+└── PipedSwitchBody  (pipedSwitchBodyNode, //sumtype:decl) — SwitchStmt, TypeSwitchStmt
 ```
+
+The `//sumtype:decl` annotations enable `gochecksumtype` (via `make lint`) to enforce exhaustive type switches. Type switches without a `default:` branch must handle every type implementing the interface — adding a new AST node produces a linter error until all switches are updated.
 
 ### Convention for new nodes
 
@@ -643,7 +646,8 @@ Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newl
 3. **Parser** (`parser/parser_stmt.go`): in `parseStatement()` add `case lexer.TOKEN_REPEAT:` → `parseForRepeatStmt()`
 4. **Semantic** (`semantic/semantic_statements.go`): in `analyzeStatement()` add `case *ast.ForRepeatStmt:` → validate `Count` is numeric
 5. **Codegen** (`codegen/codegen_stmt.go`): in `generateStatement()` add `case *ast.ForRepeatStmt:` → emit `for _i := 0; _i < N; _i++ { ... }`
-6. **Tests**: add test cases in each package's `*_test.go`
+6. **Lint** (`make lint`): `gochecksumtype` will flag any type switch without `default:` that's missing the new `ForRepeatStmt` case — fix all reported switches
+7. **Tests**: add test cases in each package's `*_test.go`
 
 ---
 

@@ -16,6 +16,7 @@ go.work
 
 # Compiled binaries
 /kukicha
+/kukicha-blend
 /hello
 /kukicha-lsp
 
