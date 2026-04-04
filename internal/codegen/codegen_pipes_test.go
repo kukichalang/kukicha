@@ -1,8 +1,6 @@
 package codegen
 
 import (
-	"github.com/kukichalang/kukicha/internal/parser"
-	"github.com/kukichalang/kukicha/internal/semantic"
 	"strings"
 	"testing"
 )
@@ -18,26 +16,8 @@ func TestMultiLinePipeCodegen(t *testing.T) {
         TrimSpace()
 `
 
-	generate := func(src string) string {
-		t.Helper()
-		p, err := parser.New(src, "test.kuki")
-		if err != nil {
-			t.Fatalf("lexer error: %v", err)
-		}
-		program, parseErrors := p.Parse()
-		if len(parseErrors) > 0 {
-			t.Fatalf("parse errors: %v", parseErrors)
-		}
-		gen := New(program)
-		output, err := gen.Generate()
-		if err != nil {
-			t.Fatalf("codegen error: %v", err)
-		}
-		return output
-	}
-
-	singleOut := generate(singleLine)
-	multiOut := generate(multiLine)
+	singleOut := generateSource(t, singleLine)
+	multiOut := generateSource(t, multiLine)
 
 	// Both must contain the fully-nested call.
 	want := "TrimSpace(ToUpper(\"hello\"))"
@@ -62,25 +42,7 @@ func Load(url string) list of Repo
     return repos
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	mustNotContainPattern(t, output, `val, _ :=`,
 		"expected no intermediate error discards in pipe onerr lowering")
@@ -113,25 +75,7 @@ func Run() int
     return result
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// GetInput() is a non-error step — collapsed into the Parse call.
 	// Parse() is the last (and only error-returning) step, assigns directly to 'result'.
@@ -149,28 +93,7 @@ func Run(path string) (list of os.DirEntry, error)
     return entries, empty
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// path is a non-error base — collapsed directly into os.ReadDir call.
 	// os.ReadDir is the last step, assigns directly to 'entries'.
@@ -190,29 +113,7 @@ func Write(data list of byte, path string) error
     return empty
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// data is a non-error base — collapsed directly into os.WriteFile call.
 	// os.WriteFile returns only error — should generate error check, not value assignment.
@@ -237,29 +138,7 @@ func Write(data any, path string) error
     return empty
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// data base is non-error — collapsed into marshalPretty call.
 	// marshalPretty returns 2 values — split into value + error.
@@ -318,25 +197,7 @@ func TestTypedPipedSwitchCodegen(t *testing.T) {
     return result
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "func() string {") {
 		t.Errorf("expected typed IIFE 'func() string {', got: %s", output)
@@ -363,25 +224,7 @@ func Risky(value string) (any, error)
     return value, empty
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprTypes(analyzer.ExprTypes())
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "switch v := pipe_") {
 		t.Errorf("expected typed switch over piped temp var, got: %s", output)
@@ -403,27 +246,7 @@ func ExitCodeOrOne(err error) int
     return code
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	if semanticErrors := analyzer.Analyze(); len(semanticErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semanticErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "func() int {") {
 		t.Errorf("expected typed IIFE 'func() int {', got: %s", output)
@@ -435,27 +258,10 @@ func ExitCodeOrOne(err error) int
 
 func TestOnErrPipeChainFull(t *testing.T) {
 	input := `import "stdlib/fetch"
-func Run()
+func Run(url string)
     url |> fetch.Get() |> fetch.CheckStatus() onerr panic "failed"
 `
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// url base is non-error — collapsed directly into fetch.Get call.
 	mustContainPattern(t, output,
@@ -488,25 +294,7 @@ func Process() error
     writeData(data) onerr return
     return empty
 `
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// First onerr: data, err_N := readData()
 	mustContainPattern(t, output,
@@ -526,29 +314,12 @@ func TestPipeTempVarSkipsUserDefinedNames(t *testing.T) {
 	// A user variable named pipe_1 should not collide with generated temps
 	input := `import "os"
 
-func Run() (string, error)
+func Run() (list of byte, error)
     pipe_1 := "hello"
     result := pipe_1 |> os.ReadFile() onerr return
     return result, empty
 `
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	analyzer.Analyze()
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// The user declared pipe_1, so the generated temp should skip to pipe_2
 	if !strings.Contains(output, "pipe_1 := \"hello\"") {
@@ -566,20 +337,7 @@ func PrintActiveUsers(users list of string)
     for u in users |> slice.Filter((u string) => u != "")
         print(u)
 `
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	gen := New(program)
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateSource(t, input)
 
 	if !strings.Contains(output, "for _, u := range slice.Filter(users, func(u string) bool { return (u != \"\") }) {") {
 		t.Errorf("expected proper iterator pipeline codegen, got: \n%s", output)
@@ -594,28 +352,7 @@ func Run() int
     return items |> iterator.Values() |> iterator.Reduce(0, (acc int, n int) => acc + n)
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "func(acc int, n int) int { return (acc + n) }") {
 		t.Fatalf("expected typed reducer lambda to emit an int return type, got: %s", output)

@@ -25,16 +25,14 @@ func fullPipeline(t *testing.T, source, filename string) string {
 		t.Fatalf("parse errors: %v", parseErrors)
 	}
 
-	analyzer := semantic.NewWithFile(program, filename)
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semanticErrors)
+	result := semantic.NewWithFile(program, filename).AnalyzeResult()
+	if len(result.Errors) > 0 {
+		t.Fatalf("semantic errors: %v", result.Errors)
 	}
 
 	gen := New(program)
 	gen.SetSourceFile(filename)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
+	gen.SetAnalysisResult(result)
 
 	output, err := gen.Generate()
 	if err != nil {

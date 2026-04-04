@@ -64,16 +64,10 @@ func NewWithFile(program *ast.Program, sourceFile string) *Analyzer {
 	return a
 }
 
-// ExprTypes returns the inferred types for expressions.
-// Call after Analyze() to pass these to codegen via SetExprTypes.
-func (a *Analyzer) ExprTypes() map[ast.Expression]*TypeInfo {
-	return a.exprTypes
-}
-
-// ReturnCounts returns the inferred return counts for expressions.
-// Call after Analyze() to pass these to codegen.
-func (a *Analyzer) ReturnCounts() map[ast.Expression]int {
-	return a.exprReturnCounts
+// Warnings returns non-fatal diagnostics collected during analysis.
+// Call after Analyze(). The caller decides whether to display or promote them to errors.
+func (a *Analyzer) Warnings() []error {
+	return a.warnings
 }
 
 // Analyze performs semantic analysis on the program
@@ -144,12 +138,6 @@ func (a *Analyzer) error(pos ast.Position, message string) {
 func (a *Analyzer) warn(pos ast.Position, message string) {
 	w := fmt.Errorf("%s:%d:%d: %s", pos.File, pos.Line, pos.Column, message)
 	a.warnings = append(a.warnings, w)
-}
-
-// Warnings returns non-fatal diagnostics collected during analysis.
-// Call after Analyze(). The caller decides whether to display or promote them to errors.
-func (a *Analyzer) Warnings() []error {
-	return a.warnings
 }
 
 // AnalysisResult bundles all outputs from semantic analysis.

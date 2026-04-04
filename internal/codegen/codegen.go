@@ -172,18 +172,6 @@ func (g *Generator) isWasmOnlyPackage() bool {
 	return false
 }
 
-// SetExprReturnCounts passes semantic analysis return counts to the generator.
-func (g *Generator) SetExprReturnCounts(counts map[ast.Expression]int) {
-	g.exprReturnCounts = counts
-}
-
-// SetExprTypes passes semantic analysis expression types to the generator.
-// Used by isErrorOnlyReturn, inferExprReturnType, empty keyword resolution,
-// piped switch return type inference, and zeroValueForType.
-func (g *Generator) SetExprTypes(types map[ast.Expression]*semantic.TypeInfo) {
-	g.exprTypes = types
-}
-
 // SetAnalysisResult passes all semantic analysis outputs to the generator at once.
 func (g *Generator) SetAnalysisResult(r *semantic.AnalysisResult) {
 	g.exprReturnCounts = r.ExprReturnCounts

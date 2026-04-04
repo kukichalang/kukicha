@@ -44,3 +44,21 @@ func analyzeSourceWithFile(t *testing.T, input, filename string) (*Analyzer, []e
 	analyzer := NewWithFile(program, filename)
 	return analyzer, analyzer.Analyze()
 }
+
+// analyzeSourceResult runs analysis and returns the full AnalysisResult.
+// Use this when you need ExprTypes, ExprReturnCounts, or Warnings alongside errors.
+func analyzeSourceResult(t *testing.T, input string) *AnalysisResult {
+	t.Helper()
+
+	p, err := parser.New(input, "test.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	return NewWithFile(program, "test.kuki").AnalyzeResult()
+}

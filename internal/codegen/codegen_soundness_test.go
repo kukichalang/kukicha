@@ -4,9 +4,6 @@ import (
 	goparser "go/parser"
 	"go/token"
 	"testing"
-
-	"github.com/kukichalang/kukicha/internal/parser"
-	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 // TestCodegenStructuralSoundness verifies that for a broad set of valid Kukicha
@@ -247,30 +244,7 @@ func Spawn()
 
 	for _, tc := range programs {
 		t.Run(tc.name, func(t *testing.T) {
-			// Parse
-			p, err := parser.New(tc.source, "test.kuki")
-			if err != nil {
-				t.Fatalf("lexer error: %v", err)
-			}
-			program, parseErrors := p.Parse()
-			if len(parseErrors) > 0 {
-				t.Fatalf("parse errors: %v", parseErrors)
-			}
-
-			// Semantic analysis
-			analyzer := semantic.New(program)
-			if errs := analyzer.Analyze(); len(errs) > 0 {
-				t.Fatalf("semantic errors: %v", errs)
-			}
-
-			// Codegen
-			gen := New(program)
-			gen.SetExprReturnCounts(analyzer.ReturnCounts())
-			gen.SetExprTypes(analyzer.ExprTypes())
-			output, err := gen.Generate()
-			if err != nil {
-				t.Fatalf("codegen error: %v", err)
-			}
+			output := generateAnalyzedSource(t, tc.source)
 
 			// Verify output is valid Go
 			fset := token.NewFileSet()

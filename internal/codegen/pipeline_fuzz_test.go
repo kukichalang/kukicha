@@ -138,16 +138,14 @@ func NewNode(v int) reference Node
 		}
 
 		// Stage 2: Semantic analysis. Type errors are fine — just skip.
-		analyzer := semantic.New(program)
-		semanticErrors := analyzer.Analyze()
-		if len(semanticErrors) > 0 {
+		result := semantic.New(program).AnalyzeResult()
+		if len(result.Errors) > 0 {
 			return
 		}
 
 		// Stage 3: Codegen. Errors are acceptable — just skip.
 		gen := New(program)
-		gen.SetExprReturnCounts(analyzer.ReturnCounts())
-		gen.SetExprTypes(analyzer.ExprTypes())
+		gen.SetAnalysisResult(result)
 		output, err := gen.Generate()
 		if err != nil {
 			return

@@ -69,17 +69,16 @@ func Convert(value any) any
             return 3.14
     return result
 `
-	analyzer, errs := analyzeSource(t, source)
-	_ = errs
+	result := analyzeSourceResult(t, source)
 
 	// The PipedSwitchExpr should be typed as "any" (Named), not float.
-	for _, ti := range analyzer.ExprTypes() {
+	for _, ti := range result.ExprTypes {
 		if ti.Kind == TypeKindNamed && ti.Name == "any" {
 			return // found the conflict marker — correct
 		}
 	}
 	// Also acceptable: the warning was emitted
-	for _, w := range analyzer.Warnings() {
+	for _, w := range result.Warnings {
 		if strings.Contains(w.Error(), "piped switch cases return different types") {
 			return
 		}

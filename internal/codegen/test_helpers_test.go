@@ -6,6 +6,7 @@ import (
 
 	"github.com/kukichalang/kukicha/internal/ast"
 	"github.com/kukichalang/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 func mustParseProgram(t *testing.T, input string) *ast.Program {
@@ -28,6 +29,28 @@ func generateSource(t *testing.T, input string) string {
 	t.Helper()
 
 	gen := New(mustParseProgram(t, input))
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	return output
+}
+
+// generateAnalyzedSource runs the full pipeline (parse → semantic → codegen)
+// and returns the generated Go source. Fails the test if parse, semantic, or
+// codegen produces errors.
+func generateAnalyzedSource(t *testing.T, input string) string {
+	t.Helper()
+
+	program := mustParseProgram(t, input)
+	result := semantic.NewWithFile(program, "test.kuki").AnalyzeResult()
+	if len(result.Errors) > 0 {
+		t.Fatalf("semantic errors: %v", result.Errors)
+	}
+
+	gen := New(program)
+	gen.SetAnalysisResult(result)
 	output, err := gen.Generate()
 	if err != nil {
 		t.Fatalf("codegen error: %v", err)

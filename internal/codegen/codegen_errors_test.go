@@ -100,28 +100,7 @@ func Use()
     os.LookupEnv("X") onerr discard
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semanticErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "_, _ = os.LookupEnv(\"X\")") {
 		t.Errorf("expected two-value discard using semantic return counts, got: %s", output)
@@ -140,28 +119,7 @@ func Use()
     w.Write() onerr discard
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semanticErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "_ = w.Write()") {
 		t.Errorf("expected single-value discard for method call, got: %s", output)
@@ -284,21 +242,7 @@ func TestStringInterpolationInOnErrBlockAddsFmtImport(t *testing.T) {
         panic "read failed: {error}"
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	gen := New(program)
-	output, genErr := gen.Generate()
-	if genErr != nil {
-		t.Fatalf("codegen error: %v", genErr)
-	}
+	output := generateSource(t, input)
 
 	if !strings.Contains(output, `"fmt"`) {
 		t.Errorf("expected fmt import for onerr block interpolation, got: %s", output)
@@ -314,28 +258,7 @@ func foo() (string, error)
     return "hello", nil
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// Should contain fmt.Errorf wrapping
 	if !strings.Contains(output, `fmt.Errorf("City names must be capitalized: %w"`) {
@@ -356,28 +279,7 @@ func foo() (int, error)
     return 42, nil
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	// Should contain fmt.Errorf wrapping
 	if !strings.Contains(output, `fmt.Errorf("Expected a positive integer: %w"`) {
@@ -437,29 +339,7 @@ func Run() int
     return empty |> iterator.Values() |> iterator.Reduce(42, addInts)
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if strings.Contains(output, "iterator.Values(nil)") {
 		t.Fatalf("expected pipe to preserve identifier named empty, got: %s", output)
@@ -603,28 +483,7 @@ func Process() (string, int, error)
     return x, 42, empty
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	t.Logf("Generated output:\n%s", output)
 
@@ -644,25 +503,14 @@ func Use()
     os.LookupEnv("X") onerr discard
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
+	program := mustParseProgram(t, input)
 	// With semantic analysis, inferReturnCount succeeds — should NOT have warning comment
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
+	result := semantic.New(program).AnalyzeResult()
+	if len(result.Errors) > 0 {
+		t.Fatalf("semantic errors: %v", result.Errors)
 	}
-
 	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
+	gen.SetAnalysisResult(result)
 	output, err := gen.Generate()
 	if err != nil {
 		t.Fatalf("codegen error: %v", err)
@@ -830,29 +678,7 @@ func sumValid(items list of string) int
     return total
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.NewWithFile(program, "test.kuki")
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "continue") {
 		t.Errorf("expected 'continue' in onerr handler, got:\n%s", output)
@@ -870,29 +696,7 @@ func firstValid(items list of string) int
     return result
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.NewWithFile(program, "test.kuki")
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "break") {
 		t.Errorf("expected 'break' in onerr handler, got:\n%s", output)
@@ -909,29 +713,7 @@ func readOrDie(path string) list of byte
     return data
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.NewWithFile(program, "test.kuki")
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "!= nil") {
 		t.Errorf("expected nil check in onerr block, got:\n%s", output)

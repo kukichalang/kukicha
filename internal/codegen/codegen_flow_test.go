@@ -1,8 +1,6 @@
 package codegen
 
 import (
-	"github.com/kukichalang/kukicha/internal/parser"
-	"github.com/kukichalang/kukicha/internal/semantic"
 	"strings"
 	"testing"
 )
@@ -211,27 +209,7 @@ func TestBitwiseAndEndToEnd(t *testing.T) {
     _ = flags
 `
 
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semanticErrors)
-	}
-
-	gen := New(program)
-	output, err := gen.Generate()
-	if err != nil {
-		t.Fatalf("codegen error: %v", err)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if !strings.Contains(output, "mask := (6 & 3)") {
 		t.Fatalf("expected bitwise AND expression in output, got:\n%s", output)
@@ -442,28 +420,7 @@ func FilterSemver(tags list of string) list of string
     re := regexp.MustCompile("^v[0-9]+")
     return tags |> slice.Filter((tag string) => re.MatchString(tag))
 `
-	p, err := parser.New(input, "test.kuki")
-	if err != nil {
-		t.Fatalf("parser error: %v", err)
-	}
-	program, parseErrors := p.Parse()
-	if len(parseErrors) > 0 {
-		t.Fatalf("parse errors: %v", parseErrors)
-	}
-
-	analyzer := semantic.New(program)
-	semErrors := analyzer.Analyze()
-	if len(semErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semErrors)
-	}
-
-	gen := New(program)
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
-	output, genErr := gen.Generate()
-	if genErr != nil {
-		t.Fatalf("codegen error: %v", genErr)
-	}
+	output := generateAnalyzedSource(t, input)
 
 	if strings.Contains(output, "func(tag string) {") {
 		t.Errorf("arrow lambda emitted without return type; got:\n%s", output)

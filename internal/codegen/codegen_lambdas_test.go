@@ -19,15 +19,13 @@ func pipelineLambda(t *testing.T, source string) string {
 	if len(parseErrors) > 0 {
 		t.Fatalf("parse errors: %v", parseErrors)
 	}
-	analyzer := semantic.NewWithFile(program, "test.kuki")
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		t.Fatalf("semantic errors: %v", semanticErrors)
+	result := semantic.NewWithFile(program, "test.kuki").AnalyzeResult()
+	if len(result.Errors) > 0 {
+		t.Fatalf("semantic errors: %v", result.Errors)
 	}
 	gen := New(program)
 	gen.SetSourceFile("test.kuki")
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
+	gen.SetAnalysisResult(result)
 	output, err := gen.Generate()
 	if err != nil {
 		t.Fatalf("codegen error: %v", err)

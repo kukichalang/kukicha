@@ -123,15 +123,14 @@ func main()
     print(v)
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		t.Errorf("unexpected error: %v", e)
 	}
 
 	// Verify the method return count was recorded
-	for expr, count := range analyzer.ReturnCounts() {
+	for expr, count := range result.ExprReturnCounts {
 		if mc, ok := expr.(*ast.MethodCallExpr); ok {
 			if mc.Method.Value == "GetValue" {
 				if count != 1 {
@@ -154,15 +153,14 @@ func main()
     print(n)
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		t.Errorf("unexpected error: %v", e)
 	}
 
 	// Verify field access type was recorded
-	for expr, typeInfo := range analyzer.ExprTypes() {
+	for expr, typeInfo := range result.ExprTypes {
 		if field, ok := expr.(*ast.FieldAccessExpr); ok && field.Field.Value == "name" {
 			if typeInfo.Kind != TypeKindString {
 				t.Errorf("expected string type for field 'name', got %s", typeInfo.Kind)
@@ -182,14 +180,13 @@ func main()
     print(n)
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		t.Errorf("unexpected error: %v", e)
 	}
 
-	for expr, typeInfo := range analyzer.ExprTypes() {
+	for expr, typeInfo := range result.ExprTypes {
 		if field, ok := expr.(*ast.FieldAccessExpr); ok && field.Object == nil && field.Field.Value == "name" {
 			if typeInfo.Kind != TypeKindString {
 				t.Errorf("expected string type for piped field 'name', got %s", typeInfo.Kind)
@@ -213,15 +210,14 @@ func main()
     print(err)
 `
 
-	analyzer, errors := analyzeSource(t, input)
-	_ = analyzer
+	result := analyzeSourceResult(t, input)
 
-	for _, e := range errors {
+	for _, e := range result.Errors {
 		t.Errorf("unexpected error: %v", e)
 	}
 
 	// Verify 2-return method was correctly resolved
-	for expr, count := range analyzer.ReturnCounts() {
+	for expr, count := range result.ExprReturnCounts {
 		if mc, ok := expr.(*ast.MethodCallExpr); ok {
 			if mc.Method.Value == "Parse" {
 				if count != 2 {

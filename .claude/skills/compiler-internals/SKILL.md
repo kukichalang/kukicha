@@ -21,7 +21,7 @@ Semantic analysis produces an `*AnalysisResult` (via `analyzer.AnalyzeResult()`)
 - `ExprReturnCounts map[ast.Expression]int` — tells codegen how many values an expression returns so it can emit the right `val, err := f()` split for `onerr`.
 - `ExprTypes map[ast.Expression]*TypeInfo` — records inferred type of every analyzed expression. Used by codegen for: error-only pipe step detection (`isErrorOnlyReturn`), piped switch return type inference, `empty` keyword resolution, typed zero-value generation (`zeroValueForType`). In `analyzePipeExprMulti`, types are explicitly recorded on pipe step nodes via `recordType(right, types[0])` since steps bypass `analyzeExpression`. Pipe placeholder `_` identifiers get the piped value's type recorded when inside a call with a known function signature.
 
-Legacy individual getters (`ReturnCounts()`, `ExprTypes()`, `Warnings()`) and setters (`SetExprReturnCounts()`, `SetExprTypes()`) remain for backward compat with test files.
+`Warnings()` remains on `Analyzer` for test helpers that call `Analyze()` directly and need to access non-fatal diagnostics separately.
 
 The formatter (`formatter/`) is a separate pipeline that re-parses and pretty-prints. The LSP (`lsp/`) wraps the compiler pipeline and is independent of the above.
 

@@ -355,18 +355,13 @@ reasoned about, and extended independently.
 
 ### Notes
 
-- `AnalyzeResult()` provides the bundled return; old `Analyze()` + individual
-  getters remain for backward compat (53 test-file call sites)
-- `SetAnalysisResult()` on codegen sets both maps in one call; old setters
-  remain for test compat
 - Declaration collection (`collectDeclarations` + helpers) is tightly coupled to
   the Analyzer — it needs `symbolTable`, `typeAnnotationToTypeInfo()`, `error()`,
   `importAliases`. Extracting with a back-pointer adds indirection without real
   decoupling. Needs a deeper redesign to pass typed results between phases.
-- Lint warnings are deeply interleaved with type checking (e.g., deprecation
-  checks fire during call analysis). Separating them requires collecting lint
-  candidates during analysis and emitting them in a final pass — feasible but
-  a larger change than the directive/security extractions.
+- `Warnings()` getter remains on `Analyzer` as a convenience; `Analyze()` only
+  returns errors, so test helpers that need warnings access it separately.
+  `AnalyzeResult()` + `SetAnalysisResult()` is the preferred API for all new code.
 
 ---
 

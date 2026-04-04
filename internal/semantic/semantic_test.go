@@ -323,14 +323,14 @@ func Process(w string, data string) error
     data |> WriteJSON(w, _)
     return empty
 `
-	analyzer, errors := analyzeSource(t, input)
-	if len(errors) > 0 {
-		t.Fatalf("unexpected errors: %v", errors)
+	result := analyzeSourceResult(t, input)
+	if len(result.Errors) > 0 {
+		t.Fatalf("unexpected errors: %v", result.Errors)
 	}
 
 	// Walk exprTypes looking for a "_" identifier with a resolved type
 	found := false
-	for expr, ti := range analyzer.ExprTypes() {
+	for expr, ti := range result.ExprTypes {
 		if ident, ok := expr.(*ast.Identifier); ok && ident.Value == "_" {
 			if ti.Kind == TypeKindString {
 				found = true
@@ -395,31 +395,16 @@ func TestAnalyzeResult(t *testing.T) {
     x := 1 + 2
 `
 	program := mustParseProgram(t, input)
-	analyzer := NewWithFile(program, "test.kuki")
+	result := NewWithFile(program, "test.kuki").AnalyzeResult()
 
-	// Call both APIs
-	errs := analyzer.Analyze()
-	result := &AnalysisResult{
-		Errors:           errs,
-		Warnings:         analyzer.Warnings(),
-		ExprReturnCounts: analyzer.ReturnCounts(),
-		ExprTypes:        analyzer.ExprTypes(),
+	if len(result.Errors) != 0 {
+		t.Errorf("expected no errors, got: %v", result.Errors)
 	}
-
-	// Now use AnalyzeResult on a fresh analyzer
-	analyzer2 := NewWithFile(program, "test.kuki")
-	result2 := analyzer2.AnalyzeResult()
-
-	if len(result.Errors) != len(result2.Errors) {
-		t.Errorf("Errors mismatch: %d vs %d", len(result.Errors), len(result2.Errors))
+	// AnalyzeResult always returns non-nil maps
+	if result.ExprReturnCounts == nil {
+		t.Error("expected non-nil ExprReturnCounts")
 	}
-	if len(result.Warnings) != len(result2.Warnings) {
-		t.Errorf("Warnings mismatch: %d vs %d", len(result.Warnings), len(result2.Warnings))
-	}
-	if len(result.ExprReturnCounts) != len(result2.ExprReturnCounts) {
-		t.Errorf("ExprReturnCounts mismatch: %d vs %d", len(result.ExprReturnCounts), len(result2.ExprReturnCounts))
-	}
-	if len(result.ExprTypes) != len(result2.ExprTypes) {
-		t.Errorf("ExprTypes mismatch: %d vs %d", len(result.ExprTypes), len(result2.ExprTypes))
+	if result.ExprTypes == nil {
+		t.Error("expected non-nil ExprTypes")
 	}
 }
