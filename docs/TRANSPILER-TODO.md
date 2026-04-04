@@ -315,11 +315,11 @@ avoids ambiguity with brace blocks once those land in item 4.
 
 ## 6. Split the Semantic Analyzer
 
-**Problem:** The `Analyzer` struct is ~2500 lines across 7 files, mixing
-type checking, scope analysis, security checks, and directive collection
-into one object with ~30 fields. The superset strategy will add more
-complexity (Go syntax -> same type info); the analyzer needs to be clean
-first.
+**Problem:** The `Analyzer` struct is ~2500 lines across 7 files. Directive
+collection and security checks have been extracted; the struct is down to
+16 fields grouped by lifecycle. Remaining coupling: lint warnings are
+interleaved with type checking, and declaration collection is tightly
+bound to the symbol table.
 
 **Goal:** Separate passes with clear inputs/outputs so each can be tested,
 reasoned about, and extended independently.
@@ -340,16 +340,23 @@ reasoned about, and extended independently.
   (`CollectDirectives()` in `semantic_directives.go`, returns `DirectiveResult`)
 - [x] Extract security analysis (semantic_security.go already partially separate)
   (`SecurityChecker` struct with back-pointer to Analyzer, all `check*` methods moved)
-- [ ] Define typed intermediate results between passes (not shared mutable state)
+- [x] Embed `*DirectiveResult` — replaced 3 separate fields (`deprecatedFuncs`,
+  `deprecatedTypes`, `panickedFuncs`) with single `directives *DirectiveResult`
+- [x] Add `AnalysisResult` type + `AnalyzeResult()` — bundles errors, warnings,
+  `ExprReturnCounts`, and `ExprTypes` into one struct
+- [x] Migrate callers — `compile.go`, `kukicha-wasm`, codegen use `SetAnalysisResult()`
+  instead of separate `SetExprReturnCounts`/`SetExprTypes` calls
+- [x] Reorder struct fields by lifecycle — 16 fields grouped into: immutable inputs,
+  infrastructure, pre-pass output, pass 1 output, pass 2 transient state, pass 2 output
 - [ ] Extract lint/warning pass (currently interleaved with type checking)
-- [ ] Reduce Analyzer fields — each pass should own only its state
 - [ ] Ensure existing tests pass after each extraction
 
 ### Notes
 
-- The current 4-pass structure inside Analyzer is already documented; this
-  makes each pass a first-class object rather than methods on one struct
-- Keep the public API stable (`Analyze(ast) -> Result`) even if internals change
+- `AnalyzeResult()` provides the bundled return; old `Analyze()` + individual
+  getters remain for backward compat (53 test-file call sites)
+- `SetAnalysisResult()` on codegen sets both maps in one call; old setters
+  remain for test compat
 - Declaration collection (`collectDeclarations` + helpers) is tightly coupled to
   the Analyzer — it needs `symbolTable`, `typeAnnotationToTypeInfo()`, `error()`,
   `importAliases`. Extracting with a back-pointer adds indirection without real

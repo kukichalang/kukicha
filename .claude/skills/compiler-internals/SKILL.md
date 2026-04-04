@@ -17,9 +17,11 @@ source (.kuki)
   → codegen/   — *ast.Program → IR (via Lowerer) → Go source string (via emitIR)
 ```
 
-Semantic analysis produces two maps passed to codegen:
-- `exprReturnCounts map[ast.Expression]int` — passed via `generator.SetExprReturnCounts(...)`. Tells codegen how many values an expression returns so it can emit the right `val, err := f()` split for `onerr`.
-- `exprTypes map[ast.Expression]*TypeInfo` — passed via `generator.SetExprTypes(...)`. Records inferred type of every analyzed expression. Used by codegen for: error-only pipe step detection (`isErrorOnlyReturn`), piped switch return type inference, `empty` keyword resolution, typed zero-value generation (`zeroValueForType`). In `analyzePipeExprMulti`, types are explicitly recorded on pipe step nodes via `recordType(right, types[0])` since steps bypass `analyzeExpression`. Pipe placeholder `_` identifiers get the piped value's type recorded when inside a call with a known function signature.
+Semantic analysis produces an `*AnalysisResult` (via `analyzer.AnalyzeResult()`) containing errors, warnings, and two maps passed to codegen via `generator.SetAnalysisResult(result)`:
+- `ExprReturnCounts map[ast.Expression]int` — tells codegen how many values an expression returns so it can emit the right `val, err := f()` split for `onerr`.
+- `ExprTypes map[ast.Expression]*TypeInfo` — records inferred type of every analyzed expression. Used by codegen for: error-only pipe step detection (`isErrorOnlyReturn`), piped switch return type inference, `empty` keyword resolution, typed zero-value generation (`zeroValueForType`). In `analyzePipeExprMulti`, types are explicitly recorded on pipe step nodes via `recordType(right, types[0])` since steps bypass `analyzeExpression`. Pipe placeholder `_` identifiers get the piped value's type recorded when inside a call with a known function signature.
+
+Legacy individual getters (`ReturnCounts()`, `ExprTypes()`, `Warnings()`) and setters (`SetExprReturnCounts()`, `SetExprTypes()`) remain for backward compat with test files.
 
 The formatter (`formatter/`) is a separate pipeline that re-parses and pretty-prints. The LSP (`lsp/`) wraps the compiler pipeline and is independent of the above.
 
@@ -279,7 +281,8 @@ Currently supported directives:
 
 | File | Contents |
 |------|---------|
-| `semantic.go` | Core `Analyzer` struct, `New`, `Analyze`, `Warnings`, `ReturnCounts`, error/warn helpers |
+| `semantic.go` | Core `Analyzer` struct, `New`, `Analyze`, `AnalyzeResult`, `AnalysisResult` type, error/warn helpers |
+| `semantic_directives.go` | `DirectiveResult` struct, `CollectDirectives()` — extracts deprecated/panics/todo from AST directives |
 | `semantic_declarations.go` | Package name validation, skill validation, declaration collection/analysis, enum validation and exhaustiveness checking |
 | `semantic_statements.go` | Statement analysis (`analyzeBlock`, `analyzeStatement`, `analyzeIfStmt`, …) |
 | `semantic_expressions.go` | Expression analysis (`analyzeExpression`, `analyzeIdentifier`, `analyzeBinaryExpr`, `analyzePipeExprMulti`, …) |
@@ -293,13 +296,28 @@ Currently supported directives:
 | `stdlib_registry_gen.go` | GENERATED — Kukicha stdlib signatures |
 | `go_stdlib_gen.go` | GENERATED — Go stdlib signatures |
 
+### Analyzer struct layout
+
+The `Analyzer` has 16 fields grouped by lifecycle phase:
+
+| Group | Fields |
+|-------|--------|
+| Immutable inputs | `program`, `sourceFile` |
+| Infrastructure | `symbolTable`, `security`, `errors`, `warnings` |
+| Pre-pass output | `directives *DirectiveResult` (set once by `CollectDirectives`) |
+| Pass 1 output | `importAliases` |
+| Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrrAlias`, `inPipedSwitch` |
+| Pass 2 output | `exprReturnCounts`, `exprTypes` |
+
 ### Analysis passes
 
 The `Analyze()` method runs three top-level passes in order:
 
-1. **`collectDirectives()`** — scans all declarations for `# kuki:deprecated` and `# kuki:panics` directives, populating `deprecatedFuncs`/`deprecatedTypes`/`panickedFuncs` maps
+1. **`CollectDirectives()`** — pure function; scans all declarations for `# kuki:deprecated`, `# kuki:panics`, and `# kuki:todo` directives, returning a `*DirectiveResult` stored as `a.directives`
 2. **`collectDeclarations()`** — registers all top-level types, interfaces, and function signatures into the symbol table (so functions can call each other regardless of order); also validates package name (rejects Go stdlib names) and import paths (rejects `"`, `\`, and NUL characters)
 3. **`analyzeDeclarations()`** — validates function bodies, infers `exprReturnCounts`, enforces security checks, warns on deprecated calls
+
+`AnalyzeResult()` wraps `Analyze()` and returns `*AnalysisResult` bundling errors, warnings, and both maps.
 
 ### Interface detection in typeAnnotationToTypeInfo
 
