@@ -17,9 +17,12 @@ source (.kuki)
   → codegen/   — *ast.Program → IR (via Lowerer) → Go source string (via emitIR)
 ```
 
-Semantic analysis produces two maps passed to codegen:
-- `exprReturnCounts map[ast.Expression]int` — passed via `generator.SetExprReturnCounts(...)`. Tells codegen how many values an expression returns so it can emit the right `val, err := f()` split for `onerr`.
-- `exprTypes map[ast.Expression]*TypeInfo` — passed via `generator.SetExprTypes(...)`. Records inferred type of every analyzed expression. Used by codegen for: error-only pipe step detection (`isErrorOnlyReturn`), piped switch return type inference, `empty` keyword resolution, typed zero-value generation (`zeroValueForType`). In `analyzePipeExprMulti`, types are explicitly recorded on pipe step nodes via `recordType(right, types[0])` since steps bypass `analyzeExpression`. Pipe placeholder `_` identifiers get the piped value's type recorded when inside a call with a known function signature.
+Semantic analysis produces an `*AnalysisResult` (via `analyzer.AnalyzeResult()`) containing errors, warnings, and two maps passed to codegen via `generator.SetAnalysisResult(result)`:
+- `ExprReturnCounts map[ast.Expression]int` — tells codegen how many values an expression returns so it can emit the right `val, err := f()` split for `onerr`.
+- `ExprTypes map[ast.Expression]*TypeInfo` — records inferred type of every analyzed expression. Used by codegen for: error-only pipe step detection (`isErrorOnlyReturn`), piped switch return type inference, `empty` keyword resolution, typed zero-value generation (`zeroValueForType`). In `analyzePipeExprMulti`, types are explicitly recorded on pipe step nodes via `recordType(right, types[0])` since steps bypass `analyzeExpression`. Pipe placeholder `_` identifiers get the piped value's type recorded when inside a call with a known function signature.
+- `Warnings []error` — non-fatal diagnostics. Access via `result.Warnings`; `Analyzer` no longer exposes a `Warnings()` getter.
+
+Tests that only need errors and warnings use `analyzeSourceResult(t, src)` which returns `*AnalysisResult`. Tests that need to inspect unexported `*Analyzer` fields (e.g. `exprTypes`, `symbolTable`) call `analyzeSource(t, src)` which returns `(*Analyzer, []error)`.
 
 The formatter (`formatter/`) is a separate pipeline that re-parses and pretty-prints. The LSP (`lsp/`) wraps the compiler pipeline and is independent of the above.
 
@@ -53,11 +56,30 @@ Kukicha is indentation-sensitive. The lexer converts 4-space indentation changes
 - Blank lines and comment-only lines do not affect the indent stack
 - Error messages include actionable detail (e.g., nearest valid indent level, valid dedent targets)
 
+### Brace block support (Go syntax passthrough)
+
+Kukicha accepts Go-style `{ }` brace blocks as an alternative to indentation. The lexer converts block braces into `TOKEN_INDENT` / `TOKEN_DEDENT`, making them transparent to the parser (zero parser changes needed).
+
+**Three new lexer fields:**
+- `blockKeywordSeen bool` — set to `true` after a block keyword (`if`, `for`, `func`, `switch`, `else`, `select`, `go`, `defer`); cleared on `TOKEN_NEWLINE`, `TOKEN_INDENT`, or `TOKEN_OF`
+- `braceStack []bool` — tracks whether each `{` was a block brace (`true`) or literal brace (`false`), so the matching `}` emits the correct token
+- `braceBlockDepth int` — count of currently open block braces; suppresses indentation handling inside brace blocks
+
+**`{` handling:** If `blockKeywordSeen` is true, the `{` is a block brace → push `true` to `braceStack`, increment `braceBlockDepth`, emit `TOKEN_INDENT`. Otherwise it's a literal brace → push `false`, increment `braceDepth`, emit `TOKEN_LBRACE`.
+
+**`}` handling:** Pop from `braceStack`. If the entry was `true` (block) → decrement `braceBlockDepth`, emit `TOKEN_DEDENT`. If `false` (literal) → decrement `braceDepth`, emit `TOKEN_RBRACE`.
+
+**Indentation suppression:** When `braceBlockDepth > 0`, leading whitespace on new lines is consumed without emitting INDENT/DEDENT tokens.
+
+**`TOKEN_OF` clearing:** `blockKeywordSeen` is cleared on `TOKEN_OF` because `for item in list of T{...}` is always a type+literal pattern, not a block brace.
+
+**Known limitation (same as Go):** Composite literals inside `if`/`for`/`switch` conditions with brace blocks require parentheses to disambiguate: `if x == (MyStruct{}) { ... }`.
+
 ### Line continuation
 
 `TOKEN_NEWLINE` is suppressed (continuation mode) in two ways:
 
-**Inline (during tokenization):** Inside `[]` or `{}` (`braceDepth > 0`), `TOKEN_NEWLINE` is suppressed and `continuationLine` is set so the next line's indentation is consumed without emitting INDENT/DEDENT. `()` (parentheses) do NOT suppress newlines when inside a function literal body — closures need `INDENT/DEDENT` for their block structure.
+**Inline (during tokenization):** Inside `[]` or literal `{}` (`braceDepth > 0`), `TOKEN_NEWLINE` is suppressed and `continuationLine` is set so the next line's indentation is consumed without emitting INDENT/DEDENT. Note: `braceDepth` only tracks `[]` and literal braces (struct/map literals), NOT block braces (which use `braceBlockDepth` instead). `()` (parentheses) do NOT suppress newlines when inside a function literal body — closures need `INDENT/DEDENT` for their block structure.
 
 **Post-pass (`mergeLineContinuations`):** Pipe continuation (`|>`) and `onerr` on continuation lines are handled after tokenization. The lexer emits NEWLINE/INDENT/DEDENT normally; the post-pass removes them around pipe chains. This decouples pipe handling from the indent stack. Three patterns are merged:
 1. Trailing pipe: `PIPE [COMMENT*] NEWLINE [INDENT*]` → remove NEWLINE and INDENTs
@@ -66,9 +88,15 @@ Kukicha is indentation-sensitive. The lexer converts 4-space indentation changes
 
 For each INDENT absorbed, a corresponding DEDENT is also absorbed later in the stream.
 
-### Number literal prefixes
+### Number literal prefixes and underscore separators
 
 `scanNumber()` supports decimal, hexadecimal (`0x`/`0X`), octal (`0o`/`0O`), and binary (`0b`/`0B`) integer literals. Legacy octal (`0755`) also works. Helper functions `isHexDigit()` and `isOctalDigit()` validate digits after the prefix. Invalid prefixes (e.g., `0o` with no digits) produce an error.
+
+All digit-scanning loops (decimal, hex, octal, binary, float fractional) accept `_` as a visual separator (e.g., `1_000_000`, `0xFF_FF`, `3.141_592`). The underscore is included in the token lexeme and preserved through codegen and the formatter.
+
+### NUL rejection in strings
+
+`scanStringBody` rejects NUL (`\x00`) characters inside string literals with a clear error. This prevents invalid characters from propagating through to generated Go source.
 
 ### Adding a new keyword
 
@@ -141,8 +169,8 @@ Non-interpolated strings still emit a single `TOKEN_STRING`.
 - **Error collection** (not fail-fast): errors are appended to `p.errors`, parsing continues. This allows multiple errors per compile.
 - `peekToken()` calls `skipIgnoredTokens()` first, which skips `TOKEN_COMMENT` and `TOKEN_SEMICOLON`
 - Context-sensitive keywords: `list`, `map`, `channel` are only keywords when followed by `of` in a type context — this allows them as variable names elsewhere. `empty` and `error` are context-sensitive too: `isIdentifierFollower()` checks if the next token indicates identifier usage (`:=`, `=`, `&`, `.`, `[`, `:`, `|>`, `)`, `,`, string interpolation mid/tail, etc.); if so, they parse as identifiers instead of `EmptyExpr`/`ErrorExpr`. This means `empty |> iterator.Values()`, `print(empty)`, and `empty.field` all work when `empty` is a user-defined variable.
-- `close` is a keyword (`TOKEN_CLOSE`) for channel close expressions (`close ch`), but `parseIdentifier()` also accepts `TOKEN_CLOSE` so that `close` can be used as a method name, field name, or function declaration name (e.g., `func close on t T`).
-- `parseStatement()` rejects `TOKEN_TYPE` inside function bodies with a clear error message ("type declarations must be at the top level"). This prevents confusing parse failures when users try to declare types inside functions.
+- **Keywords as identifiers:** `parseIdentifier()` uses `isIdentifierToken()` to accept many keyword tokens in identifier position (method names, field names, function declaration names). This allows patterns like `obj.close()`, `db.select()`, `registry.list()`, `node.type`, `event.on()`. Only tokens with structural/control-flow meaning (e.g., `if`, `for`, `return`, `func`) are excluded. Previously only `close`, `empty`, and `error` were accepted; now ~25 keyword types are allowed.
+- **Type declarations inside functions:** `parseStatement()` parses `TOKEN_TYPE` into a `TypeDeclStmt` (wrapping a `TypeDecl`) rather than rejecting it at parse time. The error is deferred to semantic analysis, which keeps all validation in a single pass and produces a clearer error message.
 
 ### Operator precedence (lowest → highest)
 
@@ -158,6 +186,7 @@ or → pipe (`|>`) → and → bitwise or/and → comparison → additive → mu
 | `parseBlock()` | Parse `INDENT … DEDENT` block into `*ast.BlockStmt` |
 | `parseTypeAnnotation()` | Parse any Kukicha type (`list of T`, `map of K to V`, `reference T`, etc.) |
 | `isIdentifierFollower()` | Returns true if next token indicates `empty`/`error` is being used as an identifier |
+| `isIdentifierToken(t)` | Returns true if the token type can appear where an identifier is expected (includes ~25 keyword types) |
 
 ### Adding a new statement
 
@@ -182,11 +211,14 @@ or → pipe (`|>`) → and → bitwise or/and → comparison → additive → mu
 
 ```
 Node
-├── Declaration  (declNode marker)  — FunctionDecl, TypeDecl, EnumDecl, ImportDecl, …
-├── Statement    (stmtNode marker)  — IfStmt, ForRangeStmt, ReturnStmt, …
-├── Expression   (exprNode marker)  — CallExpr, PipeExpr, ArrowLambda, …
-└── TypeAnnotation (typeNode marker) — ListType, MapType, ReferenceType, …
+├── Declaration      (declNode marker, //sumtype:decl)  — FunctionDecl, TypeDecl, EnumDecl, ImportDecl, …
+├── Statement        (stmtNode marker, //sumtype:decl)  — IfStmt, ForRangeStmt, ReturnStmt, …
+├── Expression       (exprNode marker, //sumtype:decl)  — CallExpr, PipeExpr, ArrowLambda, …
+├── TypeAnnotation   (typeNode marker, //sumtype:decl)  — ListType, MapType, ReferenceType, …
+└── PipedSwitchBody  (pipedSwitchBodyNode, //sumtype:decl) — SwitchStmt, TypeSwitchStmt
 ```
+
+The `//sumtype:decl` annotations enable `gochecksumtype` (via `make lint`) to enforce exhaustive type switches. Type switches without a `default:` branch must handle every type implementing the interface — adding a new AST node produces a linter error until all switches are updated.
 
 ### Convention for new nodes
 
@@ -206,7 +238,7 @@ func (s *XxxStmt) stmtNode() {} // or declNode() / exprNode() / typeNode()
 
 Always store the keyword's `lexer.Token` as the first field — it carries line/column for error messages.
 
-**Notable:** `VarDeclStmt` implements both `Statement` and `Declaration`.
+**Notable:** `VarDeclStmt` implements both `Statement` and `Declaration`. `TypeDeclStmt` wraps a `TypeDecl` that appeared inside a function body — the parser accepts it syntactically so semantic analysis can reject it with a clear error.
 
 ### EnumDecl and EnumCase
 
@@ -253,7 +285,8 @@ Currently supported directives:
 
 | File | Contents |
 |------|---------|
-| `semantic.go` | Core `Analyzer` struct, `New`, `Analyze`, `Warnings`, `ReturnCounts`, error/warn helpers |
+| `semantic.go` | Core `Analyzer` struct, `New`, `Analyze`, `AnalyzeResult`, `AnalysisResult` type, error/warn helpers |
+| `semantic_directives.go` | `DirectiveResult` struct, `CollectDirectives()` — extracts deprecated/panics/todo from AST directives |
 | `semantic_declarations.go` | Package name validation, skill validation, declaration collection/analysis, enum validation and exhaustiveness checking |
 | `semantic_statements.go` | Statement analysis (`analyzeBlock`, `analyzeStatement`, `analyzeIfStmt`, …) |
 | `semantic_expressions.go` | Expression analysis (`analyzeExpression`, `analyzeIdentifier`, `analyzeBinaryExpr`, `analyzePipeExprMulti`, …) |
@@ -262,22 +295,62 @@ Currently supported directives:
 | `semantic_helpers.go` | Pure utilities (`isValidIdentifier`, `extractPackageName`, `isExported`, `isNumericType`) |
 | `semantic_calls.go` | `analyzeCallExpr`, `analyzeMethodCallExpr`, `analyzeFieldAccessExpr` (incl. enum dot-access resolution) |
 | `semantic_security.go` | Security checks (SQL injection, XSS, SSRF, path traversal, command injection, open redirect) |
+| `semantic_lint.go` | Lint candidate collection (`LintCandidate`, `LintKind`) and deferred emission (`emitLintWarnings`) |
 | `symbols.go` | Symbol table and type info |
 | `stdlib_types.go` | Shared `goStdlibType`/`goStdlibEntry` structs, `GetStdlibEnum`, `GetAllStdlibEnums` (not generated — edit directly) |
 | `stdlib_registry_gen.go` | GENERATED — Kukicha stdlib signatures |
 | `go_stdlib_gen.go` | GENERATED — Go stdlib signatures |
 
+### Analyzer struct layout
+
+The `Analyzer` has 17 fields grouped by lifecycle phase:
+
+| Group | Fields |
+|-------|--------|
+| Immutable inputs | `program`, `sourceFile` |
+| Infrastructure | `symbolTable`, `security`, `errors`, `warnings` |
+| Pre-pass output | `directives *DirectiveResult` (set once by `CollectDirectives`) |
+| Pass 1 output | `importAliases` |
+| Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrAlias`, `inPipedSwitch` |
+| Pass 2 output | `exprReturnCounts`, `exprTypes` |
+| Lint candidates | `lintCandidates []LintCandidate` (collected during analysis, emitted in final pass) |
+
 ### Analysis passes
 
-The `Analyze()` method runs three top-level passes in order:
+The `Analyze()` method runs four top-level passes in order:
 
-1. **`collectDirectives()`** — scans all declarations for `# kuki:deprecated` and `# kuki:panics` directives, populating `deprecatedFuncs`/`deprecatedTypes`/`panickedFuncs` maps
-2. **`collectDeclarations()`** — registers all top-level types, interfaces, and function signatures into the symbol table (so functions can call each other regardless of order); also validates package name (rejects Go stdlib names)
-3. **`analyzeDeclarations()`** — validates function bodies, infers `exprReturnCounts`, enforces security checks, warns on deprecated calls
+1. **`CollectDirectives()`** — pure function; scans all declarations for `# kuki:deprecated`, `# kuki:panics`, and `# kuki:todo` directives, returning a `*DirectiveResult` stored as `a.directives`
+2. **`collectDeclarations()`** — registers all top-level types, interfaces, and function signatures into the symbol table (so functions can call each other regardless of order); also validates package name (rejects Go stdlib names) and import paths (rejects `"`, `\`, and NUL characters)
+3. **`analyzeDeclarations()`** — validates function bodies, infers `exprReturnCounts`, enforces security checks; collects lint candidates via `recordLint()` instead of emitting warnings directly
+4. **`emitLintWarnings()`** — final pass that converts collected `LintCandidate` structs into warnings. Decouples lint detection from emission, enabling future filtering/configuration.
+
+`AnalyzeResult()` wraps `Analyze()` and returns `*AnalysisResult` bundling errors, warnings, and both maps.
+
+### Lint candidate system (`semantic_lint.go`)
+
+All non-fatal diagnostics use the collect-then-emit pattern. During type checking, `recordLint(kind, pos, message)` appends a `LintCandidate` to `a.lintCandidates`. After all analysis completes, `emitLintWarnings()` converts them to warnings via `a.warn()`.
+
+`LintKind` categories: `LintDeprecation`, `LintPanic`, `LintOnerr`, `LintPipe`, `LintEnum`, `LintTypeMismatch`, `LintSecurity`, `LintTodo`. These enable future per-category suppression (e.g., `--suppress-lint=deprecation`).
 
 ### Interface detection in typeAnnotationToTypeInfo
 
 When `typeAnnotationToTypeInfo` processes a `NamedType`, it checks if the name refers to an interface — either a user-defined interface in the symbol table (`SymbolInterface`) or a known Go/Kukicha stdlib interface via `IsKnownInterface()`. If so, it returns `TypeKindInterface` instead of `TypeKindNamed`. This allows `typesCompatible()` to correctly accept concrete types (e.g., `*MyStruct`) where an interface return type is declared (e.g., `io.Reader`).
+
+### Qualified named type compatibility
+
+`typesCompatible()` defers to the Go compiler for qualified named types from external packages (e.g., `mypkg.Handler`). When either type contains a `.` in its name, the check returns `true` — Kukicha cannot resolve external type definitions at compile time, so the Go compiler handles the final check. This allows patterns like returning a concrete struct where an external interface is expected.
+
+### ReturnExpr outside onerr
+
+`ReturnExpr` (the expression form used in `onerr return ...`) is validated to only appear inside an `onerr` handler. The `inOnerr bool` field on the analyzer is checked in `analyzeExpression` for `*ast.ReturnExpr` — if false, an error is reported.
+
+### Type declarations inside functions
+
+`analyzeStatement()` handles `*ast.TypeDeclStmt` by emitting the error "type declarations must be at the top level, not inside a function". The parser accepts these syntactically (wrapping in `TypeDeclStmt`) so that the error comes from semantic analysis rather than the parser, providing a clearer message.
+
+### List literal type precedence
+
+In `analyzeListLiteral`, an explicitly declared element type (e.g., `list of Shape{...}`) takes priority over element-based inference. This allows heterogeneous interface lists where elements have different concrete types. When `expr.Type != nil`, it is used directly; otherwise the first element's type is inferred and subsequent elements are checked for compatibility.
 
 ### Switch scope per case
 
@@ -322,7 +395,7 @@ When a new stdlib function is added to a `.kuki` file, run `make genstdlibregist
 
 Both registries use `goStdlibEntry` and `goStdlibType` types from `stdlib_types.go`. The Kukicha registry additionally populates `ParamNames` for named argument support and `DefaultValues` for default parameter filling.
 
-In `analyzeMethodCallExpr`, the Go stdlib registry is checked first, then the Kukicha registry.
+In `analyzeMethodCallExpr`, the Go stdlib registry is checked first, then the Kukicha registry. When neither registry has an entry, no default return count is recorded — this lets codegen's `emitOnErrDiscard` use its bare-call fallback instead of assuming 1 return value.
 
 To add a new Go stdlib function: add it to the curated list in `cmd/gengostdlib/main.go` and run `make gengostdlib`.
 
@@ -443,7 +516,7 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 
 Simple onerr cases (single call, no pipe) still use direct emission in `codegen_onerr.go`. Pipe chain and piped switch onerr delegate to the Lowerer. `currentOnErrVar` holds the generated error variable name so that `{error}` in string interpolation inside the block resolves to it.
 
-`emitOnErrDiscard` handles `onerr discard` for all three forms (statement, var decl, assignment). When `inferReturnCount` succeeds, it emits the correct number of `_` blanks. When inference fails (e.g., method calls on unknown types), the fallback emits a bare function call without any assignment — Go allows discarding all return values from any call.
+`emitOnErrDiscard` handles `onerr discard` for all three forms (statement, var decl, assignment). When `inferReturnCount` succeeds and returns count >= 1, it emits the correct number of `_` blanks. When inference fails or returns 0, the fallback emits a bare function call without any assignment — Go allows discarding all return values from any call, so this is always valid.
 
 The Lowerer handles three cases per pipe step:
 1. **Multi-return** (count >= 2): split into `val, err := call()`; check err
@@ -527,6 +600,14 @@ The generic classification (`T`, `K`, `TK`, `O`, `TO`, `TR`) is auto-derived fro
 
 Use `g.childGenerator(extraIndent)` when generating inline function bodies (function literals, arrow lambda blocks). The child shares the parent's semantic state by reference and writes to a fresh `strings.Builder`.
 
+### Integer/float literal codegen
+
+`exprToString` for `IntegerLiteral` preserves the original lexeme when it has a prefix (`0x`, `0o`, `0b`, legacy `0...`) or contains underscore separators (`1_000`). Otherwise it formats via `%d`. `FloatLiteral` similarly preserves the lexeme when it contains underscores.
+
+### For-range iterator detection
+
+`generateForRangeStmt` uses single-variable form (`for v := range ...`) when the collection is a range-over-func iterator (`iter.Seq`/`iter.Seq2`). Detection uses `collectionIsIterator(expr)`, which checks `exprTypes` for `TypeKindFunction`. This complements the existing `isStdlibIter` flag (used when generating stdlib/iter itself).
+
 ### Writing to output
 
 Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newline). Do not write to `g.output` directly.
@@ -542,6 +623,8 @@ Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newl
 - Supports Go-style preprocessing (braces/semicolons → indentation)
 - Comment preservation: extracts from tokens, attaches to AST nodes, emits during printing
 - `printEnumDecl()` formats enum declarations with proper indentation
+- `TypeDeclStmt` is preserved in formatting output (even though semantic analysis rejects it) so the user sees the error
+- Integer and float literals with underscore separators or prefixes preserve their original lexeme
 
 ## LSP (`lsp/`)
 
@@ -563,7 +646,8 @@ Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newl
 3. **Parser** (`parser/parser_stmt.go`): in `parseStatement()` add `case lexer.TOKEN_REPEAT:` → `parseForRepeatStmt()`
 4. **Semantic** (`semantic/semantic_statements.go`): in `analyzeStatement()` add `case *ast.ForRepeatStmt:` → validate `Count` is numeric
 5. **Codegen** (`codegen/codegen_stmt.go`): in `generateStatement()` add `case *ast.ForRepeatStmt:` → emit `for _i := 0; _i < N; _i++ { ... }`
-6. **Tests**: add test cases in each package's `*_test.go`
+6. **Lint** (`make lint`): `gochecksumtype` will flag any type switch without `default:` that's missing the new `ForRepeatStmt` case — fix all reported switches
+7. **Tests**: add test cases in each package's `*_test.go`
 
 ---
 

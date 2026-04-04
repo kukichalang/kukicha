@@ -1,15 +1,15 @@
 ---
 name: kukicha
-description: Help write, debug, and understand Kukicha code - a beginner-friendly language that transpiles to Go. Use when working with .kuki files, discussing Kukicha syntax, error handling with onerr, pipe operators, or the Kukicha compiler/transpiler.
+description: Help write, debug, and understand Kukicha code - a strict superset of Go with pipes, onerr, enums, and readable operators. Use when working with .kuki files, discussing Kukicha syntax, error handling with onerr, pipe operators, or the Kukicha compiler/transpiler.
 ---
 
 # Kukicha Language Skill
 
-Kukicha (茎) transpiles to idiomatic Go. Full language reference is in `docs/SKILL.md` — syntax, stdlib usage, security patterns, and testing.
+Kukicha (茎) is a strict superset of Go — all valid Go compiles as-is. Kukicha adds pipes, `onerr`, enums, if-expressions, and readable operators on top. Full language reference is in `docs/SKILL.md`.
 
 **For compiler errors and diagnostics**, read `.agent/skills/kukicha/troubleshooting.md`.
 
-## Common AI Mistakes (Gotchas Not in AGENTS.md)
+## Gotchas
 
 ### `{error}` vs `{err}` in onerr blocks
 
