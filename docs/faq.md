@@ -1,19 +1,51 @@
 # FAQ
 
-## Coming from Bash / Shell Scripting
+## Coming from Go
 
-**Why not just keep writing bash scripts?**
+**Why not just write Go?**
 
-| Bash Pain Point | Kukicha Solution |
+You already know Go's power. Kukicha is a strict superset — your `.go` files compile as `.kuki` unchanged. The question is whether the opt-in features are worth it.
+
+| Go | Kukicha (opt-in) |
 |---|---|
-| Quoting hell (`"${var}"`) | `{var}` in strings |
-| `set -e` surprises | `onerr` per operation |
-| No real data types | `int`, `string`, `bool`, `list of`, `map of` |
-| `$1`, `$2` positional args | Named, typed function parameters |
-| `if [ ... ]; then ... fi` | `if condition` with indentation |
-| Arrays (`"${arr[@]}"`) | `list of string{"a", "b"}` |
+| `if err != nil { ... }` | `onerr panic "msg"` |
+| `f(g(h(x)))` | `x \|> h() \|> g() \|> f()` |
+| 5-line temp var + if/else | `x := if cond then a else b` |
+| `&&`, `\|\|`, `!` | `and`, `or`, `not` |
+| `*Type`, `&var` | `reference Type`, `reference of var` |
+| `[]string{"a", "b"}` | `list of string{"a", "b"}` |
+| `func(s string) bool { return ... }` | `(s string) => ...` |
+| `const` + `iota` | `enum Status` with named variants |
 
-**Where to start:** [Kukicha for Shell Scripters](tutorials/shell-to-kukicha.md)
+Both Go and Kukicha syntax compile — use whichever you prefer, or mix them in the same file.
+
+**The pipe operator** is probably the biggest addition. Instead of:
+
+```go
+result := strings.ToUpper(strings.TrimSpace(strings.ReplaceAll(text, "\t", " ")))
+```
+
+You write:
+
+```kukicha
+result := text |> strpkg.Replace("\t", " ") |> strpkg.TrimSpace() |> strpkg.ToUpper()
+```
+
+Use `_` to control where the piped value lands when it isn't the first argument:
+
+```kukicha
+todo |> json.MarshalWrite(response, _)  # Becomes: json.MarshalWrite(response, todo)
+```
+
+**Gradual adoption:**
+
+```bash
+kukicha-blend main.go          # see what your Go looks like with Kukicha idioms
+kukicha-blend --apply main.go  # convert main.go → main.kuki
+kukicha brew main.kuki         # convert back to standalone Go anytime
+```
+
+**Where to start:** [Quick Reference](kukicha-quick-reference.md) — a direct Go-to-Kukicha translation table.
 
 ---
 
@@ -42,43 +74,20 @@ If your work is ML/data science, stick with Python — Kukicha is aimed at CLI t
 
 ---
 
-## Coming from Go
+## Coming from Bash / Shell Scripting
 
-**Why not just write Go?**
+**Why not just keep writing bash scripts?**
 
-You already know Go's power. The question is whether the syntax improvements are worth it.
-
-| Go | Kukicha |
+| Bash Pain Point | Kukicha Solution |
 |---|---|
-| `if err != nil { ... }` | `onerr panic "msg"` |
-| `&&`, `\|\|`, `!` | `and`, `or`, `not` |
-| `*Type`, `&var` | `reference Type`, `reference of var` |
-| `[]string{"a", "b"}` | `list of string{"a", "b"}` |
-| `func(s string) bool { return ... }` | `(s string) => ...` |
-| `go func() { ... }()` | `go` with indented block |
-| `case` / `default` | `when` / `otherwise` |
+| Quoting hell (`"${var}"`) | `{var}` in strings |
+| `set -e` surprises | `onerr` per operation |
+| No real data types | `int`, `string`, `bool`, `list of`, `map of` |
+| `$1`, `$2` positional args | Named, typed function parameters |
+| `if [ ... ]; then ... fi` | `if condition` with indentation |
+| Arrays (`"${arr[@]}"`) | `list of string{"a", "b"}` |
 
-Everything else is the same: full Go stdlib access, `go mod`, goroutines, channels, interfaces.
-
-**The pipe operator** is probably the biggest addition. Instead of:
-
-```go
-result := strings.ToUpper(strings.TrimSpace(strings.ReplaceAll(text, "\t", " ")))
-```
-
-You write:
-
-```kukicha
-result := text |> strpkg.Replace("\t", " ") |> strpkg.TrimSpace() |> strpkg.ToUpper()
-```
-
-Use `_` to control where the piped value lands when it isn't the first argument:
-
-```kukicha
-todo |> json.MarshalWrite(response, _)  # Becomes: json.MarshalWrite(response, todo)
-```
-
-**Where to start:** [Quick Reference](kukicha-quick-reference.md) — it's a direct Go-to-Kukicha translation table.
+**Where to start:** [Kukicha for Shell Scripters](tutorials/shell-to-kukicha.md)
 
 ---
 
@@ -86,7 +95,7 @@ todo |> json.MarshalWrite(response, _)  # Becomes: json.MarshalWrite(response, t
 
 ### I don't know how to program. Can I use Kukicha?
 
-Yes — that's one of the primary use cases. The workflow is:
+Yes — that's a supported use case. The workflow is:
 
 1. Describe what you want to an AI agent (Claude Code, Cursor, ChatGPT)
 2. The agent writes Kukicha code
@@ -103,12 +112,10 @@ No. The compiler transpiles your code to standard, idiomatic Go. Once compiled b
 
 Yes. Import any Go package (standard library or third-party) and use it directly. The compiler trusts external packages it hasn't seen before, giving you the full Go ecosystem.
 
-### Which languages was this inspired by
+### Can I convert back to Go?
 
-Besides Go, so far Python, Elixir and Nim
+Yes. `kukicha brew` converts `.kuki` files to standalone, idiomatic Go — no Kukicha dependency, no generated headers. Zero lock-in.
 
-### Why bother making an AI Agent friendly language? In the future we won't be able read what they generate anyway
+### Which languages was this inspired by?
 
-Yes, applications will become specialized neural micro-models whose weights encode behavior; vector embeddings will replace rigid syntax, control flow is differentiable and self-adjusting, and correctness is ensured through formal mathematical proofs instead of tests.
-
-But in the meantime let's try and keep a human in the loop!
+Besides Go, so far Python, Elixir, and Nim.
