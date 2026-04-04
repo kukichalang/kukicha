@@ -5,7 +5,7 @@ description: Kukicha CLI and code generator internals — subcommand description
 
 # cmd/ — CLI Entry Points
 
-The `cmd/` directory contains three standalone binaries and two code generators.
+The `cmd/` directory contains three standalone binaries, a Go→Kukicha converter, and two code generators.
 
 ## Binaries
 
@@ -58,6 +58,33 @@ Key internal functions in `stdlib.go`:
 ### `cmd/kukicha-lsp/` — Language Server
 
 Thin entry point that creates an `lsp.NewServer` (from `internal/lsp`) and runs it over stdin/stdout. All logic lives in `internal/lsp/`.
+
+### `cmd/kukicha-blend/` — Go → Kukicha Converter
+
+Separate binary that parses `.go` files with `go/parser` and suggests (or applies) Kukicha idioms. Core logic lives in `internal/blend/`.
+
+| Flag | Description |
+|------|-------------|
+| `--apply` | Convert `.go` files to `.kuki` (writes new files) |
+| `--diff` | Show unified diff of what would change |
+| `--patterns` | Comma-separated patterns: `operators`, `comparisons`, `types`, `onerr`, `package` |
+
+Transformation patterns:
+
+- **operators** — `&&` → `and`, `||` → `or`, `!` → `not`
+- **comparisons** — `==` → `equals`, `!=` → `isnt`, `nil` → `empty`
+- **types** — `[]T` → `list of T`, `map[K]V` → `map of K to V`, `*T` → `reference T`, `&x` → `reference of x`
+- **onerr** — `if err != nil { return ... }` → `onerr return ...`
+- **package** — `package` → `petiole`
+
+Key internal packages:
+
+- `internal/blend/blend.go` — `BlendFile()`: parse Go source, walk AST, collect suggestions
+- `internal/blend/patterns.go` — Pattern detectors for each transformation category
+- `internal/blend/apply.go` — `Apply()`: back-to-front text rewriting; `Diff()`: unified diff generation
+- `internal/blend/suggestion.go` — `Suggestion` type, `PatternSet`, `ParsePatterns()`
+
+Build: `make blend` or `go build -o ./kukicha-blend ./cmd/kukicha-blend`
 
 ## Code Generators
 

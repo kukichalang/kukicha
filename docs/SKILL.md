@@ -416,6 +416,18 @@ kukicha pack skill.kuki        # package skill into directory with SKILL.md + bi
 kukicha audit                  # check dependencies for known vulnerabilities
 ```
 
+**Go → Kukicha conversion** (separate `kukicha-blend` binary):
+
+```bash
+kukicha-blend main.go                     # show Kukicha suggestions for Go code
+kukicha-blend --diff ./pkg/               # preview changes as unified diff
+kukicha-blend --apply main.go             # convert main.go → main.kuki
+kukicha-blend --patterns=onerr main.go    # only error handling suggestions
+kukicha-blend --patterns=operators,types main.go  # selective patterns
+```
+
+Available patterns: `operators` (`&&`→`and`, `||`→`or`, `!`→`not`), `comparisons` (`==`→`equals`, `!=`→`isnt`, `nil`→`empty`), `types` (`[]T`→`list of T`, `map[K]V`→`map of K to V`, `*T`→`reference T`), `onerr` (`if err != nil { return }` → `onerr return`), `package` (`package`→`petiole`).
+
 **Build flags:**
 
 ```bash

@@ -9,7 +9,7 @@ KUKI_SOURCES := $(wildcard stdlib/*/*.kuki)
 KUKI_MAIN := $(filter-out %_test.kuki stdlib/test/test.kuki stdlib/game/game.kuki stdlib/infer/infer.kuki stdlib/ort/ort.kuki stdlib/webinfer/webinfer.kuki,$(KUKI_SOURCES))
 KUKI_TESTS := $(filter %_test.kuki,$(KUKI_SOURCES))
 
-.PHONY: all build lsp generate generate-tests genstdlibregistry gengostdlib test lint vet modernize check-generate check-test-staleness check-main-staleness clean install-lsp install-hooks build-wasm
+.PHONY: all build lsp blend generate generate-tests genstdlibregistry gengostdlib test lint vet modernize check-generate check-test-staleness check-main-staleness clean install-lsp install-hooks build-wasm
 
 all: build lsp
 
@@ -127,7 +127,11 @@ build-wasm:
 	@echo "Built $(WASM_OUT) ($$(du -sh $(WASM_OUT) | cut -f1))"
 
 clean:
-	rm -f $(KUKICHA) ./kukicha-lsp
+	rm -f $(KUKICHA) ./kukicha-lsp ./kukicha-blend
+
+# Build the kukicha-blend Go→Kukicha converter
+blend:
+	go build -o ./kukicha-blend ./cmd/kukicha-blend
 
 # Build the kukicha-lsp language server
 lsp:

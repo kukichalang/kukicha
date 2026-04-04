@@ -175,9 +175,9 @@ and shares almost no code with the compiler.
 
 ### Tasks
 
-- [ ] Create `cmd/kukicha-blend/` as a separate binary
-- [ ] Parse `.go` files with `go/parser`
-- [ ] Suggest transformations as diagnostics (not auto-applied by default):
+- [x] Create `cmd/kukicha-blend/` as a separate binary
+- [x] Parse `.go` files with `go/parser`
+- [x] Suggest transformations as diagnostics (not auto-applied by default):
   - `if err != nil { return err }` -> `onerr return`
   - `if err != nil { return ..., err }` -> `onerr return ...`
   - `&&`/`||`/`!` -> `and`/`or`/`not`
@@ -185,9 +185,9 @@ and shares almost no code with the compiler.
   - `map[string]int` -> `map of string to int`
   - `*T` -> `reference T`
   - Brace blocks -> indentation
-- [ ] `--apply` flag to auto-convert and write `.kuki` output
-- [ ] `--diff` flag to show changes without writing
-- [ ] `--patterns` flag to select which transformations to blend
+- [x] `--apply` flag to auto-convert and write `.kuki` output
+- [x] `--diff` flag to show changes without writing
+- [x] `--patterns` flag to select which transformations to blend
   (e.g., `--patterns=onerr,operators` for just error handling and operators)
 
 ### Notes
@@ -367,33 +367,40 @@ reasoned about, and extended independently.
 
 ---
 
-## 7. Visitor Pattern for Codegen
+## 7. Exhaustive Type Switch Checking ✅
 
-**Problem:** Codegen uses ad-hoc type switches scattered across 4 files
-(codegen_expr.go, codegen_stmt.go, codegen_decl.go, codegen_stdlib.go —
-13K lines total). Adding a new AST node requires edits in multiple places
-with no compile-time guarantee that all cases are handled.
+**Problem:** Codegen uses ad-hoc type switches scattered across 9 files
+(34 major switches total). Adding a new AST node requires edits in
+multiple places with no compile-time guarantee that all cases are handled.
 
-**Goal:** A single `ast.Visitor` interface so that new node types produce a
-compiler error until every pass handles them.
+**Goal:** Compile-time enforcement that type switches over AST interfaces
+handle all cases. A new AST node type produces a linter error until every
+switch handles it.
+
+### Approach
+
+Instead of a 72-method `ast.Visitor` interface (unwieldy given the node
+count), we use `gochecksumtype` — a Go linter that enforces exhaustive
+type switches on "sum type" interfaces marked with `//sumtype:decl`.
 
 ### Tasks
 
-- [ ] Define `ast.Visitor` interface with one method per node type
-- [ ] Implement `ast.Walk(visitor, node)` that dispatches to the correct method
-- [ ] Refactor `Generator.exprToString()` type switches into visitor methods
-- [ ] Refactor `generateDeclaration()` / `generateStatement()` the same way
-- [ ] Add an `exhaustive` linter check (or build tag) to enforce all cases are covered
-- [ ] Verify no test regressions after each file migration
+- [x] Add `//sumtype:decl` annotations to `Declaration`, `Statement`,
+  `Expression`, `TypeAnnotation`, and `PipedSwitchBody` interfaces in `ast.go`
+- [x] Enable `gochecksumtype` in `.golangci.yml`
+- [x] Verify all existing type switches pass (0 issues — all switches are
+  either exhaustive or have a `default` branch)
+- [x] Verify no test regressions
 
 ### Notes
 
-- Migrate incrementally — one codegen file at a time
-- The IR layer (lower.go, emit.go) already uses a clean type switch over a
-  small, stable set of IR nodes; leave it alone unless it grows
-- With superset support, the number of AST node variants may grow (Go-style
-  nodes alongside Kukicha-style nodes, or unified nodes with a syntax flag);
-  the visitor pattern makes this manageable
+- Switches with `default:` are exempt (intentionally non-exhaustive)
+- Switches without `default:` must handle every type that implements the
+  interface — the linter enforces this at `make lint` time
+- The IR layer (`lower.go`, `emit.go`) uses type switches over IR nodes
+  (not AST), so it's unaffected
+- `codegen_walk.go` already has callback-based walkers covering Statement
+  and Expression trees — these remain as-is
 
 ---
 
