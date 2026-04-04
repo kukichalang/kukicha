@@ -52,7 +52,7 @@ Build with: `kukicha build myapp/` — merges all `.kuki` files into `myapp/main
 | `reference User` | `*User` |
 | `reference of x` | `&x` |
 | `dereference ptr` | `*ptr` |
-| `func Method on t T` | `func (t T) Method()` |
+| `func Method on t T` (or `func (t T) Method()`) | `func (t T) Method()` |
 | `many args` | `args...` |
 | `make channel of T` | `make(chan T)` |
 | `send val to ch` / `receive from ch` | `ch <- val` / `<-ch` |

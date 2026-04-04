@@ -74,7 +74,12 @@ func (p *Parser) Parse() (*ast.Program, []error) {
 
 	// Parse imports
 	for p.peekToken().Type == lexer.TOKEN_IMPORT {
-		program.Imports = append(program.Imports, p.parseImportDecl())
+		// Grouped form: import ( ... )
+		if p.peekNextToken().Type == lexer.TOKEN_LPAREN {
+			program.Imports = append(program.Imports, p.parseGroupedImports()...)
+		} else {
+			program.Imports = append(program.Imports, p.parseImportDecl())
+		}
 		p.skipNewlines()
 	}
 

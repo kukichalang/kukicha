@@ -18,7 +18,7 @@ When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
 | `{ }` braces | 4-space indentation | Yes |
 | `==` | `equals` (or `==`) | Yes |
 | `!=` | `isnt` (or `!=`) | Yes |
-| `func (t T) Method()` | `func Method on t T` | Not yet |
+| `func (t T) Method()` | `func Method on t T` | Yes |
 | `func(x T) T { return expr }` | `(x T) => expr` | |
 | `go func() { ... }()` | `go` + indented block | |
 | `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` | |

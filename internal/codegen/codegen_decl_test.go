@@ -106,6 +106,117 @@ func Increment on c reference Counter
 	}
 }
 
+func TestGenerateGoStyleMethodDecl(t *testing.T) {
+	input := `type User
+    name string
+
+func (u User) GetName() string
+    return u.name
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (u User) GetName() string {") {
+		t.Errorf("expected Go-style method with receiver, got:\n%s", output)
+	}
+}
+
+func TestGenerateGoStylePointerReceiverMethod(t *testing.T) {
+	input := `type Counter
+    value int
+
+func (c *Counter) Increment()
+    c.value = c.value + 1
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (c *Counter) Increment() {") {
+		t.Errorf("expected Go-style pointer receiver method, got:\n%s", output)
+	}
+}
+
+func TestGenerateGoStyleMethodMultiReturn(t *testing.T) {
+	input := `type User
+    name string
+
+func (u User) Validate() (bool, error)
+    return true, empty
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (u User) Validate() (bool, error) {") {
+		t.Errorf("expected Go-style method with multi-return, got:\n%s", output)
+	}
+}
+
+func TestGenerateMixedStyleMethods(t *testing.T) {
+	input := `type User
+    name string
+
+func GetName on u User string
+    return u.name
+
+func (u User) Display()
+    print(u.name)
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (u User) GetName() string {") {
+		t.Errorf("expected Kukicha-style method, got:\n%s", output)
+	}
+	if !strings.Contains(output, "func (u User) Display() {") {
+		t.Errorf("expected Go-style method, got:\n%s", output)
+	}
+}
+
+func TestGenerateGoStyleMethodWithBraces(t *testing.T) {
+	input := `type User
+    name string
+
+func (u User) GetName() string {
+    return u.name
+}
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (u User) GetName() string {") {
+		t.Errorf("expected Go-style method with braces, got:\n%s", output)
+	}
+}
+
+func TestGenerateGoStyleMethodWithParams(t *testing.T) {
+	input := `type User
+    name string
+
+func (u User) SetName(name string)
+    u.name = name
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func (u User) SetName(name string) {") {
+		t.Errorf("expected Go-style method with params, got:\n%s", output)
+	}
+}
+
+func TestGenerateGoStyleFuncParenthesizedReturn(t *testing.T) {
+	input := `func divide(a int, b int) (int, error)
+    if b == 0
+        return 0, errors.New("division by zero")
+    return a / b, empty
+`
+
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "func divide(a int, b int) (int, error) {") {
+		t.Errorf("expected Go-style func with parenthesized return, got:\n%s", output)
+	}
+}
+
 func TestGenerateVariadicFunction(t *testing.T) {
 	input := `func Sum(many numbers int) int
     total := 0

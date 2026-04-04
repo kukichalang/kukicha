@@ -85,6 +85,29 @@ func (p *Parser) parseSkillDecl() *ast.SkillDecl {
 func (p *Parser) parseImportDecl() *ast.ImportDecl {
 	token := p.advance() // consume 'import'
 	p.skipNewlines()
+	return p.parseImportSpec(token)
+}
+
+// parseImportSpec parses a single import path + optional alias.
+// Supports both Kukicha style ("path" as alias) and Go style (alias "path").
+// importToken is the 'import' keyword token (used for error position only).
+func (p *Parser) parseImportSpec(importToken lexer.Token) *ast.ImportDecl {
+	// Go-style alias before path: import j "encoding/json"
+	// Detect: next token is identifier (or _), token after that is string.
+	if p.peekToken().Type == lexer.TOKEN_IDENTIFIER &&
+		p.peekNextToken().Type == lexer.TOKEN_STRING {
+		aliasIdent := p.parseIdentifier()
+		pathToken := p.advance()
+		decl := &ast.ImportDecl{
+			Token: importToken,
+			Path: &ast.StringLiteral{
+				Token: pathToken,
+				Value: pathToken.Lexeme,
+			},
+			Alias: aliasIdent,
+		}
+		return decl
+	}
 
 	pathToken := p.advance()
 	if pathToken.Type != lexer.TOKEN_STRING {
@@ -93,20 +116,58 @@ func (p *Parser) parseImportDecl() *ast.ImportDecl {
 	}
 
 	decl := &ast.ImportDecl{
-		Token: token,
+		Token: importToken,
 		Path: &ast.StringLiteral{
 			Token: pathToken,
 			Value: pathToken.Lexeme,
 		},
 	}
 
-	// Check for optional alias (as Name)
+	// Kukicha-style alias after path: "path" as alias
 	if p.match(lexer.TOKEN_AS) {
 		decl.Alias = p.parseIdentifier()
 	}
 
-	p.skipNewlines()
 	return decl
+}
+
+// parseGroupedImports parses: import ( "path1" \n "path2" ... )
+// and returns a slice of ImportDecl, one per entry.
+func (p *Parser) parseGroupedImports() []*ast.ImportDecl {
+	importToken := p.advance() // consume 'import'
+	p.skipGroupedImportWhitespace()
+	p.consume(lexer.TOKEN_LPAREN, "expected '(' for grouped import")
+	p.skipGroupedImportWhitespace()
+
+	var decls []*ast.ImportDecl
+	for !p.check(lexer.TOKEN_RPAREN) && !p.isAtEnd() {
+		p.skipGroupedImportWhitespace()
+		if p.check(lexer.TOKEN_RPAREN) {
+			break
+		}
+		// Skip blank identifier imports (side-effect imports): _ "path"
+		if decl := p.parseImportSpec(importToken); decl != nil {
+			decls = append(decls, decl)
+		}
+		p.skipGroupedImportWhitespace()
+	}
+
+	p.consume(lexer.TOKEN_RPAREN, "expected ')' to close grouped import")
+	p.skipNewlines()
+	return decls
+}
+
+// skipGroupedImportWhitespace skips NEWLINE, INDENT, DEDENT, and SEMICOLON
+// tokens that may appear between entries in a grouped import block.
+func (p *Parser) skipGroupedImportWhitespace() {
+	for {
+		switch p.peekToken().Type {
+		case lexer.TOKEN_NEWLINE, lexer.TOKEN_INDENT, lexer.TOKEN_DEDENT, lexer.TOKEN_SEMICOLON:
+			p.advance()
+		default:
+			return
+		}
+	}
 }
 
 func (p *Parser) parseDeclaration() ast.Declaration {
@@ -270,6 +331,17 @@ func (p *Parser) parseInterfaceDecl() *ast.InterfaceDecl {
 	}
 }
 
+// isGoStyleReceiver checks whether a `(` after `func` is a Go-style receiver
+// like `func (r Type) Name(...)` rather than a parameter list. At declaration
+// level, `func (` always means a receiver in Go, but we verify by checking
+// that the tokens inside parens look like `identifier type` (not empty parens
+// or a comma-separated parameter list used as a grouped return).
+func (p *Parser) isGoStyleReceiver() bool {
+	// peekAt(0) is '(', peekAt(1) should be receiver name (identifier)
+	tok1 := p.peekAt(1)
+	return tok1.Type == lexer.TOKEN_IDENTIFIER
+}
+
 func (p *Parser) parseFunctionDecl() *ast.FunctionDecl {
 	token := p.advance() // consume 'func'
 	p.skipNewlines()
@@ -278,16 +350,30 @@ func (p *Parser) parseFunctionDecl() *ast.FunctionDecl {
 		Token: token,
 	}
 
-	// Parse function name
-	decl.Name = p.parseIdentifier()
-
-	// Check for receiver (method declaration): func Name on receiverName Type
-	if p.match(lexer.TOKEN_ON) {
+	// Go-style receiver: func (r Type) Name(...)
+	if p.check(lexer.TOKEN_LPAREN) && p.isGoStyleReceiver() {
+		p.advance() // consume '('
 		receiverName := p.parseIdentifier()
 		receiverType := p.parseTypeAnnotation()
+		p.consume(lexer.TOKEN_RPAREN, "expected ')' after receiver")
 		decl.Receiver = &ast.Receiver{
 			Name: receiverName,
 			Type: receiverType,
+		}
+		p.skipNewlines()
+		decl.Name = p.parseIdentifier()
+	} else {
+		// Parse function name
+		decl.Name = p.parseIdentifier()
+
+		// Kukicha-style receiver: func Name on receiverName Type
+		if p.match(lexer.TOKEN_ON) {
+			receiverName := p.parseIdentifier()
+			receiverType := p.parseTypeAnnotation()
+			decl.Receiver = &ast.Receiver{
+				Name: receiverName,
+				Type: receiverType,
+			}
 		}
 	}
 

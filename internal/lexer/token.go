@@ -359,6 +359,7 @@ func (t Token) String() string {
 // keywords maps keyword strings to their token types
 var keywords = map[string]TokenType{
 	"petiole":     TOKEN_PETIOLE,
+	"package":     TOKEN_PETIOLE,
 	"import":      TOKEN_IMPORT,
 	"type":        TOKEN_TYPE,
 	"interface":   TOKEN_INTERFACE,

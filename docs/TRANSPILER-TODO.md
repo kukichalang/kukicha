@@ -246,20 +246,20 @@ Go-style).
 - [x] Tests: nested brace blocks, single-line brace blocks, mixed files,
   if/else/for/defer with braces, Go-style operators + braces combined
 
-### Phase 3: Go Method and Function Syntax
+### Phase 3: Go Method and Function Syntax ✅
 
 Accept Go's `func (t T) Method()` alongside Kukicha's `func Method on t T`.
 
-- [ ] Parser: accept `func (receiver Type) Name(params) returns` form
-- [ ] Parser: accept `func name(params) (returns)` with parenthesized multi-return
-- [ ] Codegen: passthrough — if user wrote Go syntax, emit Go syntax unchanged
-- [ ] Tests: mixed Go-style and Kukicha-style methods in the same file
+- [x] Parser: accept `func (receiver Type) Name(params) returns` form
+- [x] Parser: accept `func name(params) (returns)` with parenthesized multi-return
+- [x] Codegen: passthrough — if user wrote Go syntax, emit Go syntax unchanged
+- [x] Tests: mixed Go-style and Kukicha-style methods in the same file
 
-### Phase 4: Package and Import Compat
+### Phase 4: Package and Import Compat ✅
 
-- [ ] Accept `package` as alias for `petiole`
-- [ ] Accept `import ( "fmt" )` grouped import syntax
-- [ ] Accept raw Go import paths without `import "stdlib/..."` prefix for Go stdlib
+- [x] Accept `package` as alias for `petiole`
+- [x] Accept `import ( "fmt" )` grouped import syntax
+- [x] Accept raw Go import paths without `import "stdlib/..."` prefix for Go stdlib
 
 ### Notes
 

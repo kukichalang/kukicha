@@ -174,3 +174,88 @@ func TestAutoImportErrors(t *testing.T) {
 		t.Errorf("expected auto-import of errors package, got:\n%s", output)
 	}
 }
+
+func TestPackageAliasForPetiole(t *testing.T) {
+	// "package" should be accepted as an alias for "petiole"
+	input := `package mypkg
+
+func main()
+    x := 1
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, "package mypkg") {
+		t.Errorf("expected 'package mypkg' in output, got:\n%s", output)
+	}
+}
+
+func TestGroupedImportSyntax(t *testing.T) {
+	// import ( ... ) grouped syntax should produce the same result as separate imports
+	input := `import (
+    "fmt"
+    "os"
+)
+
+func main()
+    fmt.Println(os.Args)
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `"fmt"`) {
+		t.Errorf("expected fmt import, got:\n%s", output)
+	}
+	if !strings.Contains(output, `"os"`) {
+		t.Errorf("expected os import, got:\n%s", output)
+	}
+}
+
+func TestGroupedImportWithAlias(t *testing.T) {
+	// Grouped import with both Kukicha-style (as) and Go-style aliases
+	input := `import (
+    "encoding/json"
+    j "encoding/json/v2"
+)
+
+func main()
+    json.Marshal(nil)
+    j.Marshal(nil)
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `"encoding/json"`) {
+		t.Errorf("expected encoding/json import, got:\n%s", output)
+	}
+	if !strings.Contains(output, `j "encoding/json/v2"`) {
+		t.Errorf("expected aliased v2 import, got:\n%s", output)
+	}
+}
+
+func TestGoStyleImportAlias(t *testing.T) {
+	// Go-style alias before path: import j "encoding/json"
+	input := `import j "encoding/json"
+
+func main()
+    j.Marshal(nil)
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `j "encoding/json"`) {
+		t.Errorf("expected 'j \"encoding/json\"' in import, got:\n%s", output)
+	}
+}
+
+func TestRawGoStdlibImport(t *testing.T) {
+	// Raw Go stdlib paths (without stdlib/ prefix) should pass through unchanged
+	input := `import "strings"
+import "strconv"
+
+func main()
+    x := strings.ToUpper("hello")
+    n := strconv.Itoa(42)
+    _ = x
+    _ = n
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, `"strings"`) {
+		t.Errorf("expected 'strings' import, got:\n%s", output)
+	}
+	if !strings.Contains(output, `"strconv"`) {
+		t.Errorf("expected 'strconv' import, got:\n%s", output)
+	}
+}

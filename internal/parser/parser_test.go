@@ -282,6 +282,106 @@ func TestParseMethodDeclaration(t *testing.T) {
 	}
 }
 
+func TestParseGoStyleMethodDeclaration(t *testing.T) {
+	input := `func (p Person) Display()
+    print("Name: {p.Name}")
+`
+
+	program := mustParseProgram(t, input)
+
+	if len(program.Declarations) != 1 {
+		t.Fatalf("expected 1 declaration, got %d", len(program.Declarations))
+	}
+
+	fn, ok := program.Declarations[0].(*ast.FunctionDecl)
+	if !ok {
+		t.Fatalf("expected FunctionDecl, got %T", program.Declarations[0])
+	}
+
+	if fn.Name.Value != "Display" {
+		t.Errorf("expected method name 'Display', got '%s'", fn.Name.Value)
+	}
+
+	if fn.Receiver == nil {
+		t.Fatal("expected receiver, got nil")
+	}
+
+	if fn.Receiver.Name.Value != "p" {
+		t.Errorf("expected receiver name 'p', got '%s'", fn.Receiver.Name.Value)
+	}
+}
+
+func TestParseGoStylePointerReceiverMethod(t *testing.T) {
+	input := `func (c *Counter) Increment()
+    c.value = c.value + 1
+`
+
+	program := mustParseProgram(t, input)
+
+	fn, ok := program.Declarations[0].(*ast.FunctionDecl)
+	if !ok {
+		t.Fatalf("expected FunctionDecl, got %T", program.Declarations[0])
+	}
+
+	if fn.Name.Value != "Increment" {
+		t.Errorf("expected method name 'Increment', got '%s'", fn.Name.Value)
+	}
+
+	if fn.Receiver == nil {
+		t.Fatal("expected receiver, got nil")
+	}
+
+	if fn.Receiver.Name.Value != "c" {
+		t.Errorf("expected receiver name 'c', got '%s'", fn.Receiver.Name.Value)
+	}
+}
+
+func TestParseGoStyleMethodWithReturns(t *testing.T) {
+	input := `func (u User) GetName() string
+    return u.name
+`
+
+	program := mustParseProgram(t, input)
+
+	fn, ok := program.Declarations[0].(*ast.FunctionDecl)
+	if !ok {
+		t.Fatalf("expected FunctionDecl, got %T", program.Declarations[0])
+	}
+
+	if fn.Name.Value != "GetName" {
+		t.Errorf("expected method name 'GetName', got '%s'", fn.Name.Value)
+	}
+
+	if fn.Receiver == nil {
+		t.Fatal("expected receiver, got nil")
+	}
+
+	if len(fn.Returns) != 1 {
+		t.Fatalf("expected 1 return type, got %d", len(fn.Returns))
+	}
+}
+
+func TestParseGoStyleMethodMultiReturn(t *testing.T) {
+	input := `func (u User) Validate() (bool, error)
+    return true, empty
+`
+
+	program := mustParseProgram(t, input)
+
+	fn, ok := program.Declarations[0].(*ast.FunctionDecl)
+	if !ok {
+		t.Fatalf("expected FunctionDecl, got %T", program.Declarations[0])
+	}
+
+	if fn.Name.Value != "Validate" {
+		t.Errorf("expected method name 'Validate', got '%s'", fn.Name.Value)
+	}
+
+	if len(fn.Returns) != 2 {
+		t.Fatalf("expected 2 return types, got %d", len(fn.Returns))
+	}
+}
+
 func TestParseIfStatement(t *testing.T) {
 	input := `func Test(x int) string
     if x > 10
