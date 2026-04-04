@@ -1,41 +1,32 @@
 # Kukicha
 
-A programming language designed to be read by humans and written by AI agents. Compiles to Go — single binaries, goroutines, strong typing, no runtime dependencies.
+Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go** — rename `.go` to `.kuki` and it compiles unchanged. Then blend in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, readable operators. Not sure? `kukicha brew` gives you standard Go back. The stems dissolve, the tea remains.
 
-**[kukicha.org](https://kukicha.org)** | [Tutorials](https://kukicha.org/#getting-started) | [Stdlib Reference](.claude/skills/stdlib/SKILL.md) | [Quick Reference](docs/kukicha-quick-reference.md)
+**[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](docs/SKILL.md)
 
 ---
 
-## See If You Can Follow This
+## Go vs Kukicha
 
-```kukicha
-import "stdlib/fetch"
-import "stdlib/slice"
-import "stdlib/sort"
-import "stdlib/table"
-
-type Repo
-    name string as "name"
-    stars int as "stargazers_count"
-    language string as "language"
-
-function main()
-    repos := fetch.Get("https://api.github.com/users/golang/repos")
-        |> fetch.CheckStatus()
-        |> fetch.Json(list of Repo) onerr panic "fetch failed: {error}"
-
-    popular := repos
-        |> slice.Filter(r => r.stars > 100)
-        |> sort.ByKey(r => r.stars)
-        |> slice.Reverse()
-
-    t := table.New("Name", "Stars", "Language")
-    for repo in popular
-        t |> table.AddRow(repo.name, "{repo.stars}", repo.language)
-    t |> table.Print()
+```go
+// Go — 8 lines of error ceremony
+data, err := fetchData()
+if err != nil {
+    return fmt.Errorf("fetch: %w", err)
+}
+result, err := parse(data)
+if err != nil {
+    return fmt.Errorf("parse: %w", err)
+}
 ```
 
-Fetch repos from GitHub, keep the popular ones, sort by stars, print a table. `|>` pipes results between steps. `onerr panic` means "if this fails, stop." Four stdlib packages, zero boilerplate.
+```kukicha
+// Kukicha — same thing, 2 lines
+result := fetchData()
+    |> parse() onerr return explain "pipeline failed"
+```
+
+Both are valid Kukicha. The Go version compiles as-is. The Kukicha version is what you graduate to.
 
 ---
 
@@ -61,6 +52,20 @@ function main()
 kukicha run hello.kuki
 ```
 
+### Adopt Gradually
+
+```bash
+# See what your Go code looks like with Kukicha idioms
+kukicha-blend main.go
+
+# Convert Go to Kukicha (preview first, then apply)
+kukicha-blend --diff main.go
+kukicha-blend --apply main.go
+
+# Convert Kukicha back to Go anytime
+kukicha brew main.kuki
+```
+
 ### Commands
 
 | Command | What it does |
@@ -68,17 +73,39 @@ kukicha run hello.kuki
 | `kukicha check file.kuki` | Validate syntax without compiling |
 | `kukicha run file.kuki` | Compile and run immediately |
 | `kukicha build file.kuki` | Compile to a standalone binary |
-| `kukicha pack skill.kuki` | Package a skill for agent pipelines |
+| `kukicha brew file.kuki` | Convert back to standalone Go |
+| `kukicha fmt -w file.kuki` | Format in place |
+| `kukicha-blend file.go` | Suggest Kukicha idioms for Go code |
 
 ---
 
-## Why Kukicha
+## What Kukicha Adds
 
-- **Readable** — English keywords (`and`, `or`, `not`, `equals`), indentation instead of braces, no `&&`/`||`/`__`
-- **Safe** — The compiler catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
-- **42+ stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](stdlib/AGENTS.md)
-- **Pipes + error handling** — `|> step onerr handler` chains replace nested `if err != nil`
-- **Compiles to Go** — Single binary, cross-compile, WASM support
+Go's philosophy is radical simplicity — and that's genuinely powerful. But some proven patterns from Rust, Elixir, Kotlin, and Python didn't fit that vision. Kukicha picks them up.
+
+| Feature | Go | Kukicha |
+|---------|-----|---------|
+| **Error handling** | `if err != nil { return err }` | `onerr return` |
+| **Pipes** | `f(g(h(x)))` | `x \|> h() \|> g() \|> f()` |
+| **If-expressions** | 5-line temp var + if/else | `x := if cond then a else b` |
+| **Readable operators** | `&&`, `\|\|`, `!` | `and`, `or`, `not` |
+| **Type syntax** | `[]string`, `map[K]V`, `*T` | `list of string`, `map of K to V`, `reference T` |
+| **Enums** | `const` + `iota` | `enum Status` with named variants |
+| **Lambdas** | `func(x int) int { return x*2 }` | `(x int) => x * 2` |
+| **String interpolation** | `fmt.Sprintf("hi %s", name)` | `"hi {name}"` |
+
+All Go syntax is also accepted — Kukicha is a strict superset. Use whichever form you prefer.
+
+---
+
+## Why Not Just Write Go?
+
+- **Zero adoption cost** — your existing `.go` files compile as `.kuki` unchanged
+- **Zero lock-in** — `kukicha brew` converts back to standard Go anytime
+- **Gradual migration** — blend in one feature at a time, leave the rest as Go
+- **Security at compile time** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
+- **42+ stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](docs/SKILL.md)
+- **Ships as Go** — single binary, cross-compile, WASM support, full Go ecosystem
 
 ---
 
@@ -92,8 +119,9 @@ kukicha run hello.kuki
 
 ## Documentation
 
-- [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
+- [Quick Reference](docs/kukicha-quick-reference.md) — Go-to-Kukicha translation table
 - [Beginner Tutorial](docs/tutorials/beginner-tutorial.md) — first program, variables, functions
+- [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
 - [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, auth, retry
 - [FAQ](docs/faq.md) | [Contributing](docs/contributing.md)
 
