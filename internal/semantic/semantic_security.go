@@ -7,13 +7,20 @@ import (
 	"github.com/kukichalang/kukicha/internal/ast"
 )
 
+// SecurityChecker performs security analysis on method calls.
+// It detects SQL injection, XSS, SSRF, command injection, path traversal,
+// and open redirect vulnerabilities.
+type SecurityChecker struct {
+	analyzer *Analyzer
+}
+
 // inlineScriptPattern matches <script in HTML content (case-insensitive check done in code).
 // onEventPattern matches inline event handlers like onclick=, onload=, onerror=, etc.
 
 // checkHTMLRenderInlineJS warns when html.Render() contains inline <script> tags or
 // on*= event handler attributes. These are XSS vectors that bypass html.Escape().
 // Use static files (<script src="...">) or html.Escape() for dynamic content instead.
-func (a *Analyzer) checkHTMLRenderInlineJS(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+func (sc *SecurityChecker) checkHTMLRenderInlineJS(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
 	if qualifiedName != "html.Render" {
 		return
 	}
@@ -38,12 +45,12 @@ func (a *Analyzer) checkHTMLRenderInlineJS(qualifiedName string, expr *ast.Metho
 	lower := strings.ToLower(strLit.Value)
 
 	if strings.Contains(lower, "<script") {
-		a.warn(strLit.Pos(),
+		sc.analyzer.warn(strLit.Pos(),
 			"inline <script> in html.Render is an XSS risk — use a static .js file with <script src=\"...\"> instead")
 	}
 
 	if containsEventHandler(lower) {
-		a.warn(strLit.Pos(),
+		sc.analyzer.warn(strLit.Pos(),
 			"inline event handler (on*=) in html.Render is an XSS risk — use addEventListener in a static .js file instead")
 	}
 }
@@ -88,11 +95,11 @@ func securityCategory(qualifiedName string) string {
 
 // isInHTTPHandler returns true when the current function is an HTTP handler.
 // Detected by the presence of an http.ResponseWriter parameter.
-func (a *Analyzer) isInHTTPHandler() bool {
-	if a.currentFunc == nil {
+func (sc *SecurityChecker) isInHTTPHandler() bool {
+	if sc.analyzer.currentFunc == nil {
 		return false
 	}
-	for _, param := range a.currentFunc.Parameters {
+	for _, param := range sc.analyzer.currentFunc.Parameters {
 		if named, ok := param.Type.(*ast.NamedType); ok {
 			if named.Name == "http.ResponseWriter" {
 				return true
@@ -106,7 +113,7 @@ func (a *Analyzer) isInHTTPHandler() bool {
 // to pg.Query, pg.QueryRow, pg.Exec and their Tx variants. This catches a
 // class of SQL injection where Kukicha's "{var}" syntax interpolates user
 // data into the query string before pgx's parameterization can protect it.
-func (a *Analyzer) checkSQLInterpolation(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+func (sc *SecurityChecker) checkSQLInterpolation(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
 	if securityCategory(qualifiedName) != "sql" {
 		return
 	}
@@ -126,7 +133,7 @@ func (a *Analyzer) checkSQLInterpolation(qualifiedName string, expr *ast.MethodC
 
 	sqlArg := expr.Arguments[sqlArgIndex]
 	if strLit, ok := sqlArg.(*ast.StringLiteral); ok && strLit.Interpolated {
-		a.error(strLit.Pos(), fmt.Sprintf(
+		sc.analyzer.error(strLit.Pos(), fmt.Sprintf(
 			"SQL injection risk: string interpolation in %s query — use parameter placeholders ($1, $2, ...) instead",
 			qualifiedName,
 		))
@@ -135,7 +142,7 @@ func (a *Analyzer) checkSQLInterpolation(qualifiedName string, expr *ast.MethodC
 
 // checkHTMLNonLiteral warns when http.HTML (or its alias) is called with a
 // non-literal content argument, which is a direct XSS vector.
-func (a *Analyzer) checkHTMLNonLiteral(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+func (sc *SecurityChecker) checkHTMLNonLiteral(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
 	if securityCategory(qualifiedName) != "html" {
 		return
 	}
@@ -152,7 +159,7 @@ func (a *Analyzer) checkHTMLNonLiteral(qualifiedName string, expr *ast.MethodCal
 
 	contentArg := expr.Arguments[contentArgIndex]
 	if _, ok := contentArg.(*ast.StringLiteral); !ok {
-		a.error(expr.Pos(), fmt.Sprintf(
+		sc.analyzer.error(expr.Pos(), fmt.Sprintf(
 			"XSS risk: %s with non-literal content — use http.SafeHTML to HTML-escape user-controlled content",
 			qualifiedName,
 		))
@@ -161,14 +168,14 @@ func (a *Analyzer) checkHTMLNonLiteral(qualifiedName string, expr *ast.MethodCal
 
 // checkFetchInHandler warns when fetch.Get, fetch.Post, or fetch.New is called
 // directly inside an HTTP handler without SSRF protection.
-func (a *Analyzer) checkFetchInHandler(qualifiedName string, expr *ast.MethodCallExpr) {
+func (sc *SecurityChecker) checkFetchInHandler(qualifiedName string, expr *ast.MethodCallExpr) {
 	if securityCategory(qualifiedName) != "fetch" {
 		return
 	}
-	if !a.isInHTTPHandler() {
+	if !sc.isInHTTPHandler() {
 		return
 	}
-	a.error(expr.Pos(), fmt.Sprintf(
+	sc.analyzer.error(expr.Pos(), fmt.Sprintf(
 		"SSRF risk: %s inside an HTTP handler — use fetch.SafeGet or add fetch.Transport(netguard.HTTPTransport(...)) to restrict outbound requests",
 		qualifiedName,
 	))
@@ -176,14 +183,14 @@ func (a *Analyzer) checkFetchInHandler(qualifiedName string, expr *ast.MethodCal
 
 // checkFilesInHandler warns when files.* I/O functions are called inside an
 // HTTP handler, where the path argument may be user-controlled.
-func (a *Analyzer) checkFilesInHandler(qualifiedName string, expr *ast.MethodCallExpr) {
+func (sc *SecurityChecker) checkFilesInHandler(qualifiedName string, expr *ast.MethodCallExpr) {
 	if securityCategory(qualifiedName) != "files" {
 		return
 	}
-	if !a.isInHTTPHandler() {
+	if !sc.isInHTTPHandler() {
 		return
 	}
-	a.error(expr.Pos(), fmt.Sprintf(
+	sc.analyzer.error(expr.Pos(), fmt.Sprintf(
 		"path traversal risk: %s inside an HTTP handler — use sandbox.* with a restricted root for user-controlled paths",
 		qualifiedName,
 	))
@@ -192,7 +199,7 @@ func (a *Analyzer) checkFilesInHandler(qualifiedName string, expr *ast.MethodCal
 // checkShellRunNonLiteral warns when shell.Run is called with a non-literal
 // argument. shell.Run splits its argument on whitespace without quoting
 // awareness; a variable value can silently inject extra arguments.
-func (a *Analyzer) checkShellRunNonLiteral(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+func (sc *SecurityChecker) checkShellRunNonLiteral(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
 	if securityCategory(qualifiedName) != "shell" {
 		return
 	}
@@ -202,7 +209,7 @@ func (a *Analyzer) checkShellRunNonLiteral(qualifiedName string, expr *ast.Metho
 		// We can't verify the piped value's origin from TypeInfo alone,
 		// but piping a variable into shell.Run is almost certainly unsafe.
 		if pipedArg.Kind != TypeKindUnknown {
-			a.warn(expr.Pos(),
+			sc.analyzer.warn(expr.Pos(),
 				"command injection risk: piped value into shell.Run cannot be verified as safe — use shell.Output() with separate arguments for variable input")
 		}
 		return
@@ -212,7 +219,7 @@ func (a *Analyzer) checkShellRunNonLiteral(qualifiedName string, expr *ast.Metho
 	}
 	cmdArg := expr.Arguments[0]
 	if _, ok := cmdArg.(*ast.StringLiteral); !ok {
-		a.error(expr.Pos(),
+		sc.analyzer.error(expr.Pos(),
 			"command injection risk: shell.Run with non-literal argument — shell.Run splits on whitespace without quoting; use shell.Output() with separate arguments for variable input",
 		)
 	}
@@ -220,14 +227,14 @@ func (a *Analyzer) checkShellRunNonLiteral(qualifiedName string, expr *ast.Metho
 
 // checkRedirectNonLiteral warns when http.Redirect / http.RedirectPermanent is
 // called with a non-literal URL argument, which is an open-redirect vector.
-func (a *Analyzer) checkRedirectNonLiteral(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
+func (sc *SecurityChecker) checkRedirectNonLiteral(qualifiedName string, expr *ast.MethodCallExpr, pipedArg *TypeInfo) {
 	if securityCategory(qualifiedName) != "redirect" {
 		return
 	}
 	// Stdlib files (e.g. http.kuki itself) are exempt: SafeRedirect and the
 	// Redirect/RedirectPermanent wrappers call http.Redirect internally after
 	// validation, so flagging them would produce false positives.
-	if strings.Contains(a.sourceFile, "stdlib/") {
+	if strings.Contains(sc.analyzer.sourceFile, "stdlib/") {
 		return
 	}
 	// Redirect(w, r, url) — URL is the 3rd arg (index 2) in a plain call.
@@ -241,7 +248,7 @@ func (a *Analyzer) checkRedirectNonLiteral(qualifiedName string, expr *ast.Metho
 	}
 	urlArg := expr.Arguments[urlArgIndex]
 	if _, ok := urlArg.(*ast.StringLiteral); !ok {
-		a.error(expr.Pos(), fmt.Sprintf(
+		sc.analyzer.error(expr.Pos(), fmt.Sprintf(
 			"open redirect risk: %s with non-literal URL — use http.SafeRedirect(w, r, url, allowedHosts...) to validate the destination",
 			qualifiedName,
 		))

@@ -336,8 +336,10 @@ reasoned about, and extended independently.
 
 ### Tasks
 
-- [ ] Extract directive collection into its own pass/struct
-- [ ] Extract security analysis (semantic_security.go already partially separate)
+- [x] Extract directive collection into its own pass/struct
+  (`CollectDirectives()` in `semantic_directives.go`, returns `DirectiveResult`)
+- [x] Extract security analysis (semantic_security.go already partially separate)
+  (`SecurityChecker` struct with back-pointer to Analyzer, all `check*` methods moved)
 - [ ] Define typed intermediate results between passes (not shared mutable state)
 - [ ] Extract lint/warning pass (currently interleaved with type checking)
 - [ ] Reduce Analyzer fields — each pass should own only its state
@@ -348,6 +350,14 @@ reasoned about, and extended independently.
 - The current 4-pass structure inside Analyzer is already documented; this
   makes each pass a first-class object rather than methods on one struct
 - Keep the public API stable (`Analyze(ast) -> Result`) even if internals change
+- Declaration collection (`collectDeclarations` + helpers) is tightly coupled to
+  the Analyzer — it needs `symbolTable`, `typeAnnotationToTypeInfo()`, `error()`,
+  `importAliases`. Extracting with a back-pointer adds indirection without real
+  decoupling. Needs a deeper redesign to pass typed results between phases.
+- Lint warnings are deeply interleaved with type checking (e.g., deprecation
+  checks fire during call analysis). Separating them requires collecting lint
+  candidates during analysis and emitting them in a final pass — feasible but
+  a larger change than the directive/security extractions.
 
 ---
 

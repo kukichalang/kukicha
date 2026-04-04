@@ -547,25 +547,25 @@ func (a *Analyzer) analyzeMethodCallExpr(expr *ast.MethodCallExpr, pipedArg *Typ
 		qualifiedName := a.resolveQualifiedName(objID.Value + "." + methodName)
 
 		// Security: detect string interpolation in SQL query arguments
-		a.checkSQLInterpolation(qualifiedName, expr, pipedArg)
+		a.security.checkSQLInterpolation(qualifiedName, expr, pipedArg)
 
 		// Security: detect XSS via http.HTML with non-literal content
-		a.checkHTMLNonLiteral(qualifiedName, expr, pipedArg)
+		a.security.checkHTMLNonLiteral(qualifiedName, expr, pipedArg)
 
 		// Security: detect fetch.Get/Post/New inside HTTP handlers (SSRF risk)
-		a.checkFetchInHandler(qualifiedName, expr)
+		a.security.checkFetchInHandler(qualifiedName, expr)
 
 		// Security: detect files.* inside HTTP handlers (path traversal risk)
-		a.checkFilesInHandler(qualifiedName, expr)
+		a.security.checkFilesInHandler(qualifiedName, expr)
 
 		// Security: detect shell.Run with non-literal argument (command injection)
-		a.checkShellRunNonLiteral(qualifiedName, expr, pipedArg)
+		a.security.checkShellRunNonLiteral(qualifiedName, expr, pipedArg)
 
 		// Security: detect http.Redirect with non-literal URL (open redirect)
-		a.checkRedirectNonLiteral(qualifiedName, expr, pipedArg)
+		a.security.checkRedirectNonLiteral(qualifiedName, expr, pipedArg)
 
 		// Security: detect inline <script> and on*= event handlers in html.Render
-		a.checkHTMLRenderInlineJS(qualifiedName, expr, pipedArg)
+		a.security.checkHTMLRenderInlineJS(qualifiedName, expr, pipedArg)
 
 		// Check generated Go stdlib registry first (has full type info)
 		if entry, ok := generatedGoStdlib[qualifiedName]; ok {

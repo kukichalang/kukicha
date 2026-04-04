@@ -29,26 +29,31 @@ type Analyzer struct {
 	deprecatedTypes     map[string]string      // Type name → deprecation message
 	panickedFuncs       map[string]string      // Function name → panic message (from # kuki:panics directives)
 	importAliases       map[string]string      // alias → base package name (e.g., "strpkg" → "string")
+	security            *SecurityChecker       // Security analysis helper
 }
 
 // New creates a new semantic analyzer
 func New(program *ast.Program) *Analyzer {
-	return &Analyzer{
+	a := &Analyzer{
 		program:     program,
 		symbolTable: NewSymbolTable(),
 		errors:      []error{},
 	}
+	a.security = &SecurityChecker{analyzer: a}
+	return a
 }
 
 // NewWithFile creates a new semantic analyzer with the source file path.
 // The file path is used to allow Kukicha stdlib packages to use Go stdlib names.
 func NewWithFile(program *ast.Program, sourceFile string) *Analyzer {
-	return &Analyzer{
+	a := &Analyzer{
 		program:     program,
 		symbolTable: NewSymbolTable(),
 		errors:      []error{},
 		sourceFile:  sourceFile,
 	}
+	a.security = &SecurityChecker{analyzer: a}
+	return a
 }
 
 // ExprTypes returns the inferred types for expressions.
@@ -67,9 +72,6 @@ func (a *Analyzer) ReturnCounts() map[ast.Expression]int {
 func (a *Analyzer) Analyze() []error {
 	a.exprReturnCounts = make(map[ast.Expression]int)
 	a.exprTypes = make(map[ast.Expression]*TypeInfo)
-	a.deprecatedFuncs = make(map[string]string)
-	a.deprecatedTypes = make(map[string]string)
-	a.panickedFuncs = make(map[string]string)
 
 	// Check package name for collisions with Go stdlib
 	a.checkPackageName()
@@ -78,7 +80,13 @@ func (a *Analyzer) Analyze() []error {
 	a.checkSkillDecl()
 
 	// Pre-pass: collect directives from declarations
-	a.collectDirectives()
+	directives := CollectDirectives(a.program)
+	a.deprecatedFuncs = directives.DeprecatedFuncs
+	a.deprecatedTypes = directives.DeprecatedTypes
+	a.panickedFuncs = directives.PanickedFuncs
+	for _, tw := range directives.TodoWarnings {
+		a.warn(tw.Pos, tw.Message)
+	}
 
 	// First pass: Collect all type and interface declarations
 	a.collectDeclarations()
@@ -87,46 +95,6 @@ func (a *Analyzer) Analyze() []error {
 	a.analyzeDeclarations()
 
 	return a.errors
-}
-
-// collectDirectives scans all declarations for # kuki:deprecated, # kuki:panics, and # kuki:todo directives.
-// It populates the corresponding maps and emits warnings for TODOs immediately.
-func (a *Analyzer) collectDirectives() {
-	for _, decl := range a.program.Declarations {
-		switch d := decl.(type) {
-		case *ast.FunctionDecl:
-			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
-				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
-			}
-			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
-				a.deprecatedFuncs[d.Name.Value] = msg
-			}
-			if msg := directiveMessage(d.Directives, "panics"); msg != "" {
-				a.panickedFuncs[d.Name.Value] = msg
-			}
-		case *ast.TypeDecl:
-			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
-				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
-			}
-			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
-				a.deprecatedTypes[d.Name.Value] = msg
-			}
-		case *ast.InterfaceDecl:
-			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
-				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
-			}
-			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
-				a.deprecatedTypes[d.Name.Value] = msg
-			}
-		case *ast.EnumDecl:
-			if msg := directiveMessage(d.Directives, "todo"); msg != "" {
-				a.warn(d.Pos(), fmt.Sprintf("TODO: %q on %s", msg, d.Name.Value))
-			}
-			if msg := directiveMessage(d.Directives, "deprecated"); msg != "" {
-				a.deprecatedTypes[d.Name.Value] = msg
-			}
-		}
-	}
 }
 
 // directiveMessage returns the message from a specific directive, or "".
