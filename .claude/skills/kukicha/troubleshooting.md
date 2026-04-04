@@ -44,44 +44,6 @@ func Test() int
     return 42
 ```
 
-### "unexpected token in type context"
-
-**Cause:** Using Go syntax instead of Kukicha type syntax.
-
-```kukicha
-# Wrong (Go syntax)
-func Process(items []string)
-
-# Correct (Kukicha syntax)
-func Process(items list of string)
-```
-
-### "undefined: nil"
-
-**Cause:** Kukicha uses `empty` instead of `nil`.
-
-```kukicha
-# Wrong
-if user == nil
-    return nil
-
-# Correct
-if user equals empty
-    return empty
-```
-
-### "invalid operator &&"
-
-**Cause:** Kukicha uses English boolean operators.
-
-```kukicha
-# Wrong
-if a && b || !c
-
-# Correct
-if a and b or not c
-```
-
 ### "expected 'of' after 'list'"
 
 **Cause:** Collection types require the full syntax.
@@ -115,18 +77,6 @@ length := len(items) onerr 0
 
 # Correct
 length := len(items)
-```
-
-### "cannot use reference without 'of'"
-
-**Cause:** Address-of syntax requires `reference of`.
-
-```kukicha
-# Wrong
-ptr := &user
-
-# Correct
-ptr := reference of user
 ```
 
 ### "expected 'when' or 'otherwise' in switch block"
@@ -360,13 +310,10 @@ msg := "Use \{name\} for variables"  # Outputs: Use {name} for variables
 ```kukicha
 # Expressions in interpolation must be valid
 msg := "Sum: {a + b}"           # OK
-msg := "Cond: {if x then y}"    # Wrong - no if expressions
+msg := "Cond: {if x then y}"    # Wrong - if-expressions can't be nested in interpolation
 
 # Use intermediate variable for complex logic
-result := if condition then "yes" else "no"  # Wrong - no ternary
-result := "yes"
-if not condition
-    result = "no"
+result := if condition then "yes" else "no"
 msg := "Result: {result}"
 ```
 
