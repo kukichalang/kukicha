@@ -44,7 +44,7 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 	// Lint: onerr discard outside test files silently swallows errors.
 	if _, isDiscard := clause.Handler.(*ast.DiscardExpr); isDiscard {
 		if !strings.HasSuffix(a.sourceFile, "_test.kuki") {
-			a.warn(pos, "onerr discard silently swallows errors; prefer an explicit handler (use in test files only)")
+			a.recordLint(LintOnerr, pos, "onerr discard silently swallows errors; prefer an explicit handler (use in test files only)")
 		}
 	}
 
@@ -52,7 +52,7 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 	if _, isPanic := clause.Handler.(*ast.PanicExpr); isPanic {
 		if a.program.PetioleDecl != nil && a.program.PetioleDecl.Name != nil &&
 			a.program.PetioleDecl.Name.Value != "main" {
-			a.warn(pos, "onerr panic in library code terminates the entire program; prefer returning an error to the caller")
+			a.recordLint(LintOnerr, pos, "onerr panic in library code terminates the entire program; prefer returning an error to the caller")
 		}
 	}
 
@@ -63,7 +63,7 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 		onerrrName = clause.Alias
 	}
 	if sym := a.symbolTable.Resolve(onerrrName); sym != nil {
-		a.warn(pos, fmt.Sprintf("onerr variable '%s' shadows declaration at %s:%d", onerrrName, sym.Defined.File, sym.Defined.Line))
+		a.recordLint(LintOnerr, pos, fmt.Sprintf("onerr variable '%s' shadows declaration at %s:%d", onerrrName, sym.Defined.File, sym.Defined.Line))
 	}
 
 	prev := a.inOnerr

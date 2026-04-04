@@ -228,7 +228,7 @@ func (a *Analyzer) analyzePipedSwitchBody(stmt ast.PipedSwitchBody, leftType *Ty
 	}
 	if inferred == pipedSwitchConflict {
 		pos := stmt.(ast.Node).Pos()
-		a.warn(pos, "piped switch cases return different types; result will be typed as 'any'")
+		a.recordLint(LintTypeMismatch, pos, "piped switch cases return different types; result will be typed as 'any'")
 	}
 	return inferred
 }

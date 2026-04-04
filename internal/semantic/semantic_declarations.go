@@ -579,7 +579,7 @@ func (a *Analyzer) analyzeEnumDecl(decl *ast.EnumDecl) {
 
 	// Warn if integer enum has no case with value 0 (zero value of uninitialized variables)
 	if expectedKind == "integer" && !hasZero {
-		a.warn(decl.Pos(), fmt.Sprintf("enum %s has no case with value 0 — uninitialized variables will hold an invalid state", decl.Name.Value))
+		a.recordLint(LintEnum, decl.Pos(), fmt.Sprintf("enum %s has no case with value 0 — uninitialized variables will hold an invalid state", decl.Name.Value))
 	}
 }
 
@@ -636,7 +636,7 @@ func (a *Analyzer) checkEnumExhaustivenessFromType(exprType *TypeInfo, cases []*
 		// Sort for deterministic output
 		sortStrings(missing)
 		pos := ast.Position{Line: line, Column: col, File: file}
-		a.warn(pos, fmt.Sprintf("switch on %s is missing cases: %s", enumSym.Name, strings.Join(missing, ", ")))
+		a.recordLint(LintEnum, pos, fmt.Sprintf("switch on %s is missing cases: %s", enumSym.Name, strings.Join(missing, ", ")))
 	}
 }
 

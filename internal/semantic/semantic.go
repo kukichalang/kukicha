@@ -35,6 +35,9 @@ type Analyzer struct {
 	// Pass 2 output (consumed by codegen)
 	exprReturnCounts map[ast.Expression]int      // Inferred return counts for expressions
 	exprTypes        map[ast.Expression]*TypeInfo // Inferred types for expressions
+
+	// Lint candidates (collected during analysis, emitted in final pass)
+	lintCandidates []LintCandidate
 }
 
 // New creates a new semantic analyzer
@@ -87,7 +90,7 @@ func (a *Analyzer) Analyze() []error {
 	// Pre-pass: collect directives from declarations
 	a.directives = CollectDirectives(a.program)
 	for _, tw := range a.directives.TodoWarnings {
-		a.warn(tw.Pos, tw.Message)
+		a.recordLint(LintTodo, tw.Pos, tw.Message)
 	}
 
 	// First pass: Collect all type and interface declarations
@@ -95,6 +98,9 @@ func (a *Analyzer) Analyze() []error {
 
 	// Second pass: Analyze function bodies and validate
 	a.analyzeDeclarations()
+
+	// Final pass: emit lint warnings collected during analysis
+	a.emitLintWarnings()
 
 	return a.errors
 }

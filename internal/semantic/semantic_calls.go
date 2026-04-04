@@ -691,14 +691,14 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 func (a *Analyzer) checkDeprecated(node ast.Node, name string, qualifiedName string) {
 	// Check local deprecated functions (from same-file directives)
 	if msg, ok := a.directives.DeprecatedFuncs[name]; ok {
-		a.warn(node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", name, msg))
+		a.recordLint(LintDeprecation, node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", name, msg))
 		return
 	}
 
 	// Check stdlib deprecated functions (from generated registry)
 	if qualifiedName != "" {
 		if msg, ok := generatedStdlibDeprecated[qualifiedName]; ok {
-			a.warn(node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", qualifiedName, msg))
+			a.recordLint(LintDeprecation, node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", qualifiedName, msg))
 		}
 	}
 }
@@ -707,14 +707,14 @@ func (a *Analyzer) checkDeprecated(node ast.Node, name string, qualifiedName str
 func (a *Analyzer) checkPanics(node ast.Node, name string, qualifiedName string) {
 	// Check local panicking functions (from same-file directives)
 	if msg, ok := a.directives.PanickedFuncs[name]; ok {
-		a.warn(node.Pos(), fmt.Sprintf("%s may panic: %q", name, msg))
+		a.recordLint(LintPanic, node.Pos(), fmt.Sprintf("%s may panic: %q", name, msg))
 		return
 	}
 
 	// Check stdlib panicking functions (from generated registry)
 	if qualifiedName != "" {
 		if msg, ok := generatedStdlibPanics[qualifiedName]; ok {
-			a.warn(node.Pos(), fmt.Sprintf("%s may panic: %q", qualifiedName, msg))
+			a.recordLint(LintPanic, node.Pos(), fmt.Sprintf("%s may panic: %q", qualifiedName, msg))
 		}
 	}
 }

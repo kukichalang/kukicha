@@ -291,6 +291,7 @@ Currently supported directives:
 | `semantic_helpers.go` | Pure utilities (`isValidIdentifier`, `extractPackageName`, `isExported`, `isNumericType`) |
 | `semantic_calls.go` | `analyzeCallExpr`, `analyzeMethodCallExpr`, `analyzeFieldAccessExpr` (incl. enum dot-access resolution) |
 | `semantic_security.go` | Security checks (SQL injection, XSS, SSRF, path traversal, command injection, open redirect) |
+| `semantic_lint.go` | Lint candidate collection (`LintCandidate`, `LintKind`) and deferred emission (`emitLintWarnings`) |
 | `symbols.go` | Symbol table and type info |
 | `stdlib_types.go` | Shared `goStdlibType`/`goStdlibEntry` structs, `GetStdlibEnum`, `GetAllStdlibEnums` (not generated — edit directly) |
 | `stdlib_registry_gen.go` | GENERATED — Kukicha stdlib signatures |
@@ -298,7 +299,7 @@ Currently supported directives:
 
 ### Analyzer struct layout
 
-The `Analyzer` has 16 fields grouped by lifecycle phase:
+The `Analyzer` has 17 fields grouped by lifecycle phase:
 
 | Group | Fields |
 |-------|--------|
@@ -308,16 +309,24 @@ The `Analyzer` has 16 fields grouped by lifecycle phase:
 | Pass 1 output | `importAliases` |
 | Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrrAlias`, `inPipedSwitch` |
 | Pass 2 output | `exprReturnCounts`, `exprTypes` |
+| Lint candidates | `lintCandidates []LintCandidate` (collected during analysis, emitted in final pass) |
 
 ### Analysis passes
 
-The `Analyze()` method runs three top-level passes in order:
+The `Analyze()` method runs four top-level passes in order:
 
 1. **`CollectDirectives()`** — pure function; scans all declarations for `# kuki:deprecated`, `# kuki:panics`, and `# kuki:todo` directives, returning a `*DirectiveResult` stored as `a.directives`
 2. **`collectDeclarations()`** — registers all top-level types, interfaces, and function signatures into the symbol table (so functions can call each other regardless of order); also validates package name (rejects Go stdlib names) and import paths (rejects `"`, `\`, and NUL characters)
-3. **`analyzeDeclarations()`** — validates function bodies, infers `exprReturnCounts`, enforces security checks, warns on deprecated calls
+3. **`analyzeDeclarations()`** — validates function bodies, infers `exprReturnCounts`, enforces security checks; collects lint candidates via `recordLint()` instead of emitting warnings directly
+4. **`emitLintWarnings()`** — final pass that converts collected `LintCandidate` structs into warnings. Decouples lint detection from emission, enabling future filtering/configuration.
 
 `AnalyzeResult()` wraps `Analyze()` and returns `*AnalysisResult` bundling errors, warnings, and both maps.
+
+### Lint candidate system (`semantic_lint.go`)
+
+All non-fatal diagnostics use the collect-then-emit pattern. During type checking, `recordLint(kind, pos, message)` appends a `LintCandidate` to `a.lintCandidates`. After all analysis completes, `emitLintWarnings()` converts them to warnings via `a.warn()`.
+
+`LintKind` categories: `LintDeprecation`, `LintPanic`, `LintOnerr`, `LintPipe`, `LintEnum`, `LintTypeMismatch`, `LintSecurity`, `LintTodo`. These enable future per-category suppression (e.g., `--suppress-lint=deprecation`).
 
 ### Interface detection in typeAnnotationToTypeInfo
 

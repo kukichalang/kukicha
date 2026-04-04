@@ -45,12 +45,12 @@ func (sc *SecurityChecker) checkHTMLRenderInlineJS(qualifiedName string, expr *a
 	lower := strings.ToLower(strLit.Value)
 
 	if strings.Contains(lower, "<script") {
-		sc.analyzer.warn(strLit.Pos(),
+		sc.analyzer.recordLint(LintSecurity, strLit.Pos(),
 			"inline <script> in html.Render is an XSS risk — use a static .js file with <script src=\"...\"> instead")
 	}
 
 	if containsEventHandler(lower) {
-		sc.analyzer.warn(strLit.Pos(),
+		sc.analyzer.recordLint(LintSecurity, strLit.Pos(),
 			"inline event handler (on*=) in html.Render is an XSS risk — use addEventListener in a static .js file instead")
 	}
 }
@@ -209,7 +209,7 @@ func (sc *SecurityChecker) checkShellRunNonLiteral(qualifiedName string, expr *a
 		// We can't verify the piped value's origin from TypeInfo alone,
 		// but piping a variable into shell.Run is almost certainly unsafe.
 		if pipedArg.Kind != TypeKindUnknown {
-			sc.analyzer.warn(expr.Pos(),
+			sc.analyzer.recordLint(LintSecurity, expr.Pos(),
 				"command injection risk: piped value into shell.Run cannot be verified as safe — use shell.Output() with separate arguments for variable input")
 		}
 		return

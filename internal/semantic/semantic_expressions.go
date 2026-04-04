@@ -529,7 +529,7 @@ func (a *Analyzer) warnPipeDiscardedErrors(expr ast.Expression) {
 	for cur := pipe; cur != nil; {
 		if count, recorded := a.exprReturnCounts[cur.Left]; recorded && count >= 2 {
 			name := pipeStepName(cur.Left)
-			a.warn(cur.Left.Pos(), fmt.Sprintf("pipe discards error from %s (add onerr to handle it)", name))
+			a.recordLint(LintPipe, cur.Left.Pos(), fmt.Sprintf("pipe discards error from %s (add onerr to handle it)", name))
 		}
 		inner, ok := cur.Left.(*ast.PipeExpr)
 		if !ok {
