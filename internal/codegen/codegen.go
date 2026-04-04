@@ -184,6 +184,12 @@ func (g *Generator) SetExprTypes(types map[ast.Expression]*semantic.TypeInfo) {
 	g.exprTypes = types
 }
 
+// SetAnalysisResult passes all semantic analysis outputs to the generator at once.
+func (g *Generator) SetAnalysisResult(r *semantic.AnalysisResult) {
+	g.exprReturnCounts = r.ExprReturnCounts
+	g.exprTypes = r.ExprTypes
+}
+
 // SetMCPTarget enables special codegen for MCP servers (e.g., print to stderr)
 func (g *Generator) SetMCPTarget(v bool) {
 	g.mcpTarget = v

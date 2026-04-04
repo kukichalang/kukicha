@@ -8,28 +8,33 @@ import (
 
 // Analyzer performs semantic analysis on the AST
 type Analyzer struct {
-	program          *ast.Program
-	symbolTable      *SymbolTable
-	errors           []error
-	warnings         []error                // Non-fatal diagnostics (e.g. risky onerr handlers)
-	currentFunc      *ast.FunctionDecl      // Track current function for return type checking
-	loopDepth        int                    // Track loop nesting for break/continue
-	switchDepth      int                    // Track switch nesting for break
-	exprReturnCounts    map[ast.Expression]int // Inferred return counts for expressions (used by codegen for onerr multi-value split)
-	// exprTypes maps each analyzed expression to its inferred TypeInfo.
-	// Consumed by codegen for: error-only pipe step detection (isErrorOnlyReturn),
-	// piped switch return type inference, empty keyword resolution, expression
-	// return type inference, and typed zero-value generation (zeroValueForType).
-	exprTypes           map[ast.Expression]*TypeInfo
-	sourceFile          string                 // Source file path, used to detect stdlib context
-	inOnerr             bool                   // True while analyzing an onerr handler
-	currentOnerrrAlias  string                 // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
-	inPipedSwitch       bool                   // True while analyzing piped switch case bodies (suppresses return-count checks)
-	deprecatedFuncs     map[string]string      // Function name → deprecation message (from # kuki:deprecated directives)
-	deprecatedTypes     map[string]string      // Type name → deprecation message
-	panickedFuncs       map[string]string      // Function name → panic message (from # kuki:panics directives)
-	importAliases       map[string]string      // alias → base package name (e.g., "strpkg" → "string")
-	security            *SecurityChecker       // Security analysis helper
+	// Immutable inputs
+	program    *ast.Program
+	sourceFile string // Source file path, used to detect stdlib context
+
+	// Infrastructure (shared across passes)
+	symbolTable *SymbolTable
+	security    *SecurityChecker
+	errors      []error
+	warnings    []error // Non-fatal diagnostics (e.g. risky onerr handlers)
+
+	// Pre-pass output (set once by CollectDirectives)
+	directives *DirectiveResult
+
+	// Pass 1 output (collectDeclarations → analyzeDeclarations)
+	importAliases map[string]string // alias → base package name (e.g., "strpkg" → "string")
+
+	// Pass 2 transient state (save/restore during tree walk)
+	currentFunc        *ast.FunctionDecl // Track current function for return type checking
+	loopDepth          int               // Track loop nesting for break/continue
+	switchDepth        int               // Track switch nesting for break
+	inOnerr            bool              // True while analyzing an onerr handler
+	currentOnerrrAlias string            // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
+	inPipedSwitch      bool              // True while analyzing piped switch case bodies (suppresses return-count checks)
+
+	// Pass 2 output (consumed by codegen)
+	exprReturnCounts map[ast.Expression]int      // Inferred return counts for expressions
+	exprTypes        map[ast.Expression]*TypeInfo // Inferred types for expressions
 }
 
 // New creates a new semantic analyzer
@@ -80,11 +85,8 @@ func (a *Analyzer) Analyze() []error {
 	a.checkSkillDecl()
 
 	// Pre-pass: collect directives from declarations
-	directives := CollectDirectives(a.program)
-	a.deprecatedFuncs = directives.DeprecatedFuncs
-	a.deprecatedTypes = directives.DeprecatedTypes
-	a.panickedFuncs = directives.PanickedFuncs
-	for _, tw := range directives.TodoWarnings {
+	a.directives = CollectDirectives(a.program)
+	for _, tw := range a.directives.TodoWarnings {
 		a.warn(tw.Pos, tw.Message)
 	}
 
@@ -142,4 +144,23 @@ func (a *Analyzer) warn(pos ast.Position, message string) {
 // Call after Analyze(). The caller decides whether to display or promote them to errors.
 func (a *Analyzer) Warnings() []error {
 	return a.warnings
+}
+
+// AnalysisResult bundles all outputs from semantic analysis.
+type AnalysisResult struct {
+	Errors           []error
+	Warnings         []error
+	ExprReturnCounts map[ast.Expression]int
+	ExprTypes        map[ast.Expression]*TypeInfo
+}
+
+// AnalyzeResult runs Analyze() and returns all outputs in a single struct.
+func (a *Analyzer) AnalyzeResult() *AnalysisResult {
+	errs := a.Analyze()
+	return &AnalysisResult{
+		Errors:           errs,
+		Warnings:         a.warnings,
+		ExprReturnCounts: a.exprReturnCounts,
+		ExprTypes:        a.exprTypes,
+	}
 }

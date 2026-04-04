@@ -151,7 +151,7 @@ func Process(h OldHandler) string
 	_ = analyzer.Analyze()
 
 	// Verify the interface was registered as deprecated
-	if msg, ok := analyzer.deprecatedTypes["OldHandler"]; !ok {
+	if msg, ok := analyzer.directives.DeprecatedTypes["OldHandler"]; !ok {
 		t.Error("expected OldHandler to be in deprecatedTypes map")
 	} else if msg != "Use NewHandler instead" {
 		t.Errorf("expected deprecation message 'Use NewHandler instead', got %q", msg)

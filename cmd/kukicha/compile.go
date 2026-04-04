@@ -62,12 +62,11 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 	projectDir := findProjectDir(absFile)
 
 	var program *ast.Program
-	var returnCounts map[ast.Expression]int
-	var exprTypes map[ast.Expression]*semantic.TypeInfo
+	var result *semantic.AnalysisResult
 	if isDir {
-		program, returnCounts, exprTypes, err = loadAndAnalyzeMulti(files)
+		program, result, err = loadAndAnalyzeMulti(files)
 	} else {
-		program, returnCounts, exprTypes, err = loadAndAnalyze(absFile)
+		program, result, err = loadAndAnalyze(absFile)
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -94,8 +93,7 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 	// Generate Go code
 	gen := codegen.New(program)
 	gen.SetSourceFile(absFile)
-	gen.SetExprReturnCounts(returnCounts)
-	gen.SetExprTypes(exprTypes)
+	gen.SetAnalysisResult(result)
 	if program.Target == "mcp" {
 		gen.SetMCPTarget(true)
 	}
@@ -303,47 +301,47 @@ func mergePrograms(programs []*ast.Program, files []string) (*ast.Program, error
 }
 
 // loadAndAnalyzeMulti parses multiple .kuki files, merges them, and runs semantic analysis.
-func loadAndAnalyzeMulti(files []string) (*ast.Program, map[ast.Expression]int, map[ast.Expression]*semantic.TypeInfo, error) {
+func loadAndAnalyzeMulti(files []string) (*ast.Program, *semantic.AnalysisResult, error) {
 	programs := make([]*ast.Program, 0, len(files))
 	for _, f := range files {
 		absF, err := filepath.Abs(f)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("error resolving path %s: %v", f, err)
+			return nil, nil, fmt.Errorf("error resolving path %s: %v", f, err)
 		}
 		prog, err := parseFile(absF)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		programs = append(programs, prog)
 	}
 
 	merged, err := mergePrograms(programs, files)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	analyzer := semantic.NewWithFile(merged, files[0])
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
+	result := analyzer.AnalyzeResult()
+	if len(result.Errors) > 0 {
 		var msgs []string
-		for _, e := range semanticErrors {
+		for _, e := range result.Errors {
 			msgs = append(msgs, fmt.Sprintf("  %v", e))
 		}
-		return nil, nil, nil, fmt.Errorf("semantic errors:\n%s", strings.Join(msgs, "\n"))
+		return nil, nil, fmt.Errorf("semantic errors:\n%s", strings.Join(msgs, "\n"))
 	}
 
-	return merged, analyzer.ReturnCounts(), analyzer.ExprTypes(), nil
+	return merged, result, nil
 }
 
-func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, map[ast.Expression]*semantic.TypeInfo, error) {
+func loadAndAnalyze(filename string) (*ast.Program, *semantic.AnalysisResult, error) {
 	source, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error reading file: %v", err)
+		return nil, nil, fmt.Errorf("error reading file: %v", err)
 	}
 
 	p, err := parser.New(string(source), filename)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("lexer error: %v", err)
+		return nil, nil, fmt.Errorf("lexer error: %v", err)
 	}
 
 	program, parseErrors := p.Parse()
@@ -352,20 +350,20 @@ func loadAndAnalyze(filename string) (*ast.Program, map[ast.Expression]int, map[
 		for _, e := range parseErrors {
 			msgs = append(msgs, fmt.Sprintf("  %v", e))
 		}
-		return nil, nil, nil, fmt.Errorf("parse errors:\n%s", strings.Join(msgs, "\n"))
+		return nil, nil, fmt.Errorf("parse errors:\n%s", strings.Join(msgs, "\n"))
 	}
 
 	analyzer := semantic.NewWithFile(program, filename)
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
+	result := analyzer.AnalyzeResult()
+	if len(result.Errors) > 0 {
 		var msgs []string
-		for _, e := range semanticErrors {
+		for _, e := range result.Errors {
 			msgs = append(msgs, fmt.Sprintf("  %v", e))
 		}
-		return nil, nil, nil, fmt.Errorf("semantic errors:\n%s", strings.Join(msgs, "\n"))
+		return nil, nil, fmt.Errorf("semantic errors:\n%s", strings.Join(msgs, "\n"))
 	}
 
-	return program, analyzer.ReturnCounts(), analyzer.ExprTypes(), nil
+	return program, result, nil
 }
 
 func detectTarget(source string) string {

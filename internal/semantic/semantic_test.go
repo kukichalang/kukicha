@@ -389,3 +389,37 @@ func TestTypeDeclInsideFunctionRejected(t *testing.T) {
 		t.Errorf("expected 'top level' error, got: %v", errors)
 	}
 }
+
+func TestAnalyzeResult(t *testing.T) {
+	input := `func main()
+    x := 1 + 2
+`
+	program := mustParseProgram(t, input)
+	analyzer := NewWithFile(program, "test.kuki")
+
+	// Call both APIs
+	errs := analyzer.Analyze()
+	result := &AnalysisResult{
+		Errors:           errs,
+		Warnings:         analyzer.Warnings(),
+		ExprReturnCounts: analyzer.ReturnCounts(),
+		ExprTypes:        analyzer.ExprTypes(),
+	}
+
+	// Now use AnalyzeResult on a fresh analyzer
+	analyzer2 := NewWithFile(program, "test.kuki")
+	result2 := analyzer2.AnalyzeResult()
+
+	if len(result.Errors) != len(result2.Errors) {
+		t.Errorf("Errors mismatch: %d vs %d", len(result.Errors), len(result2.Errors))
+	}
+	if len(result.Warnings) != len(result2.Warnings) {
+		t.Errorf("Warnings mismatch: %d vs %d", len(result.Warnings), len(result2.Warnings))
+	}
+	if len(result.ExprReturnCounts) != len(result2.ExprReturnCounts) {
+		t.Errorf("ExprReturnCounts mismatch: %d vs %d", len(result.ExprReturnCounts), len(result2.ExprReturnCounts))
+	}
+	if len(result.ExprTypes) != len(result2.ExprTypes) {
+		t.Errorf("ExprTypes mismatch: %d vs %d", len(result.ExprTypes), len(result2.ExprTypes))
+	}
+}

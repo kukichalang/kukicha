@@ -690,7 +690,7 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 // checkDeprecated emits a warning if the called function is marked # kuki:deprecated.
 func (a *Analyzer) checkDeprecated(node ast.Node, name string, qualifiedName string) {
 	// Check local deprecated functions (from same-file directives)
-	if msg, ok := a.deprecatedFuncs[name]; ok {
+	if msg, ok := a.directives.DeprecatedFuncs[name]; ok {
 		a.warn(node.Pos(), fmt.Sprintf("'%s' is deprecated: %s", name, msg))
 		return
 	}
@@ -706,7 +706,7 @@ func (a *Analyzer) checkDeprecated(node ast.Node, name string, qualifiedName str
 // checkPanics emits a warning if the called function is marked # kuki:panics.
 func (a *Analyzer) checkPanics(node ast.Node, name string, qualifiedName string) {
 	// Check local panicking functions (from same-file directives)
-	if msg, ok := a.panickedFuncs[name]; ok {
+	if msg, ok := a.directives.PanickedFuncs[name]; ok {
 		a.warn(node.Pos(), fmt.Sprintf("%s may panic: %q", name, msg))
 		return
 	}

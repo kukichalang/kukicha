@@ -55,7 +55,7 @@ func (a *Analyzer) validateTypeAnnotation(typeAnn ast.TypeAnnotation) {
 		}
 
 		// Warn if the type is deprecated
-		if msg, ok := a.deprecatedTypes[t.Name]; ok {
+		if msg, ok := a.directives.DeprecatedTypes[t.Name]; ok {
 			a.warn(t.Pos(), fmt.Sprintf("'%s' is deprecated: %s", t.Name, msg))
 		}
 	case *ast.ReferenceType:

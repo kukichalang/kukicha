@@ -42,10 +42,10 @@ func transpile(source string) transpileResult {
 	}
 
 	analyzer := semantic.NewWithFile(program, "playground.kuki")
-	semanticErrors := analyzer.Analyze()
-	if len(semanticErrors) > 0 {
-		errs := make([]string, len(semanticErrors))
-		for i, e := range semanticErrors {
+	result := analyzer.AnalyzeResult()
+	if len(result.Errors) > 0 {
+		errs := make([]string, len(result.Errors))
+		for i, e := range result.Errors {
 			errs[i] = e.Error()
 		}
 		return transpileResult{Errors: errs}
@@ -53,8 +53,7 @@ func transpile(source string) transpileResult {
 
 	gen := codegen.New(program)
 	gen.SetSourceFile("playground.kuki")
-	gen.SetExprReturnCounts(analyzer.ReturnCounts())
-	gen.SetExprTypes(analyzer.ExprTypes())
+	gen.SetAnalysisResult(result)
 	goCode, err := gen.Generate()
 	if err != nil {
 		return transpileResult{Errors: []string{err.Error()}}

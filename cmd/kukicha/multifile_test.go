@@ -128,7 +128,7 @@ func TestLoadAndAnalyzeMulti_CrossFileReferences(t *testing.T) {
 	os.WriteFile(f1, []byte("func main()\n    msg := Helper()\n    print(msg)\n"), 0644)
 	os.WriteFile(f2, []byte("func Helper() string\n    return \"hello\"\n"), 0644)
 
-	_, _, _, err := loadAndAnalyzeMulti([]string{f1, f2})
+	_, _, err := loadAndAnalyzeMulti([]string{f1, f2})
 	if err != nil {
 		t.Errorf("cross-file reference should work, got: %v", err)
 	}
