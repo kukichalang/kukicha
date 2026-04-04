@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Kukicha is a beginner-friendly programming language that **transpiles to Go**.
-Current version: **0.0.31**
-When editing `.kuki` files, write **Kukicha syntax, NOT Go**.
+Kukicha is a **strict superset of Go** that adds pipes, `onerr`, enums,
+if-expressions, and readable operators on top of standard Go syntax.
+All valid Go is valid Kukicha. Current version: **0.0.31**
 
-## Kukicha vs Go Syntax (Common AI Mistakes)
+## Kukicha vs Go Syntax
 
 | Go | Kukicha | Both accepted? |
 |----|---------|----------------|

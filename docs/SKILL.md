@@ -1,6 +1,8 @@
 ## Writing Kukicha
 
-Kukicha transpiles to Go. Write `.kuki` files with Kukicha syntax — not Go.
+Kukicha is a strict superset of Go — all valid Go compiles as-is. Kukicha adds
+pipes, `onerr`, enums, if-expressions, and readable operators on top. You can
+use Go syntax or Kukicha syntax (or mix both) in `.kuki` files.
 
 ### Project Structure
 
@@ -1178,15 +1180,8 @@ resp.Body = reference of limitReadCloser{r: io.LimitReader(resp.Body, maxSize), 
 
 | Error Message | Cause | Fix |
 |---------------|-------|-----|
-| `syntax error: unexpected '{'` | Using Go braces instead of indentation | Remove braces, use 4-space indentation |
 | `use {error} not {err} inside onerr` | Wrong error variable name in `onerr` block | Change `{err}` to `{error}` or use `onerr as e` |
 | `undefined: {err}` | Referencing `err` inside `onerr` | The caught error is always named `error`. Use `{error}` in interpolation, or write `onerr as e` then use `{e}` |
-| `cannot use '&&' operator` | Go boolean operators in Kukicha | Use `and`, `or`, `not` instead of `&&`, `||`, `!` |
-| `cannot use '==' operator` | Go equality in Kukicha | Use `equals` (or `==`) for comparison; both work, but `equals` is preferred for readability |
-| `cannot use 'nil'` | Go's nil in Kukicha | Use `empty` (also: `empty list of T`, `empty map of K to V`) |
-| `cannot use '[]string' type` | Go slice syntax in Kukicha | Use `list of string` |
-| `cannot use 'map[string]int' type` | Go map syntax in Kukicha | Use `map of string to int` |
-| `cannot use '*User' type` | Go pointer syntax in Kukicha | Use `reference User` for the type, `reference of user` to take address |
 | `variable 'data' not used` | Declared but never read | Use `_ := f()` to discard return values, or remove the variable |
 | `function must declare return type` | Implicit return type | Function signatures require explicit return types: `func F() int` not `func F()` |
 | `onerr return requires return type` | Using `onerr return` in function that doesn't return values | Use `onerr discard` to ignore the error, or add a return type to your function |
@@ -1200,19 +1195,19 @@ resp.Body = reference of limitReadCloser{r: io.LimitReader(resp.Body, maxSize), 
 
 ### Common Mistakes
 
-**1. Writing Go syntax in Kukicha files**
+**1. Both Go and Kukicha syntax work**
+
+Kukicha is a strict superset of Go — both styles compile. Use whichever you prefer, or mix them.
 
 ```kukicha
-# WRONG — Go syntax
+# Go style — works fine
 if err != nil {
     return err
 }
 
-# CORRECT — Kukicha syntax
-result, err := doSomething()
+# Kukicha style — also works
 if err isnt empty
     return err
-return result, empty
 ```
 
 **2. Wrong error variable in `onerr`**
