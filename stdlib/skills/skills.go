@@ -25,6 +25,7 @@ func Discover(dir string) ([]Skill, error) {
 		return result, nil
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:24
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:24
 	err_1 := filepath.Walk(dir, func(filePath string, info os.FileInfo, err error) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:25

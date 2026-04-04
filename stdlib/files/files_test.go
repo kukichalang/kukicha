@@ -161,7 +161,7 @@ func TestIsDir(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:112
 			test.AssertNoError(t, err)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:114
-			err = os.Mkdir(testDir, 0755)
+			err = os.Mkdir(testDir, 0o755)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:115
 			test.AssertNoError(t, err)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:117
@@ -196,7 +196,7 @@ func TestList(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:136
 			files.WriteString("test2", filepath.Join(tmpDir, "file2.txt"))
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:137
-			os.Mkdir(filepath.Join(tmpDir, "subdir"), 0755)
+			os.Mkdir(filepath.Join(tmpDir, "subdir"), 0o755)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:139
 			entries, listErr := files.List(tmpDir)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:140

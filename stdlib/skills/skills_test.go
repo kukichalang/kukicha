@@ -45,7 +45,7 @@ func TestDiscover(t *testing.T) {
 	changelogDir := filepath.Join(dir, "changelog")
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:28
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:28
-	err_3 := os.MkdirAll(changelogDir, 0755)
+	err_3 := os.MkdirAll(changelogDir, 0o755)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:28
 	if err_3 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:28
@@ -58,7 +58,7 @@ func TestDiscover(t *testing.T) {
 	changelogContent := "# Changelog\nGenerates CHANGELOG.md entries."
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:32
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:32
-	err_4 := os.WriteFile(filepath.Join(changelogDir, "SKILL.md"), []byte(changelogContent), 0644)
+	err_4 := os.WriteFile(filepath.Join(changelogDir, "SKILL.md"), []byte(changelogContent), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:32
 	if err_4 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:32
@@ -71,7 +71,7 @@ func TestDiscover(t *testing.T) {
 	releaseDir := filepath.Join(dir, "release")
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:38
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:38
-	err_5 := os.MkdirAll(releaseDir, 0755)
+	err_5 := os.MkdirAll(releaseDir, 0o755)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:38
 	if err_5 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:38
@@ -84,7 +84,7 @@ func TestDiscover(t *testing.T) {
 	releaseContent := "# Release\nCuts a release."
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:42
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:42
-	err_6 := os.WriteFile(filepath.Join(releaseDir, "SKILL.md"), []byte(releaseContent), 0644)
+	err_6 := os.WriteFile(filepath.Join(releaseDir, "SKILL.md"), []byte(releaseContent), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:42
 	if err_6 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:42
@@ -94,7 +94,7 @@ func TestDiscover(t *testing.T) {
 		return
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:47
-	_ = os.WriteFile(filepath.Join(changelogDir, "README.md"), []byte("ignore me"), 0644)
+	_ = os.WriteFile(filepath.Join(changelogDir, "README.md"), []byte("ignore me"), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:49
 	result, err_7 := skills.Discover(dir)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:49
@@ -148,6 +148,7 @@ func TestAgentSkillsMissing(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:72
 	defer os.RemoveAll(tmpDir)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:74
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:74
 	err_10 := os.Chdir(tmpDir)
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:74

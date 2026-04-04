@@ -59,7 +59,7 @@ func Write(data any, path string) error {
 	}
 	// pipe step 2: os.WriteFile(...)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:42
-	err_7 := os.WriteFile(path, pipe_5, 0644)
+	err_7 := os.WriteFile(path, pipe_5, 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:43
 	if err_7 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:43
@@ -75,13 +75,13 @@ func WriteString(data string, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:51
 	bytesData := []byte(data)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:52
-	return os.WriteFile(path, bytesData, 0644)
+	return os.WriteFile(path, bytesData, 0o644)
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:59
 func Append(data any, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:60
-	file, err_8 := os.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0644)
+	file, err_8 := os.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:60
 	if err_8 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:60
@@ -112,7 +112,7 @@ func Append(data any, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:74
 func AppendString(data string, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:75
-	file, err_10 := os.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0644)
+	file, err_10 := os.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:75
 	if err_10 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:75
@@ -197,6 +197,7 @@ func ListRecursive(path string) ([]string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:122
 	result := make([]string, 0)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:123
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:123
 	err_15 := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:124
@@ -273,13 +274,13 @@ func Move(src string, dst string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:172
 func MkDir(path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:173
-	return os.Mkdir(path, 0755)
+	return os.Mkdir(path, 0o755)
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:178
 func MkDirAll(path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:179
-	return os.MkdirAll(path, 0755)
+	return os.MkdirAll(path, 0o755)
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:185
@@ -294,6 +295,7 @@ func TempFile(prefix string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:187
 	path := file.Name()
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:188
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:188
 	err_19 := file.Close()
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files.kuki:188

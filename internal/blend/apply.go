@@ -152,14 +152,8 @@ func computeHunks(a, b []string, context int) []string {
 	var hunks []string
 	for _, r := range merged {
 		// Expand with context
-		hunkStart := r.start - context
-		if hunkStart < 0 {
-			hunkStart = 0
-		}
-		hunkEnd := r.end + context
-		if hunkEnd > len(ann) {
-			hunkEnd = len(ann)
-		}
+		hunkStart := max(r.start-context, 0)
+		hunkEnd := min(r.end+context, len(ann))
 
 		// Count orig/new lines and determine start line numbers
 		origStart, newStart := -1, -1

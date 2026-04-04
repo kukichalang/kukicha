@@ -152,6 +152,7 @@ func executeTextTemplate(tmpl *template.Template, data map[string]any) (string, 
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:100
 	buf := bytes.Buffer{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:101
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:101
 	err_13 := tmpl.Execute(&buf, data)
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:101
@@ -174,6 +175,7 @@ func executeHTMLTemplate(tmpl *htmltmpl.Template, data map[string]any) (string, 
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:108
 	buf := bytes.Buffer{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:109
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:109
 	err_14 := tmpl.Execute(&buf, data)
 //line /var/home/tluker/repos/go/kukicha/stdlib/template/template.kuki:109

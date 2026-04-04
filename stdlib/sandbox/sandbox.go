@@ -70,8 +70,9 @@ func ReadString(r Root, path string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:47
 func WriteString(r Root, data string, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:48
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:48
-	err_4 := r.root.WriteFile(path, []byte(data), 0644)
+	err_4 := r.root.WriteFile(path, []byte(data), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:48
 	if err_4 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:48
@@ -95,8 +96,9 @@ func Write(r Root, data any, path string) error {
 		return err_5
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:54
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:54
-	err_6 := r.root.WriteFile(path, jsonData, 0644)
+	err_6 := r.root.WriteFile(path, jsonData, 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:54
 	if err_6 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:54
@@ -111,7 +113,7 @@ func Write(r Root, data any, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:58
 func AppendString(r Root, data string, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:59
-	f, err_7 := r.root.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0644)
+	f, err_7 := r.root.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:59
 	if err_7 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:59
@@ -148,7 +150,7 @@ func Append(r Root, data any, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:67
 	jsonData = append(jsonData, '\n')
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:68
-	f, err_9 := r.root.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0644)
+	f, err_9 := r.root.OpenFile(path, ((os.O_APPEND | os.O_CREATE) | os.O_WRONLY), 0o644)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:68
 	if err_9 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:68
@@ -174,8 +176,9 @@ func Append(r Root, data any, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:74
 func MkDir(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:75
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:75
-	err_10 := r.root.Mkdir(path, 0755)
+	err_10 := r.root.Mkdir(path, 0o755)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:75
 	if err_10 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:75
@@ -190,8 +193,9 @@ func MkDir(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:79
 func MkDirAll(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:80
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:80
-	err_11 := r.root.MkdirAll(path, 0755)
+	err_11 := r.root.MkdirAll(path, 0o755)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:80
 	if err_11 != nil {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:80
@@ -288,6 +292,7 @@ func Stat(r Root, path string) (os.FileInfo, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:114
 func Delete(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:115
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:115
 	err_17 := r.root.Remove(path)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:115
@@ -304,6 +309,7 @@ func Delete(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:119
 func DeleteAll(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:120
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:120
 	err_18 := r.root.RemoveAll(path)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:120
@@ -320,6 +326,7 @@ func DeleteAll(r Root, path string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:124
 func Rename(r Root, oldpath string, newpath string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:125
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:125
 	err_19 := r.root.Rename(oldpath, newpath)
 //line /var/home/tluker/repos/go/kukicha/stdlib/sandbox/sandbox.kuki:125

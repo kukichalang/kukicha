@@ -182,6 +182,7 @@ func Stop(engine Engine, containerID string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:156
 	bg := ctxpkg.Background()
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:157
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:157
 	err_3 := engine.cli.ContainerStop(ctxpkg.Value(bg), containerID, dockercontainer.StopOptions{})
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:157
@@ -200,6 +201,7 @@ func Remove(engine Engine, containerID string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:162
 	bg := ctxpkg.Background()
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:163
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:163
 	err_4 := engine.cli.ContainerRemove(ctxpkg.Value(bg), containerID, dockercontainer.RemoveOptions{})
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:163
@@ -397,6 +399,7 @@ func Run(engine Engine, img string, cmd []string) (string, error) {
 		return "", err_8
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:278
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:278
 	err_9 := engine.cli.ContainerStart(ctxpkg.Value(bg), resp.ID, dockercontainer.StartOptions{})
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:278
@@ -1018,6 +1021,7 @@ func buildImage(cli *client.Client, contextPath string, tag string) (string, str
 		return "", "", fmt.Errorf("container build context: %v", walkErr)
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:570
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:570
 	err_31 := tw.Close()
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:570
@@ -1222,6 +1226,7 @@ func createTarFromPath(sourcePath string) (io.Reader, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:640
 	if info.IsDir() {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:641
+		// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:641
 		err_43 := filepath.WalkDir(absSourcePath, func(walkPath string, d os.DirEntry, err error) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:642
@@ -1268,6 +1273,7 @@ func createTarFromPath(sourcePath string) (io.Reader, error) {
 				header.Name = (header.Name + "/")
 			}
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:658
+			// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:658
 			err_4 := tw.WriteHeader(header)
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:658
@@ -1326,6 +1332,7 @@ func createTarFromPath(sourcePath string) (io.Reader, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:668
 		header.Name = filepath.ToSlash(filepath.Base(absSourcePath))
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:669
+		// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:669
 		err_46 := tw.WriteHeader(header)
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:669
@@ -1357,6 +1364,7 @@ func createTarFromPath(sourcePath string) (io.Reader, error) {
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:674
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:674
 	err_48 := tw.Close()
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:674
@@ -1445,6 +1453,7 @@ func copyToWithContext(engine Engine, ctx ctxpkg.Handle, containerID string, sou
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:704
 	copyOpts := dockercontainer.CopyToContainerOptions{AllowOverwriteDirWithFile: true}
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:705
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:705
 	err_52 := engine.cli.CopyToContainer(ctxpkg.Value(ctx), containerID, destPath, archive, copyOpts)
 //line /var/home/tluker/repos/go/kukicha/stdlib/container/container.kuki:705

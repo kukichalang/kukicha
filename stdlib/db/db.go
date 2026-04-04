@@ -49,6 +49,7 @@ func Open(driver string, connString string) (Pool, error) {
 		return _zero0, err_1
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
 	err_2 := conn.Ping()
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:50
@@ -144,6 +145,7 @@ func ScanAll(rows Rows, sample any) (any, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:113
 		fieldPtrs := structScanners(elemPtr.Elem(), elemType, columns)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
+		// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
 		err_7 := rows.rows.Scan(fieldPtrs...)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:114
@@ -156,6 +158,7 @@ func ScanAll(rows Rows, sample any) (any, error) {
 		resultSlice = reflect.Append(resultSlice, elemPtr.Elem())
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
 	err_8 := rows.rows.Err()
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:117
@@ -187,6 +190,7 @@ func ScanOne(rows Rows, sample any) (any, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:132
 	if !rows.rows.Next() {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
+		// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
 		err_10 := rows.rows.Err()
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:133
@@ -201,6 +205,7 @@ func ScanOne(rows Rows, sample any) (any, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:136
 	fieldPtrs := structScanners(elemPtr.Elem(), elemType, columns)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
 	err_11 := rows.rows.Scan(fieldPtrs...)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:137
@@ -215,6 +220,7 @@ func ScanOne(rows Rows, sample any) (any, error) {
 		return sample, errors.New("db.ScanOne: more than one row returned")
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
 	err_12 := rows.rows.Err()
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:142
@@ -248,6 +254,7 @@ func ScanRow(row Row, sample any) (any, error) {
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
 	err_13 := row.row.Scan(scanners...)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:159
@@ -403,6 +410,7 @@ func Count(pool Pool, query string, args ...any) (int64, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
 	n := int64(0)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
+	// kukicha: could not infer return count; use explicit capture if incorrect
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
 	err_19 := row.Scan(&n)
 //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258

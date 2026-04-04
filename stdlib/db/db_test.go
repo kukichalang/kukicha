@@ -5,9 +5,9 @@ package db_test
 import (
 	"errors"
 	"fmt"
-	_ "github.com/ncruces/go-sqlite3/driver"
 	"github.com/kukichalang/kukicha/stdlib/db"
 	"github.com/kukichalang/kukicha/stdlib/test"
+	_ "github.com/ncruces/go-sqlite3/driver"
 	"testing"
 )
 

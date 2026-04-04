@@ -35,7 +35,7 @@ Both are valid Kukicha. The Go version compiles as-is. The Kukicha version is wh
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```bash
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.0.31
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.0
 mkdir myapp && cd myapp
 kukicha init
 ```
@@ -127,4 +127,4 @@ All Go syntax is also accepted — Kukicha is a strict superset. Use whichever f
 
 ---
 
-**Version:** 0.0.31 | **License:** [MIT](LICENSE)
+**Version:** 0.1.0 | **License:** [MIT](LICENSE)
