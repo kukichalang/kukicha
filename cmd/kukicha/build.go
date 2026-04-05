@@ -92,12 +92,17 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 		}
 	}
 	// Place binary in the current working directory, matching `go build` behavior.
+	// If the resulting path collides with an existing directory (e.g., building
+	// deploy/ from its parent), place the binary inside the directory instead.
 	cwd, cwdErr := os.Getwd()
 	if cwdErr != nil {
 		fmt.Fprintf(os.Stderr, "Error getting working directory: %v\n", cwdErr)
 		os.Exit(1)
 	}
 	binaryPath := filepath.Join(cwd, binaryName)
+	if info, err := os.Stat(binaryPath); err == nil && info.IsDir() {
+		binaryPath = filepath.Join(binaryPath, binaryName)
+	}
 
 	// Run go build on the generated file. Use -mod=mod so go.sum is updated
 	// automatically when stdlib transitive dependencies are not yet listed.
