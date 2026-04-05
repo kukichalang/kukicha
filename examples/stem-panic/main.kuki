@@ -2,6 +2,11 @@
 # Slide raw tea stems down conveyor lanes to fill tea orders.
 # Each lane is a |> pipeline with processing stations inline.
 # An unhandled bitter leaf causes a Bitter Panic!
+#
+# Credits:
+#   The Go Gopher character was designed by Renée French (https://reneefrench.blogspot.com)
+#   and is licensed under the Creative Commons Attribution 4.0 International License.
+#   Gopher artwork in this file is drawn programmatically from primitives, inspired by the original.
 
 import "stdlib/game"
 
@@ -817,21 +822,55 @@ function drawCatcher(screen game.Screen, c Catcher)
         game.DrawRect(screen, c.x, ly - catcherH / 2.0, catcherW, catcherH, game.MakeColor(30, 50, 35, 180))
         game.DrawText(screen, "onerr", c.x as int + 1, ly as int - 6, game.MakeColor(0, 140, 80, 180))
 
+function drawGopher(screen game.Screen, cx float64, cy float64, worried bool)
+    gopherBlue := game.MakeColor(100, 175, 205, 255)
+    gopherBelly := game.MakeColor(200, 220, 185, 255)
+    eyeWhite := game.MakeColor(245, 245, 245, 255)
+    pupilColor := game.MakeColor(30, 30, 30, 255)
+    noseColor := game.MakeColor(70, 45, 25, 255)
+    bodyColor := if worried then game.MakeColor(210, 100, 90, 255) else gopherBlue
+
+    # Ears
+    game.DrawCircle(screen, cx - 10.0, cy - 14.0, 6.0, bodyColor)
+    game.DrawCircle(screen, cx + 10.0, cy - 14.0, 6.0, bodyColor)
+    # Head
+    game.DrawCircle(screen, cx, cy - 5.0, 14.0, bodyColor)
+    # Body
+    game.DrawRect(screen, cx - 13.0, cy + 5.0, 26.0, 14.0, bodyColor)
+    # Belly highlight
+    game.DrawCircle(screen, cx, cy + 1.0, 10.0, gopherBelly)
+    game.DrawRect(screen, cx - 8.0, cy + 5.0, 16.0, 14.0, gopherBelly)
+    # Eyes
+    game.DrawCircle(screen, cx - 5.0, cy - 9.0, 4.0, eyeWhite)
+    game.DrawCircle(screen, cx + 5.0, cy - 9.0, 4.0, eyeWhite)
+    # Pupils (shift outward when worried)
+    pupilOffX := if worried then 1.5 else 0.0
+    game.DrawCircle(screen, cx - 4.0 + pupilOffX, cy - 9.0, 2.0, pupilColor)
+    game.DrawCircle(screen, cx + 5.0 + pupilOffX, cy - 9.0, 2.0, pupilColor)
+    # Nose
+    game.DrawCircle(screen, cx, cy - 4.0, 2.5, noseColor)
+    # Arms outstretched (waiting for tea)
+    game.DrawCircle(screen, cx - 16.0, cy + 6.0, 4.0, bodyColor)
+    game.DrawCircle(screen, cx + 16.0, cy + 6.0, 4.0, bodyColor)
+    # Sweat drop when timer is running low
+    if worried
+        game.DrawCircle(screen, cx + 14.0, cy - 14.0, 3.0, game.MakeColor(130, 200, 230, 200))
+
 function drawOrder(screen game.Screen, o Order)
     ly := laneY(o.lane)
-    # Order box
-    game.DrawRect(screen, orderX, ly - orderH / 2.0, orderW, orderH, game.MakeColor(60, 42, 32, 255))
-    game.DrawRect(screen, orderX, ly - orderH / 2.0, orderW, 2.0, bamboo)
-    game.DrawRect(screen, orderX, ly + orderH / 2.0 - 2.0, orderW, 2.0, bamboo)
-    # Order label
-    game.DrawText(screen, o.wantLabel, orderX as int + 4, ly as int - 6, warmWhite)
-    # Timer bar
+    cx := orderX + orderW / 2.0
     timerFrac := o.timer as float64 / o.maxTimer as float64
+    worried := timerFrac < 0.3
+    # Gopher customer waiting for their tea
+    drawGopher(screen, cx, ly, worried)
+    # Order label below gopher
+    game.DrawText(screen, o.wantLabel, cx as int - 24, ly as int + 20, warmWhite)
+    # Timer bar above gopher
     barW := orderW * timerFrac
     barColor := amber
     if timerFrac < 0.3
         barColor = bitterRed
-    game.DrawRect(screen, orderX, ly - orderH / 2.0 - 6.0, barW, 4.0, barColor)
+    game.DrawRect(screen, orderX, ly - 26.0, barW, 4.0, barColor)
 
 function drawStem(screen game.Screen, s Stem)
     # Bitter trail
