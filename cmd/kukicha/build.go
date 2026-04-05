@@ -91,7 +91,13 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 			binaryName += ".exe"
 		}
 	}
-	binaryPath := filepath.Join(cr.projectDir, binaryName)
+	// Place binary in the current working directory, matching `go build` behavior.
+	cwd, cwdErr := os.Getwd()
+	if cwdErr != nil {
+		fmt.Fprintf(os.Stderr, "Error getting working directory: %v\n", cwdErr)
+		os.Exit(1)
+	}
+	binaryPath := filepath.Join(cwd, binaryName)
 
 	// Run go build on the generated file. Use -mod=mod so go.sum is updated
 	// automatically when stdlib transitive dependencies are not yet listed.

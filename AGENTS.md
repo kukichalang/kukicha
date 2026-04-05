@@ -2,7 +2,7 @@
 
 Kukicha is a **strict superset of Go** that adds pipes, `onerr`, enums,
 if-expressions, and readable operators on top of standard Go syntax.
-All valid Go is valid Kukicha. Current version: **0.1.0**
+All valid Go is valid Kukicha. Current version: **0.1.1**
 
 ## Kukicha vs Go Syntax
 
@@ -56,6 +56,7 @@ Run `make genstdlibregistry` after adding or changing directives on stdlib funct
 
 ```bash
 make build                # Build the kukicha compiler
+make blend                # Build the kukicha-blend Go→Kukicha converter
 make test                 # Run all tests
 make lint                 # Run golangci-lint (errcheck, unused, staticcheck, etc.)
 make vet                  # Run go vet on everything including stdlib
@@ -74,6 +75,10 @@ kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run
 kukicha fmt -w file.kuki  # Format in place
 kukicha audit             # Check dependencies for known vulnerabilities
+kukicha-blend main.go             # Show Kukicha suggestions for Go file
+kukicha-blend --diff ./pkg/       # Preview Go→Kukicha changes
+kukicha-blend --apply main.go     # Convert main.go → main.kuki
+kukicha-blend --patterns=onerr,operators main.go  # Selective patterns
 ```
 
 ## Multi-File Directory Builds
@@ -90,6 +95,7 @@ kukicha audit             # Check dependencies for known vulnerabilities
 
 ```
 cmd/kukicha/              # CLI entry point
+cmd/kukicha-blend/        # Go → Kukicha converter (separate binary)
 cmd/genstdlibregistry/    # Generator: stdlib/*.kuki → stdlib_registry_gen.go
 cmd/gengostdlib/          # Generator: Go stdlib signatures → go_stdlib_gen.go
 internal/
@@ -101,6 +107,7 @@ internal/
     go_stdlib_gen.go        # GENERATED — auto-updated by "make build" via go generate
   ir/                     # Intermediate representation (Go-level imperative nodes)
   codegen/                # AST → IR (lower.go) → Go source (emit.go)
+  blend/                  # Go → Kukicha transformation engine (patterns, apply, diff)
   formatter/              # Code formatting
 stdlib/                   # Standard library (.kuki source files)
 examples/                 # Example programs
