@@ -440,11 +440,13 @@ kukicha build --no-line-directives file.kuki  # omit //line directives (cleaner 
 
 **Binary output location and name:**
 
-The binary is placed in the same directory as the source file (or the project directory for directory builds). The name comes from:
+The binary is placed in the current working directory, matching `go build` behavior. The name comes from:
 
 - `kukicha build hello.kuki` → `./hello` (stem of the `.kuki` file)
-- `kukicha build myapp/` → `myapp/myapp` (base name of the directory)
-- `kukicha build .` → `./myproject` (base name of the working directory — e.g. building in `/src/myproject` produces `./myproject`)
+- `kukicha build myapp/` → `./myapp` (base name of the directory)
+- `kukicha build .` → `./myproject` (base name of the working directory)
+
+If the binary name collides with an existing directory (e.g. `kukicha build deploy/` when `deploy/` exists in the cwd), the binary is placed inside the directory instead: `deploy/deploy`.
 
 On Windows the binary gets a `.exe` suffix automatically. WASM builds produce a `.wasm` file instead.
 

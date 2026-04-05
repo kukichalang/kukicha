@@ -229,37 +229,124 @@ server endpoint calling `go run`, rate limiting, and streaming stdout/stderr bac
 - [x] "Generated Go" pane collapses on mobile
 - [x] HTMX partial: swap playground section without full page reload
 
-### v0.3 — Playground execution + Docs migration
+### v0.3 — Native Kukicha compilation playground
 
-#### Playground execution
+#### Overview
 
-**Architecture:** Single `POST /api/run` endpoint. Receives `{"source": "..."}` (max 64 KB), returns `Content-Type: text/event-stream`. HTMX 4's SSE extension auto-detects the stream — no two-step flow needed (HTMX 4 uses `fetch()` instead of `EventSource`, so POST → SSE works natively). Unnamed SSE messages carry HTML fragments (stdout/stderr lines) and are auto-swapped by HTMX into the output pane. Named `exit` event carries `{"code", "duration_ms"}` and is handled by a small JS listener.
+Replace the go.dev proxy with server-side `kukicha run`. The current playground
+transpiles Kukicha → Go in the browser (WASM), then proxies the Go to
+`go.dev/_/compile` — which breaks for any code using kukicha stdlib (only
+`slice.Filter` and `slice.Map` have JS shims). Native compilation gives full
+stdlib support with no shims.
 
-**Sandbox:** nsjail (Google's lightweight process isolator). Runs `kukicha run --playground temp.kuki` in an isolated namespace with no network, read-only filesystem (except `/tmp` tmpfs), 10s timeout, 256 MB memory, 32 max processes. Go module cache pre-warmed at Docker build time and bind-mounted read-only (`GOPROXY=off`).
+**No compiler changes.** All sandbox policy lives in the website handler.
 
-**Defense-in-depth:** `--playground` flag on `kukicha run` (change in kukichalang/kukicha repo) rejects imports of `os/exec`, `net`, `net/http`, `syscall`, `unsafe`, `plugin` at compile time with clear error messages — before nsjail even gets involved.
+#### Architecture
 
-##### Server & sandbox
-- [ ] `handlers/run.kuki` — POST /api/run: validate body (64 KB max), rate-limit, write temp .kuki file, spawn nsjail, stream SSE
-- [ ] `nsjail.cfg` — nsjail protobuf config (ONCE mode, 10s timeout, 256 MB mem, no network, read-only mounts, `CGO_ENABLED=0`)
-- [ ] `scripts/warmup.sh` — Pre-warm Go module cache during Docker build (stdlib transitive deps)
-- [ ] `Dockerfile` updates — Add nsjail, Go toolchain, kukicha binary, module cache warmup
-- [ ] `--playground` flag on `kukicha run` (kukichalang/kukicha repo) — import blocklist for dangerous packages
+Single `POST /api/run` endpoint in `main.kuki`. The handler:
+
+1. Validates source (64 KB max body)
+2. Scans for blocked imports (`os/exec`, `syscall`, `unsafe`, `plugin`) — reject before compilation
+3. Writes source to a temp `.kuki` file
+4. Spawns `kukicha run temp.kuki` with a 10s timeout (`context.WithTimeout` + process kill)
+5. Captures stdout/stderr, returns JSON `{"output": "...", "errors": "...", "duration_ms": N}`
+
+**Sandbox model:** Cloud Run provides gVisor container isolation (no nsjail needed —
+gVisor blocks raw syscalls, limits filesystem access, and isolates network).
+The handler adds application-level guardrails:
+
+- Import blocklist (string scan before compilation)
+- 10s execution timeout (kill process on exceed)
+- 64 KB source limit
+- 1 MB output limit (truncate with "[output truncated]")
+- Rate limiting per IP
+- Concurrency cap (max simultaneous executions)
+
+#### Dockerfile changes
+
+The current scratch image has no Go toolchain. v0.3 switches to a full runtime
+image with kukicha, Go, and a pre-warmed module cache:
+
+```dockerfile
+# Build stage — compile the website binary
+FROM golang:1.26 AS builder
+WORKDIR /src
+RUN go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.0 && \
+    apt-get update -qq && apt-get install -y --no-install-recommends brotli
+COPY . .
+RUN CGO_ENABLED=0 kukicha build --no-line-directives . && mv src kukicha.org
+RUN brotli -9 --keep static/wasm/kukicha.wasm static/wasm/stem-panic.wasm
+
+# Warmup stage — pre-download kukicha stdlib Go dependencies
+FROM golang:1.26 AS warmup
+RUN go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.0
+# Build a trivial .kuki that imports a stdlib package to warm the module cache
+RUN mkdir /warm && cd /warm && \
+    echo 'import "stdlib/slice"\nfunc main()\n    print("warm")' > warm.kuki && \
+    kukicha run warm.kuki && rm -rf /warm
+
+# Runtime stage — Go toolchain + kukicha + pre-warmed cache
+FROM golang:1.26-bookworm
+RUN go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.0
+COPY --from=warmup /root/go/pkg/mod /root/go/pkg/mod
+COPY --from=warmup /root/.cache/go-build /root/.cache/go-build
+COPY --from=builder /src/kukicha.org /kukicha.org
+COPY --from=builder /src/static /static
+ENV GOPROXY=off
+EXPOSE 8080
+ENTRYPOINT ["/kukicha.org"]
+```
+
+Key points:
+- `GOPROXY=off` — all deps must come from the pre-warmed cache, no network fetches at runtime
+- Module cache is copied from the warmup stage so first-run latency is minimal
+- Image is larger (~500 MB vs ~10 MB scratch) but Cloud Run handles this fine
+
+#### What gets removed
+
+- `POST /api/compile` proxy route in `main.kuki`
+- `STDLIB_SHIMS` and `shimGoSource()` in `playground.js`
+- `go.dev` dependency — the playground is fully self-contained
+
+#### Checklist
+
+##### Server handler
+- [ ] `POST /api/run` handler in `main.kuki` — validate, scan imports, write temp file, exec with timeout, return JSON
+- [ ] Import blocklist: `os/exec`, `syscall`, `unsafe`, `plugin`, `net` (allow `net/http` client for fetch demos)
+- [ ] 10s timeout with `exec.CommandContext` + process group kill
+- [ ] 1 MB output cap (truncate stdout/stderr)
+- [ ] Clean up temp files on every path (defer remove)
 
 ##### Rate limiting & concurrency
-- [ ] `handlers/ratelimit.kuki` — In-memory token bucket (10 req/min per IP, 50 req/hr per IP)
-- [ ] Global concurrency semaphore — Max 5 concurrent sandbox executions, 503 if at capacity
+- [ ] In-memory token bucket (10 req/min per IP, 50 req/hr per IP) — extract IP from `X-Forwarded-For` (Cloud Run sets this)
+- [ ] Global concurrency semaphore — max 5 concurrent executions, return 503 at capacity
 
-##### HTMX 4 frontend
-- [ ] "Run" button with `hx-post="/api/run"` + `hx-vals='js:{"source": editor.getValue()}'` + `hx-swap="beforeend"` + `hx-target="#output-pane"`
-- [ ] Output pane: unnamed SSE messages (HTML fragments) auto-swapped by HTMX 4
-- [ ] `static/js/playground.js` — JS listener for named `exit` event → status bar update
-- [ ] `<meta name="htmx-config" content='{"extensions": "sse"}'>` to activate SSE extension
+##### Frontend
+- [ ] Update `playground.js` `doRun()` — POST to `/api/run` with `{"source": "..."}` (JSON, not form-encoded)
+- [ ] Remove `STDLIB_SHIMS`, `shimGoSource()`, and go.dev references
+- [ ] Update error display for new JSON response format
+- [ ] Update "Execution powered by go.dev" footer to reflect native compilation
+- [ ] Add execution status: "Compiling…" → "Running…" → done
 
-#### Docs migration
-- [ ] Move tutorials into the website (render markdown → `html.Fragment` at build time or startup)
-- [ ] Stdlib reference pages (auto-generated from .kuki files)
-- [ ] Search (HTMX `hx-trigger='keyup changed delay:300ms'` for live search)
+##### Dockerfile & deploy
+- [ ] Switch from scratch to golang runtime image (see Dockerfile above)
+- [ ] Warmup stage for module cache
+- [ ] Set `GOPROXY=off` in runtime
+- [ ] Update `cloudbuild.yaml` if needed (memory/CPU for Cloud Run instance)
+- [ ] Set Cloud Run min instances to 1 (avoid cold start for first playground request)
+
+##### Testing
+- [ ] Test: hello world compiles and returns output
+- [ ] Test: stdlib imports (slice, fetch) work without shims
+- [ ] Test: blocked import (`os/exec`) returns clear error
+- [ ] Test: infinite loop killed after 10s
+- [ ] Test: rate limit returns 429
+- [ ] Test: concurrent limit returns 503
+
+#### Docs migration (deferred to v0.4)
+
+Docs migration moves to v0.4 alongside the blog — both involve rendering
+markdown to `html.Fragment` and share the same infrastructure.
 
 ### Cloud CDN (long-term)
 - [ ] Global HTTPS Load Balancer in front of Cloud Run (GCP)
@@ -269,8 +356,15 @@ server endpoint calling `go run`, rate limiting, and streaming stdout/stderr bac
 
 Note: The `Vary: Accept-Encoding` and `Cache-Control: public, max-age=3600` headers are already set by the `serveWasm` handler in `main.kuki`, so the LB/CDN setup requires no application code changes.
 
-### v0.4 — Blog
-- [ ] Markdown → `html.Fragment` renderer
+### v0.4 — Docs migration + Blog
+
+#### Docs migration
+- [ ] Markdown → `html.Fragment` renderer (shared by docs and blog)
+- [ ] Move tutorials into the website (render at build time or startup)
+- [ ] Stdlib reference pages (auto-generated from .kuki files)
+- [ ] Search (HTMX `hx-trigger='keyup changed delay:300ms'` for live search)
+
+#### Blog
 - [ ] Blog index page with HTMX pagination
 - [ ] First post: "Why we built Kukicha"
 - [ ] RSS feed (plain `html.Render()` with XML content type)
