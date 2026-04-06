@@ -1,0 +1,284 @@
+# Kukicha Standard Library - SQLite
+# Convenience layer over stdlib/db for SQLite databases.
+# Handles driver registration, WAL mode, pragmas, and SQLite-specific utilities.
+# All query/scan operations use stdlib/db (e.g., db.Query, db.ScanAll).
+#
+# Examples:
+#   pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
+#   defer db.Close(pool)
+#   db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)") onerr panic "{error}"
+#   db.Exec(pool, "INSERT INTO users (name) VALUES (?)", "Alice") onerr panic "{error}"
+#   users := db.Query(pool, "SELECT id, name FROM users")
+#       |> db.ScanAll(list of User)
+#       onerr panic "{error}"
+
+petiole sqlite
+
+import "context"
+import "database/sql"
+import "fmt"
+import "stdlib/db"
+import "github.com/ncruces/go-sqlite3" as sqlite3
+import "github.com/ncruces/go-sqlite3/driver" as _
+import "strings" as strpkg
+import "unicode"
+
+# ============================================================================
+# Connection
+# ============================================================================
+
+# Open opens a SQLite database file with WAL mode enabled.
+# Returns a db.Pool for use with all stdlib/db query functions.
+# Example: pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
+# kuki:security "files"
+func Open(path string) (db.Pool, error)
+    return db.Open("sqlite3", "file:" + path + "?_pragma=journal_mode(WAL)")
+
+# OpenMemory opens an in-memory SQLite database.
+# Data is lost when the pool is closed.
+# Example: pool := sqlite.OpenMemory() onerr panic "{error}"
+func OpenMemory() (db.Pool, error)
+    return db.Open("sqlite3", ":memory:")
+
+# OpenWith opens a SQLite database file with custom pragmas.
+# Example: pool := sqlite.OpenWith("/tmp/app.db", map of string to string{"cache_size": "-64000"}) onerr panic "{error}"
+# kuki:security "files"
+func OpenWith(path string, pragmas map of string to string) (db.Pool, error)
+    parts := make(list of string, 0, len(pragmas))
+    for k, v in pragmas
+        parts = append(parts, fmt.Sprintf("_pragma=%s(%s)", k, v))
+    connStr := "file:" + path
+    if len(parts) > 0
+        connStr = connStr + "?" + strpkg.Join(parts, "&")
+    return db.Open("sqlite3", connStr)
+
+# ============================================================================
+# Pragmas
+# ============================================================================
+
+# Pragma returns the current value of a SQLite pragma.
+# Example: mode := sqlite.Pragma(pool, "journal_mode") onerr panic "{error}"
+# kuki:security "sql"
+func Pragma(pool db.Pool, name string) (string, error)
+    if not isValidPragmaName(name)
+        return "", error "sqlite.Pragma: invalid pragma name: {name}"
+    rawDB := db.RawDB(pool)
+    row := rawDB.QueryRow(fmt.Sprintf("PRAGMA %s", name))
+    value := ""
+    row.Scan(reference of value) onerr return
+    return value, empty
+
+# SetPragma sets a SQLite pragma value.
+# Example: sqlite.SetPragma(pool, "cache_size", "-64000") onerr panic "{error}"
+# kuki:security "sql"
+func SetPragma(pool db.Pool, name string, value string) error
+    if not isValidPragmaName(name)
+        return error "sqlite.SetPragma: invalid pragma name: {name}"
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec(fmt.Sprintf("PRAGMA %s = %s", name, value))
+    return err
+
+# ============================================================================
+# Utilities
+# ============================================================================
+
+# Tables returns a sorted list of all user table names in the database.
+# Excludes internal SQLite tables (sqlite_*).
+# Example: tables := sqlite.Tables(pool) onerr panic "{error}"
+func Tables(pool db.Pool) (list of string, error)
+    rawDB := db.RawDB(pool)
+    rows := rawDB.Query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name") onerr return
+    defer rows.Close()
+    names := make(list of string, 0)
+    for rows.Next()
+        name := ""
+        rows.Scan(reference of name) onerr return
+        names = append(names, name)
+    rows.Err() onerr return
+    return names, empty
+
+# TableExists checks whether a table exists in the database.
+# Example: exists := sqlite.TableExists(pool, "users") onerr panic "{error}"
+func TableExists(pool db.Pool, name string) (bool, error)
+    return db.Exists(pool, "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", name)
+
+# Vacuum reclaims unused disk space by rebuilding the database file.
+# Example: sqlite.Vacuum(pool) onerr panic "{error}"
+func Vacuum(pool db.Pool) error
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec("VACUUM")
+    return err
+
+# Backup creates an online backup of the database to the given file path.
+# Uses SQLite's built-in backup API for a consistent snapshot.
+# Example: sqlite.Backup(pool, "/tmp/backup.db") onerr panic "{error}"
+# kuki:security "files"
+func Backup(pool db.Pool, destPath string) error
+    rawDB := db.RawDB(pool)
+    sqlConn := rawDB.Conn(context.Background()) onerr return
+    defer sqlConn.Close()
+    return sqlConn.Raw(makeBackupFunc(destPath))
+
+# Version returns the SQLite library version string (e.g., "3.46.0").
+# Example: v := sqlite.Version(pool) onerr panic "{error}"
+func Version(pool db.Pool) (string, error)
+    rawDB := db.RawDB(pool)
+    row := rawDB.QueryRow("SELECT sqlite_version()")
+    version := ""
+    row.Scan(reference of version) onerr return
+    return version, empty
+
+# ============================================================================
+# Batch Operations
+# ============================================================================
+
+# BatchExec executes a query for each set of arguments within a single transaction.
+# Returns the total number of rows affected.
+# Example:
+#   rows := list of list of any{
+#       list of any{"Alice", "alice@example.com"},
+#       list of any{"Bob", "bob@example.com"},
+#   }
+#   n := sqlite.BatchExec(pool, "INSERT INTO users (name, email) VALUES (?, ?)", rows)
+#       onerr panic "{error}"
+# kuki:security "sql"
+func BatchExec(pool db.Pool, query string, rows list of list of any) (int64, error)
+    total := 0 as int64
+    err := db.Transaction(pool, (tx db.Tx) =>
+        for _, row in rows
+            n := db.TxExec(tx, query, many row) onerr return
+            total = total + n
+        return empty
+    )
+    return total, err
+
+# ============================================================================
+# Custom Functions
+# ============================================================================
+
+# CreateFunction registers a custom scalar SQL function on the database.
+# The function receives arguments as strings and returns a string result.
+# Sets MaxOpenConns(1) to ensure the function is available for all queries.
+# Example:
+#   sqlite.CreateFunction(pool, "reverse", 1, (args list of string) =>
+#       # reverse the first argument
+#       runes := list of rune(args[0])
+#       for i, j := 0, len(runes) - 1; i < j; i, j = i + 1, j - 1
+#           runes[i], runes[j] = runes[j], runes[i]
+#       return string(runes)
+#   ) onerr panic "{error}"
+func CreateFunction(pool db.Pool, name string, nArgs int, fn func(list of string) string) error
+    rawDB := db.RawDB(pool)
+    rawDB.SetMaxOpenConns(1)
+    sqlConn := rawDB.Conn(context.Background()) onerr return
+    defer sqlConn.Close()
+    return sqlConn.Raw(makeCreateFuncCallback(name, nArgs, fn))
+
+func makeScalarFunc(fn func(list of string) string) sqlite3.ScalarFunction
+    return func(ctx sqlite3.Context, many args sqlite3.Value)
+        strArgs := make(list of string, len(args))
+        for i, arg in args
+            strArgs[i] = arg.Text()
+        ctx.ResultText(fn(strArgs))
+
+# ============================================================================
+# Dump
+# ============================================================================
+
+# Dump exports the database as SQL text (CREATE TABLE + INSERT statements).
+# Useful for backups, migrations, and debugging.
+# Example: sql := sqlite.Dump(pool) onerr panic "{error}"
+func Dump(pool db.Pool) (string, error)
+    rawDB := db.RawDB(pool)
+    b := strpkg.Builder{}
+
+    # Schema: CREATE TABLE, CREATE INDEX, CREATE VIEW, CREATE TRIGGER
+    schemaRows := rawDB.Query("SELECT sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'view' THEN 2 WHEN 'index' THEN 3 WHEN 'trigger' THEN 4 END") onerr return
+    defer schemaRows.Close()
+    for schemaRows.Next()
+        sqlText := ""
+        schemaRows.Scan(reference of sqlText) onerr return
+        b.WriteString(sqlText)
+        b.WriteString(";\n")
+    schemaRows.Err() onerr return
+
+    # Data: INSERT statements for each table
+    tables := Tables(pool) onerr return
+    for _, table in tables
+        dumpErr := dumpTable(rawDB, reference of b, table)
+        if dumpErr != empty
+            return "", dumpErr
+
+    return b.String(), empty
+
+func dumpTable(rawDB reference sql.DB, b reference strpkg.Builder, table string) error
+    dataRows := rawDB.Query(fmt.Sprintf("SELECT * FROM %s", quoteIdentifier(table))) onerr return
+    defer dataRows.Close()
+    columns := dataRows.Columns() onerr return
+
+    for dataRows.Next()
+        values := make(list of any, len(columns))
+        ptrs := make(list of any, len(columns))
+        for i from 0 to len(values)
+            ptrs[i] = reference of values[i]
+        dataRows.Scan(many ptrs) onerr return
+
+        b.WriteString(fmt.Sprintf("INSERT INTO %s VALUES(", quoteIdentifier(table)))
+        for i, v in values
+            if i > 0
+                b.WriteString(", ")
+            b.WriteString(formatSQLValue(v))
+        b.WriteString(");\n")
+    return dataRows.Err()
+
+# ============================================================================
+# Internal Helpers
+# ============================================================================
+
+# rawConnector is satisfied by the ncruces SQLite driver connection.
+interface rawConnector
+    Raw() reference sqlite3.Conn
+
+func makeBackupFunc(destPath string) func(any) error
+    return func(driverConn any) error
+        rawer, ok := driverConn.(rawConnector)
+        if not ok
+            return error "sqlite.Backup: driver does not support raw connection access"
+        return rawer.Raw().Backup("main", "file:" + destPath)
+
+func makeCreateFuncCallback(name string, nArgs int, fn func(list of string) string) func(any) error
+    return func(driverConn any) error
+        rawer, ok := driverConn.(rawConnector)
+        if not ok
+            return error "sqlite.CreateFunction: driver does not support raw connection access"
+        conn := rawer.Raw()
+        return conn.CreateFunction(name, nArgs, sqlite3.DETERMINISTIC, makeScalarFunc(fn))
+
+# isValidPragmaName checks that a pragma name contains only safe characters.
+func isValidPragmaName(name string) bool
+    if len(name) == 0
+        return false
+    for _, r in name
+        if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r != 95
+            return false
+    return true
+
+# quoteIdentifier wraps a SQL identifier in double quotes with escaping.
+func quoteIdentifier(name string) string
+    return "\"" + strpkg.ReplaceAll(name, "\"", "\"\"") + "\""
+
+# formatSQLValue formats a Go value as a SQL literal for INSERT statements.
+func formatSQLValue(v any) string
+    if v == empty
+        return "NULL"
+    if i, ok := v.(int64); ok
+        return fmt.Sprintf("%d", i)
+    if f, ok := v.(float64); ok
+        return fmt.Sprintf("%g", f)
+    if b, ok := v.(bool); ok
+        if b
+            return "1"
+        return "0"
+    # Default: treat as text with single-quote escaping
+    s := fmt.Sprintf("%v", v)
+    return "'" + strpkg.ReplaceAll(s, "'", "''") + "'"

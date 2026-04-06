@@ -1,0 +1,326 @@
+# Tests for Kukicha Standard Library - SQLite Package
+
+petiole sqlite_test
+
+import "fmt"
+import "os"
+import "path/filepath"
+import "stdlib/db"
+import "stdlib/sqlite"
+import "stdlib/test"
+import "strings" as strpkg
+import "testing"
+
+type User
+    Id int64 as "id"
+    Name string as "name"
+    Email string as "email"
+
+func setupTestDB(t reference testing.T) db.Pool
+    pool := sqlite.OpenMemory() onerr panic "open failed: {error}"
+    db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)") onerr panic "create failed: {error}"
+    db.Exec(pool, "INSERT INTO users (name, email) VALUES (?, ?)", "Alice", "alice@example.com") onerr panic "insert failed: {error}"
+    db.Exec(pool, "INSERT INTO users (name, email) VALUES (?, ?)", "Bob", "bob@example.com") onerr panic "insert failed: {error}"
+    return pool
+
+# --- TestOpenMemory ---
+type OpenMemoryCase
+    name string
+
+func TestOpenMemory(t reference testing.T)
+    cases := list of OpenMemoryCase{
+        OpenMemoryCase{name: "open in-memory and query"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := setupTestDB(t)
+            defer db.Close(pool)
+            result := db.Query(pool, "SELECT id, name, email FROM users ORDER BY id")
+                |> db.ScanAll(list of User{})
+                onerr panic "scan: {error}"
+            users := result.(list of User)
+            test.AssertEqual(t, len(users), 2)
+            test.AssertEqual(t, users[0].Name, "Alice")
+            test.AssertEqual(t, users[1].Name, "Bob")
+        )
+
+# --- TestOpen ---
+type OpenCase
+    name string
+
+func TestOpen(t reference testing.T)
+    cases := list of OpenCase{
+        OpenCase{name: "open file database with WAL"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            dir := t.TempDir()
+            path := filepath.Join(dir, "test.db")
+            pool := sqlite.Open(path) onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)") onerr panic "create: {error}"
+            db.Exec(pool, "INSERT INTO items (name) VALUES (?)", "widget") onerr panic "insert: {error}"
+
+            # Verify WAL mode
+            mode := sqlite.Pragma(pool, "journal_mode") onerr panic "pragma: {error}"
+            test.AssertEqual(t, mode, "wal")
+        )
+
+# --- TestOpenWith ---
+type OpenWithCase
+    name string
+
+func TestOpenWith(t reference testing.T)
+    cases := list of OpenWithCase{
+        OpenWithCase{name: "open with custom pragmas"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            dir := t.TempDir()
+            path := filepath.Join(dir, "test.db")
+            pragmas := map of string to string{
+                "journal_mode": "WAL",
+                "busy_timeout": "5000",
+            }
+            pool := sqlite.OpenWith(path, pragmas) onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            timeout := sqlite.Pragma(pool, "busy_timeout") onerr panic "pragma: {error}"
+            test.AssertEqual(t, timeout, "5000")
+        )
+
+# --- TestPragma ---
+type PragmaCase
+    name string
+    pragma string
+    setValue string
+
+func TestPragma(t reference testing.T)
+    cases := list of PragmaCase{
+        PragmaCase{name: "get and set cache_size", pragma: "cache_size", setValue: "-4000"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            sqlite.SetPragma(pool, tc.pragma, tc.setValue) onerr panic "set: {error}"
+            got := sqlite.Pragma(pool, tc.pragma) onerr panic "get: {error}"
+            test.AssertEqual(t, got, tc.setValue)
+        )
+
+# --- TestPragmaInvalidName ---
+type PragmaInvalidCase
+    name string
+    pragma string
+
+func TestPragmaInvalidName(t reference testing.T)
+    cases := list of PragmaInvalidCase{
+        PragmaInvalidCase{name: "reject injection attempt", pragma: "cache_size; DROP TABLE users"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            _, err := sqlite.Pragma(pool, tc.pragma)
+            test.AssertError(t, err)
+        )
+
+# --- TestTables ---
+type TablesCase
+    name string
+    createSQL list of string
+    wantLen int
+
+func TestTables(t reference testing.T)
+    cases := list of TablesCase{
+        TablesCase{
+            name: "list created tables",
+            createSQL: list of string{
+                "CREATE TABLE alpha (id INTEGER PRIMARY KEY)",
+                "CREATE TABLE beta (id INTEGER PRIMARY KEY)",
+            },
+            wantLen: 2,
+        },
+        TablesCase{
+            name: "empty database",
+            createSQL: list of string{},
+            wantLen: 0,
+        },
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+            for _, sql in tc.createSQL
+                db.Exec(pool, sql) onerr panic "create: {error}"
+
+            tables := sqlite.Tables(pool) onerr panic "tables: {error}"
+            test.AssertEqual(t, len(tables), tc.wantLen)
+            if tc.wantLen == 2
+                test.AssertEqual(t, tables[0], "alpha")
+                test.AssertEqual(t, tables[1], "beta")
+        )
+
+# --- TestTableExists ---
+type TableExistsCase
+    name string
+    table string
+    want bool
+
+func TestTableExists(t reference testing.T)
+    cases := list of TableExistsCase{
+        TableExistsCase{name: "existing table", table: "users", want: true},
+        TableExistsCase{name: "missing table", table: "nonexistent", want: false},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := setupTestDB(t)
+            defer db.Close(pool)
+
+            exists := sqlite.TableExists(pool, tc.table) onerr panic "exists: {error}"
+            test.AssertEqual(t, exists, tc.want)
+        )
+
+# --- TestVacuum ---
+type VacuumCase
+    name string
+
+func TestVacuum(t reference testing.T)
+    cases := list of VacuumCase{
+        VacuumCase{name: "vacuum succeeds"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := setupTestDB(t)
+            defer db.Close(pool)
+
+            err := sqlite.Vacuum(pool)
+            test.AssertNoError(t, err)
+        )
+
+# --- TestBackup ---
+type BackupCase
+    name string
+
+func TestBackup(t reference testing.T)
+    cases := list of BackupCase{
+        BackupCase{name: "backup and verify"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := setupTestDB(t)
+            defer db.Close(pool)
+
+            dir := t.TempDir()
+            backupPath := filepath.Join(dir, "backup.db")
+            sqlite.Backup(pool, backupPath) onerr panic "backup: {error}"
+
+            # Verify backup exists
+            _, statErr := os.Stat(backupPath)
+            test.AssertNoError(t, statErr)
+
+            # Open backup and verify data
+            backupPool := sqlite.Open(backupPath) onerr panic "open backup: {error}"
+            defer db.Close(backupPool)
+
+            result := db.Query(backupPool, "SELECT id, name, email FROM users ORDER BY id")
+                |> db.ScanAll(list of User{})
+                onerr panic "scan: {error}"
+            users := result.(list of User)
+            test.AssertEqual(t, len(users), 2)
+            test.AssertEqual(t, users[0].Name, "Alice")
+        )
+
+# --- TestVersion ---
+type VersionCase
+    name string
+
+func TestVersion(t reference testing.T)
+    cases := list of VersionCase{
+        VersionCase{name: "returns version string"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            v := sqlite.Version(pool) onerr panic "version: {error}"
+            test.AssertTrue(t, len(v) > 0)
+            test.AssertTrue(t, strpkg.HasPrefix(v, "3."))
+        )
+
+# --- TestBatchExec ---
+type BatchExecCase
+    name string
+    batchSize int
+
+func TestBatchExec(t reference testing.T)
+    cases := list of BatchExecCase{
+        BatchExecCase{name: "batch insert 100 rows", batchSize: 100},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+            db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)") onerr panic "create: {error}"
+
+            rows := make(list of list of any, tc.batchSize)
+            for i from 0 to tc.batchSize
+                rows[i] = list of any{fmt.Sprintf("item_%d", i)}
+
+            n := sqlite.BatchExec(pool, "INSERT INTO items (name) VALUES (?)", rows) onerr panic "batch: {error}"
+            test.AssertEqual(t, n, tc.batchSize as int64)
+
+            count := db.Count(pool, "SELECT COUNT(*) FROM items") onerr panic "count: {error}"
+            test.AssertEqual(t, count, tc.batchSize as int64)
+        )
+
+# --- TestCreateFunction ---
+type CreateFunctionCase
+    name string
+
+func TestCreateFunction(t reference testing.T)
+    cases := list of CreateFunctionCase{
+        CreateFunctionCase{name: "register and use custom function"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            shoutFn := func(args list of string) string
+                return strpkg.ToUpper(args[0])
+            sqlite.CreateFunction(pool, "shout", 1, shoutFn) onerr panic "create function: {error}"
+
+            db.Exec(pool, "CREATE TABLE words (word TEXT)") onerr panic "create: {error}"
+            db.Exec(pool, "INSERT INTO words (word) VALUES (?)", "hello") onerr panic "insert: {error}"
+
+            rawDB := db.RawDB(pool)
+            row := rawDB.QueryRow("SELECT shout(word) FROM words")
+            result := ""
+            row.Scan(reference of result) onerr panic "scan: {error}"
+            test.AssertEqual(t, result, "HELLO")
+        )
+
+# --- TestDump ---
+type DumpCase
+    name string
+
+func TestDump(t reference testing.T)
+    cases := list of DumpCase{
+        DumpCase{name: "dump contains schema and data"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := setupTestDB(t)
+            defer db.Close(pool)
+
+            sql := sqlite.Dump(pool) onerr panic "dump: {error}"
+            test.AssertTrue(t, strpkg.Contains(sql, "CREATE TABLE"))
+            test.AssertTrue(t, strpkg.Contains(sql, "INSERT INTO"))
+            test.AssertTrue(t, strpkg.Contains(sql, "Alice"))
+            test.AssertTrue(t, strpkg.Contains(sql, "Bob"))
+        )

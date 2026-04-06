@@ -271,6 +271,20 @@ func Exists(pool Pool, query string, many args any) (bool, error)
     return true, empty
 
 # ============================================================================
+# Advanced / Driver Access
+# ============================================================================
+
+# RawDB returns the underlying *sql.DB for driver-specific operations.
+# Most users should prefer the higher-level db functions.
+func RawDB(pool Pool) reference sql.DB
+    return pool.conn
+
+# NewPool wraps an existing *sql.DB as a Pool.
+# Useful when a driver provides its own Open function (e.g., SQLite with init callbacks).
+func NewPool(conn reference sql.DB) Pool
+    return Pool{conn: conn}
+
+# ============================================================================
 # Internal Helpers
 # ============================================================================
 
