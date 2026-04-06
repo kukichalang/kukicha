@@ -15,7 +15,8 @@ Each package lives in `stdlib/<name>/` with:
 |---------|---------|---------------|
 | `stdlib/a2a` | Agent-to-Agent protocol client | Discover, Ask, Send, Stream, New/Text/Context |
 | `stdlib/cast` | Smart type coercion (any → scalar) | SmartInt, SmartFloat64, SmartBool, SmartString, Atoi, ParseFloat |
-| `stdlib/cli` | CLI argument parsing with subcommands | New, Description, Arg, AddFlag, Action, RunApp, Command, CommandFlag, CommandAction, GlobalFlag, CommandName, GetString, GetBool, GetInt, NewArgs, IsJSON |
+| `stdlib/cli` | CLI argument parsing with subcommands | New, Description, Arg, AddFlag, Action, RunApp, Command, CommandFlag, CommandAction, GlobalFlag, CommandName, GetString, GetBool, GetInt, NewArgs, IsJSON, Fatal |
+| `stdlib/console` | Stderr output helpers | Error, Warn |
 | `stdlib/concurrent` | Parallel execution and concurrent map | Parallel, ParallelWithLimit, Map, MapWithLimit, Go |
 | `stdlib/container` | Docker/Podman client via Docker SDK | Connect, ConnectRemote, New/Host/APIVersion/Open, ListContainers, ListImages, Pull, PullAuth, LoginFromConfig, Run, Stop, Remove, Build, Logs, LogsTail, Inspect, Wait/WaitCtx, Exec, Events/EventsCtx, CopyFrom, CopyTo |
 | `stdlib/crypto` | Hashing, HMAC, and secure random (Go stdlib only) | SHA256, SHA256Bytes, HMAC, HMACBytes, RandomToken, RandomBytes, Equal |

@@ -883,7 +883,7 @@ function main()
         |> cli.Command("search", "Search repos by keyword")
         |> cli.CommandFlag("search", "query", "Search term", "")
         |> cli.CommandAction("search", doSearch)
-        |> cli.RunApp() onerr panic "CLI error: {error}"
+        |> cli.RunApp() onerr cli.Fatal("CLI error: {error}")
 
 function doFetch(args cli.Args)
     user := cli.GetString(args, "user")

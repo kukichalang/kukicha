@@ -7,10 +7,10 @@
 
 petiole main
 
-import "fmt"
 import "os"
 import "stdlib/cli"
 import "stdlib/concurrent"
+import "stdlib/console"
 import "stdlib/env"
 import "stdlib/git"
 import "stdlib/input"
@@ -53,12 +53,6 @@ type ReleaseResult
 
 # ── Helpers ───────────────────────────────────────────────────
 
-func fatal(msg string)
-    fmt.Fprintln(os.Stderr, msg)
-    os.Exit(1)
-
-func warn(msg string)
-    fmt.Fprintln(os.Stderr, "Warning: {msg}")
 
 # nextTag computes the next semver tag from the current one, falling back to initialTag
 func nextTag(current string, bump string, initialTag string) (string, error)
@@ -139,11 +133,11 @@ func listReposWhereICommitted(org string) (list of string, error)
 # Returns a zero-name entry on failure (filtered out by the caller).
 func buildEntry(repo string, bump string, initialTag string) RepoEntry
     current := highestSemverTag(repo) onerr
-        warn("{error}")
+        console.Warn("{error}")
         return RepoEntry{}
 
     next := nextTag(current, bump, initialTag) onerr
-        warn("{error}")
+        console.Warn("{error}")
         return RepoEntry{}
 
     return RepoEntry{name: repo, current: current, next: next}
@@ -158,7 +152,7 @@ func doList(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            fmt.Fprintln(os.Stderr, "Error: {error}")
+            console.Error("Error: {error}")
         os.Exit(1)
 
     # Fetch tags in parallel (at most 4 concurrent GitHub API calls)
@@ -204,13 +198,13 @@ func doRelease(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "release requires --repo OWNER/REPO"})
             os.Exit(1)
-        fatal("release requires --repo OWNER/REPO")
+        cli.Fatal("release requires --repo OWNER/REPO")
 
     if org isnt "" and not (repo |> string.HasPrefix("{org}/"))
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "repo '{repo}' is not under org '{org}'"})
             os.Exit(1)
-        fatal("Repo '{repo}' is not under org '{org}'")
+        cli.Fatal("Repo '{repo}' is not under org '{org}'")
 
     # Verify repo exists
     repoOk := git.RepoExists(repo) onerr false
@@ -218,20 +212,20 @@ func doRelease(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "failed to access repo: {repo}"})
             os.Exit(1)
-        fatal("Failed to access repo: {repo}")
+        cli.Fatal("Failed to access repo: {repo}")
 
     current := highestSemverTag(repo) onerr
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            fmt.Fprintln(os.Stderr, "Error: {error}")
+            console.Error("Error: {error}")
         os.Exit(1)
 
     next := nextTag(current, bump, initialTag) onerr
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            fmt.Fprintln(os.Stderr, "Error: {error}")
+            console.Error("Error: {error}")
         os.Exit(1)
 
     exists := git.ReleaseExists(repo, next) onerr false
@@ -248,7 +242,7 @@ func doRelease(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            fmt.Fprintln(os.Stderr, "Error: {error}")
+            console.Error("Error: {error}")
         os.Exit(1)
 
     tagAlreadyExists := git.TagExists(repo, next) onerr false
@@ -290,11 +284,11 @@ func doRelease(args cli.Args, initialTag string)
         return
 
     git.CreateRelease(repo, next, opts) onerr
-        fmt.Fprintln(os.Stderr, "")
-        fmt.Fprintln(os.Stderr, "Release creation failed. This may indicate a race condition")
+        console.Error("")
+        console.Error("Release creation failed. This may indicate a race condition")
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "release creation failed (another process may have created the release or tag)"})
-        fatal("(another process may have created the release or tag).")
+        cli.Fatal("(another process may have created the release or tag).")
 
     if jsonOut
         jsonpkg.WriteOutput(ReleaseResult{repo: repo, tag: next, status: "created"}) onerr panic "{error}"
@@ -304,7 +298,7 @@ func doPick(args cli.Args, initialTag string)
     bump := cli.GetString(args, "bump")
 
     repos := listReposWhereICommitted(org) onerr
-        fatal("Failed to list repos: {error}")
+        cli.Fatal("Failed to list repos: {error}")
 
     # Fetch tags in parallel and compute next versions
     entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
@@ -342,11 +336,11 @@ func main()
     # Validate env config
     initialTag := env.GetOr(InitialTagEnv, DefaultInitialTag)
     if not semver.Valid(initialTag)
-        fatal("INITIAL_TAG '{initialTag}' is not valid semver (expected e.g. v0.0.1)")
+        cli.Fatal("INITIAL_TAG '{initialTag}' is not valid semver (expected e.g. v0.0.1)")
 
     # Check required tools
     if not shell.Which("gh")
-        fatal("Missing required command: gh")
+        cli.Fatal("Missing required command: gh")
 
     _ = cli.New("gh-semver-release")
         |> cli.Description("Create GitHub releases with auto-bumped semver tags")
@@ -365,4 +359,4 @@ func main()
         |> cli.CommandAction("list", a => doList(a, initialTag))
         |> cli.CommandAction("release", a => doRelease(a, initialTag))
         |> cli.CommandAction("pick", a => doPick(a, initialTag))
-        |> cli.RunApp() onerr fatal("{error}")
+        |> cli.RunApp() onerr cli.Fatal("{error}")

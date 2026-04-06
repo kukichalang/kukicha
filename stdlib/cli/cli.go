@@ -441,35 +441,43 @@ func printCommandHelp(app App, cmd SubcommandDef) {
 	}
 }
 
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:294
+func Fatal(msg string) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:295
-func GetString(args Args, name string) string {
+	fmt.Fprintln(os.Stderr, msg)
 //line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:296
+	os.Exit(1)
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:302
+func GetString(args Args, name string) string {
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:303
 	return args.values[name]
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:300
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:307
 func GetBool(args Args, name string) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:301
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:308
 	val := args.values[name]
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:302
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:309
 	return (((val == "true") || (val == "1")) || (val == "yes"))
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:307
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:314
 func IsJSON(args Args) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:308
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:315
 	return GetBool(args, "json")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:312
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:319
 func GetInt(args Args, name string) (int, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:313
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:320
 	strVal := args.values[name]
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:314
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:321
 	if strVal == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:315
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:322
 		return 0, fmt.Errorf("argument %v not found", name)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:317
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:324
 	return cast.Atoi(strVal)
 }

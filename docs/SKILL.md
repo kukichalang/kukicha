@@ -118,6 +118,12 @@ pi := 3.14               # float
 greeting := "Hello {name}!"          # {expr} is interpolated
 json := "key: \{value\}"             # \{ and \} produce literal braces
 path := "{dir}\sep{file}"            # \sep → OS path separator at runtime
+
+# Interpolation converts any value to a string — replaces fmt.Sprintf
+count := 42
+label := "{count}"                   # "42" — no fmt.Sprintf("%d", count) needed
+price := 9.99
+msg   := "costs {price}"             # "costs 9.99"
 ```
 
 ### Types
@@ -522,7 +528,23 @@ func main()
         |> cli.AddFlag("port", "Port number", "8080")
         |> cli.Action(run)
     cli.RunApp(app) onerr panic "{error}"
+
+# Fatal: print to stderr and exit 1 — ideal for onerr handlers
+data := loadConfig() onerr cli.Fatal("config error: {error}")
+stack := initStack(ctx) onerr cli.Fatal("init failed: {error}")
 ```
+
+**stdlib/console** — Stderr output helpers
+
+```kukicha
+# Print to stderr (no exit — use for warnings, debug, non-fatal errors)
+console.Error("connection dropped: {error}")
+
+# Prefixed warning
+console.Warn("disk space low")   # prints "warning: disk space low" to stderr
+```
+
+Use `cli.Fatal(msg)` when you want to print to stderr *and* exit. Use `console.Error(msg)` when you want to print to stderr and keep running.
 
 **stdlib/must** and **stdlib/env** — Config
 
@@ -1113,7 +1135,7 @@ Assertions: `test.AssertEqual`, `test.AssertNotEqual`, `test.AssertTrue`, `test.
 
 ---
 
-**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
+**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `console`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
 
 ---
 

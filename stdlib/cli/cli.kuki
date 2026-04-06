@@ -288,6 +288,13 @@ func printCommandHelp(app App, cmd SubcommandDef)
         else
             print("  {label}{flag.description}")
 
+# Fatal prints a message to stderr and exits with code 1.
+# Designed for use in onerr handlers for unrecoverable CLI errors.
+# Example: result := doThing() onerr cli.Fatal("failed: {error}")
+func Fatal(msg string)
+    fmt.Fprintln(os.Stderr, msg)
+    os.Exit(1)
+
 # Args helper methods
 
 # GetString returns the value of a named argument or flag

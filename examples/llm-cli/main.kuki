@@ -9,6 +9,7 @@ import "context"
 import "fmt"
 import "io"
 import "os"
+import "stdlib/cli"
 import "stdlib/fetch"
 import "stdlib/input"
 import "stdlib/json" as jsonpkg
@@ -86,23 +87,19 @@ func main()
         cmd := positional[0]
         if cmd equals "models"
             cmdListModels() onerr
-                fmt.Fprintln(os.Stderr, errFmt("error: {error}"))
-                os.Exit(1)
+                cli.Fatal(errFmt("error: {error}"))
             return
         if cmd equals "tools"
             cmdListTools() onerr
-                fmt.Fprintln(os.Stderr, errFmt("error: {error}"))
-                os.Exit(1)
+                cli.Fatal(errFmt("error: {error}"))
             return
         if cmd equals "health"
             cmdHealth() onerr
-                fmt.Fprintln(os.Stderr, errFmt("error: {error}"))
-                os.Exit(1)
+                cli.Fatal(errFmt("error: {error}"))
             return
         if cmd equals "configure"
             cmdConfigure() onerr
-                fmt.Fprintln(os.Stderr, errFmt("error: {error}"))
-                os.Exit(1)
+                cli.Fatal(errFmt("error: {error}"))
             return
         if cmd equals "version"
             print("owui {version}")
@@ -110,8 +107,7 @@ func main()
 
     # Default: agent mode
     cmdRun(positional, flagModel, flagChat, flagRaw, flagSystem) onerr
-        fmt.Fprintln(os.Stderr, errFmt("error: {error}"))
-        os.Exit(1)
+        cli.Fatal(errFmt("error: {error}"))
 
 # ---- Agent mode ----
 

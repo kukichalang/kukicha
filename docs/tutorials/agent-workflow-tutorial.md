@@ -198,7 +198,7 @@ function main()
         |> cli.AddFlag("min-stars", "Minimum star count", "100")
         |> cli.AddFlag("format", "Output format: table or json", "table")
         |> cli.Action(run)
-    cli.RunApp(app) onerr panic "{error}"
+    cli.RunApp(app) onerr cli.Fatal("{error}")
 ```
 
 ### Fetch in parallel
@@ -461,7 +461,7 @@ func run(args cli.Args)
 _ = cli.New("mytool")
     |> cli.GlobalFlag("json", "Machine-readable JSON output", "false")
     |> cli.Action(run)
-    |> cli.RunApp() onerr panic "{error}"
+    |> cli.RunApp() onerr cli.Fatal("{error}")
 ```
 
 ### Skill discovery for orchestrators
