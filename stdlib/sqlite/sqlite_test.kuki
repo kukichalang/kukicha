@@ -65,6 +65,14 @@ func TestOpen(t reference testing.T)
             # Verify WAL mode
             mode := sqlite.Pragma(pool, "journal_mode") onerr panic "pragma: {error}"
             test.AssertEqual(t, mode, "wal")
+
+            # Verify foreign keys enabled
+            fk := sqlite.Pragma(pool, "foreign_keys") onerr panic "pragma: {error}"
+            test.AssertEqual(t, fk, "1")
+
+            # Verify busy timeout
+            timeout := sqlite.Pragma(pool, "busy_timeout") onerr panic "pragma: {error}"
+            test.AssertEqual(t, timeout, "5000")
         )
 
 # --- TestOpenWith ---
@@ -128,6 +136,28 @@ func TestPragmaInvalidName(t reference testing.T)
             test.AssertError(t, err)
         )
 
+# --- TestSetPragmaInvalidValue ---
+
+func TestSetPragmaInvalidValue(t reference testing.T)
+    pool := sqlite.OpenMemory() onerr panic "open: {error}"
+    defer db.Close(pool)
+
+    err := sqlite.SetPragma(pool, "cache_size", "-4000; DROP TABLE users")
+    test.AssertError(t, err)
+
+    err2 := sqlite.SetPragma(pool, "journal_mode", "WAL; DROP TABLE users")
+    test.AssertError(t, err2)
+
+    err3 := sqlite.SetPragma(pool, "cache_size", "")
+    test.AssertError(t, err3)
+
+    # valid values should still work
+    err4 := sqlite.SetPragma(pool, "cache_size", "-64000")
+    test.AssertNoError(t, err4)
+
+    err5 := sqlite.SetPragma(pool, "journal_mode", "WAL")
+    test.AssertNoError(t, err5)
+
 # --- TestTables ---
 type TablesCase
     name string
@@ -183,6 +213,28 @@ func TestTableExists(t reference testing.T)
             exists := sqlite.TableExists(pool, tc.table) onerr panic "exists: {error}"
             test.AssertEqual(t, exists, tc.want)
         )
+
+# --- TestIntegrityCheck ---
+
+func TestIntegrityCheck(t reference testing.T)
+    pool := setupTestDB(t)
+    defer db.Close(pool)
+
+    err := sqlite.IntegrityCheck(pool)
+    test.AssertNoError(t, err)
+
+# --- TestForeignKeyEnforcement ---
+
+func TestForeignKeyEnforcement(t reference testing.T)
+    pool := sqlite.OpenMemory() onerr panic "open: {error}"
+    defer db.Close(pool)
+
+    db.Exec(pool, "CREATE TABLE parents (id INTEGER PRIMARY KEY)") onerr panic "create: {error}"
+    db.Exec(pool, "CREATE TABLE children (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES parents(id))") onerr panic "create: {error}"
+
+    # Should fail: no parent with id=999 exists
+    _, err := db.Exec(pool, "INSERT INTO children (parent_id) VALUES (999)")
+    test.AssertError(t, err)
 
 # --- TestVacuum ---
 type VacuumCase

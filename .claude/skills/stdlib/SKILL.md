@@ -15,8 +15,7 @@ Each package lives in `stdlib/<name>/` with:
 |---------|---------|---------------|
 | `stdlib/a2a` | Agent-to-Agent protocol client | Discover, Ask, Send, Stream, New/Text/Context |
 | `stdlib/cast` | Smart type coercion (any → scalar) | SmartInt, SmartFloat64, SmartBool, SmartString, Atoi, ParseFloat |
-| `stdlib/cli` | CLI argument parsing with subcommands | New, Description, Arg, AddFlag, Action, RunApp, Command, CommandFlag, CommandAction, GlobalFlag, CommandName, GetString, GetBool, GetInt, NewArgs, IsJSON, Fatal |
-| `stdlib/console` | Stderr output helpers | Error, Warn |
+| `stdlib/cli` | CLI argument parsing with subcommands | New, Description, Arg, AddFlag, Action, RunApp, Command, CommandFlag, CommandAction, GlobalFlag, CommandName, GetString, GetBool, GetInt, NewArgs, IsJSON, Error, Warn, Fatal |
 | `stdlib/concurrent` | Parallel execution and concurrent map | Parallel, ParallelWithLimit, Map, MapWithLimit, Go |
 | `stdlib/container` | Docker/Podman client via Docker SDK | Connect, ConnectRemote, New/Host/APIVersion/Open, ListContainers, ListImages, Pull, PullAuth, LoginFromConfig, Run, Stop, Remove, Build, Logs, LogsTail, Inspect, Wait/WaitCtx, Exec, Events/EventsCtx, CopyFrom, CopyTo |
 | `stdlib/crypto` | Hashing, HMAC, and secure random (Go stdlib only) | SHA256, SHA256Bytes, HMAC, HMACBytes, RandomToken, RandomBytes, Equal |
@@ -52,6 +51,7 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/skills` | Runtime discovery of agent SKILL.md manifests | Discover, AgentSkills, ClaudeSkills |
 | `stdlib/slice` | Slice operations (all generic) | Filter, Map, GroupBy, Sort, SortBy, First, Last, Drop, DropLast, Reverse, Unique, Chunk, Contains, IndexOf, Concat, Get, GetOr, FirstOne, FirstOr, LastOne, LastOr, Find, FindOr, FindIndex, FindLast, FindLastOr, IsEmpty, IsNotEmpty, Pop, Shift |
 | `stdlib/sort` | Sorting slices (strings, ints, floats, custom) | Strings, Ints, Float64s, By, ByKey, Reverse |
+| `stdlib/sqlite` | SQLite convenience layer over stdlib/db (ncruces/go-sqlite3) | Open, OpenMemory, OpenWith, Pragma, SetPragma, Tables, TableExists, IntegrityCheck, Vacuum, Backup, Version, BatchExec, CreateFunction, Dump |
 | `stdlib/string` | String utilities | ToUpper, ToLower, Title, Trim, TrimSpace, TrimPrefix, TrimSuffix, TrimLeft, TrimRight, Split, SplitN, Join, Fields, Contains, HasPrefix, HasSuffix, Index, LastIndex, Count, Replace, ReplaceAll, Repeat, PadRight, PadLeft, Concat, EqualFold, Len, IsEmpty, IsBlank, Lines |
 | `stdlib/table` | Terminal table rendering (plain, box, markdown) | New, AddRow, Print, PrintWithStyle, ToString, ToStringWithStyle |
 | `stdlib/template` | Text templating (plain + HTML-safe) | New, Render, Parse, Data, WithContent, Execute, RenderSimple, HTMLExecute, HTMLRenderSimple, Must, Funcs |

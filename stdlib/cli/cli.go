@@ -441,43 +441,55 @@ func printCommandHelp(app App, cmd SubcommandDef) {
 	}
 }
 
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:293
+func Error(msg string) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:294
-func Fatal(msg string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:295
 	fmt.Fprintln(os.Stderr, msg)
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:296
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:298
+func Warn(msg string) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:299
+	fmt.Fprintln(os.Stderr, fmt.Sprintf("warning: %v", msg))
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:304
+func Fatal(msg string) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:305
+	fmt.Fprintln(os.Stderr, msg)
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:306
 	os.Exit(1)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:302
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:312
 func GetString(args Args, name string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:303
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:313
 	return args.values[name]
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:307
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:317
 func GetBool(args Args, name string) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:308
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:318
 	val := args.values[name]
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:309
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:319
 	return (((val == "true") || (val == "1")) || (val == "yes"))
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:314
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:324
 func IsJSON(args Args) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:315
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:325
 	return GetBool(args, "json")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:319
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:329
 func GetInt(args Args, name string) (int, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:320
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:330
 	strVal := args.values[name]
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:321
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:331
 	if strVal == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:322
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:332
 		return 0, fmt.Errorf("argument %v not found", name)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:324
+//line /var/home/tluker/repos/go/kukicha/stdlib/cli/cli.kuki:334
 	return cast.Atoi(strVal)
 }

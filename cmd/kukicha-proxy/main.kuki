@@ -13,7 +13,6 @@
 
 import "bytes"
 import "context"
-import "database/sql"
 import "encoding/json"
 import "errors"
 import "fmt"
@@ -24,11 +23,12 @@ import "net/url"
 import "os"
 import "os/signal"
 import "path/filepath"
+import "stdlib/db"
+import "stdlib/sqlite"
 import "strings" as strpkg
 import "sync"
 import "syscall"
 import "time"
-import "github.com/ncruces/go-sqlite3/driver" as _
 
 # versionRecord tracks when a module version was first observed.
 type versionRecord
@@ -112,17 +112,16 @@ func hasRecord on db reference seenDB (module string, version string) bool
 # --- SQLite-backed store (hosted mode) ---
 
 type sqliteSeenStore
-    mu sync.Mutex
-    db reference sql.DB
+    mu   sync.Mutex
+    pool db.Pool
 
 func newSQLiteSeenStore(path string) (reference sqliteSeenStore, error)
     os.MkdirAll(filepath.Dir(path), 0o755) onerr discard
-    conn := sql.Open("sqlite3", path + "?_pragma=journal_mode(WAL)") onerr return empty, error "open sqlite: {error}"
-    _, err := conn.Exec("CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)")
-    if err != empty
-        conn.Close() onerr discard
-        return empty, error "create table: {err}"
-    return reference of sqliteSeenStore{db: conn}, empty
+    pool := sqlite.Open(path) onerr return empty, error "open sqlite: {error}"
+    db.Exec(pool, "CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)") onerr
+        db.Close(pool) onerr discard
+        return empty, error "create table: {error}"
+    return reference of sqliteSeenStore{pool: pool}, empty
 
 func FirstSeen on s reference sqliteSeenStore (module string, version string) time.Time
     s.mu.Lock()
@@ -132,7 +131,8 @@ func FirstSeen on s reference sqliteSeenStore (module string, version string) ti
 
     # Try existing record first.
     raw := ""
-    scanErr := s.db.QueryRow("SELECT first_seen FROM seen WHERE key = ?", key).Scan(reference of raw)
+    rawDB := db.RawDB(s.pool)
+    scanErr := rawDB.QueryRow("SELECT first_seen FROM seen WHERE key = ?", key).Scan(reference of raw)
     if scanErr == empty
         t, parseErr := time.Parse(time.RFC3339Nano, raw)
         if parseErr == empty
@@ -140,11 +140,11 @@ func FirstSeen on s reference sqliteSeenStore (module string, version string) ti
 
     # First time seeing this version — insert now.
     now := time.Now().UTC()
-    s.db.Exec("INSERT OR IGNORE INTO seen(key, module, version, first_seen) VALUES(?,?,?,?)", key, module, version, now.Format(time.RFC3339Nano)) onerr discard
+    db.Exec(s.pool, "INSERT OR IGNORE INTO seen(key, module, version, first_seen) VALUES(?,?,?,?)", key, module, version, now.Format(time.RFC3339Nano)) onerr discard
     return now
 
 func Shutdown on s reference sqliteSeenStore error
-    return s.db.Close()
+    return db.Close(s.pool)
 
 # --- Vulnerability fast-track ---
 #

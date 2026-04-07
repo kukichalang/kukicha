@@ -174,20 +174,17 @@ We use `reference` (a pointer) because:
 
 Let's store links in SQLite so they persist across restarts.
 
-### Installing the Driver
-
-```bash
-go get github.com/ncruces/go-sqlite3
-```
-
 ### Database Helper Type
 
+Kukicha's `stdlib/sqlite` handles driver registration, WAL mode, foreign keys, and busy
+timeout automatically — no manual setup required.
+
 ```kukicha
-import "database/sql"
-import _ "github.com/ncruces/go-sqlite3/driver"
+import "stdlib/db"
+import "stdlib/sqlite"
 
 type Database
-    db reference sql.DB
+    pool db.Pool
 
 type Link
     code string
@@ -197,25 +194,23 @@ type Link
 
 # Open the database and create the table if needed
 function OpenDatabase(filename string) (Database, error)
-    db := sql.Open("sqlite3", filename) onerr return
+    pool := sqlite.Open(filename) onerr return
 
     # Create the links table
-    createTable := `
+    db.Exec(pool, `
         CREATE TABLE IF NOT EXISTS links (
             code TEXT PRIMARY KEY,
             url TEXT NOT NULL,
             clicks INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
-    `
-    createTable |> db.Exec() onerr return
+    `) onerr return
 
-    return Database{db: db}, empty
+    return Database{pool: pool}, empty
 
 # Close the database
 function Close on d Database()
-    if d.db isnt empty
-        d.db.Close()
+    db.Close(d.pool) onerr discard
 ```
 
 ### CRUD Operations
@@ -223,52 +218,42 @@ function Close on d Database()
 ```kukicha
 # InsertLink creates a new link in the database
 function InsertLink on d Database(code string, url string) (Link, error)
-    d.db.Exec(
+    db.Exec(d.pool,
         "INSERT INTO links (code, url) VALUES (?, ?)", code, url) onerr return
 
     return d.GetLink(code)
 
 # GetLink retrieves a link by its code
 function GetLink on d Database(code string) (Link, error)
-    row := d.db.QueryRow(
+    result := db.Query(d.pool,
         "SELECT code, url, clicks, created_at FROM links WHERE code = ?", code)
-
-    link := Link{}
-    row.Scan(
-        reference of link.code,
-        reference of link.url,
-        reference of link.clicks,
-        reference of link.createdAt) onerr return
-
-    return link, empty
+        |> db.ScanAll(list of Link{})
+        onerr return
+    links := result.(list of Link)
+    if len(links) == 0
+        return Link{}, error "link not found: {code}"
+    return links[0], empty
 
 # GetAllLinks returns all links, newest first
 function GetAllLinks on d Database() (list of Link, error)
-    rows := d.db.Query(
-        "SELECT code, url, clicks, created_at FROM links ORDER BY created_at DESC") onerr return
-    defer rows.Close()
-
-    links := empty list of Link
-    for rows.Next()
-        link := Link{}
-        rows.Scan(
-            reference of link.code,
-            reference of link.url,
-            reference of link.clicks,
-            reference of link.createdAt) onerr continue
-        links = append(links, link)
-
-    return links, empty
+    result := db.Query(d.pool,
+        "SELECT code, url, clicks, created_at FROM links ORDER BY created_at DESC")
+        |> db.ScanAll(list of Link{})
+        onerr return
+    return result.(list of Link), empty
 
 # IncrementClicks adds 1 to the click counter (called on every redirect)
 function IncrementClicks on d Database(code string) error
-    "UPDATE links SET clicks = clicks + 1 WHERE code = ?"
-        |> d.db.Exec(code) onerr explain "failed to increment clicks"
+    db.Exec(d.pool,
+        "UPDATE links SET clicks = clicks + 1 WHERE code = ?", code)
+        onerr explain "failed to increment clicks"
     return empty
 
 # DeleteLink removes a link by its code
 function DeleteLink on d Database(code string) error
-    "DELETE FROM links WHERE code = ?" |> d.db.Exec(code) onerr explain "failed to delete link"
+    db.Exec(d.pool,
+        "DELETE FROM links WHERE code = ?", code)
+        onerr explain "failed to delete link"
     return empty
 ```
 
@@ -283,19 +268,17 @@ Now let's put it all together into a production-ready server:
 import "log"
 import "net/http"
 import "sync"
-import "database/sql"
 import "encoding/json"
 
 # Kukicha stdlib
+import "stdlib/db"
+import "stdlib/sqlite"
 import "stdlib/string"
 import "stdlib/validate"
 import "stdlib/http" as httphelper
 import "stdlib/must"
 import "stdlib/env"
 import "stdlib/random"
-
-# Third-party
-import _ "github.com/ncruces/go-sqlite3/driver"
 
 # --- Types ---
 
@@ -677,20 +660,18 @@ function LoadConfig(path string) (Config, error)
     return cfg, empty
 ```
 
-`errors.Wrap(error, "context")` produces `"context: <original>"`, preserving the full error chain for logging. Use `errors.Is(error, target)` to check for specific errors deep in a wrapped chain — useful in middleware that needs to translate a `sql.ErrNoRows` into a 404 without leaking the detail to the user:
+`errors.Wrap(error, "context")` produces `"context: <original>"`, preserving the full error chain for logging. Use `errors.Is(error, target)` to check for specific errors deep in a wrapped chain — useful in middleware that translates errors for the user:
 
 ```kukicha
 import "stdlib/errors"
-import "database/sql"
+import "io"
 
-function handleGet on s reference Server(w http.ResponseWriter, r reference http.Request)
-    link := s.db.GetLink(code) onerr
-        if errors.Is(error, sql.ErrNoRows)
-            httphelper.JSONNotFound(w, "Link not found")
-            return
-        httphelper.JSONError(w, 500, "Database error")
-        return
-    httphelper.JSON(w, link)
+function ReadAll(r io.Reader) (string, error)
+    data := io.ReadAll(r) onerr
+        if errors.Is(error, io.ErrUnexpectedEOF)
+            return "", errors.Wrap(error, "incomplete read")
+        return "", errors.Wrap(error, "read failed")
+    return data as string, empty
 ```
 
 ### IP Utilities with `net`

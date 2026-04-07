@@ -27,18 +27,19 @@ import "unicode"
 # Connection
 # ============================================================================
 
-# Open opens a SQLite database file with WAL mode enabled.
+# Open opens a SQLite database file with sensible defaults:
+# WAL mode, foreign keys enabled, and 5-second busy timeout.
 # Returns a db.Pool for use with all stdlib/db query functions.
 # Example: pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
 # kuki:security "files"
 func Open(path string) (db.Pool, error)
-    return db.Open("sqlite3", "file:" + path + "?_pragma=journal_mode(WAL)")
+    return db.Open("sqlite3", "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)")
 
-# OpenMemory opens an in-memory SQLite database.
+# OpenMemory opens an in-memory SQLite database with foreign keys enabled.
 # Data is lost when the pool is closed.
 # Example: pool := sqlite.OpenMemory() onerr panic "{error}"
 func OpenMemory() (db.Pool, error)
-    return db.Open("sqlite3", ":memory:")
+    return db.Open("sqlite3", "file::memory:?_pragma=foreign_keys(ON)")
 
 # OpenWith opens a SQLite database file with custom pragmas.
 # Example: pool := sqlite.OpenWith("/tmp/app.db", map of string to string{"cache_size": "-64000"}) onerr panic "{error}"
@@ -74,6 +75,8 @@ func Pragma(pool db.Pool, name string) (string, error)
 func SetPragma(pool db.Pool, name string, value string) error
     if not isValidPragmaName(name)
         return error "sqlite.SetPragma: invalid pragma name: {name}"
+    if not isValidPragmaValue(value)
+        return error "sqlite.SetPragma: invalid pragma value: {value}"
     rawDB := db.RawDB(pool)
     _, err := rawDB.Exec(fmt.Sprintf("PRAGMA %s = %s", name, value))
     return err
@@ -101,6 +104,18 @@ func Tables(pool db.Pool) (list of string, error)
 # Example: exists := sqlite.TableExists(pool, "users") onerr panic "{error}"
 func TableExists(pool db.Pool, name string) (bool, error)
     return db.Exists(pool, "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", name)
+
+# IntegrityCheck runs PRAGMA integrity_check and returns an error if the
+# database is corrupt. Returns nil when the database is healthy.
+# Example: sqlite.IntegrityCheck(pool) onerr panic "database corrupt: {error}"
+func IntegrityCheck(pool db.Pool) error
+    rawDB := db.RawDB(pool)
+    row := rawDB.QueryRow("PRAGMA integrity_check")
+    result := ""
+    row.Scan(reference of result) onerr return
+    if result != "ok"
+        return error "sqlite.IntegrityCheck: {result}"
+    return empty
 
 # Vacuum reclaims unused disk space by rebuilding the database file.
 # Example: sqlite.Vacuum(pool) onerr panic "{error}"
@@ -259,6 +274,21 @@ func isValidPragmaName(name string) bool
     if len(name) == 0
         return false
     for _, r in name
+        if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r != 95
+            return false
+    return true
+
+# isValidPragmaValue checks that a pragma value is a safe literal:
+# integers (possibly negative), or simple identifiers (letters/digits/underscores).
+func isValidPragmaValue(value string) bool
+    if len(value) == 0
+        return false
+    v := value
+    if v[0] == 45
+        v = v[1:]
+        if len(v) == 0
+            return false
+    for _, r in v
         if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r != 95
             return false
     return true

@@ -717,6 +717,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"sqlite.BatchExec":                {Count: 2, Types: []goStdlibType{{Kind: TypeKindInt}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pool", "query", "rows"}},
 	"sqlite.CreateFunction":           {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pool", "name", "nArgs", "fn"}, ParamFuncParams: map[int][]goStdlibType{3: {{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindString}}}}, ParamFuncReturns: map[int][]goStdlibType{3: {{Kind: TypeKindString}}}},
 	"sqlite.Dump":                     {Count: 2, Types: []goStdlibType{{Kind: TypeKindString}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pool"}},
+	"sqlite.IntegrityCheck":           {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pool"}},
 	"sqlite.Open":                     {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "db.Pool"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"path"}},
 	"sqlite.OpenMemory":               {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "db.Pool"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{}},
 	"sqlite.OpenWith":                 {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "db.Pool"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"path", "pragmas"}},

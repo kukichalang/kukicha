@@ -534,17 +534,15 @@ data := loadConfig() onerr cli.Fatal("config error: {error}")
 stack := initStack(ctx) onerr cli.Fatal("init failed: {error}")
 ```
 
-**stdlib/console** — Stderr output helpers
-
 ```kukicha
 # Print to stderr (no exit — use for warnings, debug, non-fatal errors)
-console.Error("connection dropped: {error}")
+cli.Error("connection dropped: {error}")
 
 # Prefixed warning
-console.Warn("disk space low")   # prints "warning: disk space low" to stderr
+cli.Warn("disk space low")   # prints "warning: disk space low" to stderr
 ```
 
-Use `cli.Fatal(msg)` when you want to print to stderr *and* exit. Use `console.Error(msg)` when you want to print to stderr and keep running.
+Use `cli.Fatal(msg)` when you want to print to stderr *and* exit. Use `cli.Error(msg)` when you want to print to stderr and keep running.
 
 **stdlib/must** and **stdlib/env** — Config
 
@@ -920,6 +918,52 @@ sorted := repos |> sort.ByKey(r => r.name)
 sorted := sort.Reverse(repos, (a, b) => a.stars < b.stars)
 ```
 
+**stdlib/sqlite** — SQLite convenience layer (WAL, foreign keys, busy timeout by default)
+
+```kukicha
+import "stdlib/db"
+import "stdlib/sqlite"
+
+# Open with sensible defaults (WAL + foreign_keys=ON + busy_timeout=5000)
+pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
+defer db.Close(pool)
+
+# In-memory (foreign keys enabled)
+pool := sqlite.OpenMemory() onerr panic "{error}"
+
+# Custom pragmas
+pool := sqlite.OpenWith("/tmp/app.db", map of string to string{
+    "cache_size": "-64000",
+    "journal_mode": "WAL",
+}) onerr panic "{error}"
+
+# All queries use stdlib/db
+db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)") onerr panic "{error}"
+db.Exec(pool, "INSERT INTO users (name) VALUES (?)", "Alice") onerr panic "{error}"
+users := db.Query(pool, "SELECT id, name FROM users")
+    |> db.ScanAll(list of User{})
+    onerr panic "{error}"
+
+# Pragmas (injection-safe name and value validation)
+mode := sqlite.Pragma(pool, "journal_mode") onerr panic "{error}"
+sqlite.SetPragma(pool, "cache_size", "-64000") onerr panic "{error}"
+
+# Utilities
+tables  := sqlite.Tables(pool) onerr panic "{error}"
+exists  := sqlite.TableExists(pool, "users") onerr panic "{error}"
+sqlite.IntegrityCheck(pool) onerr panic "corrupt: {error}"
+sqlite.Vacuum(pool) onerr panic "{error}"
+sqlite.Backup(pool, "/tmp/backup.db") onerr panic "{error}"
+v := sqlite.Version(pool) onerr panic "{error}"
+
+# Batch insert (single transaction)
+rows := list of list of any{list of any{"Alice"}, list of any{"Bob"}}
+n := sqlite.BatchExec(pool, "INSERT INTO users (name) VALUES (?)", rows) onerr panic "{error}"
+
+# Dump as SQL text
+sql := sqlite.Dump(pool) onerr panic "{error}"
+```
+
 **stdlib/netguard** — SSRF protection and network restriction
 
 ```kukicha
@@ -1135,7 +1179,7 @@ Assertions: `test.AssertEqual`, `test.AssertNotEqual`, `test.AssertTrue`, `test.
 
 ---
 
-**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `console`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `string`, `table`, `template`, `test`, `validate`
+**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `sqlite`, `string`, `table`, `template`, `test`, `validate`
 
 ---
 

@@ -288,6 +288,16 @@ func printCommandHelp(app App, cmd SubcommandDef)
         else
             print("  {label}{flag.description}")
 
+# Error prints a message to stderr without exiting.
+# Example: cli.Error("something went wrong: {error}")
+func Error(msg string)
+    fmt.Fprintln(os.Stderr, msg)
+
+# Warn prints a message to stderr prefixed with "warning: ".
+# Example: cli.Warn("disk space low")
+func Warn(msg string)
+    fmt.Fprintln(os.Stderr, "warning: {msg}")
+
 # Fatal prints a message to stderr and exits with code 1.
 # Designed for use in onerr handlers for unrecoverable CLI errors.
 # Example: result := doThing() onerr cli.Fatal("failed: {error}")

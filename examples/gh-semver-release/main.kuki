@@ -10,7 +10,6 @@ petiole main
 import "os"
 import "stdlib/cli"
 import "stdlib/concurrent"
-import "stdlib/console"
 import "stdlib/env"
 import "stdlib/git"
 import "stdlib/input"
@@ -133,11 +132,11 @@ func listReposWhereICommitted(org string) (list of string, error)
 # Returns a zero-name entry on failure (filtered out by the caller).
 func buildEntry(repo string, bump string, initialTag string) RepoEntry
     current := highestSemverTag(repo) onerr
-        console.Warn("{error}")
+        cli.Warn("{error}")
         return RepoEntry{}
 
     next := nextTag(current, bump, initialTag) onerr
-        console.Warn("{error}")
+        cli.Warn("{error}")
         return RepoEntry{}
 
     return RepoEntry{name: repo, current: current, next: next}
@@ -152,7 +151,7 @@ func doList(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            console.Error("Error: {error}")
+            cli.Error("Error: {error}")
         os.Exit(1)
 
     # Fetch tags in parallel (at most 4 concurrent GitHub API calls)
@@ -218,14 +217,14 @@ func doRelease(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            console.Error("Error: {error}")
+            cli.Error("Error: {error}")
         os.Exit(1)
 
     next := nextTag(current, bump, initialTag) onerr
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            console.Error("Error: {error}")
+            cli.Error("Error: {error}")
         os.Exit(1)
 
     exists := git.ReleaseExists(repo, next) onerr false
@@ -242,7 +241,7 @@ func doRelease(args cli.Args, initialTag string)
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
         else
-            console.Error("Error: {error}")
+            cli.Error("Error: {error}")
         os.Exit(1)
 
     tagAlreadyExists := git.TagExists(repo, next) onerr false
@@ -284,8 +283,8 @@ func doRelease(args cli.Args, initialTag string)
         return
 
     git.CreateRelease(repo, next, opts) onerr
-        console.Error("")
-        console.Error("Release creation failed. This may indicate a race condition")
+        cli.Error("")
+        cli.Error("Release creation failed. This may indicate a race condition")
         if jsonOut
             _ = jsonpkg.WriteOutput(map of string to string{"error": "release creation failed (another process may have created the release or tag)"})
         cli.Fatal("(another process may have created the release or tag).")
