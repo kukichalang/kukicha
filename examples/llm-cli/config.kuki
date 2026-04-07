@@ -24,7 +24,7 @@ func defaultConfigPath() string
 func loadConfig() Config
     cfg := Config{
         WebUIURL: "http://localhost:3000",
-        TerminalMCPURL: "http://localhost:8000/mcp",
+        TerminalMCPURL: "http://127.0.0.1:9000/mcp",
         Model: "llama3.1",
         MaxToolRounds: 15,
     }

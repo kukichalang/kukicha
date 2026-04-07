@@ -465,6 +465,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"llm.MUser":                       {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.MessagesClient"}}, ParamNames: []string{"c", "content"}},
 	"llm.MaxTokens":                   {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.Client"}}, ParamNames: []string{"c", "max"}},
 	"llm.Messages":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.Client"}}, ParamNames: []string{"c", "msgs"}},
+	"llm.Model":                       {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.Client"}}, ParamNames: []string{"c", "model"}},
 	"llm.New":                         {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.Client"}}, ParamNames: []string{"model"}},
 	"llm.NewMessages":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.MessagesClient"}}, ParamNames: []string{"model"}},
 	"llm.NewResponse":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "llm.ResponseClient"}}, ParamNames: []string{"model"}},

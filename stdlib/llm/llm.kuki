@@ -301,6 +301,13 @@ func Gateway(c Client, url string) Client
     c.baseURL = url
     return c
 
+# Model overrides the model name without parsing a "provider:model" prefix
+# Use this when the model name itself contains a colon (e.g., Ollama "gemma4:31b")
+# Example: client |> llm.Model("gemma4:31b")
+func Model(c Client, model string) Client
+    c.model = model
+    return c
+
 # BaseURL sets a custom API base URL (alias for Gateway)
 # Useful for self-hosted or alternative API endpoints
 # Example: client |> llm.BaseURL("http://localhost:11434")
