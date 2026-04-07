@@ -123,7 +123,7 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
     defer closeBridge(bridge)
 
     if isTTYErr()
-        fmt.Fprintf(os.Stderr, "{dimFmt("MCP connected:")} {dimFmt("{bridgeToolCount(bridge)} tools from {cfg.TerminalMCPURL}")}\n")
+        fmt.Fprint(os.Stderr, "{dimFmt("MCP connected:")} {dimFmt("{bridgeToolCount(bridge)} tools from {cfg.TerminalMCPURL}")}\n")
 
     a := reference of Agent{
         Bridge: bridge,
@@ -148,9 +148,9 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
 
     if isTTY
         a.OnToolCall = func(name string, toolArgs string)
-            fmt.Fprintf(os.Stderr, "{toolFmt("-> {name}")} {dimFmt(truncateFmt(toolArgs, 80))}\n")
+            fmt.Fprint(os.Stderr, "{toolFmt("-> {name}")} {dimFmt(truncateFmt(toolArgs, 80))}\n")
         a.OnToolResult = func(name string, result string)
-            fmt.Fprintf(os.Stderr, "{toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 120))}\n")
+            fmt.Fprint(os.Stderr, "{toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 120))}\n")
 
     a.OnText = func(chunk string)
         if isTTY and not flagRaw
@@ -164,7 +164,7 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
         fmt.Print(result.Content)
 
     if isTTY
-        fmt.Fprintf(os.Stderr, "{dimFmt("({result.Rounds} tool rounds)")}\n")
+        fmt.Fprint(os.Stderr, "{dimFmt("({result.Rounds} tool rounds)")}\n")
 
     return empty
 
@@ -296,9 +296,9 @@ func runChat(ctx context.Context, a reference Agent, initialPrompt string)
                 continue
 
         a.OnToolCall = func(name string, toolArgs string)
-            fmt.Fprintf(os.Stderr, "  {toolFmt("-> {name}")} {dimFmt(truncateFmt(toolArgs, 60))}\n")
+            fmt.Fprint(os.Stderr, "  {toolFmt("-> {name}")} {dimFmt(truncateFmt(toolArgs, 60))}\n")
         a.OnToolResult = func(name string, result string)
-            fmt.Fprintf(os.Stderr, "  {toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 80))}\n")
+            fmt.Fprint(os.Stderr, "  {toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 80))}\n")
         a.OnText = empty
 
         result := runAgent(ctx, a, prompt, history) onerr

@@ -634,7 +634,7 @@ func cmdRun(positional []string, flagModel string, flagChat bool, flagRaw bool, 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:125
 	if isTTYErr() {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:126
-		fmt.Fprintf(os.Stderr, fmt.Sprintf("%v %v\n", dimFmt("MCP connected:"), dimFmt(fmt.Sprintf("%v tools from %v", bridgeToolCount(bridge), cfg.TerminalMCPURL))))
+		fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", dimFmt("MCP connected:"), dimFmt(fmt.Sprintf("%v tools from %v", bridgeToolCount(bridge), cfg.TerminalMCPURL))))
 	}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:128
 	a := &Agent{Bridge: bridge, Config: cfg, MaxRounds: cfg.MaxToolRounds}
@@ -664,12 +664,12 @@ func cmdRun(positional []string, flagModel string, flagChat bool, flagRaw bool, 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:150
 		a.OnToolCall = func(name string, toolArgs string) {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:151
-			fmt.Fprintf(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 80))))
+			fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 80))))
 		}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:152
 		a.OnToolResult = func(name string, result string) {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:153
-			fmt.Fprintf(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 120))))
+			fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 120))))
 		}
 	}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:155
@@ -698,7 +698,7 @@ func cmdRun(positional []string, flagModel string, flagChat bool, flagRaw bool, 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:166
 	if isTTY {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:167
-		fmt.Fprintf(os.Stderr, fmt.Sprintf("%v\n", dimFmt(fmt.Sprintf("(%v tool rounds)", result.Rounds))))
+		fmt.Fprint(os.Stderr, fmt.Sprintf("%v\n", dimFmt(fmt.Sprintf("(%v tool rounds)", result.Rounds))))
 	}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:169
 	return nil
@@ -973,12 +973,12 @@ func runChat(ctx context.Context, a *Agent, initialPrompt string) {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:298
 		a.OnToolCall = func(name string, toolArgs string) {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:299
-			fmt.Fprintf(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 60))))
+			fmt.Fprint(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 60))))
 		}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:300
 		a.OnToolResult = func(name string, result string) {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:301
-			fmt.Fprintf(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 80))))
+			fmt.Fprint(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 80))))
 		}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:302
 		a.OnText = nil
