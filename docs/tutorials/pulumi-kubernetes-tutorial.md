@@ -4,33 +4,34 @@
 **Time:** 15 minutes
 **Prerequisites:** [Kukicha installed](../../README.md), [Pulumi CLI](https://www.pulumi.com/docs/install/), a running Kubernetes cluster (minikube, Docker Desktop, or cloud)
 
-You'll deploy an nginx web server to Kubernetes using Pulumi — entirely in Kukicha. Along the way you'll see how `onerr`, `reference of`, if-expressions, and lambdas cut the boilerplate that makes Go-based Pulumi programs hard to read.
+You'll deploy an nginx web server to Kubernetes using Pulumi — entirely in Kukicha. The Go Pulumi SDK is famously verbose (deeply nested structs, `pulumi.String()` wrappers everywhere). We'll tame it by splitting resource definitions into helpers and wiring them together with **pipes**, **onerr**, and **if-expressions**.
 
 ## What You'll Build
 
-A Kubernetes **Deployment** running nginx, fronted by a **Service** that gives it a reachable IP address. Three resources, one file, zero YAML.
+A Kubernetes **Deployment** running nginx, fronted by a **Service** that gives it a reachable IP address. Two files, zero YAML.
 
 ---
 
 ## Step 0: Project Setup
 
-Pulumi scaffolds a Go project. Since Kukicha is a strict superset of Go, we just rename the file:
+Pulumi scaffolds a Go project. Since Kukicha compiles to Go, we just rename the file and create a second one for our resource helpers:
 
 ```bash
 mkdir quickstart && cd quickstart
-pulumi new kubernetes-go      # accept the defaults
-mv main.go main.kuki          # Kukicha takes over from here
+pulumi new kubernetes-go          # accept the defaults
+mv main.go main.kuki              # entry point
+touch resources.kuki              # resource helpers
 ```
 
-> **Why does this work?** Kukicha compiles to Go. The `go.mod`, `go.sum`, and
-> `Pulumi.yaml` that `pulumi new` generated are unchanged — Kukicha slots right
-> in.
+> **Why does this work?** `kukicha build quickstart/` merges all `.kuki` files
+> in a directory into a single Go package and compiles it. The `go.mod`,
+> `go.sum`, and `Pulumi.yaml` that `pulumi new` generated stay unchanged.
 
 ---
 
-## Step 1: Deploy nginx
+## Step 1: Define the Resources
 
-Replace the contents of `main.kuki` with:
+These helpers wrap the verbose Pulumi structs. You write them once and never look at them again. Put this in `resources.kuki`:
 
 ```kukicha
 import "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/apps/v1" as appsv1
@@ -38,185 +39,129 @@ import "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/core/v1" as cor
 import "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1" as metav1
 import "github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 
-function main()
-    pulumi.Run(function(ctx reference pulumi.Context) error
-        labels := pulumi.StringMap{"app": pulumi.String("nginx")}
-
-        deployment := appsv1.NewDeployment(ctx, "nginx", reference of appsv1.DeploymentArgs{
-            Spec: appsv1.DeploymentSpecArgs{
-                Selector: reference of metav1.LabelSelectorArgs{
-                    MatchLabels: labels,
-                },
-                Replicas: pulumi.Int(1),
-                Template: reference of corev1.PodTemplateSpecArgs{
-                    Metadata: reference of metav1.ObjectMetaArgs{Labels: labels},
-                    Spec: reference of corev1.PodSpecArgs{
-                        Containers: corev1.ContainerArray{
-                            corev1.ContainerArgs{
-                                Name:  pulumi.String("nginx"),
-                                Image: pulumi.String("nginx"),
-                            },
+function NewNginxDeployment(ctx reference pulumi.Context, name string, labels pulumi.StringMap) (reference appsv1.Deployment, error)
+    return appsv1.NewDeployment(ctx, name, reference of appsv1.DeploymentArgs{
+        Spec: appsv1.DeploymentSpecArgs{
+            Selector: reference of metav1.LabelSelectorArgs{MatchLabels: labels},
+            Replicas: pulumi.Int(1),
+            Template: reference of corev1.PodTemplateSpecArgs{
+                Metadata: reference of metav1.ObjectMetaArgs{Labels: labels},
+                Spec: reference of corev1.PodSpecArgs{
+                    Containers: corev1.ContainerArray{
+                        corev1.ContainerArgs{
+                            Name:  pulumi.String(name),
+                            Image: pulumi.String("nginx"),
                         },
                     },
                 },
             },
-        }) onerr return
+        },
+    })
 
-        ctx.Export("name", deployment.Metadata.Name())
-        return empty
-    )
+function NewNginxService(ctx reference pulumi.Context, name string, labels pulumi.StringMap, serviceType string) (reference corev1.Service, error)
+    return corev1.NewService(ctx, name, reference of corev1.ServiceArgs{
+        Spec: reference of corev1.ServiceSpecArgs{
+            Type:     pulumi.String(serviceType),
+            Selector: labels,
+            Ports: reference of corev1.ServicePortArray{
+                reference of corev1.ServicePortArgs{
+                    Port:       pulumi.Int(80),
+                    TargetPort: pulumi.Int(80),
+                    Protocol:   pulumi.String("TCP"),
+                },
+            },
+        },
+    })
+
+function ServiceIP(svc reference corev1.Service) pulumi.StringOutput
+    return svc.Status.ApplyT(function(status reference corev1.ServiceStatus) string
+        if status.LoadBalancer.Ingress isnt empty and len(status.LoadBalancer.Ingress) > 0
+            ingress := status.LoadBalancer.Ingress[0]
+            if ingress.Hostname isnt empty
+                return dereference ingress.Hostname
+            if ingress.Ip isnt empty
+                return dereference ingress.Ip
+        return ""
+    ).(pulumi.StringOutput)
 ```
 
-Now deploy it:
-
-```bash
-pulumi up        # preview → select "yes"
-```
-
-Verify:
-
-```bash
-pulumi stack output name
-# nginx-abc1234
-```
-
-### What changed from Go?
-
-| Go | Kukicha |
-|----|---------|
-| `if err != nil { return err }` | `onerr return` — one line, same behavior |
-| `&appsv1.DeploymentArgs{...}` | `reference of appsv1.DeploymentArgs{...}` — reads like English |
-| `return nil` | `return empty` |
-| Curly braces everywhere | 4-space indentation — the nesting is already there, braces just add noise |
-
-> **Tip:** Every `reference of` above replaces Go's `&` operator. In deeply
-> nested Pulumi structs the readability gain adds up fast.
+Verbose? Yes — that's the Pulumi Go SDK. But now it's **contained**. Your main program never sees it.
 
 ---
 
-## Step 2: Expose It with a Service
+## Step 2: Wire It Together with Pipes
 
-Add the `config` import and expand the program to create a Service. Here is the full updated file:
+Here's `main.kuki` — the part you'll actually read and maintain:
 
 ```kukicha
-import "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/apps/v1" as appsv1
-import "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/core/v1" as corev1
-import "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1" as metav1
 import "github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 import "github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 
 function main()
     pulumi.Run(function(ctx reference pulumi.Context) error
-        isMinikube := config.GetBool(ctx, "isMinikube")
+        serviceType := if config.GetBool(ctx, "isMinikube") then "ClusterIP" else "LoadBalancer"
         labels := pulumi.StringMap{"app": pulumi.String("nginx")}
 
-        # --- Deployment (same as Step 1) ---
+        dep := NewNginxDeployment(ctx, "nginx", labels) onerr return
+        svc := NewNginxService(ctx, "nginx", labels, serviceType) onerr return
 
-        deployment := appsv1.NewDeployment(ctx, "nginx", reference of appsv1.DeploymentArgs{
-            Spec: appsv1.DeploymentSpecArgs{
-                Selector: reference of metav1.LabelSelectorArgs{
-                    MatchLabels: labels,
-                },
-                Replicas: pulumi.Int(1),
-                Template: reference of corev1.PodTemplateSpecArgs{
-                    Metadata: reference of metav1.ObjectMetaArgs{Labels: labels},
-                    Spec: reference of corev1.PodSpecArgs{
-                        Containers: corev1.ContainerArray{
-                            corev1.ContainerArgs{
-                                Name:  pulumi.String("nginx"),
-                                Image: pulumi.String("nginx"),
-                            },
-                        },
-                    },
-                },
-            },
-        }) onerr return
-
-        # --- Service ---
-
-        serviceType := if isMinikube then "ClusterIP" else "LoadBalancer"
-
-        service := corev1.NewService(ctx, "nginx", reference of corev1.ServiceArgs{
-            Spec: reference of corev1.ServiceSpecArgs{
-                Type:     pulumi.String(serviceType),
-                Selector: labels,
-                Ports: reference of corev1.ServicePortArray{
-                    reference of corev1.ServicePortArgs{
-                        Port:       pulumi.Int(80),
-                        TargetPort: pulumi.Int(80),
-                        Protocol:   pulumi.String("TCP"),
-                    },
-                },
-            },
-        }) onerr return
-
-        # --- Export the IP ---
-
-        ip := service.Status.ApplyT(function(status reference corev1.ServiceStatus) string
-            if status.LoadBalancer.Ingress isnt empty and len(status.LoadBalancer.Ingress) > 0
-                ingress := status.LoadBalancer.Ingress[0]
-                if ingress.Hostname isnt empty
-                    return dereference ingress.Hostname
-                if ingress.Ip isnt empty
-                    return dereference ingress.Ip
-            return ""
-        ).(pulumi.StringOutput)
-
-        ctx.Export("name", deployment.Metadata.Name())
-        ctx.Export("ip", ip)
+        dep.Metadata.Name() |> ctx.Export("name", _)
+        svc |> ServiceIP() |> ctx.Export("ip", _)
         return empty
     )
 ```
 
-If you're on minikube, set the config flag first:
+That's **12 lines** of logic. Compare that to the 60+ line single-function Go version from the Pulumi tutorial.
 
-```bash
-pulumi config set isMinikube true    # skip this for cloud clusters
-```
+### What's happening here?
 
-Deploy and test:
-
-```bash
-pulumi up
-curl $(pulumi stack output ip)       # "Welcome to nginx!"
-```
-
-### New Kukicha features in this step
-
-**If-expression** — Kukicha's ternary replaces a 4-line `if/else` block:
+**Pipes (`|>`)** — chain values through functions, left to right:
 
 ```kukicha
-# Kukicha
-serviceType := if isMinikube then "ClusterIP" else "LoadBalancer"
+svc |> ServiceIP() |> ctx.Export("ip", _)
 
-# Go equivalent
-feType := "LoadBalancer"
-if isMinikube {
-    feType = "ClusterIP"
-}
+# Reads as: take the service → extract its IP → export it as "ip"
+# Without pipes: ctx.Export("ip", ServiceIP(svc))
 ```
 
-**Readable operators** — `isnt empty` and `and` replace `!= nil` and `&&`:
+The `_` placeholder tells the pipe where to insert the value when it's not the last argument — `ctx.Export("ip", _)` becomes `ctx.Export("ip", <piped value>)`.
+
+**If-expression** — a one-line ternary:
 
 ```kukicha
-# Kukicha
-if status.LoadBalancer.Ingress isnt empty and len(status.LoadBalancer.Ingress) > 0
-
-# Go equivalent
-if status.LoadBalancer.Ingress != nil && len(status.LoadBalancer.Ingress) > 0
+serviceType := if config.GetBool(ctx, "isMinikube") then "ClusterIP" else "LoadBalancer"
 ```
 
-**`dereference`** — reads the value behind a pointer, replacing Go's `*`:
+**`onerr return`** — propagates errors in one line instead of three:
 
 ```kukicha
-return dereference ingress.Hostname   # Go: return *ingress.Hostname
+dep := NewNginxDeployment(ctx, "nginx", labels) onerr return
+
+# Go equivalent:
+# dep, err := NewNginxDeployment(ctx, "nginx", labels)
+# if err != nil {
+#     return err
+# }
 ```
 
 ---
 
-## Step 3: Clean Up
+## Step 3: Deploy
 
-Remove all cloud resources and delete the stack:
+```bash
+pulumi config set isMinikube true    # skip this for cloud clusters
+pulumi up                            # preview → select "yes"
+```
+
+Test it:
+
+```bash
+curl $(pulumi stack output ip)       # "Welcome to nginx!"
+```
+
+---
+
+## Step 4: Clean Up
 
 ```bash
 pulumi destroy       # preview → select "yes"
@@ -225,9 +170,21 @@ pulumi stack rm      # permanent — removes all state
 
 ---
 
-## Cheat Sheet
+## Kukicha vs Go vs HCL
 
-Everything used in this tutorial, at a glance:
+The Pulumi Go SDK is verbose by nature — `pulumi.String()`, nested `Args` structs, and type assertions are the price of Go's type system. Kukicha can't remove those, but it can keep them out of your main logic:
+
+| | Lines of main logic | Boilerplate visible? |
+|---|---|---|
+| **Go (Pulumi tutorial)** | ~65 in one function | Yes — structs, `if err`, braces everywhere |
+| **Kukicha (this tutorial)** | ~12 in `main.kuki` | No — hidden in `resources.kuki` helpers |
+| **HCL** | ~20 | No — declarative by design |
+
+The helpers in `resources.kuki` are a one-time cost. As you add more resources, `main.kuki` stays clean — each resource is one `onerr return` line, each export is one pipe.
+
+---
+
+## Cheat Sheet
 
 | Go pattern | Kukicha equivalent |
 |---|---|
@@ -239,7 +196,7 @@ Everything used in this tutorial, at a glance:
 | `&&` | `and` |
 | `{ }` braces | 4-space indentation |
 | No ternary | `if COND then X else Y` |
-| `func(x T) R { return expr }` | `(x T) => expr` |
+| `f(b, a)` | `a \|> f(b, _)` |
 | `func` | `function` (alias — both work) |
 
 ---
