@@ -14,6 +14,7 @@ type Config
     WebUIAPIKey string json:"webui_api_key"
     Model string json:"model"
     TerminalMCPURL string json:"terminal_mcp_url"
+    TerminalMCPAPIKey string json:"terminal_mcp_api_key"
     MaxToolRounds int json:"max_tool_rounds"
 
 func defaultConfigPath() string
@@ -31,7 +32,7 @@ func loadConfig() Config
     # Try loading from config file
     data := files.ReadString(defaultConfigPath()) onerr ""
     if data isnt ""
-        jsonpkg.UnmarshalString(data, reference of cfg) onerr discard
+        jsonpkg.UnmarshalString(data, reference of cfg) onerr ""
 
     # Environment variables override file settings
     v := env.GetOr("OWUI_WEBUI_URL", "")
@@ -50,13 +51,16 @@ func loadConfig() Config
     if v isnt ""
         cfg.TerminalMCPURL = v
 
+    v = env.GetOr("OWUI_TERMINAL_MCP_API_KEY", "")
+    if v isnt ""
+        cfg.TerminalMCPAPIKey = v
+
     return cfg
 
 func saveConfig(cfg Config) error
     path := defaultConfigPath()
     os.MkdirAll(filepath.Dir(path), 0700) onerr return error "{error}"
-    data := jsonpkg.MarshalPretty(cfg) onerr return
-    files.Write(data as string, path) onerr return
+    files.Write(cfg, path) onerr return
     return empty
 
 func validateConfig(cfg Config) error

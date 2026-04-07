@@ -119,7 +119,7 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
 
     ctx := context.Background()
 
-    bridge := connectBridge(ctx, cfg.TerminalMCPURL) onerr return error "connecting to Open Terminal MCP: {error}"
+    bridge := connectBridge(ctx, cfg.TerminalMCPURL, cfg.TerminalMCPAPIKey) onerr return error "connecting to Open Terminal MCP: {error}"
     defer closeBridge(bridge)
 
     if isTTYErr()
@@ -209,7 +209,7 @@ func cmdListTools() error
     cfg := loadConfig()
     ctx := context.Background()
 
-    bridge := connectBridge(ctx, cfg.TerminalMCPURL) onerr return
+    bridge := connectBridge(ctx, cfg.TerminalMCPURL, cfg.TerminalMCPAPIKey) onerr return
     defer closeBridge(bridge)
 
     print(boldYellowFmt("Tools from {cfg.TerminalMCPURL}:"))
@@ -242,7 +242,7 @@ func cmdHealth() error
 
     # Open Terminal MCP
     fmt.Printf("Terminal MCP ({cfg.TerminalMCPURL})  ")
-    bridge, err := connectBridge(ctx, cfg.TerminalMCPURL)
+    bridge, err := connectBridge(ctx, cfg.TerminalMCPURL, cfg.TerminalMCPAPIKey)
     if err isnt empty
         fmt.Println(errFmt("x"), err)
     else
@@ -269,6 +269,10 @@ func cmdConfigure() error
     v = input.ReadLine("Open Terminal MCP URL [{cfg.TerminalMCPURL}]: ") onerr ""
     if v isnt ""
         cfg.TerminalMCPURL = v
+
+    v = input.ReadLine("Open Terminal MCP API Key [{maskKey(cfg.TerminalMCPAPIKey)}]: ") onerr ""
+    if v isnt ""
+        cfg.TerminalMCPAPIKey = v
 
     saveConfig(cfg) onerr return
     print(greenFmt("Saved to {defaultConfigPath()}"))
@@ -373,3 +377,4 @@ func printUsage()
     print("  OWUI_WEBUI_API_KEY        Open WebUI API key (required)")
     print("  OWUI_MODEL                Model name (default: llama3.1)")
     print("  OWUI_TERMINAL_MCP_URL     MCP URL (default: http://localhost:8000/mcp)")
+    print("  OWUI_TERMINAL_MCP_API_KEY MCP API key (optional, for authenticated servers)")

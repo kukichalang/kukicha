@@ -125,6 +125,15 @@ Comments starting with `# kuki:` are emitted as `TOKEN_DIRECTIVE` instead of `TO
 
 `\sep` is a multi-character escape: `scanStringEscape` checks `l.peek() == 'e' && l.peekNext() == 'p'` before consuming the `ep` suffix.
 
+**Byte-value escapes:** These produce raw bytes in the token value. Codegen's `escapeString` emits non-printable characters (< 0x20 or 0x7F) as `\xHH`.
+
+| Escape     | Value     | Example          |
+|------------|-----------|------------------|
+| `\xHH`     | hex byte  | `\x1b` → ESC    |
+| `\0`-`\377`| octal byte| `\033` → ESC     |
+
+Octal escapes read 1–3 octal digits (max `\377` = 0xFF). Values > 255 are a compile error. The lexer uses `WriteByte` (not `WriteRune`) so high values like `\377` produce a single raw byte, not a multi-byte UTF-8 sequence.
+
 `generateStringLiteral` and `exprHasNonPrintfInterpolation` (in `codegen_walk.go`) both check `strings.ContainsRune(value, '\uE002')` to correctly handle strings that contain `\sep` but no `{expr}` interpolation.
 
 ### String interpolation tokenization

@@ -207,6 +207,21 @@ func TestStrings(t *testing.T) {
 			input:    `"\sep"`,
 			expected: "\uE002",
 		},
+		{
+			name:     "octal escape ESC",
+			input:    `"\033[0m"`,
+			expected: "\x1b[0m",
+		},
+		{
+			name:     "octal escape null",
+			input:    `"\0"`,
+			expected: "\x00",
+		},
+		{
+			name:     "octal escape max",
+			input:    `"\377"`,
+			expected: "\xff",
+		},
 	}
 
 	for _, tt := range tests {

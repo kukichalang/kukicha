@@ -3,6 +3,7 @@
 petiole mcp
 
 import "context"
+import "net/http"
 import "stdlib/ctx" as ctxpkg
 import "stdlib/json"
 import "stdlib/string" as strpkg
@@ -126,10 +127,32 @@ type CallToolResult
     Text string
     IsError bool
 
-# Connect creates a new MCP client and connects to the given SSE endpoint URL
+# bearerTransport is an http.RoundTripper that injects a Bearer token into every request
+type bearerTransport
+    token string
+    base http.RoundTripper
+
+func RoundTrip on t reference bearerTransport(req reference http.Request) (reference http.Response, error)
+    req.Header.Set("Authorization", "Bearer {t.token}")
+    return t.base.RoundTrip(req)
+
+# Connect creates a new MCP client and connects to the given streamable HTTP endpoint URL
 func Connect(ctx context.Context, endpoint string) (ClientSession, error)
+    return ConnectWithClient(ctx, endpoint, empty)
+
+# BearerConnect creates a new MCP client and connects with Bearer token authentication.
+# The token is sent as an Authorization header on every request to the MCP server.
+# Example: session := mcp.BearerConnect(ctx, url, apiKey) onerr return
+func BearerConnect(ctx context.Context, endpoint string, token string) (ClientSession, error)
+    httpClient := reference of http.Client{Transport: reference of bearerTransport{token: token, base: http.DefaultTransport}}
+    return ConnectWithClient(ctx, endpoint, httpClient)
+
+# ConnectWithClient creates a new MCP client and connects using the provided http.Client.
+# Pass a custom http.Client to inject authentication headers (e.g. via a custom RoundTripper).
+# If httpClient is nil, the default http.Client is used.
+func ConnectWithClient(ctx context.Context, endpoint string, httpClient reference http.Client) (ClientSession, error)
     client := mcp.NewClient(reference of mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"}, empty)
-    transport := reference of mcp.StreamableClientTransport{Endpoint: endpoint}
+    transport := reference of mcp.StreamableClientTransport{Endpoint: endpoint, HTTPClient: httpClient}
     session := client.Connect(ctx, transport, empty) onerr return ClientSession{}, error "MCP connect to {endpoint} failed: {error}"
     return ClientSession{inner: session}, empty
 

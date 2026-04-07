@@ -119,6 +119,10 @@ greeting := "Hello {name}!"          # {expr} is interpolated
 json := "key: \{value\}"             # \{ and \} produce literal braces
 path := "{dir}\sep{file}"            # \sep → OS path separator at runtime
 
+# Escape sequences: \n \t \r \\ \" \' \xHH (hex) \0-\377 (octal)
+esc  := "\033[0m"                    # octal escape (ESC character)
+byte := "\x1b[31m"                   # hex escape (same ESC character)
+
 # Interpolation converts any value to a string — replaces fmt.Sprintf
 count := 42
 label := "{count}"                   # "42" — no fmt.Sprintf("%d", count) needed
@@ -584,6 +588,9 @@ defer mcp.Close(session)
 tools := mcp.ListTools(ctx, session) onerr panic "{error}"
 result := mcp.CallTool(ctx, session, "get_price", args) onerr panic "{error}"
 print(result.Text)
+
+# Client with Bearer token authentication
+session := mcp.BearerConnect(ctx, "https://mcp.example.com/mcp", apiKey) onerr panic "{error}"
 ```
 
 **stdlib/shell** — Run commands

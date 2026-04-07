@@ -751,7 +751,29 @@ func (l *Lexer) scanStringEscape(value *strings.Builder) {
 			value.WriteRune(h2)
 		}
 	default:
-		value.WriteRune(escaped)
+		// Octal escape: \0nn or \nnn (1-3 octal digits)
+		if escaped >= '0' && escaped <= '7' {
+			oct := int(escaped - '0')
+			for range 2 {
+				if l.isAtEnd() {
+					break
+				}
+				next := l.peek()
+				if next >= '0' && next <= '7' {
+					oct = oct*8 + int(next-'0')
+					l.advance()
+				} else {
+					break
+				}
+			}
+			if oct > 255 {
+				l.error("Octal escape value out of range (max \\377)")
+				return
+			}
+			value.WriteByte(byte(oct))
+		} else {
+			value.WriteRune(escaped)
+		}
 	}
 }
 

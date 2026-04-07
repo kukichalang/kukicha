@@ -36,7 +36,7 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/json` | encoding/json wrapper | Marshal, MarshalPretty, Unmarshal, MarshalWrite, UnmarshalRead, DecodeRead, NewEncoder, NewDecoder, Encode, Decode, WithDeterministic, WithIndent, WriteOutput |
 | `stdlib/llm` | Large language model client (Chat Completions, OpenResponses, Anthropic; Retry) | New/Ask/Send/SendRaw/Complete, NewResponse/RAsk/RSend/Respond, NewMessages/MAsk/MSend/AnthropicComplete, Retry/RRetry/MRetry, Stream/RStream/MStream |
 | `stdlib/maps` | Map utilities | Keys, Values, Contains, Has, Merge, SortedKeys |
-| `stdlib/mcp` | Model Context Protocol server | New, Serve, Tool, Prop, Schema, Required, TextResult, ErrorResult |
+| `stdlib/mcp` | Model Context Protocol server + client | New, Serve, Tool, Prop, Schema, Required, TextResult, ErrorResult, Connect, BearerConnect, ConnectWithClient, Close, ListTools, CallTool |
 | `stdlib/must` | Panic-on-error startup helpers | Do, DoMsg, Ok, OkMsg, Env, EnvOr, EnvInt, EnvIntOr, EnvBool, EnvBoolOr, EnvList, EnvListOr, True, False, NotEmpty, NotNil |
 | `stdlib/net` | IP address and CIDR utilities | ParseIP, ParseCIDR, Contains, SplitHostPort, JoinHostPort, LookupHost, IsLoopback, IsPrivate, IsMulticast, IsNil, IPString |
 | `stdlib/netguard` | Network restriction & SSRF protection | NewSSRFGuard, NewAllow, NewBlock, Check, DialContext, HTTPTransport, HTTPClient |

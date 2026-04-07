@@ -442,7 +442,12 @@ func (g *Generator) escapeString(s string) string {
 		case '\uE001':
 			result.WriteRune('}') // PUA sentinel → literal }
 		default:
-			result.WriteRune(r)
+			// Escape non-printable control characters as \xHH
+			if r < 0x20 || r == 0x7f {
+				fmt.Fprintf(&result, "\\x%02x", r)
+			} else {
+				result.WriteRune(r)
+			}
 		}
 	}
 	return result.String()

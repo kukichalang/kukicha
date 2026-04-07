@@ -14,8 +14,12 @@ type Bridge
     session mcp.ClientSession
     mcpTools list of mcp.ClientTool
 
-func connectBridge(ctx context.Context, endpoint string) (reference Bridge, error)
-    session := mcp.Connect(ctx, endpoint) onerr return empty, error "{error}"
+func connectBridge(ctx context.Context, endpoint string, apiKey string) (reference Bridge, error)
+    session := mcp.ClientSession{}
+    if apiKey isnt ""
+        session = mcp.BearerConnect(ctx, endpoint, apiKey) onerr return empty, error "{error}"
+    else
+        session = mcp.Connect(ctx, endpoint) onerr return empty, error "{error}"
 
     b := reference of Bridge{session: session}
 

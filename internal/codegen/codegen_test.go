@@ -540,3 +540,15 @@ func TestElseIfInitStatement(t *testing.T) {
 		t.Errorf("expected if-init for else-if branch, got: %s", output)
 	}
 }
+
+func TestOctalEscapeInString(t *testing.T) {
+	input := `func main()
+    x := "\033[0m"
+    print(x)
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, `"\x1b[0m"`) {
+		t.Errorf("expected octal escape \\033 to produce \\x1b, got: %s", output)
+	}
+}
