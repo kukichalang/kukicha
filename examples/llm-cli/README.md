@@ -20,7 +20,8 @@ automatically. No hardcoded tool definitions, no version drift.
 
 Built with [Kukicha](https://github.com/kukichalang/kukicha) and its standard library:
 - `stdlib/llm` — OpenAI-compatible chat completions (streaming, tool calls)
-- `stdlib/mcp` — MCP client (connect, list tools, call tools)
+- `stdlib/mcp` — MCP client (connect, list tools, call tools, bearer auth)
+- `stdlib/cli` — fatal error handling
 - `stdlib/fetch` — HTTP requests
 - `stdlib/input` — readline prompts
 - `stdlib/json` — JSON marshalling
@@ -39,7 +40,8 @@ kukicha build examples/llm-cli/
 export OWUI_WEBUI_URL="http://localhost:3000"
 export OWUI_WEBUI_API_KEY="sk-..."
 export OWUI_MODEL="llama3.1"
-export OWUI_TERMINAL_MCP_URL="http://localhost:8000/mcp"
+export OWUI_TERMINAL_MCP_URL="http://127.0.0.1:9000/mcp"
+export OWUI_TERMINAL_MCP_API_KEY="..."  # optional, for authenticated MCP servers
 
 # Or interactive
 owui configure
@@ -76,7 +78,7 @@ cat main.go | owui -c "review this code"
 
 Tool calls show on stderr:
 ```
-MCP connected: 12 tools from http://localhost:8000/mcp
+MCP connected: 12 tools from http://127.0.0.1:9000/mcp
 -> execute_command {"command":"ls -la /workspace"}
 <- execute_command total 24 drwxr-xr-x 3 user user 4096...
 -> write_file {"path":"/workspace/main.py","content":"from fa...
@@ -98,7 +100,7 @@ owui health    # check connectivity to both services
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--chat` | `-c` | Interactive chat (readline loop) |
-| `--model` | `-m` | Override model |
+| `--model` | `-m` | Override model (supports Ollama-style names like `gemma4:31b`) |
 | `--system` | `-S` | Override system prompt |
 | `--raw` | | Raw output, no formatting |
 
@@ -108,13 +110,14 @@ owui health    # check connectivity to both services
 main.kuki        CLI entrypoint, flag parsing, subcommands, interactive chat
 config.kuki      Config loading (env > file > defaults)
 agent.kuki       Agent loop: LLM → tool calls → MCP dispatch → repeat
-bridge.kuki      MCP client → discovers tools, converts to stdlib/llm
-                 format, dispatches CallTool via MCP protocol
+bridge.kuki      MCP client → connects (with optional bearer auth),
+                 discovers tools, converts to stdlib/llm format,
+                 dispatches CallTool via MCP protocol
 ```
 
 The key file is `bridge.kuki`:
 
-1. **Connect** — `mcp.Connect` to Open Terminal via streamable HTTP
+1. **Connect** — `mcp.Connect` (or `mcp.BearerConnect` for authenticated servers) to Open Terminal via streamable HTTP
 2. **Discover** — `mcp.ListTools` gets all available tools with schemas
 3. **Convert** — MCP tool schemas → `llm.Tool` format for the LLM
 4. **Dispatch** — `mcp.CallTool` executes tools and returns results
