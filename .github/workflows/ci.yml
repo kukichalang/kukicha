@@ -24,6 +24,14 @@ jobs:
       - name: Build
         run: make build
 
+      - name: Touch generated .go files
+        run: |
+          # After git checkout all files share the same timestamp, which can
+          # cause the .kuki-newer-than-.go staleness check to fail even though
+          # the content is up to date.  Touch the generated .go files so the
+          # timestamp check passes.
+          find stdlib -name '*.go' -exec touch {} +
+
       - name: Test
         run: make test
 
