@@ -59,6 +59,7 @@ func Bump(v Version, level string) Version
             v.patch = 0
         when "patch"
             v.patch = v.patch + 1
+
     return v
 
 # Format converts a Version back to its string form (e.g. "v1.2.3")

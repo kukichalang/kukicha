@@ -32,6 +32,12 @@ func (p *Printer) Print(program *ast.Program) string {
 		p.writeLine("")
 	}
 
+	// Print skill declaration if present
+	if program.SkillDecl != nil {
+		p.writeLine(fmt.Sprintf("skill %s", program.SkillDecl.Name.Value))
+		p.writeLine("")
+	}
+
 	// Print imports
 	for _, imp := range program.Imports {
 		p.printImport(imp)
@@ -72,6 +78,8 @@ func (p *Printer) printDeclaration(decl ast.Declaration) {
 		p.printConstDecl(d)
 	case *ast.EnumDecl:
 		p.printEnumDecl(d)
+	case *ast.VarDeclStmt:
+		p.printTopLevelVarDecl(d)
 	}
 }
 
@@ -112,7 +120,7 @@ func (p *Printer) printTypeDecl(decl *ast.TypeDecl) {
 		fieldType := p.typeAnnotationToString(field.Type)
 		line := fmt.Sprintf("%s %s", field.Name.Value, fieldType)
 		if field.Tag != "" {
-			line += fmt.Sprintf(" %s", field.Tag)
+			line += " " + formatStructTag(field.Tag)
 		}
 		p.writeLine(line)
 	}
@@ -138,7 +146,23 @@ func (p *Printer) printInterfaceDecl(decl *ast.InterfaceDecl) {
 	p.indentLevel--
 }
 
+func (p *Printer) printDirectives(directives []ast.Directive) {
+	for _, d := range directives {
+		if len(d.Args) > 0 {
+			// Re-quote args that contain spaces or were originally quoted
+			quotedArgs := make([]string, len(d.Args))
+			for i, arg := range d.Args {
+				quotedArgs[i] = fmt.Sprintf("%q", arg)
+			}
+			p.writeLine(fmt.Sprintf("# kuki:%s %s", d.Name, strings.Join(quotedArgs, " ")))
+		} else {
+			p.writeLine(fmt.Sprintf("# kuki:%s", d.Name))
+		}
+	}
+}
+
 func (p *Printer) printFunctionDecl(decl *ast.FunctionDecl) {
+	p.printDirectives(decl.Directives)
 	params := p.parametersToString(decl.Parameters)
 	returns := p.returnTypesToString(decl.Returns)
 
@@ -146,7 +170,11 @@ func (p *Printer) printFunctionDecl(decl *ast.FunctionDecl) {
 	if decl.Receiver != nil {
 		// Method declaration
 		receiverType := p.typeAnnotationToString(decl.Receiver.Type)
-		line = fmt.Sprintf("func %s on %s %s(%s)", decl.Name.Value, decl.Receiver.Name.Value, receiverType, params)
+		if params != "" {
+			line = fmt.Sprintf("func %s on %s %s(%s)", decl.Name.Value, decl.Receiver.Name.Value, receiverType, params)
+		} else {
+			line = fmt.Sprintf("func %s on %s %s", decl.Name.Value, decl.Receiver.Name.Value, receiverType)
+		}
 	} else {
 		// Regular function
 		line = fmt.Sprintf("func %s(%s)", decl.Name.Value, params)
@@ -177,6 +205,9 @@ func (p *Printer) parametersToString(params []*ast.Parameter) string {
 			parts[i] = fmt.Sprintf("many %s %s", param.Name.Value, paramType)
 		} else {
 			parts[i] = fmt.Sprintf("%s %s", param.Name.Value, paramType)
+		}
+		if param.DefaultValue != nil {
+			parts[i] += " = " + p.exprToString(param.DefaultValue)
 		}
 	}
 
@@ -242,9 +273,59 @@ func (p *Printer) typeAnnotationToString(typeAnn ast.TypeAnnotation) string {
 }
 
 func (p *Printer) printBlock(block *ast.BlockStmt) {
+	prevEndLine := 0
 	for _, stmt := range block.Statements {
+		stmtLine := stmt.Pos().Line
+		// Preserve blank lines between statements when positions are available
+		if prevEndLine > 0 && stmtLine > prevEndLine+1 {
+			p.writeLine("")
+		}
 		p.printStatement(stmt)
+		prevEndLine = p.estimateEndLine(stmt)
 	}
+}
+
+// estimateEndLine returns the last line a statement occupies.
+// For simple statements this is just Pos().Line; for compound statements
+// we check the body to find the deepest line.
+func (p *Printer) estimateEndLine(stmt ast.Statement) int {
+	line := stmt.Pos().Line
+	switch s := stmt.(type) {
+	case *ast.IfStmt:
+		if s.Alternative != nil {
+			return p.estimateEndLine(s.Alternative)
+		}
+		if s.Consequence != nil && len(s.Consequence.Statements) > 0 {
+			return p.estimateEndLine(s.Consequence.Statements[len(s.Consequence.Statements)-1])
+		}
+	case *ast.ElseStmt:
+		if s.Body != nil && len(s.Body.Statements) > 0 {
+			return p.estimateEndLine(s.Body.Statements[len(s.Body.Statements)-1])
+		}
+	case *ast.ForRangeStmt:
+		if s.Body != nil && len(s.Body.Statements) > 0 {
+			return p.estimateEndLine(s.Body.Statements[len(s.Body.Statements)-1])
+		}
+	case *ast.ForNumericStmt:
+		if s.Body != nil && len(s.Body.Statements) > 0 {
+			return p.estimateEndLine(s.Body.Statements[len(s.Body.Statements)-1])
+		}
+	case *ast.ForConditionStmt:
+		if s.Body != nil && len(s.Body.Statements) > 0 {
+			return p.estimateEndLine(s.Body.Statements[len(s.Body.Statements)-1])
+		}
+	case *ast.SwitchStmt:
+		if s.Otherwise != nil && s.Otherwise.Body != nil && len(s.Otherwise.Body.Statements) > 0 {
+			return p.estimateEndLine(s.Otherwise.Body.Statements[len(s.Otherwise.Body.Statements)-1])
+		}
+		if len(s.Cases) > 0 {
+			lastCase := s.Cases[len(s.Cases)-1]
+			if lastCase.Body != nil && len(lastCase.Body.Statements) > 0 {
+				return p.estimateEndLine(lastCase.Body.Statements[len(lastCase.Body.Statements)-1])
+			}
+		}
+	}
+	return line
 }
 
 func (p *Printer) printStatement(stmt ast.Statement) {
@@ -268,7 +349,14 @@ func (p *Printer) printStatement(stmt ast.Statement) {
 	case *ast.ForConditionStmt:
 		p.printForConditionStmt(s)
 	case *ast.DeferStmt:
-		p.writeLine("defer " + p.exprToString(s.Call))
+		if s.Block != nil {
+			p.writeLine("defer")
+			p.indentLevel++
+			p.printBlock(s.Block)
+			p.indentLevel--
+		} else {
+			p.writeLine("defer " + p.exprToString(s.Call))
+		}
 	case *ast.GoStmt:
 		if s.Block != nil {
 			p.writeLine("go")
@@ -288,8 +376,10 @@ func (p *Printer) printStatement(stmt ast.Statement) {
 		p.writeLine("break")
 	case *ast.ContinueStmt:
 		p.writeLine("continue")
+	case *ast.IncDecStmt:
+		p.writeLine(p.exprToString(s.Variable) + s.Operator)
 	case *ast.ExpressionStmt:
-		p.writeLine(p.exprToString(s.Expression) + p.onErrSuffix(s.OnErr))
+		p.printExpressionStmt(s)
 	case *ast.TypeDeclStmt:
 		p.writeLine(fmt.Sprintf("type %s", s.Decl.Name.Value))
 		p.indentLevel++
@@ -297,6 +387,42 @@ func (p *Printer) printStatement(stmt ast.Statement) {
 			p.writeLine(fmt.Sprintf("%s %s", f.Name.Value, p.typeAnnotationToString(f.Type)))
 		}
 		p.indentLevel--
+	case *ast.SelectStmt:
+		p.printSelectStmt(s)
+	}
+}
+
+// stmtToString renders a statement as a single-line string (for if init statements).
+func (p *Printer) stmtToString(stmt ast.Statement) string {
+	switch s := stmt.(type) {
+	case *ast.VarDeclStmt:
+		names := make([]string, len(s.Names))
+		for i, n := range s.Names {
+			names[i] = n.Value
+		}
+		values := make([]string, len(s.Values))
+		for i, v := range s.Values {
+			values[i] = p.exprToString(v)
+		}
+		return fmt.Sprintf("%s := %s", strings.Join(names, ", "), strings.Join(values, ", "))
+	case *ast.AssignStmt:
+		targets := make([]string, len(s.Targets))
+		for i, t := range s.Targets {
+			targets[i] = p.exprToString(t)
+		}
+		values := make([]string, len(s.Values))
+		for i, v := range s.Values {
+			values[i] = p.exprToString(v)
+		}
+		op := s.Token.Lexeme
+		if op == "" {
+			op = "="
+		}
+		return fmt.Sprintf("%s %s %s", strings.Join(targets, ", "), op, strings.Join(values, ", "))
+	case *ast.ExpressionStmt:
+		return p.exprToString(s.Expression)
+	default:
+		return ""
 	}
 }
 
@@ -304,7 +430,88 @@ func (p *Printer) onErrSuffix(clause *ast.OnErrClause) string {
 	if clause == nil {
 		return ""
 	}
-	return " onerr " + p.exprToString(clause.Handler)
+
+	var suffix string
+	if clause.Alias != "" {
+		suffix = " onerr as " + clause.Alias + " "
+	} else {
+		suffix = " onerr "
+	}
+
+	switch {
+	case clause.ShorthandReturn:
+		return suffix + "return"
+	case clause.ShorthandContinue:
+		return suffix + "continue"
+	case clause.ShorthandBreak:
+		return suffix + "break"
+	case clause.Explain != "" && clause.Handler == nil:
+		return suffix + fmt.Sprintf("explain %q", clause.Explain)
+	case clause.Handler != nil:
+		handlerStr := p.exprToString(clause.Handler)
+		if clause.Explain != "" {
+			handlerStr += fmt.Sprintf(" explain %q", clause.Explain)
+		}
+		return suffix + handlerStr
+	default:
+		return suffix
+	}
+}
+
+// printOnErrBlock prints an onerr clause that may contain a block handler.
+// Returns true if a block was printed (caller should not print a newline).
+func (p *Printer) printOnErrBlock(clause *ast.OnErrClause) {
+	if clause == nil {
+		return
+	}
+	if blockExpr, ok := clause.Handler.(*ast.BlockExpr); ok {
+		var prefix string
+		if clause.Alias != "" {
+			prefix = " onerr as " + clause.Alias
+		} else {
+			prefix = " onerr"
+		}
+		// Append onerr to the current line (already written by caller)
+		p.output.WriteString(prefix + "\n")
+		p.indentLevel++
+		p.printBlock(blockExpr.Body)
+		p.indentLevel--
+		return
+	}
+	p.output.WriteString(p.onErrSuffix(clause) + "\n")
+}
+
+// hasBlockOnErr returns true if the onerr clause has a block handler.
+func hasBlockOnErr(clause *ast.OnErrClause) bool {
+	if clause == nil {
+		return false
+	}
+	_, ok := clause.Handler.(*ast.BlockExpr)
+	return ok
+}
+
+// printTopLevelVarDecl prints a top-level var/variable declaration.
+func (p *Printer) printTopLevelVarDecl(stmt *ast.VarDeclStmt) {
+	keyword := "var"
+	if stmt.Token.Lexeme == "variable" {
+		keyword = "variable"
+	}
+	names := make([]string, len(stmt.Names))
+	for i, n := range stmt.Names {
+		names[i] = n.Value
+	}
+	line := keyword + " " + strings.Join(names, ", ")
+	if stmt.Type != nil {
+		line += " " + p.typeAnnotationToString(stmt.Type)
+	}
+	if len(stmt.Values) > 0 {
+		values := make([]string, len(stmt.Values))
+		for i, v := range stmt.Values {
+			values[i] = p.exprToString(v)
+		}
+		line += " = " + strings.Join(values, ", ")
+	}
+	p.writeLine(line)
 }
 
 func (p *Printer) printVarDeclStmt(stmt *ast.VarDeclStmt) {
@@ -312,17 +519,42 @@ func (p *Printer) printVarDeclStmt(stmt *ast.VarDeclStmt) {
 	for i, n := range stmt.Names {
 		names[i] = n.Value
 	}
+	// Check for piped switch expression that needs multi-line printing
+	if len(stmt.Values) == 1 {
+		if ps, ok := stmt.Values[0].(*ast.PipedSwitchExpr); ok {
+			p.printPipedSwitchWithPrefix(fmt.Sprintf("%s := ", strings.Join(names, ", ")), ps, stmt.OnErr)
+			return
+		}
+	}
 	values := make([]string, len(stmt.Values))
 	for i, v := range stmt.Values {
 		values[i] = p.exprToString(v)
 	}
-	p.writeLine(fmt.Sprintf("%s := %s%s", strings.Join(names, ", "), strings.Join(values, ", "), p.onErrSuffix(stmt.OnErr)))
+	line := fmt.Sprintf("%s := %s", strings.Join(names, ", "), strings.Join(values, ", "))
+	if hasBlockOnErr(stmt.OnErr) {
+		p.write(p.indent())
+		p.output.WriteString(line)
+		p.printOnErrBlock(stmt.OnErr)
+	} else {
+		p.writeLine(line + p.onErrSuffix(stmt.OnErr))
+	}
 }
 
 func (p *Printer) printAssignStmt(stmt *ast.AssignStmt) {
 	targets := make([]string, len(stmt.Targets))
 	for i, t := range stmt.Targets {
 		targets[i] = p.exprToString(t)
+	}
+	// Check for piped switch expression
+	if len(stmt.Values) == 1 {
+		if ps, ok := stmt.Values[0].(*ast.PipedSwitchExpr); ok {
+			op := stmt.Token.Lexeme
+			if op == "" {
+				op = "="
+			}
+			p.printPipedSwitchWithPrefix(fmt.Sprintf("%s %s ", strings.Join(targets, ", "), op), ps, stmt.OnErr)
+			return
+		}
 	}
 	values := make([]string, len(stmt.Values))
 	for i, v := range stmt.Values {
@@ -332,13 +564,94 @@ func (p *Printer) printAssignStmt(stmt *ast.AssignStmt) {
 	if op == "" {
 		op = "="
 	}
-	p.writeLine(fmt.Sprintf("%s %s %s%s", strings.Join(targets, ", "), op, strings.Join(values, ", "), p.onErrSuffix(stmt.OnErr)))
+	line := fmt.Sprintf("%s %s %s", strings.Join(targets, ", "), op, strings.Join(values, ", "))
+	if hasBlockOnErr(stmt.OnErr) {
+		p.write(p.indent())
+		p.output.WriteString(line)
+		p.printOnErrBlock(stmt.OnErr)
+	} else {
+		p.writeLine(line + p.onErrSuffix(stmt.OnErr))
+	}
+}
+
+// printExpressionStmt handles expression statements, including those with
+// piped switch expressions or block onerr clauses that need multi-line output.
+func (p *Printer) printExpressionStmt(s *ast.ExpressionStmt) {
+	// Handle piped switch as a standalone expression statement
+	if ps, ok := s.Expression.(*ast.PipedSwitchExpr); ok {
+		p.printPipedSwitchWithPrefix("", ps, s.OnErr)
+		return
+	}
+	line := p.exprToString(s.Expression)
+	if hasBlockOnErr(s.OnErr) {
+		p.write(p.indent())
+		p.output.WriteString(line)
+		p.printOnErrBlock(s.OnErr)
+	} else {
+		p.writeLine(line + p.onErrSuffix(s.OnErr))
+	}
+}
+
+// printPipedSwitchWithPrefix prints a piped switch expression with an optional
+// prefix (e.g. "x := " for assignment) and handles the multi-line switch body.
+func (p *Printer) printPipedSwitchWithPrefix(prefix string, ps *ast.PipedSwitchExpr, onErr *ast.OnErrClause) {
+	left := p.exprToString(ps.Left)
+	switch sw := ps.Switch.(type) {
+	case *ast.SwitchStmt:
+		p.writeLine(prefix + left + " |> switch")
+		p.indentLevel++
+		for _, c := range sw.Cases {
+			values := make([]string, len(c.Values))
+			for i, v := range c.Values {
+				values[i] = p.exprToString(v)
+			}
+			p.writeLine("when " + strings.Join(values, ", "))
+			p.indentLevel++
+			p.printBlock(c.Body)
+			p.indentLevel--
+		}
+		if sw.Otherwise != nil {
+			p.writeLine("otherwise")
+			p.indentLevel++
+			p.printBlock(sw.Otherwise.Body)
+			p.indentLevel--
+		}
+		p.indentLevel--
+	case *ast.TypeSwitchStmt:
+		binding := ""
+		if sw.Binding != nil {
+			binding = " as " + sw.Binding.Value
+		}
+		p.writeLine(prefix + left + " |> switch" + binding)
+		p.indentLevel++
+		for _, c := range sw.Cases {
+			p.writeLine("when " + p.typeAnnotationToString(c.Type))
+			p.indentLevel++
+			p.printBlock(c.Body)
+			p.indentLevel--
+		}
+		if sw.Otherwise != nil {
+			p.writeLine("otherwise")
+			p.indentLevel++
+			p.printBlock(sw.Otherwise.Body)
+			p.indentLevel--
+		}
+		p.indentLevel--
+	}
 }
 
 func (p *Printer) printReturnStmt(stmt *ast.ReturnStmt) {
 	if len(stmt.Values) == 0 {
 		p.writeLine("return")
 		return
+	}
+
+	// Handle piped switch expression in return
+	if len(stmt.Values) == 1 {
+		if ps, ok := stmt.Values[0].(*ast.PipedSwitchExpr); ok {
+			p.printPipedSwitchWithPrefix("return ", ps, nil)
+			return
+		}
 	}
 
 	values := make([]string, len(stmt.Values))
@@ -351,7 +664,12 @@ func (p *Printer) printReturnStmt(stmt *ast.ReturnStmt) {
 
 func (p *Printer) printIfStmt(stmt *ast.IfStmt) {
 	condition := p.exprToString(stmt.Condition)
-	p.writeLine(fmt.Sprintf("if %s", condition))
+	if stmt.Init != nil {
+		initStr := p.stmtToString(stmt.Init)
+		p.writeLine(fmt.Sprintf("if %s; %s", initStr, condition))
+	} else {
+		p.writeLine(fmt.Sprintf("if %s", condition))
+	}
 
 	p.indentLevel++
 	p.printBlock(stmt.Consequence)
@@ -368,9 +686,13 @@ func (p *Printer) printIfStmt(stmt *ast.IfStmt) {
 			// else if - print on same conceptual level
 			p.write(p.indent())
 			p.output.WriteString("else ")
-			// Reset to print the if without indent prefix
 			condition := p.exprToString(alt.Condition)
-			p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+			if alt.Init != nil {
+				initStr := p.stmtToString(alt.Init)
+				p.output.WriteString(fmt.Sprintf("if %s; %s\n", initStr, condition))
+			} else {
+				p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+			}
 			p.indentLevel++
 			p.printBlock(alt.Consequence)
 			p.indentLevel--
@@ -392,7 +714,12 @@ func (p *Printer) printIfStmtAlternative(alt ast.Statement) {
 		p.write(p.indent())
 		p.output.WriteString("else ")
 		condition := p.exprToString(a.Condition)
-		p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+		if a.Init != nil {
+			initStr := p.stmtToString(a.Init)
+			p.output.WriteString(fmt.Sprintf("if %s; %s\n", initStr, condition))
+		} else {
+			p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+		}
 		p.indentLevel++
 		p.printBlock(a.Consequence)
 		p.indentLevel--
@@ -509,7 +836,8 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		if strings.Contains(e.Token.Lexeme, "_") {
 			return e.Token.Lexeme
 		}
-		return fmt.Sprintf("%g", e.Value)
+		// Use the original lexeme to preserve decimal points (e.g., 1.0 stays 1.0)
+		return e.Token.Lexeme
 	case *ast.StringLiteral:
 		return p.stringLiteralToString(e)
 	case *ast.BooleanLiteral:
@@ -546,11 +874,11 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		return p.mapLiteralToString(e)
 	case *ast.ReceiveExpr:
 		channel := p.exprToString(e.Channel)
-		return fmt.Sprintf("receive %s", channel)
+		return fmt.Sprintf("receive from %s", channel)
 	case *ast.TypeCastExpr:
 		targetType := p.typeAnnotationToString(e.TargetType)
 		expr := p.exprToString(e.Expression)
-		return fmt.Sprintf("%s(%s)", targetType, expr)
+		return fmt.Sprintf("%s as %s", expr, targetType)
 	case *ast.EmptyExpr:
 		if e.Type != nil {
 			targetType := p.typeAnnotationToString(e.Type)
@@ -570,6 +898,15 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 	case *ast.PanicExpr:
 		message := p.exprToString(e.Message)
 		return fmt.Sprintf("panic %s", message)
+	case *ast.ReturnExpr:
+		if len(e.Values) == 0 {
+			return "return"
+		}
+		vals := make([]string, len(e.Values))
+		for i, v := range e.Values {
+			vals[i] = p.exprToString(v)
+		}
+		return "return " + strings.Join(vals, ", ")
 	case *ast.RecoverExpr:
 		return "recover"
 	case *ast.ArrowLambda:
@@ -578,62 +915,195 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		return "reference of " + p.exprToString(e.Operand)
 	case *ast.DerefExpr:
 		return "dereference " + p.exprToString(e.Operand)
+	case *ast.FunctionLiteral:
+		return p.functionLiteralToString(e)
+	case *ast.PipedSwitchExpr:
+		left := p.exprToString(e.Left)
+		return fmt.Sprintf("%s |> switch", left)
+	case *ast.TypeAssertionExpr:
+		expr := p.exprToString(e.Expression)
+		targetType := p.typeAnnotationToString(e.TargetType)
+		return fmt.Sprintf("%s.(%s)", expr, targetType)
+	case *ast.BlockExpr:
+		// BlockExpr wraps an indented block used as an expression (e.g. onerr handler).
+		// When used inline (not at statement level), we can't represent multi-line
+		// blocks. Return a best-effort single-line representation for simple cases.
+		if e.Body != nil && len(e.Body.Statements) == 1 {
+			if exprStmt, ok := e.Body.Statements[0].(*ast.ExpressionStmt); ok {
+				return p.exprToString(exprStmt.Expression)
+			}
+		}
+		return ""
+	case *ast.IfExpression:
+		cond := p.exprToString(e.Condition)
+		then := p.exprToString(e.Then)
+		els := p.exprToString(e.Else)
+		return fmt.Sprintf("if %s then %s else %s", cond, then, els)
 	default:
 		return ""
 	}
 }
 
 func (p *Printer) stringLiteralToString(lit *ast.StringLiteral) string {
-	// Preserve interpolation syntax
-	return fmt.Sprintf("\"%s\"", lit.Value)
+	// The lexer resolves escape sequences in Value (e.g., \n → newline,
+	// \\ → backslash). We must re-escape when emitting source.
+	if len(lit.Parts) > 0 {
+		// Interpolated string: reconstruct from Parts so that expression
+		// sub-strings are printed via exprToString, not re-escaped.
+		var b strings.Builder
+		b.WriteByte('"')
+		for _, part := range lit.Parts {
+			if part.IsLiteral {
+				b.WriteString(escapeStringValue(part.Literal))
+			} else {
+				b.WriteByte('{')
+				b.WriteString(p.exprToString(part.Expr))
+				b.WriteByte('}')
+			}
+		}
+		b.WriteByte('"')
+		return b.String()
+	}
+	return "\"" + escapeStringValue(lit.Value) + "\""
+}
+
+// escapeStringValue re-escapes a processed string value back to Kukicha source form.
+// PUA sentinels are converted back to their escape sequences (\{, \}, \sep).
+func escapeStringValue(s string) string {
+	var b strings.Builder
+	b.Grow(len(s) + 10)
+	for _, r := range s {
+		switch r {
+		case '\\':
+			b.WriteString(`\\`)
+		case '"':
+			b.WriteString(`\"`)
+		case '\n':
+			b.WriteString(`\n`)
+		case '\t':
+			b.WriteString(`\t`)
+		case '\r':
+			b.WriteString(`\r`)
+		case '\uE000': // PUA sentinel for \{
+			b.WriteString(`\{`)
+		case '\uE001': // PUA sentinel for \}
+			b.WriteString(`\}`)
+		case '\uE002': // PUA sentinel for \sep
+			b.WriteString(`\sep`)
+		default:
+			if r < 0x20 || r == 0x7F {
+				// Non-printable characters as hex escapes
+				b.WriteString(fmt.Sprintf(`\x%02x`, r))
+			} else {
+				b.WriteRune(r)
+			}
+		}
+	}
+	return b.String()
+}
+
+// operatorPrecedence returns a numeric precedence for binary operators.
+// Higher values bind tighter.
+func operatorPrecedence(op string) int {
+	switch op {
+	case "or", "||":
+		return 1
+	case "and", "&&":
+		return 2
+	case "|":
+		return 3
+	case "^":
+		return 4
+	case "&":
+		return 5
+	case "equals", "not equals", "==", "!=", "isnt":
+		return 6
+	case "<", ">", "<=", ">=", "in":
+		return 7
+	case "<<", ">>":
+		return 8
+	case "+", "-":
+		return 9
+	case "*", "/", "%":
+		return 10
+	default:
+		return 0
+	}
+}
+
+// binaryOperandToString wraps a child expression in parens only when needed
+// to preserve the correct precedence relative to the parent operator.
+func (p *Printer) binaryOperandToString(child ast.Expression, parentPrec int) string {
+	s := p.exprToString(child)
+	if bin, ok := child.(*ast.BinaryExpr); ok {
+		childPrec := operatorPrecedence(bin.Operator)
+		if childPrec < parentPrec {
+			return "(" + s + ")"
+		}
+	}
+	return s
 }
 
 func (p *Printer) binaryExprToString(expr *ast.BinaryExpr) string {
-	left := p.exprToString(expr.Left)
-	right := p.exprToString(expr.Right)
+	prec := operatorPrecedence(expr.Operator)
+	left := p.binaryOperandToString(expr.Left, prec)
+	right := p.binaryOperandToString(expr.Right, prec)
 
-	// Convert Go operators to Kukicha
-	op := expr.Operator
-	switch op {
-	case "&&":
-		op = "and"
-	case "||":
-		op = "or"
-	case "==":
-		op = "equals"
-	case "!=":
-		op = "not equals"
-	}
-
-	return fmt.Sprintf("(%s %s %s)", left, op, right)
+	return fmt.Sprintf("%s %s %s", left, expr.Operator, right)
 }
 
 func (p *Printer) unaryExprToString(expr *ast.UnaryExpr) string {
 	right := p.exprToString(expr.Right)
 
-	op := expr.Operator
-	if op == "!" {
-		op = "not"
+	// Word operators (not) need a space; symbol operators (-) don't
+	if expr.Operator == "not" || expr.Operator == "!" {
+		// If the operand is a binary/logical/pipe expression, it has lower
+		// precedence than not, so we must parenthesize to preserve semantics.
+		if needsParensAfterNot(expr.Right) {
+			return fmt.Sprintf("%s (%s)", expr.Operator, right)
+		}
+		return fmt.Sprintf("%s %s", expr.Operator, right)
 	}
+	return fmt.Sprintf("%s%s", expr.Operator, right)
+}
 
-	if op == "not" {
-		return fmt.Sprintf("not %s", right)
+// needsParensAfterNot reports whether expr has lower precedence than "not" and
+// therefore needs parentheses when used as the operand of a not/! expression.
+func needsParensAfterNot(expr ast.Expression) bool {
+	switch expr.(type) {
+	case *ast.BinaryExpr, *ast.PipeExpr:
+		return true
 	}
-	return fmt.Sprintf("%s%s", op, right)
+	return false
 }
 
 func (p *Printer) callExprToString(expr *ast.CallExpr) string {
 	funcName := p.exprToString(expr.Function)
 	args := make([]string, len(expr.Arguments))
 	for i, arg := range expr.Arguments {
-		args[i] = p.exprToString(arg)
+		s := p.exprToString(arg)
+		// Add "many" prefix for the last argument if variadic
+		if expr.Variadic && i == len(expr.Arguments)-1 {
+			s = "many " + s
+		}
+		args[i] = s
 	}
 
-	if hasMultilineArg(args) {
-		return fmt.Sprintf("%s(%s\n%s)", funcName, strings.Join(args, ", "), p.indent())
+	joined := strings.Join(args, ", ")
+	if !strings.Contains(joined, "\n") {
+		return fmt.Sprintf("%s(%s)", funcName, joined)
 	}
 
-	return fmt.Sprintf("%s(%s)", funcName, strings.Join(args, ", "))
+	// Multi-line argument: closing ) must be on its own dedented line so the
+	// parser sees a proper DEDENT before the paren. However, if the last
+	// line is already just closing parens (from nested calls), merge our )
+	// onto that line to produce )) instead of separate lines.
+	lastNL := strings.LastIndex(joined, "\n")
+	lastLine := strings.TrimSpace(joined[lastNL+1:])
+	if lastLine != "" && strings.Trim(lastLine, ")") == "" {
+		return fmt.Sprintf("%s(%s)", funcName, joined)
+	}
+	return fmt.Sprintf("%s(%s\n%s)", funcName, joined, p.indent())
 }
 
 func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
@@ -646,18 +1116,34 @@ func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
 
 	args := make([]string, len(expr.Arguments))
 	for i, arg := range expr.Arguments {
-		args[i] = p.exprToString(arg)
+		s := p.exprToString(arg)
+		if expr.Variadic && i == len(expr.Arguments)-1 {
+			s = "many " + s
+		}
+		args[i] = s
 	}
 
-	if hasMultilineArg(args) {
-		return fmt.Sprintf("%s.%s(%s\n%s)", object, method, strings.Join(args, ", "), p.indent())
+	joined := strings.Join(args, ", ")
+	if !strings.Contains(joined, "\n") {
+		return fmt.Sprintf("%s.%s(%s)", object, method, joined)
 	}
 
-	return fmt.Sprintf("%s.%s(%s)", object, method, strings.Join(args, ", "))
+	// Merge closing parens if the last line is already just ) chars.
+	lastNL := strings.LastIndex(joined, "\n")
+	lastLine := strings.TrimSpace(joined[lastNL+1:])
+	if lastLine != "" && strings.Trim(lastLine, ")") == "" {
+		return fmt.Sprintf("%s.%s(%s)", object, method, joined)
+	}
+	return fmt.Sprintf("%s.%s(%s\n%s)", object, method, joined, p.indent())
 }
 
 func (p *Printer) fieldAccessExprToString(expr *ast.FieldAccessExpr) string {
 	object := p.exprToString(expr.Object)
+	// Type cast expressions need parens when used as a field access receiver,
+	// e.g. (val as Item).Id, otherwise it parses as val as Item.Id.
+	if _, ok := expr.Object.(*ast.TypeCastExpr); ok {
+		object = "(" + object + ")"
+	}
 	return fmt.Sprintf("%s.%s", object, expr.Field.Value)
 }
 
@@ -705,6 +1191,10 @@ func (p *Printer) listLiteralToString(expr *ast.ListLiteralExpr) string {
 		elements[i] = p.exprToString(elem)
 	}
 
+	if expr.Type != nil {
+		elemType := p.typeAnnotationToString(expr.Type)
+		return fmt.Sprintf("list of %s{%s}", elemType, strings.Join(elements, ", "))
+	}
 	return fmt.Sprintf("[%s]", strings.Join(elements, ", "))
 }
 
@@ -723,14 +1213,14 @@ func (p *Printer) mapLiteralToString(expr *ast.MapLiteralExpr) string {
 		pairs[i] = fmt.Sprintf("%s: %s", key, value)
 	}
 
-	return fmt.Sprintf("{%s}", strings.Join(pairs, ", "))
+	return fmt.Sprintf("map of %s to %s{%s}", keyType, valType, strings.Join(pairs, ", "))
 }
 
 func (p *Printer) makeExprToString(expr *ast.MakeExpr) string {
 	targetType := p.typeAnnotationToString(expr.Type)
 
 	if len(expr.Args) == 0 {
-		return fmt.Sprintf("make %s", targetType)
+		return fmt.Sprintf("make(%s)", targetType)
 	}
 
 	args := make([]string, len(expr.Args))
@@ -738,7 +1228,7 @@ func (p *Printer) makeExprToString(expr *ast.MakeExpr) string {
 		args[i] = p.exprToString(arg)
 	}
 
-	return fmt.Sprintf("make %s, %s", targetType, strings.Join(args, ", "))
+	return fmt.Sprintf("make(%s, %s)", targetType, strings.Join(args, ", "))
 }
 
 func (p *Printer) arrowLambdaToString(lambda *ast.ArrowLambda) string {
@@ -783,16 +1273,99 @@ func (p *Printer) write(s string) {
 }
 
 func (p *Printer) writeLine(s string) {
-	p.output.WriteString(p.indent())
-	p.output.WriteString(s)
-	p.output.WriteString("\n")
+	if s == "" {
+		// Blank line — no indentation
+		p.output.WriteString("\n")
+	} else if strings.Contains(s, "\n") {
+		// Multi-line content (e.g., function literals with bodies):
+		// indent the first line, write subsequent lines as-is since they
+		// already carry their own indentation from the printer.
+		lines := strings.SplitAfter(s, "\n")
+		p.output.WriteString(p.indent())
+		for _, line := range lines {
+			p.output.WriteString(line)
+		}
+		if !strings.HasSuffix(s, "\n") {
+			p.output.WriteString("\n")
+		}
+	} else {
+		p.output.WriteString(p.indent())
+		p.output.WriteString(s)
+		p.output.WriteString("\n")
+	}
 }
 
-func hasMultilineArg(args []string) bool {
-	for _, arg := range args {
-		if strings.Contains(arg, "\n") {
-			return true
+// formatStructTag converts a Go-style struct tag back to Kukicha syntax.
+// Simple json-only tags like `json:"name"` become `as "name"`.
+// Complex tags are preserved as-is.
+func formatStructTag(tag string) string {
+	// Check for simple json:"value" pattern (the most common case from 'as' syntax)
+	if strings.HasPrefix(tag, `json:"`) && strings.HasSuffix(tag, `"`) {
+		// Extract the json value
+		inner := tag[6 : len(tag)-1] // strip json:" and trailing "
+		// Only convert to 'as' syntax if it's a simple name (no options like omitempty)
+		if !strings.Contains(inner, ",") {
+			return fmt.Sprintf(`as "%s"`, inner)
 		}
 	}
-	return false
+	return tag
+}
+
+func (p *Printer) functionLiteralToString(expr *ast.FunctionLiteral) string {
+	params := p.parametersToString(expr.Parameters)
+	returns := p.returnTypesToString(expr.Returns)
+
+	var sig string
+	if returns != "" {
+		sig = fmt.Sprintf("func(%s) %s", params, returns)
+	} else {
+		sig = fmt.Sprintf("func(%s)", params)
+	}
+
+	if expr.Body == nil {
+		return sig
+	}
+
+	// Render the body using the full statement printer to handle nested blocks.
+	// Capture output into a separate buffer.
+	savedOutput := p.output
+	p.output = strings.Builder{}
+	p.indentLevel++
+	p.printBlock(expr.Body)
+	p.indentLevel--
+	body := p.output.String()
+	p.output = savedOutput
+
+	return sig + "\n" + strings.TrimRight(body, "\n")
+}
+
+func (p *Printer) printSelectStmt(stmt *ast.SelectStmt) {
+	p.writeLine("select")
+	p.indentLevel++
+	for _, c := range stmt.Cases {
+		if c.Send != nil {
+			channel := p.exprToString(c.Send.Channel)
+			value := p.exprToString(c.Send.Value)
+			p.writeLine(fmt.Sprintf("when send %s to %s", value, channel))
+		} else if c.Recv != nil {
+			channel := p.exprToString(c.Recv.Channel)
+			if len(c.Bindings) > 0 {
+				p.writeLine(fmt.Sprintf("when %s := receive from %s", strings.Join(c.Bindings, ", "), channel))
+			} else {
+				p.writeLine(fmt.Sprintf("when receive from %s", channel))
+			}
+		}
+		p.indentLevel++
+		if c.Body != nil {
+			p.printBlock(c.Body)
+		}
+		p.indentLevel--
+	}
+	if stmt.Otherwise != nil {
+		p.writeLine("otherwise")
+		p.indentLevel++
+		p.printBlock(stmt.Otherwise.Body)
+		p.indentLevel--
+	}
+	p.indentLevel--
 }

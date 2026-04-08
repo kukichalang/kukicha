@@ -15,29 +15,8 @@ type RenderSimpleCase
     wantErr bool
 
 func TestRenderSimple(t reference testing.T)
-    cases := list of RenderSimpleCase{
-        RenderSimpleCase{
-            name: "renders template with data",
-            template: "Hello {{.Name}}",
-            data: map of string to any{"Name": "Ari"},
-            want: "Hello Ari",
-            wantErr: false,
-        },
-        RenderSimpleCase{
-            name: "renders empty template",
-            template: "",
-            data: map of string to any{},
-            want: "",
-            wantErr: false,
-        },
-        RenderSimpleCase{
-            name: "invalid template returns error",
-            template: "{{",
-            data: map of string to any{},
-            want: "",
-            wantErr: true,
-        },
-    }
+    cases := list of RenderSimpleCase{RenderSimpleCase{name: "renders template with data", template: "Hello {{.Name}}", data: map of string to any{"Name": "Ari"}, want: "Hello Ari", wantErr: false}, RenderSimpleCase{name: "renders empty template", template: "", data: empty map of string to any, want: "", wantErr: false}, RenderSimpleCase{name: "invalid template returns error", template: "{{", data: empty map of string to any, want: "", wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result, err := template.RenderSimple(tc.template, tc.data)
@@ -57,29 +36,8 @@ type ExecuteCase
     wantErr bool
 
 func TestExecute(t reference testing.T)
-    cases := list of ExecuteCase{
-        ExecuteCase{
-            name: "renders template via builder",
-            template: "Greetings {{.Name}}!",
-            data: map of string to any{"Name": "Eve"},
-            want: "Greetings Eve!",
-            wantErr: false,
-        },
-        ExecuteCase{
-            name: "empty template",
-            template: "",
-            data: map of string to any{},
-            want: "",
-            wantErr: false,
-        },
-        ExecuteCase{
-            name: "invalid builder template returns error",
-            template: "{{",
-            data: map of string to any{},
-            want: "",
-            wantErr: true,
-        },
-    }
+    cases := list of ExecuteCase{ExecuteCase{name: "renders template via builder", template: "Greetings {{.Name}}!", data: map of string to any{"Name": "Eve"}, want: "Greetings Eve!", wantErr: false}, ExecuteCase{name: "empty template", template: "", data: empty map of string to any, want: "", wantErr: false}, ExecuteCase{name: "invalid builder template returns error", template: "{{", data: empty map of string to any, want: "", wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             td := template.New()
@@ -102,29 +60,8 @@ type HTMLRenderSimpleCase
     wantErr bool
 
 func TestHTMLRenderSimple(t reference testing.T)
-    cases := list of HTMLRenderSimpleCase{
-        HTMLRenderSimpleCase{
-            name: "escapes HTML content",
-            template: "<b>{{.Value}}</b>",
-            data: map of string to any{"Value": "<script>"},
-            want: "<b>&lt;script&gt;</b>",
-            wantErr: false,
-        },
-        HTMLRenderSimpleCase{
-            name: "renders plain text",
-            template: "Hello {{.Name}}",
-            data: map of string to any{"Name": "World"},
-            want: "Hello World",
-            wantErr: false,
-        },
-        HTMLRenderSimpleCase{
-            name: "invalid html template returns error",
-            template: "{{",
-            data: map of string to any{},
-            want: "",
-            wantErr: true,
-        },
-    }
+    cases := list of HTMLRenderSimpleCase{HTMLRenderSimpleCase{name: "escapes HTML content", template: "<b>{{.Value}}</b>", data: map of string to any{"Value": "<script>"}, want: "<b>&lt;script&gt;</b>", wantErr: false}, HTMLRenderSimpleCase{name: "renders plain text", template: "Hello {{.Name}}", data: map of string to any{"Name": "World"}, want: "Hello World", wantErr: false}, HTMLRenderSimpleCase{name: "invalid html template returns error", template: "{{", data: empty map of string to any, want: "", wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result, err := template.HTMLRenderSimple(tc.template, tc.data)

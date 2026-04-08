@@ -15,13 +15,15 @@ func startServer()
 
     http.HandleFunc("/basic", func(w http.ResponseWriter, r reference http.Request)
         auth := r.Header.Get("Authorization")
-        # "user:pass" base64 encoded is "dXNlcjpwYXNz"
+
         if auth equals "Basic dXNlcjpwYXNz"
             w.Write("OK" as list of byte)
         else
             w.WriteHeader(401)
             w.Write("Unauthorized" as list of byte)
     )
+
+    # "user:pass" base64 encoded is "dXNlcjpwYXNz"
 
     http.HandleFunc("/form", func(w http.ResponseWriter, r reference http.Request)
         if r.Method isnt "POST"
@@ -45,17 +47,19 @@ func startServer()
 
     http.HandleFunc("/session", func(w http.ResponseWriter, r reference http.Request)
         if cookie, err := r.Cookie("mysession"); err isnt empty
-            # Cookie is not present, set it
             http.SetCookie(w, reference of http.Cookie{Name: "mysession", Value: "active"})
             w.Write("Cookie Set" as list of byte)
         else
-            # Cookie is present
             if cookie.Value equals "active"
                 w.Write("Cookie Present" as list of byte)
             else
                 w.WriteHeader(400)
                 w.Write("Bad Cookie" as list of byte)
     )
+
+    # Cookie is not present, set it
+
+    # Cookie is present
 
     print("Server listening on :8099")
     http.ListenAndServe(":8099", empty)
@@ -75,7 +79,7 @@ func main()
     text1 := fetch.Text(resp1) onerr panic "Text read failed: {error}"
     print("Response: {text1}")
     if text1 isnt "OK"
-        panic("Bearer auth failed")
+        panic "Bearer auth failed"
 
     # 2. Test Basic Auth
     print("\n--- Testing Basic Auth ---")
@@ -83,7 +87,7 @@ func main()
     text2 := fetch.Text(resp2) onerr panic "Text read failed: {error}"
     print("Response: {text2}")
     if text2 isnt "OK"
-        panic("Basic auth failed")
+        panic "Basic auth failed"
 
     # 3. Test Form Data
     print("\n--- Testing Form Data ---")
@@ -92,7 +96,7 @@ func main()
     text3 := fetch.Text(resp3) onerr panic "Text read failed: {error}"
     print("Response: {text3}")
     if text3 isnt "OK"
-        panic("Form data failed")
+        panic "Form data failed"
 
     # 4. Test Session
     print("\n--- Testing Session ---")
@@ -109,6 +113,6 @@ func main()
     print("Request 2: {text4b}")
 
     if text4b isnt "Cookie Present"
-        panic("Session cookie persistence failed")
+        panic "Session cookie persistence failed"
 
     print("\nAll tests passed successfully!")

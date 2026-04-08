@@ -17,9 +17,8 @@ type MarshalCase
     name string
 
 func TestMarshal(t reference testing.T)
-    cases := list of MarshalCase{
-        MarshalCase{name: "marshal person"},
-    }
+    cases := list of MarshalCase{MarshalCase{name: "marshal person"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Alice", Age: 30}
@@ -38,9 +37,8 @@ type UnmarshalCase
     name string
 
 func TestUnmarshal(t reference testing.T)
-    cases := list of UnmarshalCase{
-        UnmarshalCase{name: "unmarshal person"},
-    }
+    cases := list of UnmarshalCase{UnmarshalCase{name: "unmarshal person"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Bob", Age: 25}
@@ -59,9 +57,8 @@ type RoundTripCase
     name string
 
 func TestMarshalUnmarshalRoundTrip(t reference testing.T)
-    cases := list of RoundTripCase{
-        RoundTripCase{name: "round trip"},
-    }
+    cases := list of RoundTripCase{RoundTripCase{name: "round trip"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             original := Person{Name: "Charlie", Age: 42}
@@ -81,9 +78,8 @@ type MarshalPrettyCase
     name string
 
 func TestMarshalPretty(t reference testing.T)
-    cases := list of MarshalPrettyCase{
-        MarshalPrettyCase{name: "pretty print"},
-    }
+    cases := list of MarshalPrettyCase{MarshalPrettyCase{name: "pretty print"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Dan", Age: 28}
@@ -105,9 +101,8 @@ type MarshalWriteCase
     name string
 
 func TestMarshalWrite(t reference testing.T)
-    cases := list of MarshalWriteCase{
-        MarshalWriteCase{name: "write to buffer"},
-    }
+    cases := list of MarshalWriteCase{MarshalWriteCase{name: "write to buffer"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Eve", Age: 22}
@@ -123,9 +118,8 @@ type UnmarshalReadCase
     name string
 
 func TestUnmarshalRead(t reference testing.T)
-    cases := list of UnmarshalReadCase{
-        UnmarshalReadCase{name: "read from buffer"},
-    }
+    cases := list of UnmarshalReadCase{UnmarshalReadCase{name: "read from buffer"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Frank", Age: 35}
@@ -145,9 +139,8 @@ type EncodeCase
     name string
 
 func TestEncode(t reference testing.T)
-    cases := list of EncodeCase{
-        EncodeCase{name: "encode to buffer"},
-    }
+    cases := list of EncodeCase{EncodeCase{name: "encode to buffer"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Grace", Age: 29}
@@ -164,9 +157,8 @@ type DecodeCase
     name string
 
 func TestDecode(t reference testing.T)
-    cases := list of DecodeCase{
-        DecodeCase{name: "decode from buffer"},
-    }
+    cases := list of DecodeCase{DecodeCase{name: "decode from buffer"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Hank", Age: 40}
@@ -188,9 +180,8 @@ type WithIndentCase
     name string
 
 func TestWithIndent(t reference testing.T)
-    cases := list of WithIndentCase{
-        WithIndentCase{name: "indent encoding"},
-    }
+    cases := list of WithIndentCase{WithIndentCase{name: "indent encoding"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             p := Person{Name: "Iris", Age: 33}
@@ -207,9 +198,8 @@ type UnmarshalInvalidCase
     name string
 
 func TestUnmarshalInvalidJSON(t reference testing.T)
-    cases := list of UnmarshalInvalidCase{
-        UnmarshalInvalidCase{name: "invalid json"},
-    }
+    cases := list of UnmarshalInvalidCase{UnmarshalInvalidCase{name: "invalid json"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             invalid := "not valid json" as list of byte

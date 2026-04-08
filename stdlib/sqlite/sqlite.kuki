@@ -165,6 +165,7 @@ func BatchExec(pool db.Pool, query string, rows list of list of any) (int64, err
             total = total + n
         return empty
     )
+
     return total, err
 
 # ============================================================================

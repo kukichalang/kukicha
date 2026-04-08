@@ -26,9 +26,8 @@ type OpenCloseCase
     name string
 
 func TestOpenAndClose(t reference testing.T)
-    cases := list of OpenCloseCase{
-        OpenCloseCase{name: "open and close in-memory"},
-    }
+    cases := list of OpenCloseCase{OpenCloseCase{name: "open and close in-memory"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             pool := db.Open("sqlite3", ":memory:") onerr panic "open: {error}"
@@ -45,9 +44,8 @@ type OpenInvalidCase
     connStr string
 
 func TestOpenInvalidDriver(t reference testing.T)
-    cases := list of OpenInvalidCase{
-        OpenInvalidCase{name: "unknown driver", driver: "nosuchdriver", connStr: ""},
-    }
+    cases := list of OpenInvalidCase{OpenInvalidCase{name: "unknown driver", driver: "nosuchdriver", connStr: ""}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             _, err := db.Open(tc.driver, tc.connStr)
@@ -63,10 +61,8 @@ type ExecCase
 func TestExec(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ExecCase{
-        ExecCase{name: "update one row", query: "UPDATE users SET name = 'Alice2' WHERE id = 1", wantAffected: 1},
-        ExecCase{name: "delete one row", query: "DELETE FROM users WHERE id = 2", wantAffected: 1},
-    }
+    cases := list of ExecCase{ExecCase{name: "update one row", query: "UPDATE users SET name = 'Alice2' WHERE id = 1", wantAffected: 1}, ExecCase{name: "delete one row", query: "DELETE FROM users WHERE id = 2", wantAffected: 1}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             affected := db.Exec(pool, tc.query) onerr panic "exec: {error}"
@@ -82,16 +78,12 @@ type ScanAllCase
 func TestScanAll(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanAllCase{
-        ScanAllCase{name: "all users", query: "SELECT id, name, email FROM users ORDER BY id", wantLen: 3},
-        ScanAllCase{name: "filtered", query: "SELECT id, name, email FROM users WHERE id = 1", wantLen: 1},
-        ScanAllCase{name: "no results", query: "SELECT id, name, email FROM users WHERE id = 999", wantLen: 0},
-    }
+    cases := list of ScanAllCase{ScanAllCase{name: "all users", query: "SELECT id, name, email FROM users ORDER BY id", wantLen: 3}, ScanAllCase{name: "filtered", query: "SELECT id, name, email FROM users WHERE id = 1", wantLen: 1}, ScanAllCase{name: "no results", query: "SELECT id, name, email FROM users WHERE id = 999", wantLen: 0}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            result := db.Query(pool, tc.query)
-                |> db.ScanAll(list of User{})
-                onerr panic "scan: {error}"
+            result := db.Query(pool, tc.query) |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
+
             users := result.(list of User)
             test.AssertEqual(t, len(users), tc.wantLen)
         )
@@ -103,14 +95,12 @@ type ScanAllValuesCase
 func TestScanAllValues(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanAllValuesCase{
-        ScanAllValuesCase{name: "verify field values"},
-    }
+    cases := list of ScanAllValuesCase{ScanAllValuesCase{name: "verify field values"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            result := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
-                |> db.ScanAll(list of User{})
-                onerr panic "scan: {error}"
+            result := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1") |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
+
             users := result.(list of User)
             test.AssertEqual(t, len(users), 1)
             test.AssertEqual(t, users[0].Id, 1 as int64)
@@ -127,10 +117,8 @@ type ScanOneCase
 func TestScanOne(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanOneCase{
-        ScanOneCase{name: "one row", query: "SELECT id, name, email FROM users WHERE id = 1", wantErr: false},
-        ScanOneCase{name: "no rows", query: "SELECT id, name, email FROM users WHERE id = 999", wantErr: true},
-    }
+    cases := list of ScanOneCase{ScanOneCase{name: "one row", query: "SELECT id, name, email FROM users WHERE id = 1", wantErr: false}, ScanOneCase{name: "no rows", query: "SELECT id, name, email FROM users WHERE id = 999", wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result, err := db.Query(pool, tc.query) |> db.ScanOne(User{})
@@ -150,9 +138,8 @@ type ScanRowCase
 func TestScanRow(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanRowCase{
-        ScanRowCase{name: "single row via QueryRow"},
-    }
+    cases := list of ScanRowCase{ScanRowCase{name: "single row via QueryRow"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             row := db.QueryRow(pool, "SELECT id, name, email FROM users WHERE id = 1")
@@ -168,15 +155,15 @@ type TransactionCase
 func TestTransaction(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of TransactionCase{
-        TransactionCase{name: "commit on success"},
-    }
+    cases := list of TransactionCase{TransactionCase{name: "commit on success"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             err := db.Transaction(pool, (tx db.Tx) =>
                 db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com") onerr return
                 return empty
             )
+
             test.AssertNoError(t, err)
 
             found := db.Exists(pool, "SELECT 1 FROM users WHERE id = 4") onerr panic "exists: {error}"
@@ -190,15 +177,15 @@ type TransactionRollbackCase
 func TestTransactionRollback(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of TransactionRollbackCase{
-        TransactionRollbackCase{name: "rollback on error"},
-    }
+    cases := list of TransactionRollbackCase{TransactionRollbackCase{name: "rollback on error"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             err := db.Transaction(pool, (tx db.Tx) =>
                 db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com") onerr return
                 return error "deliberate rollback"
             )
+
             test.AssertError(t, err)
 
             found := db.Exists(pool, "SELECT 1 FROM users WHERE id = 5") onerr panic "exists: {error}"
@@ -214,10 +201,8 @@ type CountCase
 func TestCount(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of CountCase{
-        CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3},
-        CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2},
-    }
+    cases := list of CountCase{CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3}, CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             n := db.Count(pool, tc.query) onerr panic "count: {error}"
@@ -233,10 +218,8 @@ type ExistsCase
 func TestExists(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ExistsCase{
-        ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true},
-        ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false},
-    }
+    cases := list of ExistsCase{ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true}, ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             found := db.Exists(pool, tc.query) onerr panic "exists: {error}"
@@ -258,9 +241,8 @@ func TestNullHandling(t reference testing.T)
     db.Exec(pool, "CREATE TABLE null_test (id INTEGER PRIMARY KEY, name TEXT, bio TEXT)") onerr panic "create: {error}"
     db.Exec(pool, "INSERT INTO null_test (id, name) VALUES (?, ?)", 1, "Alice") onerr panic "insert: {error}"
 
-    cases := list of NullCase{
-        NullCase{name: "null becomes zero value"},
-    }
+    cases := list of NullCase{NullCase{name: "null becomes zero value"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             row := db.QueryRow(pool, "SELECT id, name, bio FROM null_test WHERE id = 1")

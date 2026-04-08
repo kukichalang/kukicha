@@ -13,8 +13,8 @@ func TestCheckFile_FormattedFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "good.kuki")
 
-	// Use content that the formatter produces (parens around return expr)
-	content := "func Add(a int, b int) int\n    return (a + b)\n"
+	// Use content that the formatter produces
+	content := "func Add(a int, b int) int\n    return a + b\n"
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func TestFormatFileInPlace_AlreadyFormatted(t *testing.T) {
 	path := filepath.Join(dir, "good.kuki")
 
 	// Content that the formatter already produces
-	content := "func Add(a int, b int) int\n    return (a + b)\n"
+	content := "func Add(a int, b int) int\n    return a + b\n"
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestFormatFileToStdout_WritesToStdout(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "test.kuki")
 
-	content := "func Add(a int, b int) int\n    return (a + b)\n"
+	content := "func Add(a int, b int) int\n    return a + b\n"
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}

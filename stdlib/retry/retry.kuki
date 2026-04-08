@@ -17,8 +17,8 @@ import "time"
 # Config holds retry configuration
 type Config
     MaxAttempts int
-    InitialDelay int  # milliseconds
-    Strategy int      # 0 = Linear, 1 = Exponential
+    InitialDelay int # milliseconds
+    Strategy int # 0 = Linear, 1 = Exponential
 
 # New creates a default retry configuration: 3 attempts, 1s initial delay, exponential backoff
 func New() Config

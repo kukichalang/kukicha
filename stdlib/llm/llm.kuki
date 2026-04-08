@@ -125,59 +125,59 @@ import "bufio"
 
 # Message represents a single message in a chat conversation
 type Message
-    Role string json:"role"
-    Content string json:"content"
+    Role string as "role"
+    Content string as "content"
     ToolCalls list of ToolCall json:"tool_calls,omitempty"
     ToolCallID string json:"tool_call_id,omitempty"
 
 # ToolFunction describes a function that the model can call
 type ToolFunction
-    Name string json:"name"
-    Description string json:"description"
-    Parameters any json:"parameters"
+    Name string as "name"
+    Description string as "description"
+    Parameters any as "parameters"
 
 # Tool represents a tool available to the model
 type Tool
-    Type string json:"type"
-    Function ToolFunction json:"function"
+    Type string as "type"
+    Function ToolFunction as "function"
 
 # ToolCall represents a tool call made by the model
 type ToolCall
-    ID string json:"id"
-    Type string json:"type"
-    Function ToolCallFunction json:"function"
+    ID string as "id"
+    Type string as "type"
+    Function ToolCallFunction as "function"
 
 # ToolCallFunction holds the function name and arguments from a tool call
 type ToolCallFunction
-    Name string json:"name"
-    Arguments string json:"arguments"
+    Name string as "name"
+    Arguments string as "arguments"
 
 # Choice represents a single completion choice from the API
 type Choice
-    Index int json:"index"
-    Message ResponseMessage json:"message"
-    FinishReason string json:"finish_reason"
+    Index int as "index"
+    Message ResponseMessage as "message"
+    FinishReason string as "finish_reason"
 
 # ResponseMessage is the assistant's response message
 type ResponseMessage
-    Role string json:"role"
-    Content string json:"content"
+    Role string as "role"
+    Content string as "content"
     ToolCalls list of ToolCall json:"tool_calls,omitempty"
 
 # Usage holds token usage information
 type Usage
-    PromptTokens int json:"prompt_tokens"
-    CompletionTokens int json:"completion_tokens"
-    TotalTokens int json:"total_tokens"
+    PromptTokens int as "prompt_tokens"
+    CompletionTokens int as "completion_tokens"
+    TotalTokens int as "total_tokens"
 
 # Completion is the response from a chat completion request
 type Completion
-    ID string json:"id"
-    Object string json:"object"
-    Created int json:"created"
-    Model string json:"model"
-    Choices list of Choice json:"choices"
-    Usage Usage json:"usage"
+    ID string as "id"
+    Object string as "object"
+    Created int as "created"
+    Model string as "model"
+    Choices list of Choice as "choices"
+    Usage Usage as "usage"
 
 # ChunkToolCallFunction holds incremental tool call function deltas
 type ChunkToolCallFunction
@@ -186,10 +186,10 @@ type ChunkToolCallFunction
 
 # ChunkToolCall represents a tool call delta in a streaming chunk
 type ChunkToolCall
-    Index int json:"index"
+    Index int as "index"
     ID string json:"id,omitempty"
     Type string json:"type,omitempty"
-    Function ChunkToolCallFunction json:"function"
+    Function ChunkToolCallFunction as "function"
 
 # ChunkDelta holds incremental content in a streaming chunk
 type ChunkDelta
@@ -199,22 +199,22 @@ type ChunkDelta
 
 # ChunkChoice represents a single choice in a streaming chunk
 type ChunkChoice
-    Index int json:"index"
-    Delta ChunkDelta json:"delta"
+    Index int as "index"
+    Delta ChunkDelta as "delta"
     FinishReason string json:"finish_reason,omitempty"
 
 # Chunk is a single Server-Sent Event chunk during streaming
 type Chunk
-    ID string json:"id"
-    Object string json:"object"
-    Created int json:"created"
-    Model string json:"model"
-    Choices list of ChunkChoice json:"choices"
+    ID string as "id"
+    Object string as "object"
+    Created int as "created"
+    Model string as "model"
+    Choices list of ChunkChoice as "choices"
 
 # CompletionRequest is the JSON body sent to the chat completions endpoint
 type CompletionRequest
-    Model string json:"model"
-    Messages list of Message json:"messages"
+    Model string as "model"
+    Messages list of Message as "messages"
     Temperature float64 json:"temperature,omitempty"
     MaxTokens int json:"max_tokens,omitempty"
     TopP float64 json:"top_p,omitempty"
@@ -654,10 +654,7 @@ func executeRaw(c Client) (Completion, error)
     url := "{baseURL}{chatPath}"
     body := buildRequest(c)
 
-    req := fetch.New(url)
-        |> fetch.Method("POST")
-        |> fetch.Header("Content-Type", "application/json")
-        |> fetch.Body(body)
+    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -691,11 +688,7 @@ func executeStreamRaw(c Client) (Completion, error)
     url := "{baseURL}{chatPath}"
     body := buildRequest(c)
 
-    req := fetch.New(url)
-        |> fetch.Method("POST")
-        |> fetch.Header("Content-Type", "application/json")
-        |> fetch.Header("Accept", "text/event-stream")
-        |> fetch.Body(body)
+    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("Accept", "text/event-stream") |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -706,7 +699,7 @@ func executeStreamRaw(c Client) (Completion, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return Completion{}, error "API request failed with status {resp.StatusCode}"
-        return Completion{}, error("API request failed ({resp.StatusCode}): {errBody as string}")
+        return Completion{}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read SSE stream line by line
     fullContent := ""
@@ -735,7 +728,7 @@ func executeStreamRaw(c Client) (Completion, error)
                 if delta.Content != ""
                     fullContent = fullContent + delta.Content
                     c.streamHandler(delta.Content)
-                
+
                 if len(delta.ToolCalls) > 0
                     for _, tcDelta in delta.ToolCalls
                         idx := tcDelta.Index
@@ -759,19 +752,10 @@ func executeStreamRaw(c Client) (Completion, error)
         if ok
             toolCalls = append(toolCalls, callsMap[i])
 
-    comp := Completion{
-        Choices: list of Choice{
-            Choice{
-                Index: 0,
-                Message: ResponseMessage{
-                    Role: "assistant",
-                    Content: fullContent,
-                    ToolCalls: toolCalls,
-                },
-            },
-        },
-    }
+    comp := Completion{Choices: list of Choice{Choice{Index: 0, Message: ResponseMessage{Role: "assistant", Content: fullContent, ToolCalls: toolCalls}}}}
+
     return comp, empty
+
 # ═══════════════════════════════════════════════════════════════════════
 # OpenResponses API (https://www.openresponses.org/specification)
 # POST /v1/responses - a different API from Chat Completions
@@ -779,24 +763,24 @@ func executeStreamRaw(c Client) (Completion, error)
 
 # InputTextContent represents text content in an input item
 type InputTextContent
-    Type string json:"type"
-    Text string json:"text"
+    Type string as "type"
+    Text string as "text"
 
 # OutputTextContent represents text content in an output item
 type OutputTextContent
-    Type string json:"type"
-    Text string json:"text"
+    Type string as "type"
+    Text string as "text"
     Annotations list of any json:"annotations,omitempty"
 
 # RefusalContent represents a refusal in an output item
 type RefusalContent
-    Type string json:"type"
-    Refusal string json:"refusal"
+    Type string as "type"
+    Refusal string as "refusal"
 
 # InputItem represents an item in the input array for OpenResponses
 # Discriminated by Type field: "message", "function_call", "function_call_output", "item_reference"
 type InputItem
-    Type string json:"type"
+    Type string as "type"
     ID string json:"id,omitempty"
     Role string json:"role,omitempty"
     Content any json:"content,omitempty"
@@ -809,7 +793,7 @@ type InputItem
 # OutputItem represents an item in the output array of a Response
 # Discriminated by Type field: "message", "function_call", "reasoning"
 type OutputItem
-    Type string json:"type"
+    Type string as "type"
     ID string json:"id,omitempty"
     Role string json:"role,omitempty"
     Content list of any json:"content,omitempty"
@@ -821,24 +805,24 @@ type OutputItem
 
 # ResponseUsage holds token usage information for OpenResponses
 type ResponseUsage
-    InputTokens int json:"input_tokens"
-    OutputTokens int json:"output_tokens"
-    TotalTokens int json:"total_tokens"
+    InputTokens int as "input_tokens"
+    OutputTokens int as "output_tokens"
+    TotalTokens int as "total_tokens"
 
 # ResponseError holds error details from the API
 type ResponseError
-    Code string json:"code"
-    Message string json:"message"
+    Code string as "code"
+    Message string as "message"
 
 # Response is the response object from POST /v1/responses
 type Response
-    ID string json:"id"
-    Object string json:"object"
-    CreatedAt int json:"created_at"
+    ID string as "id"
+    Object string as "object"
+    CreatedAt int as "created_at"
     CompletedAt int json:"completed_at,omitempty"
-    Status string json:"status"
-    Model string json:"model"
-    Output list of OutputItem json:"output"
+    Status string as "status"
+    Model string as "model"
+    Output list of OutputItem as "output"
     Error ResponseError json:"error,omitzero"
     PreviousResponseID string json:"previous_response_id,omitempty"
     Instructions string json:"instructions,omitempty"
@@ -854,8 +838,8 @@ type Response
 
 # ResponseRequest is the JSON body sent to POST /v1/responses
 type ResponseRequest
-    Model string json:"model"
-    Input any json:"input"
+    Model string as "model"
+    Input any as "input"
     Instructions string json:"instructions,omitempty"
     PreviousResponseID string json:"previous_response_id,omitempty"
     Temperature float64 json:"temperature,omitempty"
@@ -873,8 +857,8 @@ type ResponseRequest
 
 # StreamEvent represents a parsed SSE event from OpenResponses streaming
 type StreamEvent
-    Type string json:"type"
-    SequenceNumber int json:"sequence_number"
+    Type string as "type"
+    SequenceNumber int as "sequence_number"
     Response Response json:"response,omitzero"
     OutputIndex int json:"output_index,omitempty"
     ContentIndex int json:"content_index,omitempty"
@@ -1220,13 +1204,14 @@ func GetResponseText(resp Response) string
                                     contentMap["text"] |> switch as textStr
                                         when string
                                             return textStr
+
     return ""
 
 # GetFunctionCalls extracts function call output items from a Response
 # Returns all items with type "function_call"
 # Example: calls := llm.GetFunctionCalls(resp)
 func GetFunctionCalls(resp Response) list of OutputItem
-    calls := list of OutputItem{}
+    calls := empty list of OutputItem
     for _, item in resp.Output
         if item.Type == "function_call"
             calls = append(calls, item)
@@ -1355,10 +1340,7 @@ func rExecuteRaw(c ResponseClient) (Response, error)
     url := "{baseURL}{responsePath}"
     body := rBuildRequest(c)
 
-    req := fetch.New(url)
-        |> fetch.Method("POST")
-        |> fetch.Header("Content-Type", "application/json")
-        |> fetch.Body(body)
+    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -1392,11 +1374,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
     url := "{baseURL}{responsePath}"
     body := rBuildRequest(c)
 
-    req := fetch.New(url)
-        |> fetch.Method("POST")
-        |> fetch.Header("Content-Type", "application/json")
-        |> fetch.Header("Accept", "text/event-stream")
-        |> fetch.Body(body)
+    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("Accept", "text/event-stream") |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -1458,31 +1436,27 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
 
             # Handle error events
             if evt.Type == "error"
-                return Response{}, error(evt.Message)
+                return Response{}, error evt.Message
 
     scanner.Err() onerr return Response{}, error "{error}"
 
     # Convert map to output items
-    output := list of OutputItem{}
+    output := empty list of OutputItem
     # Simple accumulation since indices are usually 0, 1...
     for i from 0 to 20
         _, ok := callsMap[i]
         if ok
             output = append(output, callsMap[i])
-    
+
     # Add text message as well if we have content
     if fullContent != ""
         msgPart := map of string to any{"type": "output_text", "text": fullContent}
-        output = append(output, OutputItem{
-            Type: "message",
-            Role: "assistant",
-            Content: list of any{msgPart},
-        })
+        output = append(output, OutputItem{Type: "message", Role: "assistant", Content: list of any{msgPart}})
 
-    result := Response{
-        Output: output,
-    }
+    result := Response{Output: output}
+
     return result, empty
+
 # ═══════════════════════════════════════════════════════════════════════
 # Anthropic Messages API (https://docs.anthropic.com/en/api/messages)
 # POST /v1/messages - Anthropic's native API format
@@ -1491,7 +1465,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
 # ContentBlock represents a content block in the Anthropic Messages API
 # Discriminated by Type: "text", "thinking", "tool_use", "tool_result", "image"
 type ContentBlock
-    Type string json:"type"
+    Type string as "type"
     Text string json:"text,omitempty"
     Thinking string json:"thinking,omitempty"
     ID string json:"id,omitempty"
@@ -1505,7 +1479,7 @@ type ContentBlock
 # Use Type "adaptive" for Claude 4.6+ (recommended)
 # Use Type "enabled" with BudgetTokens for older models (deprecated on 4.6)
 type ThinkingConfig
-    Type string json:"type"
+    Type string as "type"
     BudgetTokens int json:"budget_tokens,omitempty"
 
 # OutputConfig represents output configuration (Claude 4.6+)
@@ -1516,43 +1490,43 @@ type OutputConfig
 # AnthropicMessage represents a message in the Anthropic format
 # Role is "user" or "assistant" (system is a top-level field, not a message)
 type AnthropicMessage
-    Role string json:"role"
-    Content any json:"content"
+    Role string as "role"
+    Content any as "content"
 
 # AnthropicTool represents a tool definition in the Anthropic format
 type AnthropicTool
-    Name string json:"name"
+    Name string as "name"
     Description string json:"description,omitempty"
-    InputSchema any json:"input_schema"
+    InputSchema any as "input_schema"
 
 # AnthropicToolChoice represents tool selection in the Anthropic format
 type AnthropicToolChoice
-    Type string json:"type"
+    Type string as "type"
     Name string json:"name,omitempty"
 
 # AnthropicUsage holds token usage from the Anthropic API
 type AnthropicUsage
-    InputTokens int json:"input_tokens"
-    OutputTokens int json:"output_tokens"
+    InputTokens int as "input_tokens"
+    OutputTokens int as "output_tokens"
     CacheCreationInputTokens int json:"cache_creation_input_tokens,omitempty"
     CacheReadInputTokens int json:"cache_read_input_tokens,omitempty"
 
 # AnthropicResponse is the response from POST /v1/messages
 type AnthropicResponse
-    ID string json:"id"
-    Type string json:"type"
-    Role string json:"role"
-    Content list of ContentBlock json:"content"
-    Model string json:"model"
-    StopReason string json:"stop_reason"
+    ID string as "id"
+    Type string as "type"
+    Role string as "role"
+    Content list of ContentBlock as "content"
+    Model string as "model"
+    StopReason string as "stop_reason"
     StopSequence string json:"stop_sequence,omitempty"
-    Usage AnthropicUsage json:"usage"
+    Usage AnthropicUsage as "usage"
 
 # MessagesRequest is the JSON body sent to POST /v1/messages
 type MessagesRequest
-    Model string json:"model"
-    Messages list of AnthropicMessage json:"messages"
-    MaxTokens int json:"max_tokens"
+    Model string as "model"
+    Messages list of AnthropicMessage as "messages"
+    MaxTokens int as "max_tokens"
     System string json:"system,omitempty"
     Temperature float64 json:"temperature,omitempty"
     TopP float64 json:"top_p,omitempty"
@@ -1570,7 +1544,7 @@ type MessagesRequest
 # AnthropicStreamEvent represents a parsed SSE event from Anthropic streaming
 # The Anthropic API uses "event:" and "data:" SSE fields
 type AnthropicStreamEvent
-    Type string json:"type"
+    Type string as "type"
     Index int json:"index,omitempty"
     Message AnthropicResponse json:"message,omitzero"
     ContentBlock ContentBlock json:"content_block,omitzero"
@@ -1900,7 +1874,7 @@ func GetThinking(resp AnthropicResponse) string
 # Returns all content blocks with type "tool_use"
 # Example: tools := llm.GetToolUses(resp)
 func GetToolUses(resp AnthropicResponse) list of ContentBlock
-    uses := list of ContentBlock{}
+    uses := empty list of ContentBlock
     for _, block in resp.Content
         if block.Type == "tool_use"
             uses = append(uses, block)
@@ -1982,10 +1956,7 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error)
     body := mBuildRequest(c)
 
     # Anthropic uses x-api-key header, not Bearer token
-    req := fetch.New(url)
-        |> fetch.Method("POST")
-        |> fetch.Header("Content-Type", "application/json")
-        |> fetch.Header("anthropic-version", c.apiVersion)
+    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("anthropic-version", c.apiVersion)
 
     if apiKey != ""
         req = fetch.Header(req, "x-api-key", apiKey)
@@ -2021,11 +1992,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
     url := "{baseURL}{msgPath}"
     body := mBuildRequest(c)
 
-    req := fetch.New(url)
-        |> fetch.Method("POST")
-        |> fetch.Header("Content-Type", "application/json")
-        |> fetch.Header("Accept", "text/event-stream")
-        |> fetch.Header("anthropic-version", c.apiVersion)
+    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("Accept", "text/event-stream") |> fetch.Header("anthropic-version", c.apiVersion)
 
     if apiKey != ""
         req = fetch.Header(req, "x-api-key", apiKey)
@@ -2084,18 +2051,17 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
 
             # Handle error events
             if evt.Type == "error"
-                return AnthropicResponse{}, error("Anthropic streaming error")
+                return AnthropicResponse{}, error "Anthropic streaming error"
 
     scanner.Err() onerr return AnthropicResponse{}, error "{error}"
 
     # Convert map to content blocks
-    blocks := list of ContentBlock{}
+    blocks := empty list of ContentBlock
     for i from 0 to 20
         _, ok := contentBlocks[i]
         if ok
             blocks = append(blocks, contentBlocks[i])
 
-    result := AnthropicResponse{
-        Content: blocks,
-    }
+    result := AnthropicResponse{Content: blocks}
+
     return result, empty

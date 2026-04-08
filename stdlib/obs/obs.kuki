@@ -24,12 +24,7 @@ type Timer
 
 # New creates a logger with service and environment metadata.
 func New(service string, environment string) Logger
-    return Logger{
-        service: service,
-        environment: environment,
-        component: "",
-        correlationID: "",
-    }
+    return Logger{service: service, environment: environment, component: "", correlationID: ""}
 
 # Component sets the component field on the logger.
 func Component(logger Logger, component string) Logger
@@ -63,11 +58,8 @@ func Error(logger Logger, message string, fields map of string to any)
 
 # Log emits a structured JSON log line with common metadata and custom fields.
 func Log(logger Logger, level string, message string, fields map of string to any)
-    payload := map of string to any{
-        "ts": time.Now().Format(time.RFC3339Nano),
-        "level": level,
-        "message": message,
-    }
+    payload := map of string to any{"ts": time.Now().Format(time.RFC3339Nano), "level": level, "message": message}
+
     if logger.service not equals ""
         payload["service"] = logger.service
     if logger.environment not equals ""
@@ -82,21 +74,18 @@ func Log(logger Logger, level string, message string, fields map of string to an
     line := json.Marshal(payload) onerr
         print("[obs:{level}] {message}")
         return
+
     fmt.Printf("%s\n", line)
 
 # Start begins a timer for an operation.
 func Start(logger Logger, operation string) Timer
-    return Timer{
-        logger: logger,
-        operation: operation,
-        startedAt: time.Now(),
-    }
+    return Timer{logger: logger, operation: operation, startedAt: time.Now()}
 
 # Stop records a successful timer completion with duration in milliseconds.
 func Stop(timer Timer, fields map of string to any)
     elapsedMs := time.Since(timer.startedAt).Milliseconds()
     if fields equals empty
-        fields = map of string to any{}
+        fields = empty map of string to any
     fields["operation"] = timer.operation
     fields["duration_ms"] = elapsedMs
     timer.logger |> Info("operation complete", fields)
@@ -105,7 +94,7 @@ func Stop(timer Timer, fields map of string to any)
 func Fail(timer Timer, reason string, fields map of string to any)
     elapsedMs := time.Since(timer.startedAt).Milliseconds()
     if fields equals empty
-        fields = map of string to any{}
+        fields = empty map of string to any
     fields["operation"] = timer.operation
     fields["duration_ms"] = elapsedMs
     fields["reason"] = reason

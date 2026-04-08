@@ -8,17 +8,13 @@ import "testing"
 
 # --- TestStrings ---
 type StringsCase
-    name  string
+    name string
     input list of string
-    want  list of string
+    want list of string
 
 func TestStrings(t reference testing.T)
-    cases := list of StringsCase{
-        StringsCase{name: "already sorted",  input: list of string{"apple", "banana"}, want: list of string{"apple", "banana"}},
-        StringsCase{name: "reverse order",   input: list of string{"banana", "apple"}, want: list of string{"apple", "banana"}},
-        StringsCase{name: "single element",  input: list of string{"only"},            want: list of string{"only"}},
-        StringsCase{name: "empty slice",     input: list of string{},                  want: list of string{}},
-    }
+    cases := list of StringsCase{StringsCase{name: "already sorted", input: list of string{"apple", "banana"}, want: list of string{"apple", "banana"}}, StringsCase{name: "reverse order", input: list of string{"banana", "apple"}, want: list of string{"apple", "banana"}}, StringsCase{name: "single element", input: list of string{"only"}, want: list of string{"only"}}, StringsCase{name: "empty slice", input: empty list of string, want: empty list of string}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := sort.Strings(tc.input)
@@ -29,16 +25,13 @@ func TestStrings(t reference testing.T)
 
 # --- TestInts ---
 type IntsCase
-    name  string
+    name string
     input list of int
-    want  list of int
+    want list of int
 
 func TestInts(t reference testing.T)
-    cases := list of IntsCase{
-        IntsCase{name: "unsorted",     input: list of int{3, 1, 2},    want: list of int{1, 2, 3}},
-        IntsCase{name: "with negatives", input: list of int{0, -1, 5}, want: list of int{-1, 0, 5}},
-        IntsCase{name: "empty",        input: list of int{},           want: list of int{}},
-    }
+    cases := list of IntsCase{IntsCase{name: "unsorted", input: list of int{3, 1, 2}, want: list of int{1, 2, 3}}, IntsCase{name: "with negatives", input: list of int{0, -1, 5}, want: list of int{-1, 0, 5}}, IntsCase{name: "empty", input: empty list of int, want: empty list of int}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := sort.Ints(tc.input)
@@ -52,9 +45,8 @@ type ByCase
     name string
 
 func TestBy(t reference testing.T)
-    cases := list of ByCase{
-        ByCase{name: "sort by length"},
-    }
+    cases := list of ByCase{ByCase{name: "sort by length"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             words := list of string{"banana", "fig", "apple", "kiwi"}
@@ -67,9 +59,8 @@ type ByKeyCase
     name string
 
 func TestByKey(t reference testing.T)
-    cases := list of ByKeyCase{
-        ByKeyCase{name: "sort by string length"},
-    }
+    cases := list of ByKeyCase{ByKeyCase{name: "sort by string length"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             words := list of string{"banana", "fig", "apple", "kiwi"}
@@ -83,9 +74,8 @@ type ReverseCase
     name string
 
 func TestReverse(t reference testing.T)
-    cases := list of ReverseCase{
-        ReverseCase{name: "reverse ints"},
-    }
+    cases := list of ReverseCase{ReverseCase{name: "reverse ints"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             nums := list of int{1, 3, 2}

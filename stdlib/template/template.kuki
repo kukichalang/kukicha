@@ -26,10 +26,8 @@ func Data(td TemplateData, data map of string to any) TemplateData
 # This is the final step in the pipeline that produces output
 # WARNING: Uses text/template — no HTML escaping. For HTML output use HTMLExecute.
 func Execute(td TemplateData) (string, error)
-    result := td.Content
-        |> parseTextTemplate()
-        |> executeTextTemplate(td.Data)
-        onerr return
+    result := td.Content |> parseTextTemplate() |> executeTextTemplate(td.Data) onerr return
+
     return result, empty
 
 # Parse parses template content from a string
@@ -50,10 +48,8 @@ func WithContent(td TemplateData, content string) TemplateData
 # RenderSimple is a convenience function that renders a template in one call
 # Takes a template string and data map, returns the rendered string
 func RenderSimple(tmplStr string, data map of string to any) (string, error)
-    result := Render(tmplStr)
-        |> Data(data)
-        |> Execute()
-        onerr return
+    result := Render(tmplStr) |> Data(data) |> Execute() onerr return
+
     return result, empty
 
 # HTMLExecute executes the template with HTML auto-escaping via html/template
@@ -61,10 +57,8 @@ func RenderSimple(tmplStr string, data map of string to any) (string, error)
 # Prevents XSS by escaping {{ }} values that contain user-controlled content
 # Example: result, err := tmplData |> template.HTMLExecute()
 func HTMLExecute(td TemplateData) (string, error)
-    result := td.Content
-        |> parseHTMLTemplate()
-        |> executeHTMLTemplate(td.Data)
-        onerr return
+    result := td.Content |> parseHTMLTemplate() |> executeHTMLTemplate(td.Data) onerr return
+
     return result, empty
 
 # HTMLRenderSimple renders a template with HTML escaping in one call
@@ -72,17 +66,15 @@ func HTMLExecute(td TemplateData) (string, error)
 # Prevents XSS: values substituted via {{ }} are automatically escaped
 # Example: result, err := template.HTMLRenderSimple("<b>{{.Name}}</b>", data)
 func HTMLRenderSimple(tmplStr string, data map of string to any) (string, error)
-    result := Render(tmplStr)
-        |> Data(data)
-        |> HTMLExecute()
-        onerr return
+    result := Render(tmplStr) |> Data(data) |> HTMLExecute() onerr return
+
     return result, empty
 
 # Must wraps a template execution result and panics on error
 # Useful for templates that should always work
 func Must(result string, err error) string
     if err != empty
-        panic(err)
+        panic err
     return result
 
 # Funcs adds custom functions to the template

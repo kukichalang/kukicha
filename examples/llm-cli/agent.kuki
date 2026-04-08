@@ -30,7 +30,7 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
     if maxRounds equals 0
         maxRounds = 15
 
-    messages := append(list of llm.Message{}, many history)
+    messages := append(empty list of llm.Message, many history)
 
     # System prompt at conversation start
     if len(messages) equals 0
@@ -46,12 +46,7 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
 
     for round from 0 to maxRounds
         # Build the LLM client for this round
-        client := llm.New("")
-            |> llm.Model(a.Config.Model)
-            |> llm.BaseURL(a.Config.WebUIURL)
-            |> llm.Path("/api/chat/completions")
-            |> llm.APIKey(a.Config.WebUIAPIKey)
-            |> llm.Messages(messages)
+        client := llm.New("") |> llm.Model(a.Config.Model) |> llm.BaseURL(a.Config.WebUIURL) |> llm.Path("/api/chat/completions") |> llm.APIKey(a.Config.WebUIAPIKey) |> llm.Messages(messages)
 
         # Add discovered MCP tools
         for t in tools
@@ -76,11 +71,7 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
             toolCalls := llm.GetToolCalls(comp)
 
             # Add assistant message with tool calls to history
-            messages = append(messages, llm.Message{
-                Role: "assistant", 
-                Content: content,
-                ToolCalls: toolCalls,
-            })
+            messages = append(messages, llm.Message{Role: "assistant", Content: content, ToolCalls: toolCalls})
 
             for _, tc in toolCalls
                 if a.OnToolCall isnt empty
@@ -93,20 +84,12 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
                     a.OnToolResult(tc.Function.Name, truncateStr(toolResult, 500))
 
                 # Add tool result as a message
-                messages = append(messages, llm.Message{
-                    Role: "tool", 
-                    Content: toolResult,
-                    ToolCallID: tc.ID,
-                })
+                messages = append(messages, llm.Message{Role: "tool", Content: toolResult, ToolCallID: tc.ID})
 
             continue
 
         # No tool calls — done
-        return reference of RunResult{
-            Content: content,
-            Messages: messages,
-            Rounds: round + 1,
-        }, empty
+        return reference of RunResult{Content: content, Messages: messages, Rounds: round + 1}, empty
 
     return empty, error "agent hit max rounds ({maxRounds}) without completing"
 

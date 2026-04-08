@@ -9,7 +9,7 @@ func add(args map of string to any) (any, error)
     # LLMs often send numbers as strings, cast.SmartInt handles both
     a := args["a"] |> cast.SmartInt() onerr 0
     b := args["b"] |> cast.SmartInt() onerr 0
-    
+
     result := a + b
     res := "{a} + {b} = {result}"
     return res as any, empty

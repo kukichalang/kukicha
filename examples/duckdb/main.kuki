@@ -48,7 +48,7 @@ func main()
     # Revenue by product using GROUP BY
     print("--- Revenue by Product ---")
     rows := db.Query(pool, "SELECT product, SUM(quantity) as total_qty, ROUND(SUM(quantity * price), 2) as revenue FROM sales GROUP BY product ORDER BY revenue DESC") onerr panic "query failed: {error}"
-    products := db.ScanAll(rows, list of ProductRevenue{}) onerr panic "scan failed: {error}"
+    products := db.ScanAll(rows, empty list of ProductRevenue) onerr panic "scan failed: {error}"
     for p in products.(list of ProductRevenue)
         print("  {p.Product}: {p.TotalQty} units, ${p.Revenue}")
 
@@ -56,7 +56,7 @@ func main()
     print("")
     print("--- Sales by Region ---")
     rows = db.Query(pool, "SELECT region, COUNT(*) as num_sales, ROUND(SUM(quantity * price), 2) as total_revenue FROM sales GROUP BY region ORDER BY total_revenue DESC") onerr panic "query failed: {error}"
-    regions := db.ScanAll(rows, list of RegionSales{}) onerr panic "scan failed: {error}"
+    regions := db.ScanAll(rows, empty list of RegionSales) onerr panic "scan failed: {error}"
     for r in regions.(list of RegionSales)
         print("  {r.Region}: {r.NumSales} sales, ${r.TotalRevenue}")
 
@@ -64,7 +64,7 @@ func main()
     print("")
     print("--- Monthly Revenue Trend ---")
     rows = db.Query(pool, "SELECT STRFTIME(sale_date, '%Y-%m') as month, ROUND(SUM(quantity * price), 2) as revenue FROM sales GROUP BY month ORDER BY month") onerr panic "query failed: {error}"
-    months := db.ScanAll(rows, list of MonthlyRevenue{}) onerr panic "scan failed: {error}"
+    months := db.ScanAll(rows, empty list of MonthlyRevenue) onerr panic "scan failed: {error}"
     for m in months.(list of MonthlyRevenue)
         print("  {m.Month}: ${m.Revenue}")
 
@@ -72,7 +72,7 @@ func main()
     print("")
     print("--- Top Sale per Region (Window Function) ---")
     rows = db.Query(pool, "SELECT product, region, ROUND(quantity * price, 2) as sale_value FROM sales QUALIFY ROW_NUMBER() OVER (PARTITION BY region ORDER BY quantity * price DESC) = 1 ORDER BY sale_value DESC") onerr panic "query failed: {error}"
-    tops := db.ScanAll(rows, list of TopSale{}) onerr panic "scan failed: {error}"
+    tops := db.ScanAll(rows, empty list of TopSale) onerr panic "scan failed: {error}"
     for t in tops.(list of TopSale)
         print("  {t.Region}: {t.Product} (${t.SaleValue})")
 

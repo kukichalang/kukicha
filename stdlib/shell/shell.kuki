@@ -13,7 +13,7 @@ type Command
     name string
     args list of string
     dir string
-    timeout int  # seconds, 0 means no timeout
+    timeout int # seconds, 0 means no timeout
     env map of string to string
 
 # Result represents the result of a shell command execution
@@ -113,6 +113,7 @@ func getExitCode(err error) int
             return exitErr.ExitCode()
         otherwise
             return 1
+
     return code
 
 # Args appends additional arguments to an existing command

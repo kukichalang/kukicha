@@ -14,7 +14,7 @@ func TestValues(t reference testing.T)
 
 # --- TestFilter ---
 type FilterCase
-    name    string
+    name string
     wantLen int
 
 func TestFilter(t reference testing.T)
@@ -23,10 +23,12 @@ func TestFilter(t reference testing.T)
         result := items |> iterator.Values() |> iterator.Filter((n int) => n % 2 == 0) |> iterator.Collect()
         test.AssertEqual(t, len(result), 3)
     )
+
     t.Run("keep none", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Filter((n int) => n > 100) |> iterator.Collect()
         test.AssertEqual(t, len(result), 0)
     )
+
     t.Run("keep all", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Filter((n int) => n > 0) |> iterator.Collect()
         test.AssertEqual(t, len(result), 6)
@@ -39,10 +41,12 @@ func TestTake(t reference testing.T)
         result := items |> iterator.Values() |> iterator.Take(3) |> iterator.Collect()
         test.AssertEqual(t, len(result), 3)
     )
+
     t.Run("take more than available", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Take(10) |> iterator.Collect()
         test.AssertEqual(t, len(result), 5)
     )
+
     t.Run("take 0", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Take(0) |> iterator.Collect()
         test.AssertEqual(t, len(result), 0)
@@ -55,10 +59,12 @@ func TestSkip(t reference testing.T)
         result := items |> iterator.Values() |> iterator.Skip(2) |> iterator.Collect()
         test.AssertEqual(t, len(result), 3)
     )
+
     t.Run("skip all", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Skip(10) |> iterator.Collect()
         test.AssertEqual(t, len(result), 0)
     )
+
     t.Run("skip 0", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Skip(0) |> iterator.Collect()
         test.AssertEqual(t, len(result), 5)
@@ -74,8 +80,9 @@ func TestReduce(t reference testing.T)
         result := items |> iterator.Values() |> iterator.Reduce(0, addInts)
         test.AssertEqual(t, result, 10)
     )
+
     t.Run("empty with initial", (t reference testing.T) =>
-        emptyList := list of int{}
+        emptyList := empty list of int
         result := emptyList |> iterator.Values() |> iterator.Reduce(42, addInts)
         test.AssertEqual(t, result, 42)
     )
@@ -87,6 +94,7 @@ func TestAny(t reference testing.T)
         result := items |> iterator.Values() |> iterator.Any((n int) => n == 3)
         test.AssertTrue(t, result)
     )
+
     t.Run("no match", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Any((n int) => n > 100)
         test.AssertFalse(t, result)
@@ -99,6 +107,7 @@ func TestAll(t reference testing.T)
         result := items |> iterator.Values() |> iterator.All((n int) => n % 2 == 0)
         test.AssertTrue(t, result)
     )
+
     t.Run("not all match", (t reference testing.T) =>
         mixed := list of int{2, 3, 4}
         result := mixed |> iterator.Values() |> iterator.All((n int) => n % 2 == 0)
@@ -113,6 +122,7 @@ func TestFind(t reference testing.T)
         test.AssertTrue(t, ok)
         test.AssertEqual(t, val, 20)
     )
+
     t.Run("not found", (t reference testing.T) =>
         _, ok := items |> iterator.Values() |> iterator.Find((n int) => n > 100)
         test.AssertFalse(t, ok)
@@ -125,6 +135,7 @@ func TestChain(t reference testing.T)
         result := items |> iterator.Values() |> iterator.Filter((n int) => n % 2 == 0) |> iterator.Take(2) |> iterator.Collect()
         test.AssertEqual(t, len(result), 2)
     )
+
     t.Run("skip then filter", (t reference testing.T) =>
         result := items |> iterator.Values() |> iterator.Skip(5) |> iterator.Filter((n int) => n % 2 == 0) |> iterator.Collect()
         test.AssertEqual(t, len(result), 3)

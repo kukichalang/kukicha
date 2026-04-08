@@ -181,9 +181,32 @@ func (p *Parser) parseIfStmt() *ast.IfStmt {
 	var condition ast.Expression
 
 	if hasSemicolon {
+		// Temporarily mark the semicolon as TOKEN_NEWLINE so that parseExpressionOrAssignmentStmt
+		// stops at it. (skipIgnoredTokens silently skips TOKEN_SEMICOLON, so the expression parser
+		// would otherwise parse across the semicolon — e.g. `1;(cond)` would be parsed as `1(cond)`.)
+		semiIdx := -1
+		semiDepth := 0
+		for i := p.pos; i < len(p.tokens); i++ {
+			t := p.tokens[i].Type
+			if t == lexer.TOKEN_NEWLINE || t == lexer.TOKEN_EOF || t == lexer.TOKEN_INDENT || t == lexer.TOKEN_DEDENT {
+				break
+			}
+			if t == lexer.TOKEN_LPAREN {
+				semiDepth++
+			} else if t == lexer.TOKEN_RPAREN {
+				semiDepth--
+			} else if t == lexer.TOKEN_SEMICOLON && semiDepth == 0 {
+				semiIdx = i
+				break
+			}
+		}
+		if semiIdx >= 0 {
+			p.tokens[semiIdx].Type = lexer.TOKEN_NEWLINE
+		}
 		init = p.parseExpressionOrAssignmentStmt()
-		if p.check(lexer.TOKEN_SEMICOLON) {
-			p.advance() // consume ';'
+		// Skip past the sentinel newline we injected
+		for p.pos < len(p.tokens) && p.tokens[p.pos].Type == lexer.TOKEN_NEWLINE {
+			p.pos++
 		}
 		condition = p.parseExpression()
 	} else {

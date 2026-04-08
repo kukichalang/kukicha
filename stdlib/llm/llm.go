@@ -751,234 +751,234 @@ func executeRaw(c Client) (Completion, error) {
 	body := buildRequest(c)
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:657
 	req := fetch.Body(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:662
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:659
 	if apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:663
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:660
 		req = fetch.Header(req, "Authorization", fmt.Sprintf("Bearer %v", apiKey))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:665
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:662
 	if c.retryMaxAttempts > 1 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:666
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:663
 		req = fetch.Retry(req, c.retryMaxAttempts, c.retryDelayMs)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:668
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:665
 	resp, err_2 := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:668
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:665
 	if err_2 != nil {
 		var _zero0 Completion
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:668
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:665
 		return _zero0, err_2
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:670
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:667
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:672
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:669
 	if resp.StatusCode >= 400 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:673
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:670
 		errBody, err_3 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:673
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:670
 		if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:673
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:670
 			return Completion{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:674
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:671
 		return Completion{}, fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:676
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:673
 	comp := Completion{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:677
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:677
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:674
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:674
 	err_4 := json.UnmarshalRead(resp.Body, &comp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:677
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:674
 	if err_4 != nil {
 		var _zero0 Completion
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:677
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:674
 		return _zero0, err_4
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:679
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:676
 	return comp, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:682
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:679
 func executeStream(c Client) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:683
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:680
 	comp, err_5 := executeStreamRaw(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:683
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:680
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:683
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:680
 		return "", err_5
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:684
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:681
 	return GetContent(comp), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:687
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:684
 func executeStreamRaw(c Client) (Completion, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:688
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:685
 	baseURL := resolveBaseURL(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:689
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:686
 	apiKey := resolveAPIKey(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:690
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:687
 	chatPath := resolvePath(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:691
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:688
 	url := fmt.Sprintf("%v%v", baseURL, chatPath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:692
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:689
 	body := buildRequest(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:694
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:691
 	req := fetch.Body(fetch.Header(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), "Accept", "text/event-stream"), body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:700
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:693
 	if apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:701
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:694
 		req = fetch.Header(req, "Authorization", fmt.Sprintf("Bearer %v", apiKey))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:703
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:696
 	resp, err_6 := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:703
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:696
 	if err_6 != nil {
 		var _zero0 Completion
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:703
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:696
 		return _zero0, err_6
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:705
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:698
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:707
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:700
 	if resp.StatusCode >= 400 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:708
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:701
 		errBody, err_7 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:708
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:701
 		if err_7 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:708
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:701
 			return Completion{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:709
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:702
 		return Completion{}, fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:712
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:705
 	fullContent := ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:713
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:706
 	callsMap := make(map[int]ToolCall)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:714
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:707
 	scanner := bufio.NewScanner(resp.Body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:715
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:708
 	for scanner.Scan() {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:716
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:709
 		line := scanner.Text()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:719
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:712
 		if (line == "") || kukistring.HasPrefix(line, ":") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:720
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:713
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:723
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:716
 		if line == "data: [DONE]" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:724
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:717
 			break
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:727
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:720
 		if kukistring.HasPrefix(line, "data: ") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:728
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:721
 			data := kukistring.TrimPrefix(line, "data: ")
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:729
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:722
 			chunk := Chunk{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:730
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:730
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:723
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:723
 			err_8 := json.Unmarshal([]byte(data), &chunk)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:730
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:723
 			if err_8 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:730
-				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:731
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:723
+				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:724
 				continue
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:733
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:726
 			if len(chunk.Choices) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:734
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:727
 				delta := chunk.Choices[0].Delta
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:735
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:728
 				if delta.Content != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:736
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:729
 					fullContent = (fullContent + delta.Content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:737
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:730
 					c.streamHandler(delta.Content)
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:739
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:732
 				if len(delta.ToolCalls) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:740
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:733
 					for _, tcDelta := range delta.ToolCalls {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:741
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:734
 						idx := tcDelta.Index
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:742
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:735
 						call := callsMap[idx]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:743
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:736
 						if tcDelta.ID != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:744
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:737
 							call.ID = tcDelta.ID
 						}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:745
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:738
 						if tcDelta.Type != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:746
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:739
 							call.Type = tcDelta.Type
 						}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:747
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:740
 						if tcDelta.Function.Name != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:748
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:741
 							call.Function.Name = (call.Function.Name + tcDelta.Function.Name)
 						}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:749
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:742
 						if tcDelta.Function.Arguments != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:750
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:743
 							call.Function.Arguments = (call.Function.Arguments + tcDelta.Function.Arguments)
 						}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:751
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:744
 						callsMap[idx] = call
 					}
 				}
 			}
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:753
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:753
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:746
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:746
 	err_9 := scanner.Err()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:753
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:746
 	if err_9 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:753
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:746
 		return Completion{}, fmt.Errorf("%v", err_9)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:756
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:749
 	toolCalls := make([]ToolCall, 0)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:757
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:750
 	for i := range 20 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:758
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:751
 		_, ok := callsMap[i]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:759
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:752
 		if ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:760
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:753
 			toolCalls = append(toolCalls, callsMap[i])
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:762
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:755
 	comp := Completion{Choices: []Choice{Choice{Index: 0, Message: ResponseMessage{Role: "assistant", Content: fullContent, ToolCalls: toolCalls}}}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:774
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:757
 	return comp, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:781
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:765
 type InputTextContent struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:786
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:770
 type OutputTextContent struct {
 	Type        string `json:"type"`
 	Text        string `json:"text"`
 	Annotations []any  `json:"annotations,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:792
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:776
 type RefusalContent struct {
 	Type    string `json:"type"`
 	Refusal string `json:"refusal"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:798
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:782
 type InputItem struct {
 	Type      string `json:"type"`
 	ID        string `json:"id,omitempty"`
@@ -991,7 +991,7 @@ type InputItem struct {
 	Output    string `json:"output,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:811
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:795
 type OutputItem struct {
 	Type      string `json:"type"`
 	ID        string `json:"id,omitempty"`
@@ -1004,20 +1004,20 @@ type OutputItem struct {
 	Summary   []any  `json:"summary,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:823
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:807
 type ResponseUsage struct {
 	InputTokens  int `json:"input_tokens"`
 	OutputTokens int `json:"output_tokens"`
 	TotalTokens  int `json:"total_tokens"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:829
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:813
 type ResponseError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:834
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:818
 type Response struct {
 	ID                 string            `json:"id"`
 	Object             string            `json:"object"`
@@ -1040,7 +1040,7 @@ type Response struct {
 	Metadata           map[string]string `json:"metadata,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:856
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:840
 type ResponseRequest struct {
 	Model              string            `json:"model"`
 	Input              any               `json:"input"`
@@ -1060,7 +1060,7 @@ type ResponseRequest struct {
 	Text               any               `json:"text,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:875
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:859
 type StreamEvent struct {
 	Type           string     `json:"type"`
 	SequenceNumber int        `json:"sequence_number"`
@@ -1078,7 +1078,7 @@ type StreamEvent struct {
 	Message        string     `json:"message,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:892
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:876
 type ResponseClient struct {
 	model              string
 	provider           string
@@ -1105,160 +1105,184 @@ type ResponseClient struct {
 	retryDelayMs       int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:920
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:904
 func NewResponse(model string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:921
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:905
 	c := ResponseClient{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:922
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:906
 	c.input = []InputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:923
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:907
 	c.tools = []Tool{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:924
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:908
 	c.temperature = 0.0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:925
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:909
 	c.topP = 0.0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:926
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:910
 	c.maxOutputTokens = 0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:927
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:911
 	c.presencePenalty = 0.0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:928
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:912
 	c.frequencyPenalty = 0.0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:929
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:913
 	c.store = false
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:930
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:914
 	c.truncation = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:931
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:915
 	c.instructions = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:932
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:916
 	c.previousResponseID = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:935
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:919
 	if kukistring.Contains(model, ":") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:936
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:920
 		parts := kukistring.SplitN(model, ":", 2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:937
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:921
 		c.provider = parts[0]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:938
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:922
 		c.model = parts[1]
 	} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:940
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:924
 		c.model = model
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:941
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:925
 		c.provider = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:943
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:927
 	c.baseURL = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:944
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:928
 	c.path = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:945
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:929
 	c.apiKey = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:946
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:930
 	c.streamHandler = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:947
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:931
 	c.eventHandler = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:948
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:932
 	c.toolChoice = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:949
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:933
 	c.textFormat = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:950
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:934
 	c.metadata = map[string]string{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:951
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:935
 	c.retryMaxAttempts = 0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:952
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:936
 	c.retryDelayMs = 0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:953
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:937
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:957
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:941
 func RProvider(c ResponseClient, provider string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:958
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:942
 	c.provider = provider
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:959
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:943
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:963
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:947
 func RBaseURL(c ResponseClient, url string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:964
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:948
 	c.baseURL = url
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:965
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:949
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:969
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:953
 func RPath(c ResponseClient, path string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:970
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:954
 	c.path = path
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:971
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:955
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:975
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:959
 func RAPIKey(c ResponseClient, key string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:976
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:960
 	c.apiKey = key
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:977
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:961
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:981
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:965
 func Instructions(c ResponseClient, instructions string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:982
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:966
 	c.instructions = instructions
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:967
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:971
+func PreviousResponse(c ResponseClient, id string) ResponseClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:972
+	c.previousResponseID = id
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:973
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:977
+func RUserMessage(c ResponseClient, content string) ResponseClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:978
+	item := InputItem{}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:979
+	item.Type = "message"
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:980
+	item.Role = "user"
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:981
+	item.Content = content
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:982
+	c.input = append(c.input, item)
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:983
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:987
-func PreviousResponse(c ResponseClient, id string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:988
-	c.previousResponseID = id
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:989
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:993
-func RUserMessage(c ResponseClient, content string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:994
-	item := InputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:995
-	item.Type = "message"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:996
-	item.Role = "user"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:997
-	item.Content = content
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:998
-	c.input = append(c.input, item)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:999
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1003
 func RSystemMessage(c ResponseClient, content string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1004
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:988
 	item := InputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1005
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:989
 	item.Type = "message"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1006
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:990
 	item.Role = "system"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1007
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:991
 	item.Content = content
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1008
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:992
 	c.input = append(c.input, item)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1009
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:993
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1013
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:997
 func RDeveloperMessage(c ResponseClient, content string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1014
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:998
 	item := InputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1015
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:999
 	item.Type = "message"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1016
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1000
 	item.Role = "developer"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1017
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1001
 	item.Content = content
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1002
+	c.input = append(c.input, item)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1003
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1007
+func RAssistantMessage(c ResponseClient, content string) ResponseClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1008
+	item := InputItem{}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1009
+	item.Type = "message"
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1010
+	item.Role = "assistant"
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1011
+	item.Content = content
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1012
+	c.input = append(c.input, item)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1013
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1017
+func RAddInput(c ResponseClient, item InputItem) ResponseClient {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1018
 	c.input = append(c.input, item)
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1019
@@ -1266,15 +1290,15 @@ func RDeveloperMessage(c ResponseClient, content string) ResponseClient {
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1023
-func RAssistantMessage(c ResponseClient, content string) ResponseClient {
+func FunctionCallOutput(c ResponseClient, callID string, output string) ResponseClient {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1024
 	item := InputItem{}
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1025
-	item.Type = "message"
+	item.Type = "function_call_output"
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1026
-	item.Role = "assistant"
+	item.CallID = callID
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1027
-	item.Content = content
+	item.Output = output
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1028
 	c.input = append(c.input, item)
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1029
@@ -1282,237 +1306,213 @@ func RAssistantMessage(c ResponseClient, content string) ResponseClient {
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1033
-func RAddInput(c ResponseClient, item InputItem) ResponseClient {
+func RTemperature(c ResponseClient, temp float64) ResponseClient {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1034
-	c.input = append(c.input, item)
+	c.temperature = temp
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1035
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1039
-func FunctionCallOutput(c ResponseClient, callID string, output string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1040
-	item := InputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1041
-	item.Type = "function_call_output"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1042
-	item.CallID = callID
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1043
-	item.Output = output
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1044
-	c.input = append(c.input, item)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1045
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1049
-func RTemperature(c ResponseClient, temp float64) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1050
-	c.temperature = temp
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1051
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1055
 func RTopP(c ResponseClient, p float64) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1056
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1040
 	c.topP = p
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1057
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1041
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1061
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1045
 func RMaxOutputTokens(c ResponseClient, max int) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1062
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1046
 	c.maxOutputTokens = max
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1063
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1047
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1067
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1051
 func RPresencePenalty(c ResponseClient, penalty float64) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1068
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1052
 	c.presencePenalty = penalty
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1069
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1053
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1073
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1057
 func RFrequencyPenalty(c ResponseClient, penalty float64) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1074
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1058
 	c.frequencyPenalty = penalty
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1075
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1059
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1079
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1063
 func RAddTool(c ResponseClient, name string, description string, parameters any) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1080
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1064
 	fn := ToolFunction{Name: name, Description: description, Parameters: parameters}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1081
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1065
 	tool := Tool{Type: "function", Function: fn}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1082
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1066
 	c.tools = append(c.tools, tool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1083
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1067
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1087
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1071
 func RToolChoiceAuto(c ResponseClient) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1088
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1072
 	c.toolChoice = "auto"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1089
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1073
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1093
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1077
 func RToolChoiceRequired(c ResponseClient) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1094
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1078
 	c.toolChoice = "required"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1095
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1079
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1099
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1083
 func RToolChoiceNone(c ResponseClient) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1100
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1084
 	c.toolChoice = "none"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1101
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1085
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1105
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1089
 func RJSONMode(c ResponseClient) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1106
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1090
 	c.textFormat = map[string]string{"type": "json_object"}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1107
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1091
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1111
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1095
 func RJSONSchema(c ResponseClient, name string, schema any) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1112
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1096
 	c.textFormat = map[string]any{"type": "json_schema", "name": name, "schema": schema, "strict": true}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1113
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1097
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1117
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1101
 func RStore(c ResponseClient) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1118
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1102
 	c.store = true
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1119
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1103
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1123
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1107
 func RTruncation(c ResponseClient, mode string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1124
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1108
 	c.truncation = mode
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1125
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1109
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1129
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1113
 func RMetadata(c ResponseClient, meta map[string]string) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1130
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1114
 	c.metadata = meta
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1131
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1115
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1136
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1120
 func RStream(c ResponseClient, handler func(string)) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1137
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1121
 	c.streamHandler = handler
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1138
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1122
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1143
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1127
 func RStreamEvents(c ResponseClient, handler func(StreamEvent)) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1144
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1128
 	c.eventHandler = handler
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1145
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1129
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1149
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1133
 func RRetry(c ResponseClient, maxAttempts int, delayMs int) ResponseClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1150
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1134
 	c.retryMaxAttempts = maxAttempts
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1151
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1135
 	c.retryDelayMs = delayMs
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1152
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1136
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1158
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1142
 func RAsk(c ResponseClient, prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1159
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1143
 	c = RUserMessage(c, prompt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1160
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1144
 	return rExecute(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1170
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1154
 func RSend(c ResponseClient) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1171
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1155
 	return rExecute(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1179
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1163
 func RAskRaw(c ResponseClient, prompt string) (Response, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1180
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1164
 	c = RUserMessage(c, prompt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1181
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1165
 	return rExecuteRaw(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1189
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1173
 func RSendRaw(c ResponseClient) (Response, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1190
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1174
 	return rExecuteRaw(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1196
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1180
 func Respond(model string, prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1197
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1181
 	c := NewResponse(model)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1198
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1182
 	return RAsk(c, prompt)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1203
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1187
 func RespondWithInstructions(model string, instructions string, prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1204
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1188
 	c := NewResponse(model)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1205
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1189
 	c = Instructions(c, instructions)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1206
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1190
 	return RAsk(c, prompt)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1211
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1195
 func GetResponseText(resp Response) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1212
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1196
 	for _, item := range resp.Output {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1213
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1197
 		if item.Type == "message" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1214
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1198
 			for _, content := range item.Content {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1215
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1199
 				switch contentMap := content.(type) {
 				case map[string]any:
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1217
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1201
 					switch contentTypeStr := contentMap["type"].(type) {
 					case string:
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1219
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1203
 						if contentTypeStr == "output_text" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1220
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1204
 							switch textStr := contentMap["text"].(type) {
 							case string:
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1222
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1206
 								return textStr
 							}
 						}
@@ -1521,495 +1521,495 @@ func GetResponseText(resp Response) string {
 			}
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1223
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1208
 	return ""
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1228
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1213
 func GetFunctionCalls(resp Response) []OutputItem {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1229
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1214
 	calls := []OutputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1230
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1215
 	for _, item := range resp.Output {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1231
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1216
 		if item.Type == "function_call" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1232
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1217
 			calls = append(calls, item)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1233
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1218
 	return calls
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1237
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1222
 func HasFunctionCalls(resp Response) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1238
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1223
 	calls := GetFunctionCalls(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1239
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1224
 	return (len(calls) > 0)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1242
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1227
 func rResolveAPIKey(c ResponseClient) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1243
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1228
 	if c.apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1244
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1229
 		return c.apiKey
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1246
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1231
 	if c.provider == "openai" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1247
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1232
 		return env.GetOr("OPENAI_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1248
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1233
 	if c.provider == "anthropic" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1249
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1234
 		return env.GetOr("ANTHROPIC_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1250
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1235
 	if c.provider == "mistral" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1251
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1236
 		return env.GetOr("MISTRAL_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1252
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1237
 	if c.provider == "groq" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1253
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1238
 		return env.GetOr("GROQ_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1254
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1239
 	if c.provider == "together" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1255
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1240
 		return env.GetOr("TOGETHER_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1256
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1241
 	if c.provider == "deepseek" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1257
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1242
 		return env.GetOr("DEEPSEEK_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1258
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1243
 	if c.provider == "xai" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1259
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1244
 		return env.GetOr("XAI_API_KEY", "")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1261
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1246
 	return env.GetOr("LLM_API_KEY", "")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1264
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1249
 func rResolveBaseURL(c ResponseClient) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1265
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1250
 	if c.baseURL != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1266
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1251
 		return c.baseURL
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1268
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1253
 	if c.provider == "openai" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1269
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1254
 		return "https://api.openai.com"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1270
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1255
 	if c.provider == "anthropic" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1271
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1256
 		return "https://api.anthropic.com"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1272
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1257
 	if c.provider == "mistral" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1273
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1258
 		return "https://api.mistral.ai"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1274
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1259
 	if c.provider == "groq" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1275
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1260
 		return "https://api.groq.com/openai"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1276
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1261
 	if c.provider == "together" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1277
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1262
 		return "https://api.together.xyz"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1278
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1263
 	if c.provider == "deepseek" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1279
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1264
 		return "https://api.deepseek.com"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1280
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1265
 	if c.provider == "xai" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1281
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1266
 		return "https://api.x.ai"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1282
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1267
 	if c.provider == "ollama" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1283
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1268
 		return "http://localhost:11434"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1284
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1269
 	if (c.provider == "fastflowlm") || (c.provider == "flm") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1285
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1270
 		return "http://localhost:52625"
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1288
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1273
 	envURL := env.GetOr("LLM_BASE_URL", "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1289
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1274
 	if envURL != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1290
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1275
 		return envURL
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1291
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1276
 	return "http://localhost:8000"
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1294
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1279
 func rResolvePath(c ResponseClient) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1295
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1280
 	if c.path != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1296
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1281
 		return c.path
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1297
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1282
 	return "/v1/responses"
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1300
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1285
 func rBuildRequest(c ResponseClient) ResponseRequest {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1301
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1286
 	req := ResponseRequest{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1302
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1287
 	req.Model = c.model
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1305
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1290
 	if ((len(c.input) == 1) && (c.input[0].Type == "message")) && (c.input[0].Role == "user") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1307
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1292
 		req.Input = c.input
 	} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1309
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1294
 		req.Input = c.input
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1311
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1296
 	if c.instructions != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1312
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1297
 		req.Instructions = c.instructions
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1313
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1298
 	if c.previousResponseID != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1314
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1299
 		req.PreviousResponseID = c.previousResponseID
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1315
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1300
 	if c.temperature != 0.0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1316
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1301
 		req.Temperature = c.temperature
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1317
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1302
 	if c.topP != 0.0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1318
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1303
 		req.TopP = c.topP
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1319
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1304
 	if c.maxOutputTokens != 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1320
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1305
 		req.MaxOutputTokens = c.maxOutputTokens
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1321
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1306
 	if c.presencePenalty != 0.0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1322
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1307
 		req.PresencePenalty = c.presencePenalty
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1323
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1308
 	if c.frequencyPenalty != 0.0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1324
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1309
 		req.FrequencyPenalty = c.frequencyPenalty
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1325
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1310
 	if len(c.tools) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1326
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1311
 		req.Tools = c.tools
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1327
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1312
 	if c.toolChoice != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1328
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1313
 		req.ToolChoice = c.toolChoice
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1329
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1314
 	if c.store {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1330
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1315
 		req.Store = true
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1331
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1316
 	if c.truncation != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1332
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1317
 		req.Truncation = c.truncation
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1333
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1318
 	if len(c.metadata) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1334
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1319
 		req.Metadata = c.metadata
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1335
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1320
 	if c.textFormat != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1336
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1321
 		req.Text = c.textFormat
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1337
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1322
 	if (c.streamHandler != nil) || (c.eventHandler != nil) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1338
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1323
 		req.Stream = true
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1340
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1325
 	return req
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1343
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1328
 func rExecute(c ResponseClient) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1344
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1329
 	resp, err_10 := rExecuteRaw(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1344
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1329
 	if err_10 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1344
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1329
 		return "", err_10
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1345
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1330
 	return GetResponseText(resp), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1348
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1333
 func rExecuteRaw(c ResponseClient) (Response, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1349
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1334
 	if (c.streamHandler != nil) || (c.eventHandler != nil) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1350
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1335
 		return rExecuteStreamRaw(c)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1352
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1337
 	baseURL := rResolveBaseURL(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1353
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1338
 	apiKey := rResolveAPIKey(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1354
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1339
 	responsePath := rResolvePath(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1355
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1340
 	url := fmt.Sprintf("%v%v", baseURL, responsePath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1356
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1341
 	body := rBuildRequest(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1358
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1343
 	req := fetch.Body(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1363
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1345
 	if apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1364
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1346
 		req = fetch.Header(req, "Authorization", fmt.Sprintf("Bearer %v", apiKey))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1366
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1348
 	if c.retryMaxAttempts > 1 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1367
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1349
 		req = fetch.Retry(req, c.retryMaxAttempts, c.retryDelayMs)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1351
 	resp, err_11 := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1351
 	if err_11 != nil {
 		var _zero0 Response
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1369
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1351
 		return _zero0, err_11
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1371
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1353
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1373
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1355
 	if resp.StatusCode >= 400 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1374
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1356
 		errBody, err_12 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1374
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1356
 		if err_12 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1374
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1356
 			return Response{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1375
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1357
 		return Response{}, fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1377
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1359
 	result := Response{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1378
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1378
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1360
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1360
 	err_13 := json.UnmarshalRead(resp.Body, &result)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1378
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1360
 	if err_13 != nil {
 		var _zero0 Response
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1378
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1360
 		return _zero0, err_13
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1380
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1362
 	return result, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1383
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1365
 func rExecuteStream(c ResponseClient) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1384
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1366
 	resp, err_14 := rExecuteStreamRaw(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1384
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1366
 	if err_14 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1384
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1366
 		return "", err_14
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1385
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1367
 	return GetResponseText(resp), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1388
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1370
 func rExecuteStreamRaw(c ResponseClient) (Response, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1389
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1371
 	baseURL := rResolveBaseURL(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1390
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1372
 	apiKey := rResolveAPIKey(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1391
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1373
 	responsePath := rResolvePath(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1392
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1374
 	url := fmt.Sprintf("%v%v", baseURL, responsePath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1393
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1375
 	body := rBuildRequest(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1395
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1377
 	req := fetch.Body(fetch.Header(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), "Accept", "text/event-stream"), body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1401
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1379
 	if apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1402
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1380
 		req = fetch.Header(req, "Authorization", fmt.Sprintf("Bearer %v", apiKey))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1404
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1382
 	resp, err_15 := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1404
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1382
 	if err_15 != nil {
 		var _zero0 Response
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1404
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1382
 		return _zero0, err_15
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1406
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1384
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1408
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1386
 	if resp.StatusCode >= 400 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1409
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1387
 		errBody, err_16 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1409
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1387
 		if err_16 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1409
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1387
 			return Response{}, fmt.Errorf("API request failed with status %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1410
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1388
 		return Response{}, fmt.Errorf("API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1414
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1392
 	fullContent := ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1415
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1393
 	callsMap := make(map[int]OutputItem)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1416
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1394
 	scanner := bufio.NewScanner(resp.Body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1417
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1395
 	for scanner.Scan() {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1418
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1396
 		line := scanner.Text()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1421
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1399
 		if (line == "") || kukistring.HasPrefix(line, ":") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1422
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1400
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1425
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1403
 		if line == "data: [DONE]" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1426
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1404
 			break
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1429
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1407
 		if kukistring.HasPrefix(line, "data: ") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1430
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1408
 			data := kukistring.TrimPrefix(line, "data: ")
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1431
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1409
 			evt := StreamEvent{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1432
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1432
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1410
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1410
 			err_17 := json.Unmarshal([]byte(data), &evt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1432
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1410
 			if err_17 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1432
-				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1433
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1410
+				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1411
 				continue
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1436
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1414
 			if c.eventHandler != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1437
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1415
 				c.eventHandler(evt)
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1440
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1418
 			if evt.Type == "response.output_text.delta" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1441
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1419
 				if evt.Delta != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1442
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1420
 					fullContent = (fullContent + evt.Delta)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1443
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1421
 					if c.streamHandler != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1444
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1422
 						c.streamHandler(evt.Delta)
 					}
 				}
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1447
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1425
 			if (evt.Type == "response.function_call.delta") || (evt.Type == "response.function_call_arguments.delta") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1448
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1426
 				idx := evt.OutputIndex
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1449
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1427
 				call := callsMap[idx]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1450
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1428
 				call.Type = "function_call"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1451
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1429
 				if evt.ItemID != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1452
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1430
 					call.ID = evt.ItemID
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1453
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1431
 				if evt.Name != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1454
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1432
 					call.Name = (call.Name + evt.Name)
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1455
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1433
 				if evt.Arguments != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1456
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1434
 					call.Arguments = (call.Arguments + evt.Arguments)
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1457
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1435
 				callsMap[idx] = call
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1460
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1438
 			if evt.Type == "error" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1461
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1439
 				return Response{}, errors.New(evt.Message)
 			}
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1463
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1463
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1441
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1441
 	err_18 := scanner.Err()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1463
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1441
 	if err_18 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1463
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1441
 		return Response{}, fmt.Errorf("%v", err_18)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1466
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1444
 	output := []OutputItem{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1468
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1446
 	for i := range 20 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1469
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1447
 		_, ok := callsMap[i]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1470
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1448
 		if ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1471
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1449
 			output = append(output, callsMap[i])
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1474
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1452
 	if fullContent != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1475
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1453
 		msgPart := map[string]any{"type": "output_text", "text": fullContent}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1476
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1454
 		output = append(output, OutputItem{Type: "message", Role: "assistant", Content: []any{msgPart}})
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1482
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1456
 	result := Response{Output: output}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1485
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1458
 	return result, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1493
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1467
 type ContentBlock struct {
 	Type      string `json:"type"`
 	Text      string `json:"text,omitempty"`
@@ -2022,37 +2022,37 @@ type ContentBlock struct {
 	Source    any    `json:"source,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1507
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1481
 type ThinkingConfig struct {
 	Type         string `json:"type"`
 	BudgetTokens int    `json:"budget_tokens,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1513
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1487
 type OutputConfig struct {
 	Format any `json:"format,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1518
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1492
 type AnthropicMessage struct {
 	Role    string `json:"role"`
 	Content any    `json:"content"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1523
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1497
 type AnthropicTool struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	InputSchema any    `json:"input_schema"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1529
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1503
 type AnthropicToolChoice struct {
 	Type string `json:"type"`
 	Name string `json:"name,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1534
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1508
 type AnthropicUsage struct {
 	InputTokens              int `json:"input_tokens"`
 	OutputTokens             int `json:"output_tokens"`
@@ -2060,7 +2060,7 @@ type AnthropicUsage struct {
 	CacheReadInputTokens     int `json:"cache_read_input_tokens,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1541
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1515
 type AnthropicResponse struct {
 	ID           string         `json:"id"`
 	Type         string         `json:"type"`
@@ -2072,7 +2072,7 @@ type AnthropicResponse struct {
 	Usage        AnthropicUsage `json:"usage"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1552
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1526
 type MessagesRequest struct {
 	Model         string             `json:"model"`
 	Messages      []AnthropicMessage `json:"messages"`
@@ -2092,7 +2092,7 @@ type MessagesRequest struct {
 	InferenceGeo  string             `json:"inference_geo,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1572
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1546
 type AnthropicStreamEvent struct {
 	Type         string            `json:"type"`
 	Index        int               `json:"index,omitempty"`
@@ -2102,7 +2102,7 @@ type AnthropicStreamEvent struct {
 	Usage        AnthropicUsage    `json:"usage,omitzero"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1582
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1556
 type AnthropicDelta struct {
 	Type         string `json:"type,omitempty"`
 	Text         string `json:"text,omitempty"`
@@ -2112,7 +2112,7 @@ type AnthropicDelta struct {
 	StopSequence string `json:"stop_sequence,omitempty"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1591
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1565
 type MessagesClient struct {
 	model            string
 	baseURL          string
@@ -2139,740 +2139,740 @@ type MessagesClient struct {
 	retryDelayMs     int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1618
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1592
 func NewMessages(model string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1619
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1593
 	c := MessagesClient{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1620
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1594
 	c.model = model
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1621
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1595
 	c.baseURL = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1622
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1596
 	c.path = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1623
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1597
 	c.apiKey = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1624
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1598
 	c.apiVersion = "2023-06-01"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1625
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1599
 	c.system = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1626
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1600
 	c.messages = []AnthropicMessage{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1627
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1601
 	c.maxTokens = 1024
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1628
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1602
 	c.temperature = 0.0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1629
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1603
 	c.topP = 0.0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1630
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1604
 	c.topK = 0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1631
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1605
 	c.stopSequences = []string{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1632
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1606
 	c.tools = []AnthropicTool{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1633
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1607
 	c.toolChoice = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1634
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1608
 	c.metadata = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1635
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1609
 	c.thinking = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1636
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1610
 	c.effort = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1637
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1611
 	c.outputConfig = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1638
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1612
 	c.inferenceGeo = ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1639
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1613
 	c.streamHandler = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1640
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1614
 	c.eventHandler = nil
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1641
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1615
 	c.retryMaxAttempts = 0
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1642
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1616
 	c.retryDelayMs = 0
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1617
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1621
+func MBaseURL(c MessagesClient, url string) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1622
+	c.baseURL = url
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1623
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1627
+func MPath(c MessagesClient, path string) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1628
+	c.path = path
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1629
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1634
+func MAPIKey(c MessagesClient, key string) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1635
+	c.apiKey = key
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1636
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1641
+func MAPIVersion(c MessagesClient, version string) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1642
+	c.apiVersion = version
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1643
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1647
-func MBaseURL(c MessagesClient, url string) MessagesClient {
+func MSystem(c MessagesClient, system string) MessagesClient {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1648
-	c.baseURL = url
+	c.system = system
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1649
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1653
-func MPath(c MessagesClient, path string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1654
-	c.path = path
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1655
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1660
-func MAPIKey(c MessagesClient, key string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1661
-	c.apiKey = key
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1662
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1667
-func MAPIVersion(c MessagesClient, version string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1668
-	c.apiVersion = version
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1669
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1673
-func MSystem(c MessagesClient, system string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1674
-	c.system = system
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1675
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1679
 func MUser(c MessagesClient, content string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1680
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1654
 	msg := AnthropicMessage{Role: "user", Content: content}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1681
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1655
 	c.messages = append(c.messages, msg)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1682
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1656
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1687
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1661
 func MAssistant(c MessagesClient, content string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1688
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1662
 	msg := AnthropicMessage{Role: "assistant", Content: content}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1689
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1663
 	c.messages = append(c.messages, msg)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1690
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1664
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1694
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1668
 func MAddMessage(c MessagesClient, role string, content any) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1695
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1669
 	msg := AnthropicMessage{Role: role, Content: content}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1696
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1670
 	c.messages = append(c.messages, msg)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1671
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1676
+func MToolResult(c MessagesClient, toolUseID string, result string) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1677
+	block := ContentBlock{}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1678
+	block.Type = "tool_result"
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1679
+	block.ToolUseID = toolUseID
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1680
+	block.Content = result
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1681
+	blocks := []ContentBlock{block}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1682
+	msg := AnthropicMessage{Role: "user", Content: blocks}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1683
+	c.messages = append(c.messages, msg)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1684
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1689
+func MMaxTokens(c MessagesClient, max int) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1690
+	c.maxTokens = max
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1691
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1695
+func MTemperature(c MessagesClient, temp float64) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1696
+	c.temperature = temp
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1697
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1702
-func MToolResult(c MessagesClient, toolUseID string, result string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1703
-	block := ContentBlock{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1704
-	block.Type = "tool_result"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1705
-	block.ToolUseID = toolUseID
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1706
-	block.Content = result
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1707
-	blocks := []ContentBlock{block}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1708
-	msg := AnthropicMessage{Role: "user", Content: blocks}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1709
-	c.messages = append(c.messages, msg)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1710
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1715
-func MMaxTokens(c MessagesClient, max int) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1716
-	c.maxTokens = max
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1717
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1721
-func MTemperature(c MessagesClient, temp float64) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1722
-	c.temperature = temp
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1723
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1727
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1701
 func MTopP(c MessagesClient, p float64) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1728
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1702
 	c.topP = p
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1729
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1703
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1733
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1707
 func MTopK(c MessagesClient, k int) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1734
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1708
 	c.topK = k
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1735
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1709
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1739
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1713
 func MStopSequences(c MessagesClient, sequences []string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1740
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1714
 	c.stopSequences = sequences
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1741
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1715
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1746
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1720
 func MAdaptiveThinking(c MessagesClient) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1747
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1721
 	c.thinking = ThinkingConfig{Type: "adaptive"}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1748
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1722
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1752
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1726
 func MThinking(c MessagesClient, budgetTokens int) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1753
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1727
 	c.thinking = ThinkingConfig{Type: "enabled", BudgetTokens: budgetTokens}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1754
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1728
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1761
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1735
 func MEffort(c MessagesClient, effort string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1762
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1736
 	c.effort = effort
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1763
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1737
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1769
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1743
 func MOutputFormat(c MessagesClient, format any) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1770
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1744
 	c.outputConfig = OutputConfig{Format: format}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1771
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1745
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1777
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1751
 func MInferenceGeo(c MessagesClient, geo string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1778
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1752
 	c.inferenceGeo = geo
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1779
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1753
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1757
+func MAddTool(c MessagesClient, name string, description string, inputSchema any) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1758
+	tool := AnthropicTool{Name: name, Description: description, InputSchema: inputSchema}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1759
+	c.tools = append(c.tools, tool)
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1760
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1764
+func MToolChoiceAuto(c MessagesClient) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1765
+	c.toolChoice = AnthropicToolChoice{Type: "auto"}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1766
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1770
+func MToolChoiceAny(c MessagesClient) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1771
+	c.toolChoice = AnthropicToolChoice{Type: "any"}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1772
+	return c
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1776
+func MToolChoiceTool(c MessagesClient, name string) MessagesClient {
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1777
+	c.toolChoice = AnthropicToolChoice{Type: "tool", Name: name}
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1778
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1783
-func MAddTool(c MessagesClient, name string, description string, inputSchema any) MessagesClient {
+func MStream(c MessagesClient, handler func(string)) MessagesClient {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1784
-	tool := AnthropicTool{Name: name, Description: description, InputSchema: inputSchema}
+	c.streamHandler = handler
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1785
-	c.tools = append(c.tools, tool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1786
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1790
-func MToolChoiceAuto(c MessagesClient) MessagesClient {
+func MStreamEvents(c MessagesClient, handler func(AnthropicStreamEvent)) MessagesClient {
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1791
-	c.toolChoice = AnthropicToolChoice{Type: "auto"}
+	c.eventHandler = handler
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1792
 	return c
 }
 
 //line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1796
-func MToolChoiceAny(c MessagesClient) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1797
-	c.toolChoice = AnthropicToolChoice{Type: "any"}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1798
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1802
-func MToolChoiceTool(c MessagesClient, name string) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1803
-	c.toolChoice = AnthropicToolChoice{Type: "tool", Name: name}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1804
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1809
-func MStream(c MessagesClient, handler func(string)) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1810
-	c.streamHandler = handler
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1811
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1816
-func MStreamEvents(c MessagesClient, handler func(AnthropicStreamEvent)) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1817
-	c.eventHandler = handler
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1818
-	return c
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1822
 func MRetry(c MessagesClient, maxAttempts int, delayMs int) MessagesClient {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1823
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1797
 	c.retryMaxAttempts = maxAttempts
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1824
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1798
 	c.retryDelayMs = delayMs
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1825
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1799
 	return c
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1831
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1805
 func MAsk(c MessagesClient, prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1832
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1806
 	c = MUser(c, prompt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1833
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1807
 	return mExecute(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1843
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1817
 func MSend(c MessagesClient) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1844
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1818
 	return mExecute(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1852
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1826
 func MAskRaw(c MessagesClient, prompt string) (AnthropicResponse, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1853
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1827
 	c = MUser(c, prompt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1854
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1828
 	return mExecuteRaw(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1862
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1836
 func MSendRaw(c MessagesClient) (AnthropicResponse, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1863
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1837
 	return mExecuteRaw(c)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1867
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1841
 func AnthropicComplete(model string, prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1868
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1842
 	c := NewMessages(model)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1869
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1843
 	return MAsk(c, prompt)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1873
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1847
 func AnthropicCompleteWithSystem(model string, system string, prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1874
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1848
 	c := NewMessages(model)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1875
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1849
 	c = MSystem(c, system)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1876
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1850
 	return MAsk(c, prompt)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1881
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1855
 func GetAnthropicText(resp AnthropicResponse) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1882
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1856
 	result := ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1883
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1857
 	for _, block := range resp.Content {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1884
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1858
 		if block.Type == "text" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1885
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1859
 			result = (result + block.Text)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1886
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1860
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1892
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1866
 func GetThinking(resp AnthropicResponse) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1893
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1867
 	result := ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1894
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1868
 	for _, block := range resp.Content {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1895
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1869
 		if block.Type == "thinking" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1896
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1870
 			result = (result + block.Thinking)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1897
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1871
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1902
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1876
 func GetToolUses(resp AnthropicResponse) []ContentBlock {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1903
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1877
 	uses := []ContentBlock{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1904
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1878
 	for _, block := range resp.Content {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1905
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1879
 		if block.Type == "tool_use" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1906
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1880
 			uses = append(uses, block)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1907
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1881
 	return uses
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1911
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1885
 func HasToolUses(resp AnthropicResponse) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1912
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1886
 	return (resp.StopReason == "tool_use")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1915
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1889
 func mResolveAPIKey(c MessagesClient) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1916
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1890
 	if c.apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1917
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1891
 		return c.apiKey
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1918
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1892
 	return env.GetOr("ANTHROPIC_API_KEY", "")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1921
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1895
 func mResolveBaseURL(c MessagesClient) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1922
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1896
 	if c.baseURL != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1923
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1897
 		return c.baseURL
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1924
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1898
 	return "https://api.anthropic.com"
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1927
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1901
 func mResolvePath(c MessagesClient) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1928
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1902
 	if c.path != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1929
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1903
 		return c.path
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1930
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1904
 	return "/v1/messages"
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1933
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1907
 func mBuildRequest(c MessagesClient) MessagesRequest {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1934
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1908
 	req := MessagesRequest{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1935
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1909
 	req.Model = c.model
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1936
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1910
 	req.Messages = c.messages
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1937
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1911
 	req.MaxTokens = c.maxTokens
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1939
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1913
 	if c.system != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1940
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1914
 		req.System = c.system
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1941
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1915
 	if c.temperature != 0.0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1942
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1916
 		req.Temperature = c.temperature
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1943
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1917
 	if c.topP != 0.0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1944
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1918
 		req.TopP = c.topP
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1945
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1919
 	if c.topK != 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1946
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1920
 		req.TopK = c.topK
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1947
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1921
 	if len(c.stopSequences) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1948
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1922
 		req.StopSequences = c.stopSequences
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1949
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1923
 	if len(c.tools) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1950
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1924
 		req.Tools = c.tools
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1951
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1925
 	if c.toolChoice != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1952
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1926
 		req.ToolChoice = c.toolChoice
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1953
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1927
 	if c.metadata != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1954
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1928
 		req.Metadata = c.metadata
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1955
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1929
 	if c.thinking != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1956
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1930
 		req.Thinking = c.thinking
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1957
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1931
 	if c.effort != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1958
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1932
 		req.Effort = c.effort
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1959
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1933
 	if c.outputConfig != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1960
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1934
 		req.OutputConfig = c.outputConfig
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1961
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1935
 	if c.inferenceGeo != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1962
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1936
 		req.InferenceGeo = c.inferenceGeo
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1963
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1937
 	if (c.streamHandler != nil) || (c.eventHandler != nil) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1964
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1938
 		req.Stream = true
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1966
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1940
 	return req
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1943
 func mExecute(c MessagesClient) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1970
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1944
 	if (c.streamHandler != nil) || (c.eventHandler != nil) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1971
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1945
 		return mExecuteStream(c)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1973
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1947
 	resp, err_19 := mExecuteRaw(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1973
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1947
 	if err_19 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1973
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1947
 		return "", err_19
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1974
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1948
 	return GetAnthropicText(resp), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1977
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1951
 func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1978
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1952
 	baseURL := mResolveBaseURL(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1979
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1953
 	apiKey := mResolveAPIKey(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1980
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1954
 	msgPath := mResolvePath(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1981
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1955
 	url := fmt.Sprintf("%v%v", baseURL, msgPath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1982
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1956
 	body := mBuildRequest(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1985
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1959
 	req := fetch.Header(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), "anthropic-version", c.apiVersion)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1990
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1961
 	if apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1991
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1962
 		req = fetch.Header(req, "x-api-key", apiKey)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1993
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1964
 	req = fetch.Body(req, body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1995
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1966
 	if c.retryMaxAttempts > 1 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1996
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1967
 		req = fetch.Retry(req, c.retryMaxAttempts, c.retryDelayMs)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1998
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
 	resp, err_20 := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1998
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
 	if err_20 != nil {
 		var _zero0 AnthropicResponse
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1998
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1969
 		return _zero0, err_20
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2000
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1971
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2002
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1973
 	if resp.StatusCode >= 400 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2003
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1974
 		errBody, err_21 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2003
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1974
 		if err_21 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2003
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1974
 			return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2004
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1975
 		return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2006
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1977
 	result := AnthropicResponse{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1978
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1978
 	err_22 := json.UnmarshalRead(resp.Body, &result)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1978
 	if err_22 != nil {
 		var _zero0 AnthropicResponse
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1978
 		return _zero0, err_22
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2009
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1980
 	return result, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2012
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1983
 func mExecuteStream(c MessagesClient) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2013
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1984
 	resp, err_23 := mExecuteStreamRaw(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2013
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1984
 	if err_23 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2013
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1984
 		return "", err_23
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2014
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1985
 	return GetAnthropicText(resp), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2017
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1988
 func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2018
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1989
 	baseURL := mResolveBaseURL(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2019
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1990
 	apiKey := mResolveAPIKey(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2020
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1991
 	msgPath := mResolvePath(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2021
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1992
 	url := fmt.Sprintf("%v%v", baseURL, msgPath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2022
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1993
 	body := mBuildRequest(c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2024
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1995
 	req := fetch.Header(fetch.Header(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), "Accept", "text/event-stream"), "anthropic-version", c.apiVersion)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2030
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1997
 	if apiKey != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2031
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:1998
 		req = fetch.Header(req, "x-api-key", apiKey)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2033
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2000
 	req = fetch.Body(req, body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2035
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2002
 	resp, err_24 := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2035
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2002
 	if err_24 != nil {
 		var _zero0 AnthropicResponse
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2035
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2002
 		return _zero0, err_24
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2037
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2004
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2039
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2006
 	if resp.StatusCode >= 400 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2040
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
 		errBody, err_25 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2040
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
 		if err_25 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2040
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2007
 			return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2041
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2008
 		return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2044
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2011
 	contentBlocks := make(map[int]ContentBlock)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2045
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2012
 	inputAccum := make(map[int]string)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2046
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2013
 	scanner := bufio.NewScanner(resp.Body)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2047
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2014
 	for scanner.Scan() {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2048
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2015
 		line := scanner.Text()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2051
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2018
 		if ((line == "") || kukistring.HasPrefix(line, "event:")) || kukistring.HasPrefix(line, ":") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2052
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2019
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2055
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2022
 		if kukistring.HasPrefix(line, "data: ") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2056
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2023
 			data := kukistring.TrimPrefix(line, "data: ")
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2057
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2024
 			evt := AnthropicStreamEvent{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2058
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2058
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2025
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2025
 			err_26 := json.Unmarshal([]byte(data), &evt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2058
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2025
 			if err_26 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2058
-				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2059
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2025
+				//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2026
 				continue
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2062
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2029
 			if c.eventHandler != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2063
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2030
 				c.eventHandler(evt)
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2066
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2033
 			if evt.Type == "content_block_start" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2067
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2034
 				idx := evt.Index
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2068
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2035
 				contentBlocks[idx] = evt.ContentBlock
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2071
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2038
 			if evt.Type == "content_block_delta" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2072
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2039
 				idx := evt.Index
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2073
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2040
 				block := contentBlocks[idx]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2074
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2041
 				if evt.Delta.Type == "text_delta" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2075
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2042
 					block.Type = "text"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2076
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2043
 					block.Text = (block.Text + evt.Delta.Text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2077
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2044
 					if c.streamHandler != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2078
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2045
 						c.streamHandler(evt.Delta.Text)
 					}
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2079
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2046
 				if evt.Delta.Type == "input_json_delta" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2080
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2047
 					block.Type = "tool_use"
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2081
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2048
 					inputAccum[idx] = (inputAccum[idx] + evt.Delta.PartialJSON)
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2082
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2049
 					block.Input = inputAccum[idx]
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2083
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2050
 				contentBlocks[idx] = block
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2086
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2053
 			if evt.Type == "error" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2087
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2054
 				return AnthropicResponse{}, errors.New("Anthropic streaming error")
 			}
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2089
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2089
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2056
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2056
 	err_27 := scanner.Err()
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2089
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2056
 	if err_27 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2089
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2056
 		return AnthropicResponse{}, fmt.Errorf("%v", err_27)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2092
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2059
 	blocks := []ContentBlock{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2093
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2060
 	for i := range 20 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2094
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2061
 		_, ok := contentBlocks[i]
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2095
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2062
 		if ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2096
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2063
 			blocks = append(blocks, contentBlocks[i])
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2098
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2065
 	result := AnthropicResponse{Content: blocks}
-//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2101
+//line /var/home/tluker/repos/go/kukicha/stdlib/llm/llm.kuki:2067
 	return result, nil
 }

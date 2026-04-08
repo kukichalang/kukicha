@@ -10,17 +10,29 @@ import "time"
 # Use these instead of remembering Go reference time layouts
 # Go uses the reference time: Mon Jan 2 15:04:05 MST 2006
 const ISO8601 = "iso8601"
+
 const RFC3339 = "rfc3339"
+
 const RFC3339Nano = "rfc3339nano"
+
 const Date = "date"
+
 const Time = "time"
+
 const DateTime = "datetime"
+
 const DateTimeT = "dateTimeT"
+
 const Kitchen = "kitchen"
+
 const Stamp = "stamp"
+
 const RFC822 = "rfc822"
+
 const RFC1123 = "rfc1123"
+
 const ANSIC = "ansic"
+
 const UnixDate = "unixdate"
 
 # Format formats a time using a named format or custom layout
@@ -182,7 +194,7 @@ func IsSameDay(t1 time.Time, t2 time.Time) bool
     y2 := t2.Year()
     m2 := t2.Month()
     d2 := t2.Day()
-    return (y1 == y2) and (m1 == m2) and (d1 == d2)
+    return y1 == y2 and m1 == m2 and d1 == d2
 
 # IsToday returns true if the time is today
 # Example: if datetime.IsToday(event) ...

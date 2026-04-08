@@ -10,7 +10,7 @@ import "path/filepath"
 import "time"
 
 type TestData
-    Name  string
+    Name string
     Value int
 
 # --- TestReadWrite ---
@@ -18,9 +18,8 @@ type ReadWriteCase
     name string
 
 func TestReadWrite(t reference testing.T)
-    cases := list of ReadWriteCase{
-        ReadWriteCase{name: "basic"},
-    }
+    cases := list of ReadWriteCase{ReadWriteCase{name: "basic"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -45,9 +44,8 @@ type WriteJSONCase
     name string
 
 func TestWriteJSON(t reference testing.T)
-    cases := list of WriteJSONCase{
-        WriteJSONCase{name: "write struct"},
-    }
+    cases := list of WriteJSONCase{WriteJSONCase{name: "write struct"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -72,9 +70,8 @@ type ExistsCase
     name string
 
 func TestExists(t reference testing.T)
-    cases := list of ExistsCase{
-        ExistsCase{name: "file exists"},
-    }
+    cases := list of ExistsCase{ExistsCase{name: "file exists"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -96,9 +93,8 @@ type IsDirCase
     name string
 
 func TestIsDir(t reference testing.T)
-    cases := list of IsDirCase{
-        IsDirCase{name: "check directory"},
-    }
+    cases := list of IsDirCase{IsDirCase{name: "check directory"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -123,9 +119,8 @@ type ListCase
     name string
 
 func TestList(t reference testing.T)
-    cases := list of ListCase{
-        ListCase{name: "list files"},
-    }
+    cases := list of ListCase{ListCase{name: "list files"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -150,9 +145,8 @@ type AppendCase
     name string
 
 func TestAppend(t reference testing.T)
-    cases := list of AppendCase{
-        AppendCase{name: "append string"},
-    }
+    cases := list of AppendCase{AppendCase{name: "append string"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -180,9 +174,8 @@ type CopyCase
     name string
 
 func TestCopy(t reference testing.T)
-    cases := list of CopyCase{
-        CopyCase{name: "copy file"},
-    }
+    cases := list of CopyCase{CopyCase{name: "copy file"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -212,9 +205,8 @@ type DeleteCase
     name string
 
 func TestDelete(t reference testing.T)
-    cases := list of DeleteCase{
-        DeleteCase{name: "delete file"},
-    }
+    cases := list of DeleteCase{DeleteCase{name: "delete file"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
@@ -237,9 +229,8 @@ type TempFileCase
     name string
 
 func TestTempFile(t reference testing.T)
-    cases := list of TempFileCase{
-        TempFileCase{name: "create temp file"},
-    }
+    cases := list of TempFileCase{TempFileCase{name: "create temp file"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             path, err := files.TempFile("kukicha-test-")
@@ -257,9 +248,8 @@ type PathCase
     name string
 
 func TestPathFunctions(t reference testing.T)
-    cases := list of PathCase{
-        PathCase{name: "path operations"},
-    }
+    cases := list of PathCase{PathCase{name: "path operations"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             testPath := "/home/user/document.txt"
@@ -279,26 +269,25 @@ type UseWithCase
     name string
 
 func TestUseWith(t reference testing.T)
-    cases := list of UseWithCase{
-        UseWithCase{name: "use with block"},
-    }
+    cases := list of UseWithCase{UseWithCase{name: "use with block"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
             test.AssertNoError(t, err)
-            
+
             testFile := filepath.Join(tmpDir, "temp.txt")
             files.WriteString("content", testFile)
-            
+
             existed := false
             files.UseWith(testFile, func(path string)
                 if files.Exists(path)
                     existed = true
             )
-            
+
             test.AssertTrue(t, existed)
             test.AssertFalse(t, files.Exists(testFile))
-                
+
             os.RemoveAll(tmpDir)
         )
 
@@ -307,26 +296,25 @@ type WatchCase
     name string
 
 func TestWatch(t reference testing.T)
-    cases := list of WatchCase{
-        WatchCase{name: "watch file"},
-    }
+    cases := list of WatchCase{WatchCase{name: "watch file"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tmpDir, err := os.MkdirTemp("", "kukicha-watch-test-")
             test.AssertNoError(t, err)
             defer os.RemoveAll(tmpDir)
-            
+
             testFile := filepath.Join(tmpDir, "watch.txt")
             files.WriteString("initial", testFile)
-            
+
             ch := make(channel of string)
             go files.Watch(filepath.Join(tmpDir, "*.txt"), func(path string)
                 send path to ch
             )
-            
+
             time.Sleep(1 * time.Second)
             files.WriteString("modified", testFile)
-            
+
             receivedPath := receive from ch
             test.AssertEqual(t, receivedPath, testFile)
         )

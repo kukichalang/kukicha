@@ -16,41 +16,71 @@ import "net/url"
 
 # HTTP Status Codes
 const StatusOK = 200
+
 const StatusCreated = 201
+
 const StatusAccepted = 202
+
 const StatusNoContent = 204
+
 const StatusMovedPermanently = 301
+
 const StatusFound = 302
+
 const StatusNotModified = 304
+
 const StatusBadRequest = 400
+
 const StatusUnauthorized = 401
+
 const StatusForbidden = 403
+
 const StatusNotFound = 404
+
 const StatusMethodNotAllowed = 405
+
 const StatusConflict = 409
+
 const StatusGone = 410
+
 const StatusUnprocessableEntity = 422
+
 const StatusTooManyRequests = 429
+
 const StatusInternalServerError = 500
+
 const StatusBadGateway = 502
+
 const StatusServiceUnavailable = 503
+
 const StatusGatewayTimeout = 504
 
 # Common HTTP Header Names
 const HeaderContentType = "Content-Type"
+
 const HeaderAuthorization = "Authorization"
+
 const HeaderAccept = "Accept"
+
 const HeaderCacheControl = "Cache-Control"
+
 const HeaderContentLength = "Content-Length"
+
 const HeaderUserAgent = "User-Agent"
+
 const HeaderXRequestID = "X-Request-Id"
+
 const HeaderXForwardedFor = "X-Forwarded-For"
 
 # Common Content-Type Values
 const ContentJSON = "application/json"
+
 const ContentHTML = "text/html; charset=utf-8"
+
 const ContentText = "text/plain; charset=utf-8"
+
 const ContentForm = "application/x-www-form-urlencoded"
+
 const ContentMultipart = "multipart/form-data"
 
 # WithCSRF wraps a handler with Cross-Origin protection
@@ -143,9 +173,7 @@ func ReadJSONAndClose(r reference http.Request, target any) error
 # Use this instead of ReadJSON to prevent OOM from oversized request bodies
 # Example: http.ReadJSONLimit(r, 1 << 20, reference user) onerr return http.JSONBadRequest(w, "body too large or invalid json")
 func ReadJSONLimit(r reference http.Request, maxBytes int64, target any) error
-    return r.Body
-        |> io.LimitReader(maxBytes)
-        |> json.UnmarshalRead(target)
+    return r.Body |> io.LimitReader(maxBytes) |> json.UnmarshalRead(target)
 
 # GetQueryParam returns a query parameter value, or empty string if not present
 # Example: name := http.GetQueryParam(r, "name")
@@ -166,7 +194,7 @@ func GetQueryParamOr(r reference http.Request, key string, defaultValue string) 
 func GetQueryInt(r reference http.Request, key string) (int, error)
     value := r.URL.Query().Get(key)
     if value == ""
-        return 0, error("query parameter '{key}' is required")
+        return 0, error "query parameter '{key}' is required"
     val := cast.Atoi(value) onerr return 0, error "query parameter '{key}' must be an integer"
     return val, empty
 
@@ -187,7 +215,7 @@ func GetQueryIntOr(r reference http.Request, key string, defaultValue int) int
 func GetQueryBool(r reference http.Request, key string) (bool, error)
     value := r.URL.Query().Get(key)
     if value == ""
-        return false, error("query parameter '{key}' is required")
+        return false, error "query parameter '{key}' is required"
     val := validate.ParseBool(value) onerr return false, error "query parameter '{key}' must be a boolean"
     return val, empty
 

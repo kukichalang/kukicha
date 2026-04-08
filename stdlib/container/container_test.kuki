@@ -31,7 +31,7 @@ func TestConfigBuilder(t reference testing.T)
     cfg = container.Host(cfg, "unix:///var/run/docker.sock")
     cfg = container.APIVersion(cfg, "1.41")
 
-    # Builders should succeed without panic
+# Builders should succeed without panic
 
 # Test Auth functions
 func TestAuthFunctions(t reference testing.T)

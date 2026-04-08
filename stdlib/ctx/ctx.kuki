@@ -21,10 +21,7 @@ type Handle
 
 # Background returns a base context with no timeout or deadline.
 func Background() Handle
-    return Handle{
-        ctx: context.Background(),
-        cancel: empty,
-    }
+    return Handle{ctx: context.Background(), cancel: empty}
 
 # WithTimeout creates a child context that auto-cancels after the given seconds.
 # Always call ctx.Cancel(handle) when done to avoid resource leaks.
@@ -34,10 +31,7 @@ func WithTimeout(parent Handle, seconds int64) Handle
         base = context.Background()
     timeout := time.Duration(seconds) * time.Second
     child, cancel := context.WithTimeout(base, timeout)
-    return Handle{
-        ctx: child,
-        cancel: cancel,
-    }
+    return Handle{ctx: child, cancel: cancel}
 
 # WithTimeoutMs creates a child context that auto-cancels after timeoutMs milliseconds.
 # Always call ctx.Cancel(handle) when done to avoid resource leaks.
@@ -47,10 +41,7 @@ func WithTimeoutMs(parent Handle, timeoutMs int64) Handle
         base = context.Background()
     timeout := time.Duration(timeoutMs) * time.Millisecond
     child, cancel := context.WithTimeout(base, timeout)
-    return Handle{
-        ctx: child,
-        cancel: cancel,
-    }
+    return Handle{ctx: child, cancel: cancel}
 
 # WithDeadlineUnix creates a child context that cancels at unixSeconds (UTC).
 # Always call ctx.Cancel(handle) when done to avoid resource leaks.
@@ -60,10 +51,7 @@ func WithDeadlineUnix(parent Handle, unixSeconds int64) Handle
         base = context.Background()
     deadline := time.Unix(unixSeconds, 0)
     child, cancel := context.WithDeadline(base, deadline)
-    return Handle{
-        ctx: child,
-        cancel: cancel,
-    }
+    return Handle{ctx: child, cancel: cancel}
 
 # Cancel triggers cancellation and releases resources.
 # Returns true if the handle had a cancel function, false otherwise.

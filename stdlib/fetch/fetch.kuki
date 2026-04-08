@@ -32,10 +32,10 @@ type limitReadCloser
     r io.Reader
     c io.Closer
 
-func Read on b reference limitReadCloser (p list of byte) (int, error)
+func Read on b reference limitReadCloser(p list of byte) (int, error)
     return b.r.Read(p)
 
-func Close on b reference limitReadCloser () error
+func Close on b reference limitReadCloser error
     return b.c.Close()
 
 # Request represents an HTTP request with builder pattern support
@@ -131,8 +131,9 @@ func doOnce(req Request) (reference http.Response, error)
             when string
                 bodyData = bodyStr as list of byte
             otherwise
-                # Marshal body to JSON
                 bodyData = json.Marshal(req.body) onerr return
+
+    # Marshal body to JSON
 
     httpReq := createHTTPRequest(req.method, req.url, bodyData) onerr return
 
@@ -194,9 +195,8 @@ func createHTTPRequest(method string, url string, bodyData any) (reference http.
 # Example: resp, err := fetch.Get("https://api.example.com/data")
 # kuki:security "fetch"
 func Get(url string) (reference http.Response, error)
-    resp := New(url)
-        |> Do()
-        onerr return
+    resp := New(url) |> Do() onerr return
+
     return resp, empty
 
 # SafeGet performs an SSRF-protected HTTP GET request
@@ -206,10 +206,8 @@ func Get(url string) (reference http.Response, error)
 func SafeGet(url string) (reference http.Response, error)
     guard := netguard.NewSSRFGuard()
     transport := netguard.HTTPTransport(guard)
-    resp := New(url)
-        |> Transport(transport)
-        |> Do()
-        onerr return
+    resp := New(url) |> Transport(transport) |> Do() onerr return
+
     return resp, empty
 
 # Post performs an HTTP POST request (quick function)
@@ -218,11 +216,8 @@ func SafeGet(url string) (reference http.Response, error)
 # Example: resp, err := fetch.Post(userData, "https://api.example.com/users")
 # kuki:security "fetch"
 func Post(data any, url string) (reference http.Response, error)
-    resp := New(url)
-        |> Method("POST")
-        |> Body(data)
-        |> Do()
-        onerr return
+    resp := New(url) |> Method("POST") |> Body(data) |> Do() onerr return
+
     return resp, empty
 
 # CheckStatus checks if response status is successful (2xx)

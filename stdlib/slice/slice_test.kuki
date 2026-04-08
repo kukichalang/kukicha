@@ -8,23 +8,21 @@ import "testing"
 
 # --- SliceNCase: input slice of strings, int n, expected result length ---
 type SliceNCase
-    name    string
-    n       int
+    name string
+    n int
     wantLen int
 
 # --- TestFirst ---
 func TestFirst(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{
-        SliceNCase{name: "3 elements", n: 3, wantLen: 3},
-        SliceNCase{name: "n > length", n: 10, wantLen: 5},
-        SliceNCase{name: "n=0", n: 0, wantLen: 0},
-    }
+    cases := list of SliceNCase{SliceNCase{name: "3 elements", n: 3, wantLen: 3}, SliceNCase{name: "n > length", n: 10, wantLen: 5}, SliceNCase{name: "n=0", n: 0, wantLen: 0}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result := slice.First(items, tc.n)
             test.AssertEqual(t, len(result), tc.wantLen)
         )
+
     t.Run("correct order", (t reference testing.T) =>
         result := slice.First(items, 3)
         test.AssertEqual(t, result[0], "a")
@@ -34,16 +32,14 @@ func TestFirst(t reference testing.T)
 # --- TestLast ---
 func TestLast(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{
-        SliceNCase{name: "2 elements", n: 2, wantLen: 2},
-        SliceNCase{name: "n > length", n: 10, wantLen: 5},
-        SliceNCase{name: "n=0", n: 0, wantLen: 0},
-    }
+    cases := list of SliceNCase{SliceNCase{name: "2 elements", n: 2, wantLen: 2}, SliceNCase{name: "n > length", n: 10, wantLen: 5}, SliceNCase{name: "n=0", n: 0, wantLen: 0}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result := slice.Last(items, tc.n)
             test.AssertEqual(t, len(result), tc.wantLen)
         )
+
     t.Run("correct elements", (t reference testing.T) =>
         result := slice.Last(items, 2)
         test.AssertEqual(t, result[0], "d")
@@ -53,16 +49,14 @@ func TestLast(t reference testing.T)
 # --- TestDrop ---
 func TestDrop(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{
-        SliceNCase{name: "drop 2", n: 2, wantLen: 3},
-        SliceNCase{name: "n >= length", n: 10, wantLen: 0},
-        SliceNCase{name: "n=0", n: 0, wantLen: 5},
-    }
+    cases := list of SliceNCase{SliceNCase{name: "drop 2", n: 2, wantLen: 3}, SliceNCase{name: "n >= length", n: 10, wantLen: 0}, SliceNCase{name: "n=0", n: 0, wantLen: 5}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result := slice.Drop(items, tc.n)
             test.AssertEqual(t, len(result), tc.wantLen)
         )
+
     t.Run("first element after drop 2", (t reference testing.T) =>
         result := slice.Drop(items, 2)
         test.AssertEqual(t, result[0], "c")
@@ -71,16 +65,14 @@ func TestDrop(t reference testing.T)
 # --- TestDropLast ---
 func TestDropLast(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{
-        SliceNCase{name: "drop last 2", n: 2, wantLen: 3},
-        SliceNCase{name: "n >= length", n: 10, wantLen: 0},
-        SliceNCase{name: "n=0", n: 0, wantLen: 5},
-    }
+    cases := list of SliceNCase{SliceNCase{name: "drop last 2", n: 2, wantLen: 3}, SliceNCase{name: "n >= length", n: 10, wantLen: 0}, SliceNCase{name: "n=0", n: 0, wantLen: 5}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result := slice.DropLast(items, tc.n)
             test.AssertEqual(t, len(result), tc.wantLen)
         )
+
     t.Run("last element after drop last 2", (t reference testing.T) =>
         result := slice.DropLast(items, 2)
         test.AssertEqual(t, result[2], "c")
@@ -94,11 +86,13 @@ func TestReverse(t reference testing.T)
     t.Run("length preserved", (t reference testing.T) =>
         test.AssertEqual(t, len(result), 3)
     )
+
     t.Run("reversed order", (t reference testing.T) =>
         test.AssertEqual(t, result[0], "c")
         test.AssertEqual(t, result[1], "b")
         test.AssertEqual(t, result[2], "a")
     )
+
     t.Run("original unchanged", (t reference testing.T) =>
         test.AssertEqual(t, items[0], "a")
     )
@@ -111,6 +105,7 @@ func TestUnique(t reference testing.T)
     t.Run("removes duplicates", (t reference testing.T) =>
         test.AssertEqual(t, len(result), 4)
     )
+
     t.Run("preserves order", (t reference testing.T) =>
         test.AssertEqual(t, result[0], "a")
         test.AssertEqual(t, result[1], "b")
@@ -120,17 +115,15 @@ func TestUnique(t reference testing.T)
 
 # --- ContainsCase ---
 type ContainsCase
-    name   string
+    name string
     needle string
-    want   bool
+    want bool
 
 # --- TestContains ---
 func TestContains(t reference testing.T)
     items := list of string{"apple", "banana", "cherry"}
-    cases := list of ContainsCase{
-        ContainsCase{name: "banana present", needle: "banana", want: true},
-        ContainsCase{name: "grape absent", needle: "grape", want: false},
-    }
+    cases := list of ContainsCase{ContainsCase{name: "banana present", needle: "banana", want: true}, ContainsCase{name: "grape absent", needle: "grape", want: false}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             test.AssertEqual(t, slice.Contains(items, tc.needle), tc.want)
@@ -138,18 +131,15 @@ func TestContains(t reference testing.T)
 
 # --- IndexOfCase ---
 type IndexOfCase
-    name   string
+    name string
     needle string
-    want   int
+    want int
 
 # --- TestIndexOf ---
 func TestIndexOf(t reference testing.T)
     items := list of string{"a", "b", "c"}
-    cases := list of IndexOfCase{
-        IndexOfCase{name: "b at 1", needle: "b", want: 1},
-        IndexOfCase{name: "a at 0", needle: "a", want: 0},
-        IndexOfCase{name: "z not found", needle: "z", want: -1},
-    }
+    cases := list of IndexOfCase{IndexOfCase{name: "b at 1", needle: "b", want: 1}, IndexOfCase{name: "a at 0", needle: "a", want: 0}, IndexOfCase{name: "z not found", needle: "z", want: -1}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             test.AssertEqual(t, slice.IndexOf(items, tc.needle), tc.want)
@@ -157,18 +147,21 @@ func TestIndexOf(t reference testing.T)
 
 # --- TestIsEmptyIsNotEmpty ---
 func TestIsEmptyIsNotEmpty(t reference testing.T)
-    emptySlice := list of string{}
+    emptySlice := empty list of string
     items := list of string{"a"}
 
     t.Run("IsEmpty/empty slice", (t reference testing.T) =>
         test.AssertEqual(t, slice.IsEmpty(emptySlice), true)
     )
+
     t.Run("IsEmpty/non-empty", (t reference testing.T) =>
         test.AssertEqual(t, slice.IsEmpty(items), false)
     )
+
     t.Run("IsNotEmpty/empty slice", (t reference testing.T) =>
         test.AssertEqual(t, slice.IsNotEmpty(emptySlice), false)
     )
+
     t.Run("IsNotEmpty/non-empty", (t reference testing.T) =>
         test.AssertEqual(t, slice.IsNotEmpty(items), true)
     )
@@ -182,17 +175,20 @@ func TestGet(t reference testing.T)
         test.AssertNoError(t, err)
         test.AssertEqual(t, val, "b")
     )
+
     t.Run("negative index -1", (t reference testing.T) =>
         last, err := slice.Get(items, -1)
         test.AssertNoError(t, err)
         test.AssertEqual(t, last, "c")
     )
+
     t.Run("out of bounds returns error", (t reference testing.T) =>
         _, outErr := slice.Get(items, 10)
         test.AssertError(t, outErr)
     )
+
     t.Run("empty slice returns error", (t reference testing.T) =>
-        emptySlice := list of string{}
+        emptySlice := empty list of string
         _, emptyErr := slice.Get(emptySlice, 0)
         test.AssertError(t, emptyErr)
     )
@@ -204,31 +200,37 @@ func TestGetOr(t reference testing.T)
     t.Run("valid index", (t reference testing.T) =>
         test.AssertEqual(t, slice.GetOr(items, 1, "default"), "b")
     )
+
     t.Run("out of bounds returns default", (t reference testing.T) =>
         test.AssertEqual(t, slice.GetOr(items, 10, "default"), "default")
     )
+
     t.Run("negative index -1", (t reference testing.T) =>
         test.AssertEqual(t, slice.GetOr(items, -1, "default"), "c")
     )
+
     t.Run("empty slice returns default", (t reference testing.T) =>
-        emptySlice := list of string{}
+        emptySlice := empty list of string
         test.AssertEqual(t, slice.GetOr(emptySlice, 0, "default"), "default")
     )
 
 # --- TestFirstOrLastOr ---
 func TestFirstOrLastOr(t reference testing.T)
     items := list of string{"x", "y", "z"}
-    emptySlice := list of string{}
+    emptySlice := empty list of string
 
     t.Run("FirstOr/non-empty", (t reference testing.T) =>
         test.AssertEqual(t, slice.FirstOr(items, "default"), "x")
     )
+
     t.Run("FirstOr/empty uses default", (t reference testing.T) =>
         test.AssertEqual(t, slice.FirstOr(emptySlice, "default"), "default")
     )
+
     t.Run("LastOr/non-empty", (t reference testing.T) =>
         test.AssertEqual(t, slice.LastOr(items, "default"), "z")
     )
+
     t.Run("LastOr/empty uses default", (t reference testing.T) =>
         test.AssertEqual(t, slice.LastOr(emptySlice, "default"), "default")
     )
@@ -236,22 +238,25 @@ func TestFirstOrLastOr(t reference testing.T)
 # --- TestFirstOneLastOne ---
 func TestFirstOneLastOne(t reference testing.T)
     items := list of string{"x", "y", "z"}
-    emptySlice := list of string{}
+    emptySlice := empty list of string
 
     t.Run("FirstOne/non-empty", (t reference testing.T) =>
         first, err := slice.FirstOne(items)
         test.AssertNoError(t, err)
         test.AssertEqual(t, first, "x")
     )
+
     t.Run("FirstOne/empty returns error", (t reference testing.T) =>
         _, err := slice.FirstOne(emptySlice)
         test.AssertError(t, err)
     )
+
     t.Run("LastOne/non-empty", (t reference testing.T) =>
         last, err := slice.LastOne(items)
         test.AssertNoError(t, err)
         test.AssertEqual(t, last, "z")
     )
+
     t.Run("LastOne/empty returns error", (t reference testing.T) =>
         _, err := slice.LastOne(emptySlice)
         test.AssertError(t, err)
@@ -265,6 +270,7 @@ func TestFilter(t reference testing.T)
         result := items |> slice.Filter((s string) => len(s) == 6)
         test.AssertEqual(t, len(result), 2)
     )
+
     t.Run("all filtered out", (t reference testing.T) =>
         none := items |> slice.Filter((s string) => len(s) > 100)
         test.AssertEqual(t, len(none), 0)
@@ -278,6 +284,7 @@ func TestMap(t reference testing.T)
     t.Run("length preserved", (t reference testing.T) =>
         test.AssertEqual(t, len(result), 3)
     )
+
     t.Run("values doubled", (t reference testing.T) =>
         test.AssertEqual(t, result[0], 2)
         test.AssertEqual(t, result[1], 4)
@@ -292,6 +299,7 @@ func TestFindIndex(t reference testing.T)
         idx := items |> slice.FindIndex((n int) => n > 25)
         test.AssertEqual(t, idx, 2)
     )
+
     t.Run("no match returns -1", (t reference testing.T) =>
         notFound := items |> slice.FindIndex((n int) => n > 100)
         test.AssertEqual(t, notFound, -1)
@@ -306,6 +314,7 @@ func TestFind(t reference testing.T)
         test.AssertNoError(t, err)
         test.AssertEqual(t, val, "banana")
     )
+
     t.Run("not found returns error", (t reference testing.T) =>
         _, err := slice.Find(items, (v string) => v == "grape")
         test.AssertError(t, err)
@@ -319,6 +328,7 @@ func TestFindOr(t reference testing.T)
         val := items |> slice.FindOr((s string) => len(s) == 6, "none")
         test.AssertEqual(t, val, "banana")
     )
+
     t.Run("no match uses default", (t reference testing.T) =>
         def := items |> slice.FindOr((s string) => len(s) > 100, "none")
         test.AssertEqual(t, def, "none")
@@ -335,8 +345,9 @@ func TestPop(t reference testing.T)
         test.AssertEqual(t, len(rest), 2)
         test.AssertEqual(t, rest[0], "a")
     )
+
     t.Run("empty slice returns error", (t reference testing.T) =>
-        emptySlice := list of string{}
+        emptySlice := empty list of string
         _, _, err := slice.Pop(emptySlice)
         test.AssertError(t, err)
     )
@@ -352,8 +363,9 @@ func TestShift(t reference testing.T)
         test.AssertEqual(t, len(rest), 2)
         test.AssertEqual(t, rest[0], "b")
     )
+
     t.Run("empty slice returns error", (t reference testing.T) =>
-        emptySlice := list of string{}
+        emptySlice := empty list of string
         _, _, err := slice.Shift(emptySlice)
         test.AssertError(t, err)
     )
@@ -373,6 +385,7 @@ func TestConcat(t reference testing.T)
     t.Run("combined length", (t reference testing.T) =>
         test.AssertEqual(t, len(result), 5)
     )
+
     t.Run("first and last elements", (t reference testing.T) =>
         test.AssertEqual(t, result[0], "a")
         test.AssertEqual(t, result[4], "e")
@@ -389,10 +402,12 @@ func TestChunk(t reference testing.T)
         test.AssertEqual(t, len(chunks[1]), 2)
         test.AssertEqual(t, len(chunks[2]), 1)
     )
+
     t.Run("size=0 returns empty", (t reference testing.T) =>
         none := slice.Chunk(items, 0)
         test.AssertEqual(t, len(none), 0)
     )
+
 # --- TestFindLast ---
 func TestFindLast(t reference testing.T)
     items := list of string{"apple", "banana", "cherry", "banana", "date"}
@@ -401,17 +416,15 @@ func TestFindLast(t reference testing.T)
         val, err := slice.FindLast(items, (v string) => v == "banana")
         test.AssertNoError(t, err)
         test.AssertEqual(t, val, "banana")
-        # How to verify it's the LAST one? We can check with a unique property if available,
-        # but here we can just trust the logic if it doesn't fail.
-        # Ideally we'd use a list of structs with IDs.
     )
 
+    # How to verify it's the LAST one? We can check with a unique property if available,
+    # but here we can just trust the logic if it doesn't fail.
+    # Ideally we'd use a list of structs with IDs.
+
     t.Run("found last with condition", (t reference testing.T) =>
-        itemsWithIds := list of Item{
-            Item{Id: 1, Name: "a"},
-            Item{Id: 2, Name: "b"},
-            Item{Id: 3, Name: "a"},
-        }
+        itemsWithIds := list of Item{Item{Id: 1, Name: "a"}, Item{Id: 2, Name: "b"}, Item{Id: 3, Name: "a"}}
+
         val, err := slice.FindLast(itemsWithIds, (v Item) => v.Name == "a")
         test.AssertNoError(t, err)
         test.AssertEqual(t, (val as Item).Id, 3)
@@ -432,11 +445,8 @@ func TestFindLastOr(t reference testing.T)
     )
 
     t.Run("match last item", (t reference testing.T) =>
-        itemsWithIds := list of Item{
-            Item{Id: 1, Name: "a"},
-            Item{Id: 2, Name: "b"},
-            Item{Id: 3, Name: "a"},
-        }
+        itemsWithIds := list of Item{Item{Id: 1, Name: "a"}, Item{Id: 2, Name: "b"}, Item{Id: 3, Name: "a"}}
+
         val := itemsWithIds |> slice.FindLastOr((v Item) => v.Name == "a", Item{Id: 0, Name: ""})
         test.AssertEqual(t, (val as Item).Id, 3)
     )
@@ -447,5 +457,5 @@ func TestFindLastOr(t reference testing.T)
     )
 
 type Item
-    Id   int
+    Id int
     Name string

@@ -43,7 +43,7 @@ func TestResponseHelpers(t reference testing.T)
 
 # Test SafeURL builds encoded URLs and respects query/path parameters
 func TestSafeURL(t reference testing.T)
-    safe, err := httphelper.SafeURL("/items/test-id", map of string to string{}, map of string to string{"q": "kuki"})
+    safe, err := httphelper.SafeURL("/items/test-id", empty map of string to string, map of string to string{"q": "kuki"})
     if err != empty
         t.Fatalf("SafeURL failed: {err}")
     _, parseErr := url.ParseRequestURI(safe)

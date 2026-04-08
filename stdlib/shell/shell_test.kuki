@@ -13,9 +13,8 @@ type ExecuteCase
     name string
 
 func TestExecute(t reference testing.T)
-    cases := list of ExecuteCase{
-        ExecuteCase{name: "basic"},
-    }
+    cases := list of ExecuteCase{ExecuteCase{name: "basic"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             cmd := shell.New("echo", "hello world")
@@ -33,9 +32,8 @@ type ExecuteWithDirCase
     name string
 
 func TestExecuteWithDir(t reference testing.T)
-    cases := list of ExecuteWithDirCase{
-        ExecuteWithDirCase{name: "with dir"},
-    }
+    cases := list of ExecuteWithDirCase{ExecuteWithDirCase{name: "with dir"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             cmd := shell.New("pwd") |> shell.Dir("/tmp")
@@ -52,9 +50,8 @@ type ExecuteWithEnvCase
     name string
 
 func TestExecuteWithEnv(t reference testing.T)
-    cases := list of ExecuteWithEnvCase{
-        ExecuteWithEnvCase{name: "with env"},
-    }
+    cases := list of ExecuteWithEnvCase{ExecuteWithEnvCase{name: "with env"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             cmd := shell.New("sh", "-c", "echo $TEST_VAR") |> shell.Env("TEST_VAR", "hello")
@@ -71,9 +68,8 @@ type ExecuteFailedCase
     name string
 
 func TestExecuteFailed(t reference testing.T)
-    cases := list of ExecuteFailedCase{
-        ExecuteFailedCase{name: "failed"},
-    }
+    cases := list of ExecuteFailedCase{ExecuteFailedCase{name: "failed"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             cmd := shell.New("false")
@@ -91,9 +87,8 @@ type WhichCase
     name string
 
 func TestWhich(t reference testing.T)
-    cases := list of WhichCase{
-        WhichCase{name: "which"},
-    }
+    cases := list of WhichCase{WhichCase{name: "which"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             test.AssertTrue(t, shell.Which("ls"))
@@ -108,15 +103,13 @@ type ArgsCase
     expected string
 
 func TestArgs(t reference testing.T)
-    cases := list of ArgsCase{
-        ArgsCase{name: "append single arg", initial: list of string{"--repo", "foo"}, extra: list of string{"--verbose"}, expected: "hello world\n"},
-        ArgsCase{name: "append multiple args", initial: list of string{}, extra: list of string{"--foo", "bar"}, expected: "hello world\n"},
-    }
+    cases := list of ArgsCase{ArgsCase{name: "append single arg", initial: list of string{"--repo", "foo"}, extra: list of string{"--verbose"}, expected: "hello world\n"}, ArgsCase{name: "append multiple args", initial: empty list of string, extra: list of string{"--foo", "bar"}, expected: "hello world\n"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             cmd := shell.New("echo", many tc.initial)
             cmd = cmd |> shell.Args(many tc.extra)
-            allArgs := list of string{}
+            allArgs := empty list of string
             allArgs = append(allArgs, many tc.initial)
             allArgs = append(allArgs, many tc.extra)
             result := shell.Execute(cmd)
@@ -132,14 +125,12 @@ type FlagIfCase
     expectMissing string
 
 func TestFlagIf(t reference testing.T)
-    cases := list of FlagIfCase{
-        FlagIfCase{name: "condition true adds flag", condition: true, flag: "--verbose", expectContains: "--verbose", expectMissing: ""},
-        FlagIfCase{name: "condition false skips flag", condition: false, flag: "--verbose", expectContains: "", expectMissing: "--verbose"},
-    }
+    cases := list of FlagIfCase{FlagIfCase{name: "condition true adds flag", condition: true, flag: "--verbose", expectContains: "--verbose", expectMissing: ""}, FlagIfCase{name: "condition false skips flag", condition: false, flag: "--verbose", expectContains: "", expectMissing: "--verbose"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            cmd := shell.New("echo", "hello")
-                |> shell.FlagIf(tc.condition, tc.flag)
+            cmd := shell.New("echo", "hello") |> shell.FlagIf(tc.condition, tc.flag)
+
             preview := shell.Preview(cmd)
             if tc.expectContains not equals ""
                 test.AssertTrue(t, string.Contains(preview, tc.expectContains))
@@ -152,14 +143,12 @@ type FlagIfMultiArgCase
     name string
 
 func TestFlagIfMultiArg(t reference testing.T)
-    cases := list of FlagIfMultiArgCase{
-        FlagIfMultiArgCase{name: "multi-arg flag"},
-    }
+    cases := list of FlagIfMultiArgCase{FlagIfMultiArgCase{name: "multi-arg flag"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            cmd := shell.New("gh", "release", "create")
-                |> shell.FlagIf(true, "--target", "main")
-                |> shell.FlagIf(false, "--draft")
+            cmd := shell.New("gh", "release", "create") |> shell.FlagIf(true, "--target", "main") |> shell.FlagIf(false, "--draft")
+
             preview := shell.Preview(cmd)
             test.AssertTrue(t, string.Contains(preview, "--target main"))
             test.AssertFalse(t, string.Contains(preview, "--draft"))
@@ -173,11 +162,8 @@ type PreviewCase
     expected string
 
 func TestPreview(t reference testing.T)
-    cases := list of PreviewCase{
-        PreviewCase{name: "simple command", cmdName: "echo", args: list of string{"hello"}, expected: "echo hello"},
-        PreviewCase{name: "no args", cmdName: "ls", args: list of string{}, expected: "ls"},
-        PreviewCase{name: "multiple args", cmdName: "gh", args: list of string{"release", "create", "v1.0.0", "--repo", "org/repo"}, expected: "gh release create v1.0.0 --repo org/repo"},
-    }
+    cases := list of PreviewCase{PreviewCase{name: "simple command", cmdName: "echo", args: list of string{"hello"}, expected: "echo hello"}, PreviewCase{name: "no args", cmdName: "ls", args: empty list of string, expected: "ls"}, PreviewCase{name: "multiple args", cmdName: "gh", args: list of string{"release", "create", "v1.0.0", "--repo", "org/repo"}, expected: "gh release create v1.0.0 --repo org/repo"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             cmd := shell.New(tc.cmdName, many tc.args)
@@ -190,9 +176,8 @@ type EnvCase
     name string
 
 func TestEnv(t reference testing.T)
-    cases := list of EnvCase{
-        EnvCase{name: "env operations"},
-    }
+    cases := list of EnvCase{EnvCase{name: "env operations"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             key := "KUKICHA_TEST_VAR"

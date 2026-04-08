@@ -41,11 +41,8 @@ func readAllCSV(reader reference csv.Reader) (list of list of string, error)
 # Returns the parsed records and any error that occurred
 # Example: csvStr |> parse.Csv()
 func Csv(data string) (list of list of string, error)
-    records := data
-        |> bytes.NewBufferString()
-        |> csv.NewReader()
-        |> readAllCSV()
-        onerr return
+    records := data |> bytes.NewBufferString() |> csv.NewReader() |> readAllCSV() onerr return
+
     return records, empty
 
 # CsvWithHeader parses a CSV string with headers
@@ -54,17 +51,13 @@ func Csv(data string) (list of list of string, error)
 # Returns the parsed records and any error that occurred
 # Example: csvStr |> parse.CsvWithHeader()
 func CsvWithHeader(data string) (list of map of string to string, error)
-    records := data
-        |> bytes.NewBufferString()
-        |> csv.NewReader()
-        |> readAllCSV()
-        onerr return
+    records := data |> bytes.NewBufferString() |> csv.NewReader() |> readAllCSV() onerr return
 
     if len(records) == 0
         return empty, error "no data in CSV"
 
     headers := records[0]
-    result := make(list of map of string to string, 0, len(records)-1)
+    result := make(list of map of string to string, 0, len(records) - 1)
 
     # Process each row starting from index 1
     numRecords := len(records)

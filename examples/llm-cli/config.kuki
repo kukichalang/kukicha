@@ -10,24 +10,19 @@ import "stdlib/files"
 import "stdlib/json" as jsonpkg
 
 type Config
-    WebUIURL string json:"webui_url"
-    WebUIAPIKey string json:"webui_api_key"
-    Model string json:"model"
-    TerminalMCPURL string json:"terminal_mcp_url"
-    TerminalMCPAPIKey string json:"terminal_mcp_api_key"
-    MaxToolRounds int json:"max_tool_rounds"
+    WebUIURL string as "webui_url"
+    WebUIAPIKey string as "webui_api_key"
+    Model string as "model"
+    TerminalMCPURL string as "terminal_mcp_url"
+    TerminalMCPAPIKey string as "terminal_mcp_api_key"
+    MaxToolRounds int as "max_tool_rounds"
 
 func defaultConfigPath() string
     home, _ := os.UserHomeDir()
     return filepath.Join(home, ".config", "owui", "config.json")
 
 func loadConfig() Config
-    cfg := Config{
-        WebUIURL: "http://localhost:3000",
-        TerminalMCPURL: "http://127.0.0.1:9000/mcp",
-        Model: "llama3.1",
-        MaxToolRounds: 15,
-    }
+    cfg := Config{WebUIURL: "http://localhost:3000", TerminalMCPURL: "http://127.0.0.1:9000/mcp", Model: "llama3.1", MaxToolRounds: 15}
 
     # Try loading from config file
     data := files.ReadString(defaultConfigPath()) onerr ""

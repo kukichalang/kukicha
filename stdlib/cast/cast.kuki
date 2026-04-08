@@ -44,6 +44,7 @@ func SmartInt(value any) (int, error)
             if v
                 return 1, empty
             return 0, empty
+
     return 0, error "cannot convert to int"
 
 # SmartFloat64 converts an untyped value to float64.
@@ -68,6 +69,7 @@ func SmartFloat64(value any) (float64, error)
             if v
                 return 1.0, empty
             return 0.0, empty
+
     return 0.0, error "cannot convert to float64"
 
 # SmartBool converts an untyped value to bool.
@@ -83,6 +85,7 @@ func SmartBool(value any) (bool, error)
         when string
             b, err := strconv.ParseBool(v)
             return b, err
+
     return false, error "cannot convert to bool"
 
 # SmartString converts an untyped value to string.
@@ -105,4 +108,5 @@ func SmartString(value any) (string, error)
             return v as string
         otherwise
             return fmt.Sprintf("%v", value)
+
     return result, empty

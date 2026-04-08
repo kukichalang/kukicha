@@ -37,10 +37,8 @@ func ReadBytes(path string) (list of byte, error)
 # Example: data |> files.Write("output.json")
 # kuki:security "files"
 func Write(data any, path string) error
-    data
-        |> json.MarshalPretty()
-        |> os.WriteFile(path, _, 0o644)
-        onerr return
+    data |> json.MarshalPretty() |> os.WriteFile(path, _, 0o644) onerr return
+
     return empty
 
 # WriteString writes a string to a file
@@ -127,6 +125,7 @@ func ListRecursive(path string) (list of string, error)
             result = append(result, filePath)
         return empty
     ) onerr return
+
     return result, empty
 
 # Delete removes a file or empty directory
@@ -254,22 +253,24 @@ func Watch(pattern string, callback func(string))
         for match in matches
             info := os.Stat(match) onerr
                 continue
+
             lastModified[match] = info.ModTime().UnixNano()
 
-    for
+    for true
         time.Sleep(500 * time.Millisecond)
-        
+
         matches := filepath.Glob(pattern) onerr
             continue
-        
+
         for match in matches
             info := os.Stat(match) onerr
                 continue
+
             currentModTime := info.ModTime().UnixNano()
-            
+
             # Check for zero value (implies new/not found)
             lastModTime := lastModified[match]
-            
+
             if lastModTime == 0
                 # New file found
                 lastModified[match] = currentModTime

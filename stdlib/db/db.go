@@ -359,217 +359,217 @@ func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error {
 	return sqlTx.Commit()
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:227
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:226
 func TxQuery(tx Tx, query string, args ...any) (Rows, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:227
 	rows, err_16 := tx.tx.Query(query, args...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:227
 	if err_16 != nil {
 		var _zero0 Rows
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:227
 		return _zero0, err_16
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:229
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:228
 	result := Rows{rows: rows}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:230
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:229
 	return result, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:235
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:234
 func TxQueryRow(tx Tx, query string, args ...any) Row {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:236
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:235
 	row := tx.tx.QueryRow(query, args...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:237
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:236
 	return Row{row: row}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:243
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:242
 func TxExec(tx Tx, query string, args ...any) (int64, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:243
 	result, err_17 := tx.tx.Exec(query, args...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:243
 	if err_17 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:243
 		return 0, err_17
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
 	affected, err_18 := result.RowsAffected()
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
 	if err_18 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:244
 		return 0, err_18
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:246
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:245
 	return affected, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:255
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:254
 func Count(pool Pool, query string, args ...any) (int64, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:256
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:255
 	row := pool.conn.QueryRow(query, args...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:256
 	n := int64(0)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
 	err_19 := row.Scan(&n)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
 	if err_19 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:257
 		return 0, err_19
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:259
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:258
 	return n, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:264
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:263
 func Exists(pool Pool, query string, args ...any) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:265
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:264
 	row := pool.conn.QueryRow(query, args...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:266
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:265
 	dummy := 0
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:267
-	if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:267
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:266
+	if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:266
 	err := row.Scan(&dummy); err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:268
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:267
 		if err == sql.ErrNoRows {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:269
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:268
 			return false, nil
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:270
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:269
 		return false, err
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:271
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:270
 	return true, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:279
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:278
 func RawDB(pool Pool) *sql.DB {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:280
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:279
 	return pool.conn
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:284
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:283
 func NewPool(conn *sql.DB) Pool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:285
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:284
 	return Pool{conn: conn}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:293
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:292
 type nullSafeField struct {
 	target reflect.Value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:296
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:295
 func (s *nullSafeField) Scan(value any) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:297
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:296
 	if value == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:299
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:298
 		return nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:301
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:300
 	src := reflect.ValueOf(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:302
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:301
 	if src.Type().ConvertibleTo(s.target.Type()) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:303
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:302
 		s.target.Set(src.Convert(s.target.Type()))
 	} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:306
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:305
 		if s.target.Kind() == reflect.String {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:307
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:306
 			s.target.SetString(fmt.Sprintf("%v", value))
 		} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:309
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:308
 			return fmt.Errorf("db: cannot convert %v to %v", src.Type(), s.target.Type())
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:310
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:309
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:314
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:313
 func structScanners(elem reflect.Value, elemType reflect.Type, columns []string) []any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:315
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:314
 	numFields := elemType.NumField()
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:318
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:317
 	tagMap := make(map[string]int)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:319
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:318
 	nameMap := make(map[string]int)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:320
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:319
 	snakeMap := make(map[string]int)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:322
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:321
 	for i := range numFields {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:323
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:322
 		field := elemType.Field(i)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:324
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:323
 		if !field.IsExported() {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:325
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:324
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:328
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:327
 		tag := field.Tag.Get("json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:329
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:328
 		if (tag != "") && (tag != "-") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:330
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:329
 			parts := strpkg.Split(tag, ",")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:331
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:330
 			tagMap[parts[0]] = i
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:334
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:333
 		nameMap[strpkg.ToLower(field.Name)] = i
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:337
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:336
 		snakeMap[camelToSnake(field.Name)] = i
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:340
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:339
 	ptrs := make([]any, len(columns))
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:341
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:340
 	for ci, col := range columns {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:342
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:341
 		lowerCol := strpkg.ToLower(col)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:343
-		if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:343
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:342
+		if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:342
 		idx, ok := tagMap[col]; ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:344
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:343
 			ptrs[ci] = &nullSafeField{target: elem.Field(idx)}
-		} else if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:345
+		} else if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:344
 		idx, ok := nameMap[lowerCol]; ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:346
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:345
 			ptrs[ci] = &nullSafeField{target: elem.Field(idx)}
-		} else if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:347
+		} else if //line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:346
 		idx, ok := snakeMap[lowerCol]; ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:348
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:347
 			ptrs[ci] = &nullSafeField{target: elem.Field(idx)}
 		} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:350
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:349
 			throwaway := ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:351
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:350
 			ptrs[ci] = &throwaway
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:353
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:352
 	return ptrs
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:356
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:355
 func camelToSnake(s string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:357
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:356
 	result := ""
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:358
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:357
 	for i, r := range s {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:359
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:358
 		if unicode.IsUpper(r) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:360
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:359
 			if i > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:361
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:360
 				result = (result + "_")
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:362
-			result = (result + strpkg.ToLower(fmt.Sprintf("%c", r)))
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:361
+			result = strpkg.ToLower((result + fmt.Sprintf("%c", r)))
 		} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:364
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:363
 			result = (result + fmt.Sprintf("%c", r))
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:365
+//line /var/home/tluker/repos/go/kukicha/stdlib/db/db.kuki:364
 	return result
 }

@@ -180,9 +180,9 @@ func Transaction(pool Pool, fn func(Tx) error) error
     tx := Tx{tx: sqlTx}
 
     defer
-        if r := recover(); r != empty
+        if r := recover; r != empty
             sqlTx.Rollback()
-            panic(r)
+            panic r
 
     err := fn(tx)
     if err != empty
@@ -209,9 +209,9 @@ func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error
     tx := Tx{tx: sqlTx}
 
     defer
-        if r := recover(); r != empty
+        if r := recover; r != empty
             sqlTx.Rollback()
-            panic(r)
+            panic r
 
     err := fn(tx)
     if err != empty
@@ -219,7 +219,6 @@ func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error
         return err
 
     return sqlTx.Commit()
-
 
 # TxQuery executes a query within a transaction that returns rows.
 # Example: rows := db.TxQuery(tx, "SELECT * FROM users") onerr panic "{error}"
@@ -293,7 +292,7 @@ func NewPool(conn reference sql.DB) Pool
 type nullSafeField
     target reflect.Value
 
-func Scan on s reference nullSafeField (value any) error
+func Scan on s reference nullSafeField(value any) error
     if value == empty
         # NULL: leave target at zero value
         return empty
@@ -359,7 +358,7 @@ func camelToSnake(s string) string
         if unicode.IsUpper(r)
             if i > 0
                 result = result + "_"
-            result = result + (fmt.Sprintf("%c", r) |> strpkg.ToLower())
+            result = result + fmt.Sprintf("%c", r) |> strpkg.ToLower()
         else
             result = result + fmt.Sprintf("%c", r)
     return result

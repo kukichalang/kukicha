@@ -30,50 +30,8 @@ type PreviewReleaseCase
     expectContains string
 
 func TestPreviewRelease(t reference testing.T)
-    cases := list of PreviewReleaseCase{
-        PreviewReleaseCase{
-            name: "basic release",
-            repo: "owner/repo",
-            tag: "v1.0.0",
-            opts: git.ReleaseOptions{},
-            expectContains: "gh release create v1.0.0 --repo owner/repo --title v1.0.0",
-        },
-        PreviewReleaseCase{
-            name: "with draft",
-            repo: "owner/repo",
-            tag: "v2.0.0",
-            opts: git.ReleaseOptions{Draft: true},
-            expectContains: "--draft",
-        },
-        PreviewReleaseCase{
-            name: "with target",
-            repo: "owner/repo",
-            tag: "v1.0.0",
-            opts: git.ReleaseOptions{Target: "main"},
-            expectContains: "--target main",
-        },
-        PreviewReleaseCase{
-            name: "with generate notes",
-            repo: "owner/repo",
-            tag: "v1.0.0",
-            opts: git.ReleaseOptions{GenerateNotes: true},
-            expectContains: "--generate-notes",
-        },
-        PreviewReleaseCase{
-            name: "custom title",
-            repo: "owner/repo",
-            tag: "v1.0.0",
-            opts: git.ReleaseOptions{Title: "Release 1.0"},
-            expectContains: "--title Release 1.0",
-        },
-        PreviewReleaseCase{
-            name: "all options",
-            repo: "myorg/myrepo",
-            tag: "v3.0.0",
-            opts: git.ReleaseOptions{Title: "Big Release", Target: "release-branch", Draft: true, GenerateNotes: true},
-            expectContains: "gh release create v3.0.0 --repo myorg/myrepo",
-        },
-    }
+    cases := list of PreviewReleaseCase{PreviewReleaseCase{name: "basic release", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{}, expectContains: "gh release create v1.0.0 --repo owner/repo --title v1.0.0"}, PreviewReleaseCase{name: "with draft", repo: "owner/repo", tag: "v2.0.0", opts: git.ReleaseOptions{Draft: true}, expectContains: "--draft"}, PreviewReleaseCase{name: "with target", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{Target: "main"}, expectContains: "--target main"}, PreviewReleaseCase{name: "with generate notes", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{GenerateNotes: true}, expectContains: "--generate-notes"}, PreviewReleaseCase{name: "custom title", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{Title: "Release 1.0"}, expectContains: "--title Release 1.0"}, PreviewReleaseCase{name: "all options", repo: "myorg/myrepo", tag: "v3.0.0", opts: git.ReleaseOptions{Title: "Big Release", Target: "release-branch", Draft: true, GenerateNotes: true}, expectContains: "gh release create v3.0.0 --repo myorg/myrepo"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := git.PreviewRelease(tc.repo, tc.tag, tc.opts)
@@ -85,9 +43,8 @@ type PreviewReleaseAllFlagsCase
     name string
 
 func TestPreviewReleaseAllFlags(t reference testing.T)
-    cases := list of PreviewReleaseAllFlagsCase{
-        PreviewReleaseAllFlagsCase{name: "all flags present"},
-    }
+    cases := list of PreviewReleaseAllFlagsCase{PreviewReleaseAllFlagsCase{name: "all flags present"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             opts := git.ReleaseOptions{Title: "My Release", Target: "main", Draft: true, GenerateNotes: true}
@@ -103,9 +60,8 @@ type PreviewReleaseNoFlagsCase
     name string
 
 func TestPreviewReleaseNoFlags(t reference testing.T)
-    cases := list of PreviewReleaseNoFlagsCase{
-        PreviewReleaseNoFlagsCase{name: "no optional flags"},
-    }
+    cases := list of PreviewReleaseNoFlagsCase{PreviewReleaseNoFlagsCase{name: "no optional flags"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             opts := git.ReleaseOptions{}
@@ -121,9 +77,8 @@ type CurrentBranchCase
     name string
 
 func TestCurrentBranch(t reference testing.T)
-    cases := list of CurrentBranchCase{
-        CurrentBranchCase{name: "returns a branch name"},
-    }
+    cases := list of CurrentBranchCase{CurrentBranchCase{name: "returns a branch name"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             branch, err := git.CurrentBranch()
@@ -139,9 +94,8 @@ func TestListTags(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of ListTagsCase{
-        ListTagsCase{name: "list tags from public repo"},
-    }
+    cases := list of ListTagsCase{ListTagsCase{name: "list tags from public repo"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             tags, err := git.ListTags("cli/cli")
@@ -157,9 +111,8 @@ func TestDefaultBranch(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of DefaultBranchCase{
-        DefaultBranchCase{name: "default branch of cli/cli"},
-    }
+    cases := list of DefaultBranchCase{DefaultBranchCase{name: "default branch of cli/cli"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             branch, err := git.DefaultBranch("cli/cli")
@@ -175,9 +128,8 @@ func TestCurrentUser(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of CurrentUserCase{
-        CurrentUserCase{name: "returns authenticated user"},
-    }
+    cases := list of CurrentUserCase{CurrentUserCase{name: "returns authenticated user"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             user, err := git.CurrentUser()
@@ -193,9 +145,8 @@ func TestTagExists(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of TagExistsCase{
-        TagExistsCase{name: "existing tag"},
-    }
+    cases := list of TagExistsCase{TagExistsCase{name: "existing tag"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             exists, err := git.TagExists("cli/cli", "v2.0.0")
@@ -211,9 +162,8 @@ func TestRepoExists(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of RepoExistsCase{
-        RepoExistsCase{name: "existing repo"},
-    }
+    cases := list of RepoExistsCase{RepoExistsCase{name: "existing repo"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             exists, err := git.RepoExists("cli/cli")

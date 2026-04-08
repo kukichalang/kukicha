@@ -41,14 +41,8 @@ func refreshBridgeTools(ctx context.Context, b reference Bridge) error
 func bridgeTools(b reference Bridge) list of llm.Tool
     tools := make(list of llm.Tool, 0, len(b.mcpTools))
     for _, t in b.mcpTools
-        tools = append(tools, llm.Tool{
-            Type: "function",
-            Function: llm.ToolFunction{
-                Name: sanitizeName(t.Name),
-                Description: t.Description,
-                Parameters: t.InputSchema,
-            },
-        })
+        tools = append(tools, llm.Tool{Type: "function", Function: llm.ToolFunction{Name: sanitizeName(t.Name), Description: t.Description, Parameters: t.InputSchema}})
+
     return tools
 
 func bridgeToolCount(b reference Bridge) int

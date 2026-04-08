@@ -53,12 +53,31 @@ func (p *Preprocessor) Process() string {
 }
 
 // hasGoStyleBraces checks if the source uses Go-style braces for blocks
-// (not just for struct/map literals)
+// (not just for struct/map literals).
+//
+// Only block-opening braces (lines ending with { on control-flow keywords)
+// are checked. Standalone "}" lines are NOT checked because they can appear
+// in Kukicha code as closing braces of struct/slice/map literals. Every
+// Go-style file will have at least one block-opening "{", so this is
+// sufficient.
 func (p *Preprocessor) hasGoStyleBraces(source string) bool {
 	lines := strings.SplitSeq(source, "\n")
 
+	inTripleQuote := false
 	for line := range lines {
 		trimmed := strings.TrimSpace(line)
+
+		// Track multi-line string literals (triple-quoted)
+		count := strings.Count(trimmed, `"""`)
+		if count > 0 {
+			if count%2 == 1 {
+				inTripleQuote = !inTripleQuote
+			}
+			continue
+		}
+		if inTripleQuote {
+			continue
+		}
 
 		// Skip empty lines and comments
 		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
@@ -70,13 +89,9 @@ func (p *Preprocessor) hasGoStyleBraces(source string) bool {
 			return true
 		}
 
-		// Check for standalone closing brace (indicates Go-style blocks)
-		if trimmed == "}" {
-			return true
-		}
-
-		// Check for } else { pattern
-		if strings.HasPrefix(trimmed, "} else") {
+		// Check for } else { pattern (Go-style else). Only triggers when
+		// followed by an opening brace which indicates Go-style blocks.
+		if strings.HasPrefix(trimmed, "} else") && strings.HasSuffix(trimmed, "{") {
 			return true
 		}
 	}
@@ -135,18 +150,22 @@ func (p *Preprocessor) processLine(line string, indentLevel *int, lineIdx int, a
 }
 
 // isExpressionBrace determines if a line's trailing brace is part of an expression
-// (struct literal, map literal) rather than a block opener
+// (struct literal, map literal, list literal) rather than a block opener
 func (p *Preprocessor) isExpressionBrace(line string) bool {
 	line = strings.TrimSpace(line)
+
+	beforeBrace := strings.TrimSuffix(line, "{")
+	beforeBrace = strings.TrimSpace(beforeBrace)
+
+	// Kukicha-style collection types: "list of <type>{" or "map of <type> to <type>{"
+	if strings.Contains(beforeBrace, "list of") || strings.Contains(beforeBrace, "map of") {
+		return true
+	}
 
 	// If line contains := or = followed by something ending with {, it's likely a literal
 	// e.g., "x := MyStruct{" or "y = map[string]int{"
 	if strings.Contains(line, ":=") || (strings.Contains(line, "=") && !strings.Contains(line, "==")) {
 		// Check if there's a type before the brace
-		beforeBrace := strings.TrimSuffix(line, "{")
-		beforeBrace = strings.TrimSpace(beforeBrace)
-
-		// Common literal patterns
 		if strings.HasSuffix(beforeBrace, "]") { // slice/array type: []int{
 			return true
 		}
@@ -157,8 +176,6 @@ func (p *Preprocessor) isExpressionBrace(line string) bool {
 
 	// Check for struct/map/slice literal patterns
 	// TypeName{ or ]Type{ or map[...]Type{
-	beforeBrace := strings.TrimSuffix(line, "{")
-	beforeBrace = strings.TrimSpace(beforeBrace)
 
 	// If it ends with a type indicator, it's a literal
 	if strings.HasSuffix(beforeBrace, "]") {

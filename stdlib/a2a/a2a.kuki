@@ -178,7 +178,7 @@ func streamRequest(agent Agent, text string, contextID string, onText TextHandle
     params := a2a.MessageSendParams{Message: msg}
     for event, err in agent.Client.SendStreamingMessage(ctxpkg.Value(bg), reference of params)
         if err != empty
-            return result, error("a2a stream: {err}")
+            return result, error "a2a stream: {err}"
         event |> switch as e
             when reference a2a.TaskStatusUpdateEvent
                 if onStatus != empty
@@ -204,6 +204,7 @@ func streamRequest(agent Agent, text string, contextID string, onText TextHandle
                 if onText != empty and msgText != ""
                     onText(msgText)
                 result.Text = msgText
+
     return result, empty
 
 # resultToTask converts a SendMessageResult (union of *Task or *Message) to our simplified Task.
@@ -215,6 +216,7 @@ func resultToTask(result a2a.SendMessageResult) Task
             return Task{ID: r.TaskID as string, ContextID: r.ContextID, Text: extractPartsText(r.Parts)}
         otherwise
             return empty Task
+
     return task
 
 # taskFromA2A converts an a2a.Task to our simplified Task type.
@@ -244,4 +246,5 @@ func extractPartsText(parts list of a2a.Part) string
         p |> switch as tp
             when a2a.TextPart
                 texts = append(texts, tp.Text)
+
     return string.Join(texts, "")

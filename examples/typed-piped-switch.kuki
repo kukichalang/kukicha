@@ -28,11 +28,7 @@ func Describe(s Shape) string
             return "Unknown shape with area {s.Area()}"
 
 func main()
-    shapes := list of Shape{
-        Circle{radius: 5.0},
-        Rectangle{width: 3.0, height: 4.0},
-        Circle{radius: 1.0},
-    }
+    shapes := list of Shape{Circle{radius: 5.0}, Rectangle{width: 3.0, height: 4.0}, Circle{radius: 1.0}}
 
     for shape in shapes
         print(Describe(shape))

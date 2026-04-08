@@ -8,15 +8,13 @@ import "testing"
 
 # --- TestGetContent ---
 type GetContentCase
-    name    string
+    name string
     content string
-    want    string
+    want string
 
 func TestGetContent(t reference testing.T)
-    cases := list of GetContentCase{
-        GetContentCase{name: "basic content", content: "response text", want: "response text"},
-        GetContentCase{name: "empty content", content: "", want: ""},
-    }
+    cases := list of GetContentCase{GetContentCase{name: "basic content", content: "response text", want: "response text"}, GetContentCase{name: "empty content", content: "", want: ""}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             msg := llm.ResponseMessage{}
@@ -34,15 +32,14 @@ func TestGetContent(t reference testing.T)
 
 # --- TestGetToolCalls ---
 type GetToolCallsCase
-    name      string
-    callID    string
-    funcName  string
+    name string
+    callID string
+    funcName string
     wantCount int
 
 func TestGetToolCalls(t reference testing.T)
-    cases := list of GetToolCallsCase{
-        GetToolCallsCase{name: "one tool call", callID: "call-1", funcName: "do_thing", wantCount: 1},
-    }
+    cases := list of GetToolCallsCase{GetToolCallsCase{name: "one tool call", callID: "call-1", funcName: "do_thing", wantCount: 1}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             toolFunc := llm.ToolCallFunction{}
@@ -71,15 +68,13 @@ func TestGetToolCalls(t reference testing.T)
 
 # --- TestHasToolCalls ---
 type HasToolCallsCase
-    name     string
+    name string
     hasCalls bool
-    want     bool
+    want bool
 
 func TestHasToolCalls(t reference testing.T)
-    cases := list of HasToolCallsCase{
-        HasToolCallsCase{name: "no calls", hasCalls: false, want: false},
-        HasToolCallsCase{name: "has calls", hasCalls: true, want: true},
-    }
+    cases := list of HasToolCallsCase{HasToolCallsCase{name: "no calls", hasCalls: false, want: false}, HasToolCallsCase{name: "has calls", hasCalls: true, want: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             completion := llm.Completion{}

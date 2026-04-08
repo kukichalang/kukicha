@@ -26,188 +26,188 @@ type ReadWriteCase struct {
 func TestReadWrite(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:21
 	cases := []ReadWriteCase{ReadWriteCase{name: "basic"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:24
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:23
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:25
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:24
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:26
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:25
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:26
+			test.AssertNoError(t, err)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:27
-			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:28
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:30
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:29
 			testFile := filepath.Join(tmpDir, "test.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:31
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:30
 			testContent := "Hello, Kukicha!"
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:33
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:32
 			err = files.WriteString(testContent, testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:34
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:33
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:36
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:35
 			content, readErr := files.Read(testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:37
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:36
 			test.AssertNoError(t, readErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:39
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:38
 			contentStr := string(content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:40
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:39
 			test.AssertEqual(t, contentStr, testContent)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:44
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:43
 type WriteJSONCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:47
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:46
 func TestWriteJSON(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:48
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:47
 	cases := []WriteJSONCase{WriteJSONCase{name: "write struct"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:51
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:49
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:52
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:50
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:53
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:51
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:54
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:52
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:55
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:53
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:57
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:55
 			testFile := filepath.Join(tmpDir, "data.json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:58
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:56
 			testData := TestData{Name: "test", Value: 42}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:60
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:58
 			err = files.Write(testData, testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:61
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:59
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:62
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:60
 			test.AssertTrue(t, files.Exists(testFile))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:64
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:62
 			content, readErr := files.Read(testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:65
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:63
 			test.AssertNoError(t, readErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:66
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:64
 			if len(content) == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:67
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:65
 				t.Error("Expected non-empty JSON content")
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:71
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:69
 type ExistsCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:74
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:72
 func TestExists(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:75
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:73
 	cases := []ExistsCase{ExistsCase{name: "file exists"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:78
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:75
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:79
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:76
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:80
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:77
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:81
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:78
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:82
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:79
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:84
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:81
 			existingFile := filepath.Join(tmpDir, "exists.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:85
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:82
 			nonExistentFile := filepath.Join(tmpDir, "does-not-exist.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:87
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:84
 			err = files.WriteString("test", existingFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:88
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:85
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:90
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:87
 			test.AssertTrue(t, files.Exists(existingFile))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:91
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:88
 			test.AssertFalse(t, files.Exists(nonExistentFile))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:95
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:92
 type IsDirCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:98
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:95
 func TestIsDir(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:99
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:96
 	cases := []IsDirCase{IsDirCase{name: "check directory"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:102
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:98
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:103
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:99
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:104
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:100
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:105
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:101
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:106
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:102
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:104
 			testFile := filepath.Join(tmpDir, "file.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:105
 			testDir := filepath.Join(tmpDir, "subdir")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:111
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:107
 			err = files.WriteString("test", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:112
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:108
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:114
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:110
 			err = os.Mkdir(testDir, 0o755)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:115
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:111
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:113
 			test.AssertTrue(t, files.IsDir(testDir))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:118
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:114
 			test.AssertFalse(t, files.IsDir(testFile))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:122
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:118
 type ListCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:125
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:121
 func TestList(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:126
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:122
 	cases := []ListCase{ListCase{name: "list files"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:129
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:124
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:130
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:125
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:131
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:126
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:132
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:127
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:133
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:128
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:135
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:130
 			files.WriteString("test1", filepath.Join(tmpDir, "file1.txt"))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:136
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:131
 			files.WriteString("test2", filepath.Join(tmpDir, "file2.txt"))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:137
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:132
 			os.Mkdir(filepath.Join(tmpDir, "subdir"), 0o755)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:139
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:134
 			entries, listErr := files.List(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:140
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:135
 			test.AssertNoError(t, listErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:141
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:136
 			test.AssertEqual(t, len(entries), 3)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:143
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:138
 			for _, entry := range entries {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:144
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:139
 				if entry == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:145
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:140
 					t.Error("Expected non-empty path")
 				}
 			}
@@ -215,271 +215,271 @@ func TestList(t *testing.T) {
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:149
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:144
 type AppendCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:152
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:147
 func TestAppend(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:153
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:148
 	cases := []AppendCase{AppendCase{name: "append string"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:156
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:150
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:157
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:151
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:158
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:152
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:153
+			test.AssertNoError(t, err)
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:154
+			defer os.RemoveAll(tmpDir)
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:156
+			testFile := filepath.Join(tmpDir, "append.txt")
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:158
+			err = files.WriteString("Line 1\n", testFile)
 //line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:159
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:160
-			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:162
-			testFile := filepath.Join(tmpDir, "append.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:164
-			err = files.WriteString("Line 1\n", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:165
-			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:167
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:161
 			err = files.AppendString("Line 2\n", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:168
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:162
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:170
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:164
 			content, readErr := files.Read(testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:171
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:165
 			test.AssertNoError(t, readErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:173
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:167
 			expected := "Line 1\nLine 2\n"
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:174
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:168
 			contentStr := string(content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:175
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:169
 			test.AssertEqual(t, contentStr, expected)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:179
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:173
 type CopyCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:182
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:176
 func TestCopy(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:183
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:177
 	cases := []CopyCase{CopyCase{name: "copy file"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:186
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:179
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:187
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:180
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:188
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:181
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:189
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:182
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:190
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:183
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:192
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:185
 			srcFile := filepath.Join(tmpDir, "source.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:193
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:186
 			dstFile := filepath.Join(tmpDir, "destination.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:194
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:187
 			testContent := "Copy me!"
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:196
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:189
 			err = files.WriteString(testContent, srcFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:197
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:190
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:199
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:192
 			err = files.Copy(srcFile, dstFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:200
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:193
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:201
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:194
 			test.AssertTrue(t, files.Exists(dstFile))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:203
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:196
 			content, readErr := files.Read(dstFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:204
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:197
 			test.AssertNoError(t, readErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:206
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:199
 			contentStr := string(content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:207
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:200
 			test.AssertEqual(t, contentStr, testContent)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:211
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:204
 type DeleteCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:214
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:207
 func TestDelete(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:215
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:208
 	cases := []DeleteCase{DeleteCase{name: "delete file"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:218
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:210
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:219
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:211
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:220
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:212
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:221
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:213
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:222
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:214
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:224
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:216
 			testFile := filepath.Join(tmpDir, "delete-me.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:226
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:218
 			err = files.WriteString("test", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:227
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:219
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:228
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:220
 			test.AssertTrue(t, files.Exists(testFile))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:230
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:222
 			err = files.Delete(testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:231
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:223
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:232
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:224
 			test.AssertFalse(t, files.Exists(testFile))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:236
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:228
 type TempFileCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:239
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:231
 func TestTempFile(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:240
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:232
 	cases := []TempFileCase{TempFileCase{name: "create temp file"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:243
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:234
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:235
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:236
 			path, err := files.TempFile("kukicha-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:246
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:237
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:247
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:238
 			defer os.Remove(path)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:249
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:240
 			test.AssertTrue(t, files.Exists(path))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:251
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:242
 			err = files.WriteString("temp data", path)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:252
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:243
 			test.AssertNoError(t, err)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:256
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:247
 type PathCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:259
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:250
 func TestPathFunctions(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:260
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:251
 	cases := []PathCase{PathCase{name: "path operations"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:263
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:253
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:264
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:254
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:265
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:255
 			testPath := "/home/user/document.txt"
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:267
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:257
 			basename := files.Basename(testPath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:268
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:258
 			test.AssertEqual(t, basename, "document.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:270
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:260
 			dirname := files.Dirname(testPath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:271
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:261
 			test.AssertEqual(t, dirname, "/home/user")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:273
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:263
 			ext := files.Extension(testPath)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:274
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:264
 			test.AssertEqual(t, ext, ".txt")
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:278
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:268
 type UseWithCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:281
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:271
 func TestUseWith(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:282
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:272
 	cases := []UseWithCase{UseWithCase{name: "use with block"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:285
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:274
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:286
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:275
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:287
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:276
 			tmpDir, err := os.MkdirTemp("", "kukicha-files-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:288
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:277
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:290
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:279
 			testFile := filepath.Join(tmpDir, "temp.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:291
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:280
 			files.WriteString("content", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:293
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:282
 			existed := false
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:294
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:283
 			files.UseWith(testFile, func(path string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:295
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:284
 				if files.Exists(path) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:296
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:285
 					existed = true
 				}
 			})
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:299
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:288
 			test.AssertTrue(t, existed)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:300
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:289
 			test.AssertFalse(t, files.Exists(testFile))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:302
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:291
 			os.RemoveAll(tmpDir)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:306
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:295
 type WatchCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:309
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:298
 func TestWatch(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:310
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:299
 	cases := []WatchCase{WatchCase{name: "watch file"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:313
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:301
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:314
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:302
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:315
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:303
 			tmpDir, err := os.MkdirTemp("", "kukicha-watch-test-")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:316
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:304
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:317
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:305
 			defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:319
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:307
 			testFile := filepath.Join(tmpDir, "watch.txt")
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:320
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:308
 			files.WriteString("initial", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:322
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:310
 			ch := make(chan string)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:323
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:311
 			go files.Watch(filepath.Join(tmpDir, "*.txt"), func(path string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:324
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:312
 				ch <- path
 			})
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:327
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:315
 			time.Sleep((1 * time.Second))
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:328
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:316
 			files.WriteString("modified", testFile)
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:330
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:318
 			receivedPath := <-ch
-//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:331
+//line /var/home/tluker/repos/go/kukicha/stdlib/files/files_test.kuki:319
 			test.AssertEqual(t, receivedPath, testFile)
 		})
 	}

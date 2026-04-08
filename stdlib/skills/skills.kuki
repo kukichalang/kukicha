@@ -9,9 +9,9 @@ import "path/filepath"
 
 # Skill represents a discovered SKILL.md file.
 type Skill
-    Name string     # directory name (e.g. "changelog", "release")
-    Path string     # absolute path to the SKILL.md file
-    Content string  # full file content
+    Name string # directory name (e.g. "changelog", "release")
+    Path string # absolute path to the SKILL.md file
+    Content string # full file content
 
 # Discover reads all SKILL.md files under a given directory tree.
 # dir is typically ".agent/skills" or ".claude/skills".
@@ -37,6 +37,7 @@ func Discover(dir string) (list of Skill, error)
         result = append(result, entry)
         return empty
     ) onerr return
+
     return result, empty
 
 # AgentSkills reads .agent/skills/ in the current working directory.

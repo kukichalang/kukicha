@@ -127,7 +127,7 @@ func runFlat(app App) error
 
     # Parse positional args
     args := os.Args
-    argIndex := 1  # Skip program name
+    argIndex := 1 # Skip program name
     for _, argDef in app.args
         if argIndex < len(args) and not string.HasPrefix(args[argIndex], "--")
             values[argDef.name] = args[argIndex]
@@ -164,7 +164,7 @@ func runFlat(app App) error
         app.action(parsedArgs)
         return empty
 
-    return error("no action defined")
+    return error "no action defined"
 
 # --- Internal: subcommand dispatch ---
 
@@ -187,7 +187,7 @@ func runWithSubcommands(app App) error
         fmt.Fprintln(os.Stderr, "Unknown command: {cmdName}")
         fmt.Fprintln(os.Stderr, "")
         printHelp(app)
-        return error("unknown command: {cmdName}")
+        return error "unknown command: {cmdName}"
 
     cmd := app.subcommands[cmdIndex]
 
@@ -230,7 +230,7 @@ func runWithSubcommands(app App) error
             values[flagDef.name] = flagDef.defaultValue
 
     if cmd.action == empty
-        return error("no action defined for command: {cmdName}")
+        return error "no action defined for command: {cmdName}"
 
     parsedArgs := Args{values: values}
     cmd.action(parsedArgs)
@@ -329,6 +329,6 @@ func IsJSON(args Args) bool
 func GetInt(args Args, name string) (int, error)
     strVal := args.values[name]
     if strVal == ""
-        return 0, error("argument {name} not found")
+        return 0, error "argument {name} not found"
 
     return cast.Atoi(strVal)

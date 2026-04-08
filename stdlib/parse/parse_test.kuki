@@ -9,14 +9,13 @@ import "testing"
 
 # --- TestJson ---
 type JsonCase
-    name    string
+    name string
     payload string
-    want    string
+    want string
 
 func TestJson(t reference testing.T)
-    cases := list of JsonCase{
-        JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"},
-    }
+    cases := list of JsonCase{JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result, err := parse.Json(tc.payload)
@@ -26,20 +25,14 @@ func TestJson(t reference testing.T)
 
 # --- TestJsonLines ---
 type JsonLinesCase
-    name      string
-    ndjson    string
+    name string
+    ndjson string
     wantCount int
     firstLine string
 
 func TestJsonLines(t reference testing.T)
-    cases := list of JsonLinesCase{
-        JsonLinesCase{
-            name:      "basic ndjson",
-            ndjson:    "{\"a\":1}\n\n {\"b\":2}\n",
-            wantCount: 2,
-            firstLine: "{\"a\":1}",
-        },
-    }
+    cases := list of JsonLinesCase{JsonLinesCase{name: "basic ndjson", ndjson: "{\"a\":1}\n\n {\"b\":2}\n", wantCount: 2, firstLine: "{\"a\":1}"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             lines, err := parse.JsonLines(tc.ndjson)
@@ -51,22 +44,15 @@ func TestJsonLines(t reference testing.T)
 
 # --- TestCsvWithHeader ---
 type CsvCase
-    name           string
-    csv            string
-    wantRecords    int
+    name string
+    csv string
+    wantRecords int
     wantHeaderRows int
-    firstRowName   string
+    firstRowName string
 
 func TestCsvWithHeader(t reference testing.T)
-    cases := list of CsvCase{
-        CsvCase{
-            name:           "basic csv",
-            csv:            "name,age\nalice,30\nbob,25",
-            wantRecords:    3,
-            wantHeaderRows: 2,
-            firstRowName:   "alice",
-        },
-    }
+    cases := list of CsvCase{CsvCase{name: "basic csv", csv: "name,age\nalice,30\nbob,25", wantRecords: 3, wantHeaderRows: 2, firstRowName: "alice"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             records, err := parse.Csv(tc.csv)
@@ -82,18 +68,13 @@ func TestCsvWithHeader(t reference testing.T)
 
 # --- TestYamlPretty ---
 type YamlPrettyCase
-    name     string
-    data     map of string to any
+    name string
+    data map of string to any
     contains string
 
 func TestYamlPretty(t reference testing.T)
-    cases := list of YamlPrettyCase{
-        YamlPrettyCase{
-            name:     "basic map",
-            data:     map of string to any{"user": map of string to any{"name": "sam"}},
-            contains: "user",
-        },
-    }
+    cases := list of YamlPrettyCase{YamlPrettyCase{name: "basic map", data: map of string to any{"user": map of string to any{"name": "sam"}}, contains: "user"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             pretty, err := parse.YamlPretty(tc.data)
@@ -103,18 +84,13 @@ func TestYamlPretty(t reference testing.T)
 
 # --- TestYaml ---
 type JsonYamlCase
-    name    string
+    name string
     payload string
-    want    string
+    want string
 
 func TestYaml(t reference testing.T)
-    cases := list of JsonYamlCase{
-        JsonYamlCase{
-            name:    "basic yaml",
-            payload: "user: alice\nemail: test@example.com",
-            want:    "user: alice\nemail: test@example.com",
-        },
-    }
+    cases := list of JsonYamlCase{JsonYamlCase{name: "basic yaml", payload: "user: alice\nemail: test@example.com", want: "user: alice\nemail: test@example.com"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             result, err := parse.Yaml(tc.payload)

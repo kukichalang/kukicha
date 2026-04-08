@@ -12,68 +12,101 @@ import "stdlib/game"
 
 # ── Screen ──
 
-constant screenW = 640
-constant screenH = 480
+const screenW = 640
+
+const screenH = 480
 
 # ── Tea-House Palette ──
 
 variable darkWood game.Color = game.MakeColor(35, 25, 20, 255)
+
 variable bamboo game.Color = game.MakeColor(180, 150, 80, 255)
+
 variable bambooBright game.Color = game.MakeColor(200, 170, 90, 255)
+
 variable warmWhite game.Color = game.MakeColor(240, 230, 210, 255)
+
 variable amber game.Color = game.MakeColor(220, 160, 40, 255)
+
 variable matchaGreen game.Color = game.MakeColor(100, 180, 60, 255)
+
 variable warmGold game.Color = game.MakeColor(220, 180, 50, 255)
+
 variable bitterRed game.Color = game.MakeColor(200, 40, 30, 255)
+
 variable stationClay game.Color = game.MakeColor(80, 55, 40, 255)
+
 variable cream game.Color = game.MakeColor(240, 230, 200, 255)
+
 variable teaMasterColor game.Color = game.MakeColor(210, 180, 120, 255)
+
 variable jadeGreen game.Color = game.MakeColor(0, 180, 100, 120)
+
 variable jadeGreenSolid game.Color = game.MakeColor(0, 180, 100, 255)
+
 variable dimText game.Color = game.MakeColor(120, 100, 70, 255)
+
 variable laneHighlight game.Color = game.MakeColor(50, 38, 30, 255)
 
 # ── Layout ──
 
-constant laneCount = 3
-constant laneStartX = 80.0
-constant laneEndX = 560.0
-constant laneBaseY = 140.0
-constant laneSpacing = 100.0
-constant laneThick = 4.0
+const laneCount = 3
+
+const laneStartX = 80.0
+
+const laneEndX = 560.0
+
+const laneBaseY = 140.0
+
+const laneSpacing = 100.0
+
+const laneThick = 4.0
 
 # ── Tea Master ──
 
-constant masterW = 40.0
-constant masterH = 30.0
-constant masterX = 20.0
+const masterW = 40.0
+
+const masterH = 30.0
+
+const masterX = 20.0
 
 # ── Stems ──
 
-constant stemRadius = 6.0
-constant stemSpeed1 = 2.0
-constant stemSpeed2 = 3.0
-constant stemSpeed3 = 3.5
-constant maxStems = 6
+const stemRadius = 6.0
+
+const stemSpeed1 = 2.0
+
+const stemSpeed2 = 3.0
+
+const stemSpeed3 = 3.5
+
+const maxStems = 6
 
 # ── Stations ──
 
-constant stationW = 60.0
-constant stationH = 40.0
-constant suckDuration = 20
+const stationW = 60.0
+
+const stationH = 40.0
+
+const suckDuration = 20
 
 # ── Catchers ──
 
-constant catcherW = 30.0
-constant catcherH = 30.0
-constant catcherActiveFrames = 60
-constant catcherCooldownFrames = 60
+const catcherW = 30.0
+
+const catcherH = 30.0
+
+const catcherActiveFrames = 60
+
+const catcherCooldownFrames = 60
 
 # ── Orders ──
 
-constant orderW = 70.0
-constant orderH = 40.0
-constant orderX = 565.0
+const orderW = 70.0
+
+const orderH = 40.0
+
+const orderX = 565.0
 
 # ── Enums ──
 
@@ -138,22 +171,37 @@ type Order
 # ── Game State ──
 
 variable scene Scene = Scene.Title
+
 variable lives int = 3
+
 variable score int = 0
+
 variable level int = 1
+
 variable fulfilled int = 0
+
 variable fulfilledTarget int = 5
+
 variable levelName string = "First Steep"
+
 variable highestUnlocked int = 1
+
 variable menuCursor int = 0
+
 variable currentLane int = 0
+
 variable panicReason string = ""
 
 variable stems list of Stem
+
 variable stations list of Station
+
 variable catchers list of Catcher
+
 variable orders list of Order
+
 variable orderSpawnTimer int = 0
+
 variable orderSpawnInterval int = 180
 
 variable stemSpeed float64 = stemSpeed1
@@ -161,39 +209,34 @@ variable stemSpeed float64 = stemSpeed1
 # ── Screen Shake ──
 
 variable shakeTimer int = 0
+
 variable shakeIntensity float64 = 0.0
 
 variable levelNames list of string = list of string{"First Steep", "Quality Control", "The Full Blend"}
-variable levelDescs list of string = list of string{
-    "Two lanes. Match the order.",
-    "Flaky stations. Use onerr catcher.",
-    "Chain stations. Pick the right lane.",
-}
-variable levelHints list of string = list of string{
-    "|> pipe sends data through functions",
-    "onerr catches errors before they crash",
-    "chain functions in sequence with |>",
-}
+
+variable levelDescs list of string = list of string{"Two lanes. Match the order.", "Flaky stations. Use onerr catcher.", "Chain stations. Pick the right lane."}
+
+variable levelHints list of string = list of string{"|> pipe sends data through functions", "onerr catches errors before they crash", "chain functions in sequence with |>"}
 
 # ── Helpers ──
 
-function laneY(lane int) float64
+func laneY(lane int) float64
     return laneBaseY + lane as float64 * laneSpacing
 
-function stationsOnLane(lane int) list of Station
+func stationsOnLane(lane int) list of Station
     result := make(list of Station, 0)
     for i from 0 to len(stations)
         if stations[i].lane equals lane
             result = append(result, stations[i])
     return result
 
-function catcherOnLane(lane int) int
+func catcherOnLane(lane int) int
     for i from 0 to len(catchers)
         if catchers[i].lane equals lane
             return i
     return -1
 
-function outputStateForLane(lane int) StemState
+func outputStateForLane(lane int) StemState
     laneStations := stationsOnLane(lane)
     if len(laneStations) equals 0
         return StemState.Raw
@@ -201,16 +244,12 @@ function outputStateForLane(lane int) StemState
 
 # ── Entry Point ──
 
-function main()
-    _ = game.Window("Stem Panic", screenW, screenH)
-        |> game.OnSetup(setup)
-        |> game.OnUpdate(update)
-        |> game.OnDraw(draw)
-        |> game.Run() onerr panic "{error}"
+func main()
+    _ = game.Window("Stem Panic", screenW, screenH) |> game.OnSetup(setup) |> game.OnUpdate(update) |> game.OnDraw(draw) |> game.Run() onerr panic "{error}"
 
 # ── Setup ──
 
-function setup()
+func setup()
     lives = 3
     score = 0
     fulfilled = 0
@@ -239,47 +278,30 @@ function setup()
         orderSpawnInterval = 120
         setupLevel3()
 
-function setupLevel1()
+func setupLevel1()
     # Two lanes: steam and dry
-    stations = list of Station{
-        Station{x: 250.0, lane: 0, funcName: "steam", outputState: StemState.Steamed},
-        Station{x: 250.0, lane: 1, funcName: "dry", outputState: StemState.Dried},
-    }
+    stations = list of Station{Station{x: 250.0, lane: 0, funcName: "steam", outputState: StemState.Steamed}, Station{x: 250.0, lane: 1, funcName: "dry", outputState: StemState.Dried}}
+
     catchers = make(list of Catcher, 0)
 
-function setupLevel2()
+func setupLevel2()
     # Three lanes with flaky stations + onerr catchers
-    stations = list of Station{
-        Station{x: 220.0, lane: 0, funcName: "roll", isFlaky: true, outputState: StemState.Rolled},
-        Station{x: 220.0, lane: 1, funcName: "sort", isFlaky: true, outputState: StemState.Sorted},
-        Station{x: 220.0, lane: 2, funcName: "dry", isFlaky: true, outputState: StemState.Dried},
-    }
-    catchers = list of Catcher{
-        Catcher{x: 360.0, lane: 0},
-        Catcher{x: 360.0, lane: 1},
-        Catcher{x: 360.0, lane: 2},
-    }
+    stations = list of Station{Station{x: 220.0, lane: 0, funcName: "roll", isFlaky: true, outputState: StemState.Rolled}, Station{x: 220.0, lane: 1, funcName: "sort", isFlaky: true, outputState: StemState.Sorted}, Station{x: 220.0, lane: 2, funcName: "dry", isFlaky: true, outputState: StemState.Dried}}
 
-function setupLevel3()
+    catchers = list of Catcher{Catcher{x: 360.0, lane: 0}, Catcher{x: 360.0, lane: 1}, Catcher{x: 360.0, lane: 2}}
+
+func setupLevel3()
     # Three lanes with multi-station chains
     # Lane 0: harvest |> steam  (produces "steamed")
     # Lane 1: harvest |> dry    (produces "dried")
     # Lane 2: harvest |> steam |> dry |> separate (produces "blended")
-    stations = list of Station{
-        Station{x: 180.0, lane: 0, funcName: "harvest", outputState: StemState.Harvested},
-        Station{x: 320.0, lane: 0, funcName: "steam", outputState: StemState.Steamed},
-        Station{x: 180.0, lane: 1, funcName: "harvest", outputState: StemState.Harvested},
-        Station{x: 320.0, lane: 1, funcName: "dry", outputState: StemState.Dried},
-        Station{x: 150.0, lane: 2, funcName: "harvest", outputState: StemState.Harvested},
-        Station{x: 240.0, lane: 2, funcName: "steam", outputState: StemState.Steamed},
-        Station{x: 340.0, lane: 2, funcName: "dry", outputState: StemState.Dried},
-        Station{x: 440.0, lane: 2, funcName: "separate", outputState: StemState.Blended},
-    }
+    stations = list of Station{Station{x: 180.0, lane: 0, funcName: "harvest", outputState: StemState.Harvested}, Station{x: 320.0, lane: 0, funcName: "steam", outputState: StemState.Steamed}, Station{x: 180.0, lane: 1, funcName: "harvest", outputState: StemState.Harvested}, Station{x: 320.0, lane: 1, funcName: "dry", outputState: StemState.Dried}, Station{x: 150.0, lane: 2, funcName: "harvest", outputState: StemState.Harvested}, Station{x: 240.0, lane: 2, funcName: "steam", outputState: StemState.Steamed}, Station{x: 340.0, lane: 2, funcName: "dry", outputState: StemState.Dried}, Station{x: 440.0, lane: 2, funcName: "separate", outputState: StemState.Blended}}
+
     catchers = make(list of Catcher, 0)
 
 # ── Spawn Orders ──
 
-function spawnOrder()
+func spawnOrder()
     if level equals 1
         # Alternate between steamed and dried
         lane := game.Random(0, 2)
@@ -290,28 +312,14 @@ function spawnOrder()
         if lane equals 1
             wantState = StemState.Dried
             wantLabel = "dried"
-        orders = append(orders, Order{
-            lane: lane,
-            wantState: wantState,
-            wantLabel: wantLabel,
-            timer: 480,
-            maxTimer: 480,
-            active: true,
-        })
+        orders = append(orders, Order{lane: lane, wantState: wantState, wantLabel: wantLabel, timer: 480, maxTimer: 480, active: true})
     else if level equals 2
         lane := game.Random(0, 3)
         if activeOrderOnLane(lane) >= 0
             return
         states := list of StemState{StemState.Rolled, StemState.Sorted, StemState.Dried}
         labels := list of string{"rolled", "sorted", "dried"}
-        orders = append(orders, Order{
-            lane: lane,
-            wantState: states[lane],
-            wantLabel: labels[lane],
-            timer: 360,
-            maxTimer: 360,
-            active: true,
-        })
+        orders = append(orders, Order{lane: lane, wantState: states[lane], wantLabel: labels[lane], timer: 360, maxTimer: 360, active: true})
     else if level equals 3
         # Orders for steamed, dried, or blended
         pick := game.Random(0, 3)
@@ -320,16 +328,9 @@ function spawnOrder()
             return
         states := list of StemState{StemState.Steamed, StemState.Dried, StemState.Blended}
         labels := list of string{"steamed", "dried", "blended"}
-        orders = append(orders, Order{
-            lane: lanes[pick],
-            wantState: states[pick],
-            wantLabel: labels[pick],
-            timer: 300,
-            maxTimer: 300,
-            active: true,
-        })
+        orders = append(orders, Order{lane: lanes[pick], wantState: states[pick], wantLabel: labels[pick], timer: 300, maxTimer: 300, active: true})
 
-function activeOrderOnLane(lane int) int
+func activeOrderOnLane(lane int) int
     for i from 0 to len(orders)
         if orders[i].active and orders[i].lane equals lane
             return i
@@ -337,7 +338,7 @@ function activeOrderOnLane(lane int) int
 
 # ── Update ──
 
-function update()
+func update()
     switch scene
         when Scene.Title
             updateTitle()
@@ -350,17 +351,17 @@ function update()
         when Scene.BitterPanic
             updateBitterPanic()
 
-function updateTitle()
+func updateTitle()
     if game.IsKeyPressed(game.KeyEnter) or game.TouchJustClicked()
         menuCursor = 0
         scene = Scene.TeaMenu
 
-function updateTeaMenu()
+func updateTeaMenu()
     _, ty, touched := game.TouchPosition()
     if game.TouchJustClicked() and touched
         for i from 0 to 3
             y := 130 + i * 70
-            if ty > (y as float64 - 20.0) and ty < (y as float64 + 40.0)
+            if ty > y as float64 - 20.0 and ty < y as float64 + 40.0
                 menuCursor = i
                 selectedLevel := menuCursor + 1
                 if selectedLevel <= highestUnlocked
@@ -382,7 +383,7 @@ function updateTeaMenu()
     if game.IsKeyPressed(game.KeyEscape)
         scene = Scene.Title
 
-function updatePlaying()
+func updatePlaying()
     # Check win
     if fulfilled >= fulfilledTarget
         scene = Scene.BatchComplete
@@ -412,14 +413,7 @@ function updatePlaying()
             if stems[i].active and stems[i].lane equals currentLane and stems[i].x < laneStartX + 40.0
                 canSend = false
         if canSend
-            stems = append(stems, Stem{
-                x: laneStartX,
-                y: laneY(currentLane),
-                lane: currentLane,
-                dx: stemSpeed,
-                state: StemState.Raw,
-                active: true,
-            })
+            stems = append(stems, Stem{x: laneStartX, y: laneY(currentLane), lane: currentLane, dx: stemSpeed, state: StemState.Raw, active: true})
 
     # Tea Master movement
     if game.IsKeyPressed(game.KeyUp) and currentLane > 0
@@ -434,16 +428,9 @@ function updatePlaying()
         for i from 0 to len(stems)
             if stems[i].active and stems[i].lane equals currentLane and stems[i].x < laneStartX + 40.0
                 canSend = false
-        
+
         if canSend
-            stems = append(stems, Stem{
-                x: laneStartX,
-                y: laneY(currentLane),
-                lane: currentLane,
-                dx: stemSpeed,
-                state: StemState.Raw,
-                active: true,
-            })
+            stems = append(stems, Stem{x: laneStartX, y: laneY(currentLane), lane: currentLane, dx: stemSpeed, state: StemState.Raw, active: true})
 
     # Activate onerr catcher on current lane (level 2)
     if level equals 2
@@ -495,12 +482,12 @@ function updatePlaying()
     # Update stems
     updateStems()
 
-function activeLaneCount() int
+func activeLaneCount() int
     if level equals 1
         return 2
     return 3
 
-function updateStems()
+func updateStems()
     for i from 0 to len(stems)
         if not stems[i].active
             continue
@@ -530,15 +517,15 @@ function updateStems()
         if stems[i].x >= laneEndX
             handleStemArrival(i)
 
-function checkStationHit(si int)
+func checkStationHit(si int)
     for j from 0 to len(stations)
         if stations[j].lane isnt stems[si].lane or stations[j].isBusy
             continue
-        
+
         # Robust collision check using game.CircleOverlapsRect
-        sRect := game.Rect{X: stations[j].x, Y: laneY(stations[j].lane) - stationH/2.0, Width: stationW, Height: stationH}
+        sRect := game.Rect{X: stations[j].x, Y: laneY(stations[j].lane) - stationH / 2.0, Width: stationW, Height: stationH}
         sCircle := game.Circle{X: stems[si].x, Y: stems[si].y, Radius: stemRadius}
-        
+
         if game.CircleOverlapsRect(sCircle, sRect) and stems[si].x < stations[j].x + 10.0
             # Begin suck
             stems[si].dx = 0.0
@@ -549,7 +536,7 @@ function checkStationHit(si int)
             stations[j].isBusy = true
             return
 
-function updateStemSuck(si int)
+func updateStemSuck(si int)
     stems[si].suckTimer = stems[si].suckTimer + 1
     idx := stems[si].suckStationIdx
     s := stations[idx]
@@ -580,7 +567,7 @@ function updateStemSuck(si int)
                 stems[si].state = s.outputState
                 score = score + 25
 
-function checkCatcherHit(si int)
+func checkCatcherHit(si int)
     if stems[si].state isnt StemState.Bitter
         return
     ci := catcherOnLane(stems[si].lane)
@@ -593,7 +580,7 @@ function checkCatcherHit(si int)
             stems[si].state = outputStateForLane(stems[si].lane)
             score = score + 100
 
-function handleStemArrival(si int)
+func handleStemArrival(si int)
     stems[si].active = false
     oi := activeOrderOnLane(stems[si].lane)
     if oi < 0
@@ -618,19 +605,19 @@ function handleStemArrival(si int)
         shakeTimer = 30
         shakeIntensity = 6.0
 
-function updateBatchComplete()
+func updateBatchComplete()
     if game.IsKeyPressed(game.KeyEnter) or game.TouchJustClicked()
         if level + 1 > highestUnlocked and level < 3
             highestUnlocked = level + 1
         scene = Scene.TeaMenu
 
-function updateBitterPanic()
+func updateBitterPanic()
     if game.IsKeyPressed(game.KeySpace) or game.TouchJustClicked()
         scene = Scene.TeaMenu
 
 # ── Draw ──
 
-function draw(screen game.Screen)
+func draw(screen game.Screen)
     # Tick screen shake
     if shakeTimer > 0
         shakeTimer = shakeTimer - 1
@@ -649,7 +636,7 @@ function draw(screen game.Screen)
         when Scene.BitterPanic
             drawBitterPanic(screen)
 
-function drawTitle(screen game.Screen)
+func drawTitle(screen game.Screen)
     drawBambooBorder(screen)
 
     game.DrawText(screen, "STEM PANIC", 260, 140, warmWhite)
@@ -667,7 +654,7 @@ function drawTitle(screen game.Screen)
     game.DrawText(screen, "|>", 250, demoY as int - 6, bambooBright)
     game.DrawText(screen, "|>", 360, demoY as int - 6, bambooBright)
     # Animated stem sliding through
-    stemX := 180.0 + (frame % 120) as float64 * 2.3
+    stemX := 180.0 + frame % 120 as float64 * 2.3
     if stemX > 460.0
         stemX = 180.0
     stemColor := matchaGreen
@@ -685,7 +672,7 @@ function drawTitle(screen game.Screen)
 
     game.DrawText(screen, "v0.3", 305, 440, dimText)
 
-function drawTeaMenu(screen game.Screen)
+func drawTeaMenu(screen game.Screen)
     drawBambooBorder(screen)
 
     game.DrawText(screen, "TEA MENU", 275, 80, warmWhite)
@@ -715,7 +702,7 @@ function drawTeaMenu(screen game.Screen)
 
     game.DrawText(screen, "UP/DOWN or TAP to select, ENTER to play, ESC for title", 100, 420, dimText)
 
-function drawPlaying(screen game.Screen)
+func drawPlaying(screen game.Screen)
     drawBambooBorder(screen)
     lanes := activeLaneCount()
 
@@ -732,7 +719,7 @@ function drawPlaying(screen game.Screen)
         # Conveyor tick marks (scrolling)
         frame := game.FrameCount()
         for t from 0 to 20
-            tx := laneStartX + 25.0 + t as float64 * 26.0 + (frame % 26) as float64
+            tx := laneStartX + 25.0 + t as float64 * 26.0 + frame % 26 as float64
             if tx < laneEndX
                 game.DrawRect(screen, tx, ly - 1.0, 8.0, 2.0, game.MakeColor(160, 130, 60, 255))
 
@@ -786,12 +773,12 @@ function drawPlaying(screen game.Screen)
     game.DrawText(screen, "{levelName}  {fulfilled}/{fulfilledTarget}", 230, 8, bamboo)
     game.DrawText(screen, levelHints[level - 1], 10, screenH - 20, dimText)
 
-function drawStation(screen game.Screen, s Station)
+func drawStation(screen game.Screen, s Station)
     ly := laneY(s.lane)
     # Processing glow when busy
     if s.isBusy
         frame := game.FrameCount()
-        pulseAlpha := 40 + (frame % 20) as int * 3
+        pulseAlpha := 40 + frame % 20 as int * 3
         if pulseAlpha > 100
             pulseAlpha = 100
         game.DrawRect(screen, s.x - 3.0, ly - stationH / 2.0 - 3.0, stationW + 6.0, stationH + 6.0, game.MakeColor(220, 160, 40, pulseAlpha))
@@ -810,7 +797,7 @@ function drawStation(screen game.Screen, s Station)
     if s.isFlaky
         game.DrawText(screen, "~err", s.x as int + 4, ly as int + 8, game.MakeColor(180, 100, 60, 200))
 
-function drawCatcher(screen game.Screen, c Catcher)
+func drawCatcher(screen game.Screen, c Catcher)
     ly := laneY(c.lane)
     if c.active
         game.DrawRect(screen, c.x, ly - catcherH / 2.0, catcherW, catcherH, jadeGreen)
@@ -822,7 +809,7 @@ function drawCatcher(screen game.Screen, c Catcher)
         game.DrawRect(screen, c.x, ly - catcherH / 2.0, catcherW, catcherH, game.MakeColor(30, 50, 35, 180))
         game.DrawText(screen, "onerr", c.x as int + 1, ly as int - 6, game.MakeColor(0, 140, 80, 180))
 
-function drawGopher(screen game.Screen, cx float64, cy float64, worried bool)
+func drawGopher(screen game.Screen, cx float64, cy float64, worried bool)
     gopherBlue := game.MakeColor(100, 175, 205, 255)
     gopherBelly := game.MakeColor(200, 220, 185, 255)
     eyeWhite := game.MakeColor(245, 245, 245, 255)
@@ -856,7 +843,7 @@ function drawGopher(screen game.Screen, cx float64, cy float64, worried bool)
     if worried
         game.DrawCircle(screen, cx + 14.0, cy - 14.0, 3.0, game.MakeColor(130, 200, 230, 200))
 
-function drawOrder(screen game.Screen, o Order)
+func drawOrder(screen game.Screen, o Order)
     ly := laneY(o.lane)
     cx := orderX + orderW / 2.0
     timerFrac := o.timer as float64 / o.maxTimer as float64
@@ -872,7 +859,7 @@ function drawOrder(screen game.Screen, o Order)
         barColor = bitterRed
     game.DrawRect(screen, orderX, ly - 26.0, barW, 4.0, barColor)
 
-function drawStem(screen game.Screen, s Stem)
+func drawStem(screen game.Screen, s Stem)
     # Bitter trail
     if s.state equals StemState.Bitter
         game.DrawCircle(screen, s.trailX2, s.trailY2, 3.0, game.MakeColor(200, 40, 30, 60))
@@ -888,7 +875,7 @@ function drawStem(screen game.Screen, s Stem)
             stemColor = warmGold
     game.DrawCircle(screen, s.x, s.y, stemRadius, stemColor)
 
-function drawBatchComplete(screen game.Screen)
+func drawBatchComplete(screen game.Screen)
     drawBambooBorder(screen)
 
     frame := game.FrameCount()
@@ -909,7 +896,7 @@ function drawBatchComplete(screen game.Screen)
     if frame % 60 < 40
         game.DrawText(screen, "Press ENTER or TAP to continue", 210, 300, warmWhite)
 
-function drawBitterPanic(screen game.Screen)
+func drawBitterPanic(screen game.Screen)
     frame := game.FrameCount()
     flashIntensity := 0
     if frame % 30 < 10
@@ -938,7 +925,7 @@ function drawBitterPanic(screen game.Screen)
     if frame % 60 < 40
         game.DrawText(screen, "Press SPACE or TAP to retry", 220 + sx, 360 + sy, warmWhite)
 
-function drawBambooBorder(screen game.Screen)
+func drawBambooBorder(screen game.Screen)
     game.DrawRect(screen, 0.0, 0.0, screenW as float64, 3.0, bamboo)
     game.DrawRect(screen, 0.0, screenH as float64 - 3.0, screenW as float64, 3.0, bamboo)
     game.DrawRect(screen, 0.0, 6.0, screenW as float64, 1.0, game.MakeColor(180, 150, 80, 80))

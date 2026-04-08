@@ -89,93 +89,93 @@ func Bump(v Version, level string) Version {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:61
 		v.patch = (v.patch + 1)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:62
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:63
 	return v
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:66
-func Format(v Version) string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:67
+func Format(v Version) string {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:68
 	return fmt.Sprintf("%s%d.%d.%d", v.prefix, v.major, v.minor, v.patch)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:71
-func Valid(tag string) bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:72
-	_, err := Parse(tag)
+func Valid(tag string) bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:73
+	_, err := Parse(tag)
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:74
 	return (err == nil)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:77
-func Compare(a Version, b Version) int {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:78
-	if a.major != b.major {
+func Compare(a Version, b Version) int {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:79
-		if a.major > b.major {
+	if a.major != b.major {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:80
-			return 1
-		}
+		if a.major > b.major {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:81
-		return -1
-	}
+			return 1
+		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:82
-	if a.minor != b.minor {
+		return -1
+	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:83
-		if a.minor > b.minor {
+	if a.minor != b.minor {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:84
-			return 1
-		}
+		if a.minor > b.minor {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:85
-		return -1
-	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:86
-	if a.patch != b.patch {
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:87
-		if a.patch > b.patch {
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:88
 			return 1
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:89
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:86
 		return -1
 	}
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:87
+	if a.patch != b.patch {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:88
+		if a.patch > b.patch {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:89
+			return 1
+		}
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:90
+		return -1
+	}
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:91
 	return 0
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:94
-func Greater(a Version, b Version) bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:95
+func Greater(a Version, b Version) bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:96
 	return (Compare(a, b) > 0)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:100
-func Highest(tags []string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:101
-	valid := slice.Filter(tags, Valid)
+func Highest(tags []string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:102
-	if slice.IsEmpty(valid) {
+	valid := slice.Filter(tags, Valid)
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:103
+	if slice.IsEmpty(valid) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:104
 		return "", errors.New("no valid semver tags found")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:105
-	parsed := make([]Version, 0, len(valid))
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:106
+	parsed := make([]Version, 0, len(valid))
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
 	for _, tag := range valid {
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:108
 		v, err_4 := Parse(tag)
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:108
 		if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:108
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:109
 		parsed = append(parsed, v)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:110
-	sorted := sort.By(parsed, func(a Version, b Version) bool { return (Compare(a, b) < 0) })
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:111
-	best := sorted[(len(sorted) - 1)]
+	sorted := sort.By(parsed, func(a Version, b Version) bool { return (Compare(a, b) < 0) })
 //line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:112
+	best := sorted[(len(sorted) - 1)]
+//line /var/home/tluker/repos/go/kukicha/stdlib/semver/semver.kuki:113
 	return Format(best), nil
 }

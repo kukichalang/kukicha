@@ -66,18 +66,18 @@ func Discover(dir string) ([]Skill, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:39
 		return []Skill{}, err_1
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:40
+//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:41
 	return result, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:45
-func AgentSkills() ([]Skill, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:46
+func AgentSkills() ([]Skill, error) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:47
 	return Discover(".agent/skills")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:51
-func ClaudeSkills() ([]Skill, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:52
+func ClaudeSkills() ([]Skill, error) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills.kuki:53
 	return Discover(".claude/skills")
 }

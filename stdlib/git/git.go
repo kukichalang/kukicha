@@ -89,95 +89,95 @@ func CreateRelease(repo string, tag string, opts ReleaseOptions) error {
 	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:72
 	cmd := shell.FlagIf(shell.FlagIf(shell.FlagIf(shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title), (opts.Target != ""), "--target", opts.Target), opts.GenerateNotes, "--generate-notes"), opts.Draft, "--draft")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:77
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:74
 	result := shell.Execute(cmd)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:78
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:75
 	if !shell.Success(result) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:79
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:76
 		errStr := string(shell.GetError(result))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:80
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:77
 		return fmt.Errorf("release creation failed: %v", errStr)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:81
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:78
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:86
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:83
 func PreviewRelease(repo string, tag string, opts ReleaseOptions) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:87
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:84
 	title := opts.Title
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:88
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:85
 	if title == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:89
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:86
 		title = tag
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:91
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:88
 	cmd := shell.FlagIf(shell.FlagIf(shell.FlagIf(shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title), (opts.Target != ""), "--target", opts.Target), opts.GenerateNotes, "--generate-notes"), opts.Draft, "--draft")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:96
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:90
 	return shell.Preview(cmd)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:102
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:96
 func RepoExists(repo string) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:97
 	result := shell.Execute(shell.New("gh", "repo", "view", repo))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:104
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:98
 	return shell.Success(result), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:102
 func CurrentUser() (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
 	login, err_4 := shell.Output("gh", "api", "user", "--jq", ".login")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
 		return "", fmt.Errorf("failed to get current user: %v", err_4)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:110
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:104
 	return kukistring.TrimSpace(login), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:116
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:110
 func Clone(url string, path string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:111
 	_, err_5 := shell.Output("git", "clone", url, path)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:111
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:111
 		return fmt.Errorf("clone failed: %v", err_5)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:112
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:122
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:116
 func CloneShallow(url string, path string, depth int) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:123
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:117
 	depthStr := fmt.Sprintf("%d", depth)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:124
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
 	_, err_6 := shell.Output("git", "clone", "--depth", depthStr, url, path)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:124
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
 	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:124
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
 		return fmt.Errorf("shallow clone failed: %v", err_6)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:125
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:119
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:129
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:123
 func filterBlank(lines []string) []string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:130
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:124
 	result := []string{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:131
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:125
 	for _, line := range lines {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:132
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:126
 		if !kukistring.IsBlank(line) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:133
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:127
 			result = append(result, line)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:134
+//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:128
 	return result
 }

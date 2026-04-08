@@ -20,7 +20,7 @@ import "strings"
 # Table holds the headers and rows for a formatted table.
 type Table
     Headers list of string
-    Rows    list of list of string
+    Rows list of list of string
 
 # New creates a new table with the given column headers.
 # Example: t := table.New(list of string{"Name", "Age"})

@@ -19,483 +19,483 @@ import (
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:18
 const StatusOK = 200
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:19
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:20
 const StatusCreated = 201
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:20
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:22
 const StatusAccepted = 202
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:21
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:24
 const StatusNoContent = 204
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:22
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:26
 const StatusMovedPermanently = 301
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:23
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:28
 const StatusFound = 302
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:24
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:30
 const StatusNotModified = 304
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:25
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:32
 const StatusBadRequest = 400
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:26
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:34
 const StatusUnauthorized = 401
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:27
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:36
 const StatusForbidden = 403
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:28
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:38
 const StatusNotFound = 404
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:29
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:40
 const StatusMethodNotAllowed = 405
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:30
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:42
 const StatusConflict = 409
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:31
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:44
 const StatusGone = 410
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:32
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:46
 const StatusUnprocessableEntity = 422
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:33
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:48
 const StatusTooManyRequests = 429
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:34
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:50
 const StatusInternalServerError = 500
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:35
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:52
 const StatusBadGateway = 502
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:36
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:54
 const StatusServiceUnavailable = 503
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:37
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:56
 const StatusGatewayTimeout = 504
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:40
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:59
 const HeaderContentType = "Content-Type"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:41
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:61
 const HeaderAuthorization = "Authorization"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:42
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:63
 const HeaderAccept = "Accept"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:43
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:65
 const HeaderCacheControl = "Cache-Control"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:44
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:67
 const HeaderContentLength = "Content-Length"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:45
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:69
 const HeaderUserAgent = "User-Agent"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:46
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:71
 const HeaderXRequestID = "X-Request-Id"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:47
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:73
 const HeaderXForwardedFor = "X-Forwarded-For"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:50
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:76
 const ContentJSON = "application/json"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:51
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:78
 const ContentHTML = "text/html; charset=utf-8"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:52
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:80
 const ContentText = "text/plain; charset=utf-8"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:53
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:82
 const ContentForm = "application/x-www-form-urlencoded"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:54
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:84
 const ContentMultipart = "multipart/form-data"
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:59
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:89
 func WithCSRF(handler http.Handler) http.Handler {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:60
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:90
 	protection := http.NewCrossOriginProtection()
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:61
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:91
 	return protection.Handler(handler)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:65
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:95
 func Serve(addr string, handler http.Handler) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:66
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:96
 	return http.ListenAndServe(addr, handler)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:74
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:104
 func JSON(w http.ResponseWriter, value any) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:75
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:105
 	w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:76
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:106
 	return json.MarshalWrite(w, value)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:81
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:111
 func JSONStatus(w http.ResponseWriter, value any, status int) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:82
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:112
 	w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:83
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:113
 	w.WriteHeader(status)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:84
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:114
 	return json.MarshalWrite(w, value)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:88
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:118
 func JSONCreated(w http.ResponseWriter, value any) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:89
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:119
 	return JSONStatus(w, value, 201)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:94
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:124
 func JSONError(w http.ResponseWriter, message string, status int) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:95
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:125
 	w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:96
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:126
 	w.WriteHeader(status)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:97
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:127
 	errorBody := map[string]string{"error": message}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:98
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:128
 	return json.MarshalWrite(w, errorBody)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:102
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:132
 func JSONBadRequest(w http.ResponseWriter, message string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:103
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:133
 	return JSONError(w, message, 400)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:137
 func JSONUnauthorized(w http.ResponseWriter, message string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:138
 	return JSONError(w, message, 401)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:112
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:142
 func JSONForbidden(w http.ResponseWriter, message string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:113
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:143
 	return JSONError(w, message, 403)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:147
 func JSONNotFound(w http.ResponseWriter, message string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:118
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:148
 	return JSONError(w, message, 404)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:122
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:152
 func JSONInternalError(w http.ResponseWriter, message string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:123
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:153
 	return JSONError(w, message, 500)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:131
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:161
 func ReadJSON(r *http.Request, target any) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:132
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:162
 	return json.UnmarshalRead(r.Body, target)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:138
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:168
 func ReadJSONAndClose(r *http.Request, target any) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:139
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:169
 	defer r.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:140
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:170
 	return json.UnmarshalRead(r.Body, target)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:145
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:175
 func ReadJSONLimit(r *http.Request, maxBytes int64, target any) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:146
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:176
 	return json.UnmarshalRead(io.LimitReader(r.Body, maxBytes), target)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:152
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:180
 func GetQueryParam(r *http.Request, key string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:153
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:181
 	return r.URL.Query().Get(key)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:157
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:185
 func GetQueryParamOr(r *http.Request, key string, defaultValue string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:158
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:186
 	value := r.URL.Query().Get(key)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:159
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:187
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:160
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:188
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:161
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:189
 	return value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:166
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:194
 func GetQueryInt(r *http.Request, key string) (int, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:167
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:195
 	value := r.URL.Query().Get(key)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:168
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:196
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:169
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:197
 		return 0, fmt.Errorf("query parameter '%v' is required", key)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:170
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:198
 	val, err_1 := cast.Atoi(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:170
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:198
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:170
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:198
 		return 0, fmt.Errorf("query parameter '%v' must be an integer", key)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:171
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:199
 	return val, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:176
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:204
 func GetQueryIntOr(r *http.Request, key string, defaultValue int) int {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:177
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:205
 	value := r.URL.Query().Get(key)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:178
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:206
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:179
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:207
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:180
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:208
 	val, err_2 := cast.Atoi(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:180
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:208
 	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:180
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:208
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:181
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:209
 	return val
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:187
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:215
 func GetQueryBool(r *http.Request, key string) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:188
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:216
 	value := r.URL.Query().Get(key)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:189
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:217
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:190
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:218
 		return false, fmt.Errorf("query parameter '%v' is required", key)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:191
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:219
 	val, err_3 := validate.ParseBool(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:191
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:219
 	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:191
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:219
 		return false, fmt.Errorf("query parameter '%v' must be a boolean", key)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:192
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:220
 	return val, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:197
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:225
 func GetQueryBoolOr(r *http.Request, key string, defaultValue bool) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:198
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:226
 	value := r.URL.Query().Get(key)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:199
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:227
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:200
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:228
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:201
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:229
 	val, err_4 := validate.ParseBool(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:201
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:229
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:201
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:229
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:202
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:230
 	return val
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:206
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:234
 func GetHeader(r *http.Request, key string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:207
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:235
 	return r.Header.Get(key)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:211
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:239
 func GetHeaderOr(r *http.Request, key string, defaultValue string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:212
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:240
 	value := r.Header.Get(key)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:213
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:241
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:214
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:242
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:215
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:243
 	return value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:221
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:249
 func NoContent(w http.ResponseWriter) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:222
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:250
 	w.WriteHeader(204)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:227
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:255
 func Redirect(w http.ResponseWriter, r *http.Request, url string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:228
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:256
 	http.Redirect(w, r, url, 302)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:233
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:261
 func RedirectPermanent(w http.ResponseWriter, r *http.Request, url string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:234
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:262
 	http.Redirect(w, r, url, 301)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:241
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:269
 func SafeRedirect(w http.ResponseWriter, r *http.Request, redirectURL string, allowedHosts ...string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:242
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:270
 	parsed, err_5 := url.Parse(redirectURL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:242
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:270
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:242
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:270
 		return err_5
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:243
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:271
 	if parsed.Host == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:273
 		http.Redirect(w, r, redirectURL, 302)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:246
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:274
 		return nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:248
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:276
 	if slice.Contains(allowedHosts, parsed.Host) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:249
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:277
 		http.Redirect(w, r, redirectURL, 302)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:250
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:278
 		return nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:251
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:279
 	return fmt.Errorf("redirect to '%v' is not in the allowed hosts list", parsed.Host)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:257
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:285
 func SafeURL(tmpl string, pathParams map[string]string, queryParams map[string]string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:286
 	base, err_6 := fetch.URLTemplate(tmpl, pathParams)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:286
 	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:286
 		return "", err_6
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:259
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:287
 	return fetch.URLWithQuery(base, queryParams)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:264
-func Text(w http.ResponseWriter, content string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:265
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:266
-	_, err := io.WriteString(w, content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:267
-	return err
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:271
-func TextStatus(w http.ResponseWriter, content string, status int) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:272
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:273
-	w.WriteHeader(status)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:274
-	_, err := io.WriteString(w, content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:275
-	return err
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:283
-func HTML(w http.ResponseWriter, content string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:284
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:285
-	_, err := io.WriteString(w, content)
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:286
-	return err
-}
-
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:292
-func SafeHTML(w http.ResponseWriter, content string) error {
+func Text(w http.ResponseWriter, content string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:293
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:294
-	_, err := io.WriteString(w, html.EscapeString(content))
+	_, err := io.WriteString(w, content)
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:295
 	return err
 }
 
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:299
+func TextStatus(w http.ResponseWriter, content string, status int) error {
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:300
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:301
+	w.WriteHeader(status)
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:302
-func SetSecureHeaders(w http.ResponseWriter) {
+	_, err := io.WriteString(w, content)
 //line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:303
+	return err
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:311
+func HTML(w http.ResponseWriter, content string) error {
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:312
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:313
+	_, err := io.WriteString(w, content)
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:314
+	return err
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:320
+func SafeHTML(w http.ResponseWriter, content string) error {
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:321
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:322
+	_, err := io.WriteString(w, html.EscapeString(content))
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:323
+	return err
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:330
+func SetSecureHeaders(w http.ResponseWriter) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:331
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:304
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:332
 	w.Header().Set("X-Frame-Options", "DENY")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:305
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:333
 	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:306
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:334
 	w.Header().Set("Content-Security-Policy", "default-src 'self'")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:312
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:340
 func IsGet(r *http.Request) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:313
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:341
 	return (r.Method == "GET")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:317
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:345
 func IsPost(r *http.Request) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:318
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:346
 	return (r.Method == "POST")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:322
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:350
 func IsPut(r *http.Request) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:323
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:351
 	return (r.Method == "PUT")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:327
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:355
 func IsDelete(r *http.Request) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:328
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:356
 	return (r.Method == "DELETE")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:332
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:360
 func IsPatch(r *http.Request) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:333
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:361
 	return (r.Method == "PATCH")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:338
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:366
 func MethodNotAllowed(w http.ResponseWriter, allowed ...string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:339
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:367
 	w.Header().Set("Allow", kukistring.Join(allowed, ", "))
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:340
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:368
 	w.WriteHeader(405)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:345
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:373
 func SecureHeaders(handler http.Handler) http.Handler {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:346
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:374
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:347
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:375
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:348
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:376
 		w.Header().Set("X-Frame-Options", "DENY")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:349
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:377
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:350
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:378
 		w.Header().Set("Content-Security-Policy", "default-src 'self'")
-//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:351
+//line /var/home/tluker/repos/go/kukicha/stdlib/http/http.kuki:379
 		handler.ServeHTTP(w, r)
 	})
 }

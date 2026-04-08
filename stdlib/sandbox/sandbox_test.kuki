@@ -12,9 +12,8 @@ type SandboxCase
     name string
 
 func TestSandboxFileOperations(t reference testing.T)
-    cases := list of SandboxCase{
-        SandboxCase{name: "file operations"},
-    }
+    cases := list of SandboxCase{SandboxCase{name: "file operations"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             dir, err := os.MkdirTemp("", "sandbox-test")

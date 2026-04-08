@@ -4,7 +4,7 @@ import "net/http"
 import "mime"
 import "fmt"
 
-function main()
+func main()
     mime.AddExtensionType(".wasm", "application/wasm") onerr panic "{error}"
     fmt.Println("Open http://localhost:8082 in your browser")
     http.ListenAndServe(":8082", http.FileServer(http.Dir("."))) onerr panic "{error}"

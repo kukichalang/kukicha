@@ -151,91 +151,91 @@ func getExitCode(err error) int {
 			return 1
 		}
 	}()
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:116
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:117
 	return code
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:120
-func Args(cmd Command, args ...string) Command {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:121
-	cmd.args = append(cmd.args, args...)
+func Args(cmd Command, args ...string) Command {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:122
+	cmd.args = append(cmd.args, args...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:123
 	return cmd
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:127
-func FlagIf(cmd Command, condition bool, args ...string) Command {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:128
-	if condition {
+func FlagIf(cmd Command, condition bool, args ...string) Command {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:129
+	if condition {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:130
 		cmd.args = append(cmd.args, args...)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:130
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:131
 	return cmd
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:134
-func Preview(cmd Command) string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:135
-	parts := []string{cmd.name}
+func Preview(cmd Command) string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:136
-	parts = append(parts, cmd.args...)
+	parts := []string{cmd.name}
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:137
+	parts = append(parts, cmd.args...)
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:138
 	return kukistring.Join(parts, " ")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:143
-func Success(result Result) bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:144
+func Success(result Result) bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:145
 	return ((result.exitCode == 0) && (result.err == nil))
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:148
-func GetOutput(result Result) []byte {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:149
+func GetOutput(result Result) []byte {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:150
 	return result.stdout
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:153
-func GetError(result Result) []byte {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:154
+func GetError(result Result) []byte {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:155
 	return result.stderr
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:158
-func ExitCode(result Result) int {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:159
+func ExitCode(result Result) int {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:160
 	return result.exitCode
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:166
-func Which(name string) bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:167
-	_, err := exec.LookPath(name)
+func Which(name string) bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:168
+	_, err := exec.LookPath(name)
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:169
 	return (err == nil)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:172
-func Getenv(key string) string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:173
+func Getenv(key string) string {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:174
 	return os.Getenv(key)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:177
-func Setenv(key string, value string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:178
+func Setenv(key string, value string) error {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:179
 	return os.Setenv(key, value)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:182
-func Unsetenv(key string) error {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:183
+func Unsetenv(key string) error {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:184
 	return os.Unsetenv(key)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:188
-func Environ() []string {
 //line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:189
+func Environ() []string {
+//line /var/home/tluker/repos/go/kukicha/stdlib/shell/shell.kuki:190
 	return os.Environ()
 }

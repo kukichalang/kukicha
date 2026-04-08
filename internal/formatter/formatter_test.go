@@ -110,3 +110,137 @@ func main() {
 
 	t.Logf("Result:\n%s", result)
 }
+
+func TestFormatMakeExprPreservesParens(t *testing.T) {
+	source := `func main()
+    x := make(list of string, 0)
+    y := make(map of string to int)
+    z := make(channel of int, 10)
+`
+
+	expected := `func main()
+    x := make(list of string, 0)
+    y := make(map of string to int)
+    z := make(channel of int, 10)
+`
+
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatOnErrReturnWithValues(t *testing.T) {
+	source := `func Validate(s string) (string, error)
+    matched := regexp.MatchString(pattern, s) onerr return s, error "bad: {error}"
+    return s, empty
+`
+
+	expected := `func Validate(s string) (string, error)
+    matched := regexp.MatchString(pattern, s) onerr return s, error "bad: {error}"
+    return s, empty
+`
+
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatOnErrShorthandReturn(t *testing.T) {
+	source := `func Read(path string) (string, error)
+    data := files.ReadAll(path) onerr return
+    return data, empty
+`
+
+	expected := `func Read(path string) (string, error)
+    data := files.ReadAll(path) onerr return
+    return data, empty
+`
+
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatOnErrShorthandContinue(t *testing.T) {
+	source := `func Process(items list of string) list of string
+    results := make(list of string, 0)
+    for item in items
+        parsed := parse(item) onerr continue
+        results = append(results, parsed)
+    return results
+`
+
+	expected := `func Process(items list of string) list of string
+    results := make(list of string, 0)
+    for item in items
+        parsed := parse(item) onerr continue
+        results = append(results, parsed)
+    return results
+`
+
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatOnErrShorthandBreak(t *testing.T) {
+	source := `func Process(items list of string) string
+    for item in items
+        parsed := parse(item) onerr break
+        return parsed
+    return ""
+`
+
+	expected := `func Process(items list of string) string
+    for item in items
+        parsed := parse(item) onerr break
+        return parsed
+    return ""
+`
+
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatPreservesBlankLineBeforeComment(t *testing.T) {
+	source := `petiole mypkg
+
+# Section header
+
+# Doc comment for Foo
+func Foo() string
+    return "foo"
+
+# Another section
+
+# Doc comment for Bar
+func Bar() string
+    return "bar"
+`
+
+	expected := `petiole mypkg
+
+# Section header
+
+# Doc comment for Foo
+func Foo() string
+    return "foo"
+
+# Another section
+
+# Doc comment for Bar
+func Bar() string
+    return "bar"
+`
+
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatStringEscapeSequences(t *testing.T) {
+	// In Kukicha source, \\ is an escaped backslash, \t is a tab, \n is a newline
+	// The formatter must re-escape these when emitting
+	source := "func main()\n" +
+		"    pattern := \"hello\\\\world\"\n" +
+		"    tab := \"hello\\tworld\"\n" +
+		"    newline := \"line1\\nline2\"\n" +
+		"    quote := \"say \\\"hi\\\"\"\n"
+
+	expected := "func main()\n" +
+		"    pattern := \"hello\\\\world\"\n" +
+		"    tab := \"hello\\tworld\"\n" +
+		"    newline := \"line1\\nline2\"\n" +
+		"    quote := \"say \\\"hi\\\"\"\n"
+
+	assertFormatted(t, source, expected)
+}

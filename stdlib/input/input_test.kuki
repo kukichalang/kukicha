@@ -11,15 +11,15 @@ type ReadLineCase
     want bool
 
 func TestReadLine(t reference testing.T)
-    cases := list of ReadLineCase{
-        ReadLineCase{name: "function exists", want: true},
-    }
+    cases := list of ReadLineCase{ReadLineCase{name: "function exists", want: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            # We can't actually test interactive functions without stdin
-            # Just verify the function can be referenced
             test.AssertNoError(t, empty)
         )
+
+# We can't actually test interactive functions without stdin
+# Just verify the function can be referenced
 
 # --- TestPrompt ---
 type PromptCase
@@ -27,15 +27,15 @@ type PromptCase
     want bool
 
 func TestPrompt(t reference testing.T)
-    cases := list of PromptCase{
-        PromptCase{name: "function exists", want: true},
-    }
+    cases := list of PromptCase{PromptCase{name: "function exists", want: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            # We can't actually test interactive functions without stdin
-            # Just verify the function can be referenced
             test.AssertNoError(t, empty)
         )
+
+# We can't actually test interactive functions without stdin
+# Just verify the function can be referenced
 
 # --- TestConfirm ---
 type ConfirmCase
@@ -43,15 +43,15 @@ type ConfirmCase
     want bool
 
 func TestConfirm(t reference testing.T)
-    cases := list of ConfirmCase{
-        ConfirmCase{name: "function exists", want: true},
-    }
+    cases := list of ConfirmCase{ConfirmCase{name: "function exists", want: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            # We can't actually test interactive functions without stdin
-            # Just verify the function can be referenced
             test.AssertNoError(t, empty)
         )
+
+# We can't actually test interactive functions without stdin
+# Just verify the function can be referenced
 
 # --- TestChoose ---
 type ChooseCase
@@ -59,12 +59,9 @@ type ChooseCase
     want bool
 
 func TestChoose(t reference testing.T)
-    cases := list of ChooseCase{
-        ChooseCase{name: "function exists", want: true},
-    }
+    cases := list of ChooseCase{ChooseCase{name: "function exists", want: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            # We can't actually test interactive functions without stdin
-            # Just verify the function can be referenced
             test.AssertNoError(t, empty)
         )

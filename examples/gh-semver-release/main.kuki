@@ -24,9 +24,9 @@ import "stdlib/table"
 # ── Constants ──────────────────────────────────────────────────
 
 const
-    DefaultBump      = "patch"
+    DefaultBump = "patch"
     DefaultInitialTag = "v0.0.1"
-    InitialTagEnv    = "INITIAL_TAG"
+    InitialTagEnv = "INITIAL_TAG"
     GenerateNotesEnv = "GENERATE_NOTES"
 
 # ── Types ──────────────────────────────────────────────────────
@@ -52,7 +52,6 @@ type ReleaseResult
 
 # ── Helpers ───────────────────────────────────────────────────
 
-
 # nextTag computes the next semver tag from the current one, falling back to initialTag
 func nextTag(current string, bump string, initialTag string) (string, error)
     if current equals ""
@@ -76,50 +75,15 @@ func highestSemverTag(repo string) (string, error)
 # ── Repo discovery ─────────────────────────────────────────────
 
 func listReposWhereICommitted(org string) (list of string, error)
-    me := git.CurrentUser() onerr return list of string{}, error "failed to get current user: {error}"
+    me := git.CurrentUser() onerr return empty list of string, error "failed to get current user: {error}"
 
-    query := """
-        query($login: String!, $endCursor: String) {
-            user(login: $login) {
-                repositoriesContributedTo(
-                    contributionTypes: [COMMIT]
-                    includeUserRepositories: true
-                    first: 100
-                    after: $endCursor
-                ) {
-                    nodes {
-                        nameWithOwner
-                        viewerPermission
-                        isArchived
-                        isDisabled
-                    }
-                    pageInfo {
-                        hasNextPage
-                        endCursor
-                    }
-                }
-            }
-        }
-        """
+    query := "query($login: String!, $endCursor: String) {\n    user(login: $login) {\n        repositoriesContributedTo(\n            contributionTypes: [COMMIT]\n            includeUserRepositories: true\n            first: 100\n            after: $endCursor\n        ) {\n            nodes {\n                nameWithOwner\n                viewerPermission\n                isArchived\n                isDisabled\n            }\n            pageInfo {\n                hasNextPage\n                endCursor\n            }\n        }\n    }\n}\n"
 
-    jqFilter := """
-        .data.user.repositoriesContributedTo.nodes[]
-        | select(.isArchived == false and .isDisabled == false)
-        | select(
-            .viewerPermission == "ADMIN" or
-            .viewerPermission == "MAINTAIN" or
-            .viewerPermission == "WRITE"
-          )
-        | .nameWithOwner
-        """
+    jqFilter := ".data.user.repositoriesContributedTo.nodes[]\n| select(.isArchived == false and .isDisabled == false)\n| select(\n    .viewerPermission == \"ADMIN\" or\n    .viewerPermission == \"MAINTAIN\" or\n    .viewerPermission == \"WRITE\"\n  )\n| .nameWithOwner\n"
 
-    raw := shell.Output("gh", "api", "graphql", "--paginate", "-f", "login={me}", "-f", "query={query}", "--jq", jqFilter) onerr return list of string{}, error "failed to list repos: {error}"
+    raw := shell.Output("gh", "api", "graphql", "--paginate", "-f", "login={me}", "-f", "query={query}", "--jq", jqFilter) onerr return empty list of string, error "failed to list repos: {error}"
 
-    repos := raw
-        |> string.Lines()
-        |> slice.Filter(r => not string.IsBlank(r))
-        |> slice.Unique()
-        |> sort.Strings()
+    repos := raw |> string.Lines() |> slice.Filter(r => not string.IsBlank(r)) |> slice.Unique() |> sort.Strings()
 
     if org isnt ""
         repos = repos |> slice.Filter(r => r |> string.HasPrefix("{org}/"))
@@ -155,12 +119,10 @@ func doList(args cli.Args, initialTag string)
         os.Exit(1)
 
     # Fetch tags in parallel (at most 4 concurrent GitHub API calls)
-    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
-        |> slice.Filter(e => e.name isnt "")
-        |> sort.ByKey(e => e.name)
+    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag)) |> slice.Filter(e => e.name isnt "") |> sort.ByKey(e => e.name)
 
     if jsonOut
-        result := list of ListEntryJSON{}
+        result := empty list of ListEntryJSON
         for entry in entries
             je := ListEntryJSON{repo: entry.name, next_tag: entry.next}
             if entry.current isnt ""
@@ -300,15 +262,14 @@ func doPick(args cli.Args, initialTag string)
         cli.Fatal("Failed to list repos: {error}")
 
     # Fetch tags in parallel and compute next versions
-    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
-        |> slice.Filter(e => e.name isnt "")
+    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag)) |> slice.Filter(e => e.name isnt "")
 
     if slice.IsEmpty(entries)
         print("No repos found.")
         os.Exit(1)
 
     # Build display lines: "myorg/repo          v1.2.3  →  v1.2.4"
-    labels := list of string{}
+    labels := empty list of string
     for entry in entries
         displayCurrent := entry.current
         if displayCurrent equals ""
@@ -341,21 +302,4 @@ func main()
     if not shell.Which("gh")
         cli.Fatal("Missing required command: gh")
 
-    _ = cli.New("gh-semver-release")
-        |> cli.Description("Create GitHub releases with auto-bumped semver tags")
-        |> cli.GlobalFlag("org", "Limit to repos under this org", "")
-        |> cli.GlobalFlag("bump", "Bump type: patch, minor, major", DefaultBump)
-        |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of human-readable output", "false")
-        |> cli.Command("list", "List repos with current and next semver tags")
-        |> cli.CommandFlag("list", "csv", "CSV output", "false")
-        |> cli.Command("release", "Create a release for a specific repo")
-        |> cli.CommandFlag("release", "repo", "OWNER/REPO to release", "")
-        |> cli.CommandFlag("release", "dry-run", "Show what would happen", "false")
-        |> cli.CommandFlag("release", "draft", "Create draft release", "true")
-        |> cli.Command("pick", "Interactively choose a repo to release")
-        |> cli.CommandFlag("pick", "dry-run", "Show what would happen", "false")
-        |> cli.CommandFlag("pick", "draft", "Create draft release", "true")
-        |> cli.CommandAction("list", a => doList(a, initialTag))
-        |> cli.CommandAction("release", a => doRelease(a, initialTag))
-        |> cli.CommandAction("pick", a => doPick(a, initialTag))
-        |> cli.RunApp() onerr cli.Fatal("{error}")
+    _ = cli.New("gh-semver-release") |> cli.Description("Create GitHub releases with auto-bumped semver tags") |> cli.GlobalFlag("org", "Limit to repos under this org", "") |> cli.GlobalFlag("bump", "Bump type: patch, minor, major", DefaultBump) |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of human-readable output", "false") |> cli.Command("list", "List repos with current and next semver tags") |> cli.CommandFlag("list", "csv", "CSV output", "false") |> cli.Command("release", "Create a release for a specific repo") |> cli.CommandFlag("release", "repo", "OWNER/REPO to release", "") |> cli.CommandFlag("release", "dry-run", "Show what would happen", "false") |> cli.CommandFlag("release", "draft", "Create draft release", "true") |> cli.Command("pick", "Interactively choose a repo to release") |> cli.CommandFlag("pick", "dry-run", "Show what would happen", "false") |> cli.CommandFlag("pick", "draft", "Create draft release", "true") |> cli.CommandAction("list", a => doList(a, initialTag)) |> cli.CommandAction("release", a => doRelease(a, initialTag)) |> cli.CommandAction("pick", a => doPick(a, initialTag)) |> cli.RunApp() onerr cli.Fatal("{error}")

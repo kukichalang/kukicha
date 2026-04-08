@@ -105,6 +105,14 @@ func (p *PrinterWithComments) Print(program *ast.Program) string {
 		p.writeLine("")
 	}
 
+	// Print skill declaration if present
+	if program.SkillDecl != nil {
+		p.printLeadingComments(program.SkillDecl)
+		p.writeLine(fmt.Sprintf("skill %s", program.SkillDecl.Name.Value))
+		p.printTrailingComment(program.SkillDecl)
+		p.writeLine("")
+	}
+
 	// Print imports with comments
 	for _, imp := range program.Imports {
 		p.printLeadingComments(imp)
@@ -130,8 +138,22 @@ func (p *PrinterWithComments) Print(program *ast.Program) string {
 
 func (p *PrinterWithComments) printLeadingComments(node ast.Node) {
 	if attachment, ok := p.comments[node]; ok && len(attachment.Leading) > 0 {
-		for _, comment := range attachment.Leading {
+		for i, comment := range attachment.Leading {
+			// Preserve blank line gaps between leading comments
+			if i > 0 && comment.Line > attachment.Leading[i-1].Line+1 {
+				p.writeLine("")
+			}
 			p.writeLine(comment.Text)
+		}
+		// Preserve blank line between last comment and the node (or its directives).
+		lastComment := attachment.Leading[len(attachment.Leading)-1]
+		nextLine := node.Pos().Line
+		// If the node has directives, use the first directive's line instead
+		if fd, ok := node.(*ast.FunctionDecl); ok && len(fd.Directives) > 0 {
+			nextLine = fd.Directives[0].Token.Line
+		}
+		if nextLine > lastComment.Line+1 {
+			p.writeLine("")
 		}
 	}
 }
@@ -161,6 +183,8 @@ func (p *PrinterWithComments) printDeclarationWithComments(decl ast.Declaration)
 		p.printConstDeclWithComments(d)
 	case *ast.EnumDecl:
 		p.printEnumDecl(d)
+	case *ast.VarDeclStmt:
+		p.printTopLevelVarDecl(d)
 	}
 }
 
@@ -197,7 +221,7 @@ func (p *PrinterWithComments) printTypeDeclWithComments(decl *ast.TypeDecl) {
 		fieldType := p.typeAnnotationToString(field.Type)
 		line := fmt.Sprintf("%s %s", field.Name.Value, fieldType)
 		if field.Tag != "" {
-			line += fmt.Sprintf(" %s", field.Tag)
+			line += " " + formatStructTag(field.Tag)
 		}
 		p.writeLine(line)
 		p.printTrailingComment(field.Name)
@@ -228,13 +252,18 @@ func (p *PrinterWithComments) printInterfaceDeclWithComments(decl *ast.Interface
 }
 
 func (p *PrinterWithComments) printFunctionDeclWithComments(decl *ast.FunctionDecl) {
+	p.printDirectives(decl.Directives)
 	// Build signature
 	var signature string
 	if decl.Receiver != nil {
 		receiverType := p.typeAnnotationToString(decl.Receiver.Type)
 		params := p.parametersToString(decl.Parameters)
 		returns := p.returnTypesToString(decl.Returns)
-		signature = fmt.Sprintf("func %s on %s %s(%s)", decl.Name.Value, decl.Receiver.Name.Value, receiverType, params)
+		if params != "" {
+			signature = fmt.Sprintf("func %s on %s %s(%s)", decl.Name.Value, decl.Receiver.Name.Value, receiverType, params)
+		} else {
+			signature = fmt.Sprintf("func %s on %s %s", decl.Name.Value, decl.Receiver.Name.Value, receiverType)
+		}
 		if returns != "" {
 			signature += " " + returns
 		}
@@ -259,10 +288,21 @@ func (p *PrinterWithComments) printFunctionDeclWithComments(decl *ast.FunctionDe
 }
 
 func (p *PrinterWithComments) printBlockWithComments(block *ast.BlockStmt) {
+	prevEndLine := 0
 	for _, stmt := range block.Statements {
+		stmtLine := stmt.Pos().Line
+		// Check if there's a leading comment — if so, use its line for blank line detection
+		if attachment, ok := p.comments[stmt]; ok && len(attachment.Leading) > 0 {
+			stmtLine = attachment.Leading[0].Line
+		}
+		// Preserve blank lines between statements
+		if prevEndLine > 0 && stmtLine > prevEndLine+1 {
+			p.writeLine("")
+		}
 		p.printLeadingComments(stmt)
 		p.printStatementWithComments(stmt)
 		p.printTrailingComment(stmt)
+		prevEndLine = p.estimateEndLine(stmt)
 	}
 }
 
@@ -289,7 +329,14 @@ func (p *PrinterWithComments) printStatementWithComments(stmt ast.Statement) {
 	case *ast.ForConditionStmt:
 		p.printForConditionStmtWithComments(s)
 	case *ast.DeferStmt:
-		p.writeLine("defer " + p.exprToString(s.Call))
+		if s.Block != nil {
+			p.writeLine("defer")
+			p.indentLevel++
+			p.printBlockWithComments(s.Block)
+			p.indentLevel--
+		} else {
+			p.writeLine("defer " + p.exprToString(s.Call))
+		}
 	case *ast.GoStmt:
 		if s.Block != nil {
 			p.writeLine("go")
@@ -309,8 +356,10 @@ func (p *PrinterWithComments) printStatementWithComments(stmt ast.Statement) {
 		p.writeLine("break")
 	case *ast.ContinueStmt:
 		p.writeLine("continue")
+	case *ast.IncDecStmt:
+		p.writeLine(p.exprToString(s.Variable) + s.Operator)
 	case *ast.ExpressionStmt:
-		p.writeLine(p.exprToString(s.Expression))
+		p.printExpressionStmt(s)
 	case *ast.TypeDeclStmt:
 		// Type declarations inside functions are rejected by semantic analysis,
 		// but the formatter should preserve them so the user sees the error.
@@ -325,7 +374,12 @@ func (p *PrinterWithComments) printStatementWithComments(stmt ast.Statement) {
 
 func (p *PrinterWithComments) printIfStmtWithComments(stmt *ast.IfStmt) {
 	condition := p.exprToString(stmt.Condition)
-	p.writeLine(fmt.Sprintf("if %s", condition))
+	if stmt.Init != nil {
+		initStr := p.stmtToString(stmt.Init)
+		p.writeLine(fmt.Sprintf("if %s; %s", initStr, condition))
+	} else {
+		p.writeLine(fmt.Sprintf("if %s", condition))
+	}
 
 	p.indentLevel++
 	p.printBlockWithComments(stmt.Consequence)
@@ -344,7 +398,12 @@ func (p *PrinterWithComments) printIfStmtWithComments(stmt *ast.IfStmt) {
 			p.write(p.indent())
 			p.output.WriteString("else ")
 			condition := p.exprToString(alt.Condition)
-			p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+			if alt.Init != nil {
+				initStr := p.stmtToString(alt.Init)
+				p.output.WriteString(fmt.Sprintf("if %s; %s\n", initStr, condition))
+			} else {
+				p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+			}
 			p.indentLevel++
 			p.printBlockWithComments(alt.Consequence)
 			p.indentLevel--
@@ -368,7 +427,12 @@ func (p *PrinterWithComments) printIfAlternativeWithComments(alt ast.Statement) 
 		p.write(p.indent())
 		p.output.WriteString("else ")
 		condition := p.exprToString(a.Condition)
-		p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+		if a.Init != nil {
+			initStr := p.stmtToString(a.Init)
+			p.output.WriteString(fmt.Sprintf("if %s; %s\n", initStr, condition))
+		} else {
+			p.output.WriteString(fmt.Sprintf("if %s\n", condition))
+		}
 		p.indentLevel++
 		p.printBlockWithComments(a.Consequence)
 		p.indentLevel--

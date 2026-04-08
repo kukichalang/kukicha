@@ -29,7 +29,7 @@ func TestRequestBuilder(t reference testing.T)
     req = a2a.Context(req, "context123")
     req = a2a.Retry(req, 3, 100)
 
-    # Builders should succeed (we can't inspect private fields)
+# Builders should succeed (we can't inspect private fields)
 
 # Test Skills function with mock data
 func TestSkillsFunction(t reference testing.T)

@@ -304,4 +304,3 @@ func NoNullBytes(s string) (string, error)
     if string.Contains(s, "\x00")
         return s, error "value must not contain null bytes"
     return s, empty
-

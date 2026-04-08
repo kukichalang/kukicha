@@ -8,9 +8,9 @@ import "testing"
 
 # --- TestGetString ---
 type GetStringCase
-    name  string
-    key   string
-    want  string
+    name string
+    key string
+    want string
 
 func TestGetString(t reference testing.T)
     values := make(map of string to string)
@@ -19,11 +19,8 @@ func TestGetString(t reference testing.T)
     values["input"] = "main.kuki"
     args := cli.NewArgs(values)
 
-    cases := list of GetStringCase{
-        GetStringCase{name: "existing key 1", key: "format", want: "json"},
-        GetStringCase{name: "existing key 2", key: "output", want: "result.txt"},
-        GetStringCase{name: "missing key", key: "missing", want: ""},
-    }
+    cases := list of GetStringCase{GetStringCase{name: "existing key 1", key: "format", want: "json"}, GetStringCase{name: "existing key 2", key: "output", want: "result.txt"}, GetStringCase{name: "missing key", key: "missing", want: ""}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := cli.GetString(args, tc.key)
@@ -33,7 +30,7 @@ func TestGetString(t reference testing.T)
 # --- TestGetBool ---
 type GetBoolCase
     name string
-    key  string
+    key string
     want bool
 
 func TestGetBool(t reference testing.T)
@@ -44,13 +41,8 @@ func TestGetBool(t reference testing.T)
     values["enabled"] = "1"
     args := cli.NewArgs(values)
 
-    cases := list of GetBoolCase{
-        GetBoolCase{name: "true string", key: "verbose", want: true},
-        GetBoolCase{name: "false string", key: "quiet", want: false},
-        GetBoolCase{name: "yes string", key: "debug", want: true},
-        GetBoolCase{name: "1 string", key: "enabled", want: true},
-        GetBoolCase{name: "missing flag", key: "missing", want: false},
-    }
+    cases := list of GetBoolCase{GetBoolCase{name: "true string", key: "verbose", want: true}, GetBoolCase{name: "false string", key: "quiet", want: false}, GetBoolCase{name: "yes string", key: "debug", want: true}, GetBoolCase{name: "1 string", key: "enabled", want: true}, GetBoolCase{name: "missing flag", key: "missing", want: false}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := cli.GetBool(args, tc.key)
@@ -59,9 +51,9 @@ func TestGetBool(t reference testing.T)
 
 # --- TestGetInt ---
 type GetIntCase
-    name    string
-    key     string
-    want    int
+    name string
+    key string
+    want int
     wantErr bool
 
 func TestGetInt(t reference testing.T)
@@ -71,12 +63,8 @@ func TestGetInt(t reference testing.T)
     values["invalid"] = "not-a-number"
     args := cli.NewArgs(values)
 
-    cases := list of GetIntCase{
-        GetIntCase{name: "valid int 1", key: "count", want: 42, wantErr: false},
-        GetIntCase{name: "valid int 2", key: "port", want: 8080, wantErr: false},
-        GetIntCase{name: "invalid int", key: "invalid", want: 0, wantErr: true},
-        GetIntCase{name: "missing value", key: "missing", want: 0, wantErr: true},
-    }
+    cases := list of GetIntCase{GetIntCase{name: "valid int 1", key: "count", want: 42, wantErr: false}, GetIntCase{name: "valid int 2", key: "port", want: 8080, wantErr: false}, GetIntCase{name: "invalid int", key: "invalid", want: 0, wantErr: true}, GetIntCase{name: "missing value", key: "missing", want: 0, wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got, err := cli.GetInt(args, tc.key)
@@ -93,13 +81,8 @@ func TestBuilderChain(t reference testing.T)
     handler := (args cli.Args) =>
         _ = args
 
-    _ = cli.New("myapp")
-        |> cli.Description("A great tool")
-        |> cli.GlobalFlag("verbose", "Enable verbose output", "false")
-        |> cli.Command("list", "List items")
-        |> cli.CommandFlag("list", "csv", "CSV output", "false")
-        |> cli.CommandAction("list", handler)
-        |> cli.Command("add", "Add an item")
+    _ = cli.New("myapp") |> cli.Description("A great tool") |> cli.GlobalFlag("verbose", "Enable verbose output", "false") |> cli.Command("list", "List items") |> cli.CommandFlag("list", "csv", "CSV output", "false") |> cli.CommandAction("list", handler) |> cli.Command("add", "Add an item")
+
     test.AssertTrue(t, true)
 
 # --- TestCommandName ---

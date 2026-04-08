@@ -68,39 +68,53 @@ var globalFrameCount int64
 type gameAdapter
     app App
 
-func Update on g reference gameAdapter () error
+func Update on g reference gameAdapter error
     globalFrameCount = globalFrameCount + 1
     if g.app.updateFn != empty
         g.app.updateFn()
     return empty
 
-func Draw on g reference gameAdapter (screen reference ebiten.Image)
+func Draw on g reference gameAdapter(screen reference ebiten.Image)
     if g.app.drawFn != empty
         g.app.drawFn(Screen{img: screen})
 
-func Layout on g reference gameAdapter (outsideWidth int, outsideHeight int) (int, int)
+func Layout on g reference gameAdapter(outsideWidth int, outsideHeight int) (int, int)
     return g.app.width, g.app.height
 
 # ── Color Constants ──
 
 var Red Color = Color{R: 255, G: 0, B: 0, A: 255}
+
 var Green Color = Color{R: 0, G: 200, B: 0, A: 255}
+
 var Blue Color = Color{R: 0, G: 0, B: 255, A: 255}
+
 var White Color = Color{R: 255, G: 255, B: 255, A: 255}
+
 var Black Color = Color{R: 0, G: 0, B: 0, A: 255}
+
 var Yellow Color = Color{R: 255, G: 255, B: 0, A: 255}
+
 var Orange Color = Color{R: 255, G: 165, B: 0, A: 255}
+
 var Purple Color = Color{R: 128, G: 0, B: 128, A: 255}
+
 var Gray Color = Color{R: 128, G: 128, B: 128, A: 255}
 
 # ── Key Constants ──
 
 var KeyLeft ebiten.Key = ebiten.KeyArrowLeft
+
 var KeyRight ebiten.Key = ebiten.KeyArrowRight
+
 var KeyUp ebiten.Key = ebiten.KeyArrowUp
+
 var KeyDown ebiten.Key = ebiten.KeyArrowDown
+
 var KeySpace ebiten.Key = ebiten.KeySpace
+
 var KeyEnter ebiten.Key = ebiten.KeyEnter
+
 var KeyEscape ebiten.Key = ebiten.KeyEscape
 
 # ── Builder Functions ──
@@ -209,7 +223,7 @@ func CircleOverlapsRect(c Circle, r Rect) bool
     closestY := math.Max(r.Y, math.Min(c.Y, r.Y + r.Height))
     dx := c.X - closestX
     dy := c.Y - closestY
-    return (dx * dx + dy * dy) < (c.Radius * c.Radius)
+    return dx * dx + dy * dy < c.Radius * c.Radius
 
 # ── Utility Functions ──
 

@@ -11,11 +11,11 @@ import "encoding/json"
 
 type TestData
     Message string as "message"
-    Count   int    as "count"
+    Count int as "count"
 
 type PostData
-    Name  string as "name"
-    Value int    as "value"
+    Name string as "name"
+    Value int as "value"
 
 # --- TestGet ---
 type GetCase
@@ -26,11 +26,11 @@ func TestGet(t reference testing.T)
         w.WriteHeader(http.StatusOK)
         w.Write("Hello, World!" as list of byte)
     ))
+
     defer server.Close()
 
-    cases := list of GetCase{
-        GetCase{name: "basic get"},
-    }
+    cases := list of GetCase{GetCase{name: "basic get"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             resp, err := fetch.Get(server.URL)
@@ -52,11 +52,11 @@ func TestJson(t reference testing.T)
         w.WriteHeader(http.StatusOK)
         w.Write(jsonBytes)
     ))
+
     defer server.Close()
 
-    cases := list of JsonCase{
-        JsonCase{name: "parse object"},
-    }
+    cases := list of JsonCase{JsonCase{name: "parse object"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             resp, err := fetch.Get(server.URL)
@@ -78,11 +78,11 @@ func TestJsonArray(t reference testing.T)
         w.WriteHeader(http.StatusOK)
         w.Write(jsonBytes)
     ))
+
     defer server.Close()
 
-    cases := list of JsonArrayCase{
-        JsonArrayCase{name: "parse array"},
-    }
+    cases := list of JsonArrayCase{JsonArrayCase{name: "parse array"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             resp, err := fetch.Get(server.URL)
@@ -99,21 +99,19 @@ type DecodeCase
     name string
 
 func TestDecode(t reference testing.T)
-    testData := list of TestData{
-        TestData{Message: "typed", Count: 7},
-        TestData{Message: "decode", Count: 9},
-    }
+    testData := list of TestData{TestData{Message: "typed", Count: 7}, TestData{Message: "decode", Count: 9}}
+
     jsonBytes, _ := json.Marshal(testData)
     server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r reference http.Request)
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusOK)
         w.Write(jsonBytes)
     ))
+
     defer server.Close()
 
-    cases := list of DecodeCase{
-        DecodeCase{name: "decode into reference"},
-    }
+    cases := list of DecodeCase{DecodeCase{name: "decode into reference"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             resp, err := fetch.Get(server.URL)
@@ -128,31 +126,17 @@ func TestDecode(t reference testing.T)
 
 # --- TestURLTemplate ---
 type URLTemplateCase
-    name    string
-    tmpl    string
-    args    map of string to string
-    want    string
+    name string
+    tmpl string
+    args map of string to string
+    want string
     wantErr bool
 
 func TestURLTemplate(t reference testing.T)
     tmpl := "https://api.example.com/users/\{username\}/repos/\{repo\}"
-    
-    cases := list of URLTemplateCase{
-        URLTemplateCase{
-            name: "success with encoding",
-            tmpl: tmpl,
-            args: map of string to string{"username": "acme/dev team", "repo": "hello world"},
-            want: "https://api.example.com/users/acme%2Fdev%20team/repos/hello%20world",
-            wantErr: false,
-        },
-        URLTemplateCase{
-            name: "missing placeholder",
-            tmpl: tmpl,
-            args: map of string to string{"username": "golang"},
-            want: "",
-            wantErr: true,
-        },
-    }
+
+    cases := list of URLTemplateCase{URLTemplateCase{name: "success with encoding", tmpl: tmpl, args: map of string to string{"username": "acme/dev team", "repo": "hello world"}, want: "https://api.example.com/users/acme%2Fdev%20team/repos/hello%20world", wantErr: false}, URLTemplateCase{name: "missing placeholder", tmpl: tmpl, args: map of string to string{"username": "golang"}, want: "", wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             builtURL, err := fetch.URLTemplate(tc.tmpl, tc.args)
@@ -165,22 +149,15 @@ func TestURLTemplate(t reference testing.T)
 
 # --- TestURLWithQuery ---
 type URLWithQueryCase
-    name    string
-    url     string
-    query   map of string to string
-    want1   string
-    want2   string
+    name string
+    url string
+    query map of string to string
+    want1 string
+    want2 string
 
 func TestURLWithQuery(t reference testing.T)
-    cases := list of URLWithQueryCase{
-        URLWithQueryCase{
-            name: "encode multiple params",
-            url: "https://api.example.com/search",
-            query: map of string to string{"q": "go lang", "sort": "stars desc"},
-            want1: "https://api.example.com/search?q=go+lang&sort=stars+desc",
-            want2: "https://api.example.com/search?sort=stars+desc&q=go+lang",
-        },
-    }
+    cases := list of URLWithQueryCase{URLWithQueryCase{name: "encode multiple params", url: "https://api.example.com/search", query: map of string to string{"q": "go lang", "sort": "stars desc"}, want1: "https://api.example.com/search?q=go+lang&sort=stars+desc", want2: "https://api.example.com/search?sort=stars+desc&q=go+lang"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             builtURL, err := fetch.URLWithQuery(tc.url, tc.query)
@@ -199,11 +176,11 @@ func TestText(t reference testing.T)
         w.WriteHeader(http.StatusOK)
         w.Write(expectedText as list of byte)
     ))
+
     defer server.Close()
 
-    cases := list of TextCase{
-        TextCase{name: "read as text"},
-    }
+    cases := list of TextCase{TextCase{name: "read as text"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             resp, err := fetch.Get(server.URL)
@@ -223,11 +200,11 @@ func TestPost(t reference testing.T)
         w.WriteHeader(http.StatusCreated)
         w.Write("created" as list of byte)
     ))
+
     defer server.Close()
 
-    cases := list of PostCase{
-        PostCase{name: "post object"},
-    }
+    cases := list of PostCase{PostCase{name: "post object"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             postData := PostData{Name: "test", Value: 123}
@@ -250,12 +227,11 @@ func TestCheckStatus(t reference testing.T)
         else
             w.WriteHeader(http.StatusNotFound)
     ))
+
     defer server.Close()
 
-    cases := list of CheckStatusCase{
-        CheckStatusCase{name: "success status", code: 200, wantErr: false},
-        CheckStatusCase{name: "error status", code: 404, wantErr: true},
-    }
+    cases := list of CheckStatusCase{CheckStatusCase{name: "success status", code: 200, wantErr: false}, CheckStatusCase{name: "error status", code: 404, wantErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             path := "/ok"
@@ -263,7 +239,7 @@ func TestCheckStatus(t reference testing.T)
                 path = "/notfound"
             resp, err := fetch.Get(server.URL + path)
             test.AssertNoError(t, err)
-            
+
             checkedResp, checkErr := fetch.CheckStatus(resp)
             if tc.wantErr
                 test.AssertError(t, checkErr)
@@ -284,11 +260,11 @@ func TestRequestBuilder(t reference testing.T)
         w.WriteHeader(http.StatusOK)
         w.Write("authorized" as list of byte)
     ))
+
     defer server.Close()
 
-    cases := list of RequestBuilderCase{
-        RequestBuilderCase{name: "builder properties"},
-    }
+    cases := list of RequestBuilderCase{RequestBuilderCase{name: "builder properties"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             req := fetch.New(server.URL) |> fetch.Header("Authorization", "Bearer test-token")
@@ -303,15 +279,15 @@ type AuthHelpersCase
     name string
 
 func TestAuthHelpers(t reference testing.T)
-    cases := list of AuthHelpersCase{
-        AuthHelpersCase{name: "auth headers"},
-    }
+    cases := list of AuthHelpersCase{AuthHelpersCase{name: "auth headers"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             serverBearer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r reference http.Request)
                 test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer my-token")
                 w.WriteHeader(http.StatusOK)
             ))
+
             defer serverBearer.Close()
 
             reqBearer := fetch.New(serverBearer.URL) |> fetch.BearerAuth("my-token")
@@ -323,6 +299,7 @@ func TestAuthHelpers(t reference testing.T)
                 test.AssertEqual(t, r.Header.Get("Authorization"), "Basic dXNlcjpwYXNz")
                 w.WriteHeader(http.StatusOK)
             ))
+
             defer serverBasic.Close()
 
             reqBasic := fetch.New(serverBasic.URL) |> fetch.BasicAuth("user", "pass")
@@ -342,11 +319,11 @@ func TestFormData(t reference testing.T)
         test.AssertEqual(t, r.Form.Get("key"), "value")
         w.WriteHeader(http.StatusOK)
     ))
+
     defer server.Close()
 
-    cases := list of FormDataCase{
-        FormDataCase{name: "post form data"},
-    }
+    cases := list of FormDataCase{FormDataCase{name: "post form data"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             data := map of string to string{"key": "value"}
@@ -372,11 +349,11 @@ func TestSession(t reference testing.T)
             w.WriteHeader(http.StatusOK)
             w.Write("cookie set" as list of byte)
     ))
+
     defer server.Close()
 
-    cases := list of SessionCase{
-        SessionCase{name: "persist cookies"},
-    }
+    cases := list of SessionCase{SessionCase{name: "persist cookies"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             session := fetch.NewSession()

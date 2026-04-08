@@ -74,26 +74,26 @@ type Auth
 
 # pullStatusMsg is used for JSON decode of Docker pull progress messages.
 type pullStatusMsg
-    Status string json:"status"
-    ID string json:"id"
+    Status string as "status"
+    ID string as "id"
 
 # buildStreamMsg is used for JSON decode of Docker build progress messages.
 type buildStreamMsg
-    Stream string json:"stream"
-    Aux buildStreamAux json:"aux"
-    Error string json:"error"
+    Stream string as "stream"
+    Aux buildStreamAux as "aux"
+    Error string as "error"
 
 # buildStreamAux holds the image ID returned in build stream aux messages.
 type buildStreamAux
-    ID string json:"ID"
+    ID string as "ID"
 
 # dockerAuthEntry represents a single registry auth entry from Docker config.
 type dockerAuthEntry
-    Auth string json:"auth"
+    Auth string as "auth"
 
 # dockerConfig represents the structure of ~/.docker/config.json.
 type dockerConfig
-    Auths map of string to dockerAuthEntry json:"auths"
+    Auths map of string to dockerAuthEntry as "auths"
 
 # ContainerEvent represents a container runtime event.
 type ContainerEvent
@@ -128,13 +128,8 @@ func ListContainers(engine Engine) (list of ContainerInfo, error)
 
     result := make(list of ContainerInfo, len(containers))
     for i, c in containers
-        result[i] = ContainerInfo{
-            id: c.ID,
-            image: c.Image,
-            status: c.Status,
-            state: c.State,
-            names: c.Names,
-        }
+        result[i] = ContainerInfo{id: c.ID, image: c.Image, status: c.Status, state: c.State, names: c.Names}
+
     return result, empty
 
 # ListImages lists all images on the host.
@@ -144,11 +139,8 @@ func ListImages(engine Engine) (list of ImageInfo, error)
 
     result := make(list of ImageInfo, len(images))
     for i, img in images
-        result[i] = ImageInfo{
-            id: img.ID,
-            tags: img.RepoTags,
-            size: img.Size,
-        }
+        result[i] = ImageInfo{id: img.ID, tags: img.RepoTags, size: img.Size}
+
     return result, empty
 
 # Stop stops a running container.
@@ -169,11 +161,8 @@ func Login(username string, password string, server string) Auth
 
 # AuthEncode encodes auth credentials as a base64 JSON string for Docker registry headers.
 func AuthEncode(auth Auth) string
-    authJSON, _ := json.Marshal(map of string to string{
-        "username": auth.username,
-        "password": auth.password,
-        "serveraddress": auth.serverAddress,
-    })
+    authJSON, _ := json.Marshal(map of string to string{"username": auth.username, "password": auth.password, "serveraddress": auth.serverAddress})
+
     return base64.URLEncoding.EncodeToString(authJSON)
 
 # ContainerID returns the container's ID.
@@ -270,10 +259,7 @@ func LogsTail(engine Engine, containerID string, lines int64) (string, error)
 # Run creates and starts a container. Returns the container ID.
 func Run(engine Engine, img string, cmd list of string) (string, error)
     bg := ctxpkg.Background()
-    resp := engine.cli.ContainerCreate(ctxpkg.Value(bg), reference of dockercontainer.Config{
-        Image: img,
-        Cmd: cmd,
-    }, empty, empty, empty, "") onerr explain "container run create"
+    resp := engine.cli.ContainerCreate(ctxpkg.Value(bg), reference of dockercontainer.Config{Image: img, Cmd: cmd}, empty, empty, empty, "") onerr explain "container run create"
 
     engine.cli.ContainerStart(ctxpkg.Value(bg), resp.ID, dockercontainer.StartOptions{}) onerr explain "container run start"
 
@@ -292,13 +278,7 @@ func Inspect(engine Engine, containerID string) (ContainerInfo, error)
     if info.State != empty
         status = info.State.Status
         state = info.State.Status
-    return ContainerInfo{
-        id: info.ID,
-        image: info.Config.Image,
-        status: status,
-        state: state,
-        names: names,
-    }, empty
+    return ContainerInfo{id: info.ID, image: info.Config.Image, status: status, state: state, names: names}, empty
 
 # Exec runs a command in an existing container and returns combined stdout/stderr.
 # An optional ctx.Handle can be passed for cancellation support.
@@ -306,11 +286,7 @@ func Exec(engine Engine, containerID string, cmd list of string, many handles ct
     ctx := ctxpkg.Background()
     if len(handles) > 0
         ctx = handles[0]
-    createResp := engine.cli.ContainerExecCreate(ctxpkg.Value(ctx), containerID, dockertypes.ExecConfig{
-        Cmd: cmd,
-        AttachStdout: true,
-        AttachStderr: true,
-    }) onerr explain "container exec create"
+    createResp := engine.cli.ContainerExecCreate(ctxpkg.Value(ctx), containerID, dockertypes.ExecConfig{Cmd: cmd, AttachStdout: true, AttachStderr: true}) onerr explain "container exec create"
 
     attachResp := engine.cli.ContainerExecAttach(ctxpkg.Value(ctx), createResp.ID, dockertypes.ExecStartCheck{}) onerr explain "container exec attach"
     defer attachResp.Close()
@@ -361,20 +337,14 @@ func convertEvent(msg dockerevents.Message) ContainerEvent
     actor := msg.Actor.ID
     if name, ok := msg.Actor.Attributes["name"]; ok and name != ""
         actor = name
-    return ContainerEvent{
-        id: msg.ID,
-        resource: msg.Type as string,
-        action: msg.Action as string,
-        actor: actor,
-        time: ts,
-    }
+    return ContainerEvent{id: msg.ID, resource: msg.Type as string, action: msg.Action as string, actor: actor, time: ts}
 
 # eventsWithContext collects runtime events until the context is canceled.
 func eventsWithContext(engine Engine, h ctxpkg.Handle) (list of ContainerEvent, error)
     goCtx := ctxpkg.Value(h)
     msgCh, errCh := engine.cli.Events(goCtx, dockertypes.EventsOptions{})
     events := make(list of ContainerEvent, 0)
-    for
+    for true
         select
             when receive from goCtx.Done()
                 return events, empty
@@ -416,6 +386,7 @@ func Pull(engine Engine, ref string, many handles ctxpkg.Handle) (string, error)
         msg := pullStatusMsg{}
         json.Unmarshal(scanner.Bytes(), reference of msg) onerr
             continue
+
         if string.HasPrefix(msg.Status, "Digest:")
             digest = string.TrimPrefix(msg.Status, "Digest: ")
     if digest == ""
@@ -424,16 +395,11 @@ func Pull(engine Engine, ref string, many handles ctxpkg.Handle) (string, error)
 
 # PullAuth pulls an image using registry credentials.
 func PullAuth(engine Engine, ref string, auth Auth) (string, error)
-    authJSON := json.Marshal(map of string to string{
-        "username": auth.username,
-        "password": auth.password,
-        "serveraddress": auth.serverAddress,
-    }) onerr explain "container pull auth"
-    
+    authJSON := json.Marshal(map of string to string{"username": auth.username, "password": auth.password, "serveraddress": auth.serverAddress}) onerr explain "container pull auth"
+
     encoded := base64.URLEncoding.EncodeToString(authJSON)
-    reader := engine.cli.ImagePull(ctxpkg.Value(ctxpkg.Background()), ref, dockerimage.PullOptions{
-        RegistryAuth: encoded,
-    }) onerr explain "container pull"
+    reader := engine.cli.ImagePull(ctxpkg.Value(ctxpkg.Background()), ref, dockerimage.PullOptions{RegistryAuth: encoded}) onerr explain "container pull"
+
     defer reader.Close()
 
     digest := ""
@@ -442,6 +408,7 @@ func PullAuth(engine Engine, ref string, auth Auth) (string, error)
         msg := pullStatusMsg{}
         json.Unmarshal(scanner.Bytes(), reference of msg) onerr
             continue
+
         if string.HasPrefix(msg.Status, "Digest:")
             digest = string.TrimPrefix(msg.Status, "Digest: ")
     if digest == ""
@@ -459,12 +426,8 @@ func loadDockerAuth(serverAddress string) (string, string, string, error)
     json.Unmarshal(data, reference of config) onerr explain "container auth parse"
     authEntry, ok := config.Auths[serverAddress]
     if not ok
-        variations := list of string{
-            "https://" + serverAddress,
-            "http://" + serverAddress,
-            string.TrimPrefix(serverAddress, "https://"),
-            string.TrimPrefix(serverAddress, "http://"),
-        }
+        variations := list of string{"https://" + serverAddress, "http://" + serverAddress, string.TrimPrefix(serverAddress, "https://"), string.TrimPrefix(serverAddress, "http://")}
+
         for v in variations
             a, found := config.Auths[v]
             if found
@@ -500,11 +463,8 @@ func newClient(host string) (reference client.Client, error)
 
 # Connect creates an Engine using auto-detected socket or DOCKER_HOST.
 func Connect() (Engine, error)
-    socketPaths := list of string{
-        fmt.Sprintf("/run/user/%d/podman/podman.sock", os.Getuid()),
-        "/var/run/docker.sock",
-        "/run/podman/podman.sock",
-    }
+    socketPaths := list of string{fmt.Sprintf("/run/user/%d/podman/podman.sock", os.Getuid()), "/var/run/docker.sock", "/run/podman/podman.sock"}
+
     host := ""
     for p in socketPaths
         _, statErr := os.Stat(p)
@@ -540,7 +500,7 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
             return err
         if d.IsDir() and d.Name() == ".git"
             return filepath.SkipDir
-        # Skip symlinks to prevent including files outside the build context
+
         if d.Type() == os.ModeSymlink
             return empty
         relPath, relErr := filepath.Rel(absContextPath, walkPath)
@@ -565,14 +525,14 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
         _, copyErr := io.Copy(tw, f)
         return copyErr
     )
+
+    # Skip symlinks to prevent including files outside the build context
+
     if walkErr != empty
         return "", "", error "container build context: {walkErr}"
     tw.Close() onerr explain "container build tar"
-    buildOpts := dockertypes.ImageBuildOptions{
-        Tags: list of string{tag},
-        Remove: true,
-        Dockerfile: "Dockerfile",
-    }
+    buildOpts := dockertypes.ImageBuildOptions{Tags: list of string{tag}, Remove: true, Dockerfile: "Dockerfile"}
+
     resp := cli.ImageBuild(ctxpkg.Value(ctxpkg.Background()), reference of buf, buildOpts) onerr explain "container build"
     defer resp.Body.Close()
     output := bytes.Buffer{}
@@ -600,7 +560,7 @@ func Build(engine Engine, path string, tag string) (BuildOutput, error)
 func extractTar(reader io.Reader, destPath string) error
     tr := tar.NewReader(reader)
     cleanDest := filepath.Clean(destPath)
-    for
+    for true
         header, err := tr.Next()
         if err == io.EOF
             break
@@ -619,6 +579,7 @@ func extractTar(reader io.Reader, destPath string) error
                 io.Copy(f, tr) onerr
                     f.Close()
                     return error "{error}"
+
                 f.Close() onerr return
             when tar.TypeSymlink, tar.TypeLink
                 return error "archive contains unsupported link entry: {header.Name}"
@@ -641,15 +602,14 @@ func createTarFromPath(sourcePath string) (io.Reader, error)
         filepath.WalkDir(absSourcePath, func(walkPath string, d os.DirEntry, err error) error
             if err != empty
                 return err
-            # Skip symlinks to prevent traversal outside the source tree
+
             if d.Type() == os.ModeSymlink
                 return empty
             fi := d.Info() onerr return
 
-            # Skip symlinks in file info too
             if fi.Mode().Type() == os.ModeSymlink
                 return empty
-            
+
             rel := filepath.Rel(filepath.Dir(absSourcePath), walkPath) onerr return
             header := tar.FileInfoHeader(fi, "") onerr return
             header.Name = filepath.ToSlash(rel)
@@ -663,6 +623,10 @@ func createTarFromPath(sourcePath string) (io.Reader, error)
             return empty
         ) onerr explain "container copy to walk"
     else
+        # Skip symlinks to prevent traversal outside the source tree
+
+        # Skip symlinks in file info too
+
         fi := os.Stat(absSourcePath) onerr explain "container copy to stat file"
         header := tar.FileInfoHeader(fi, "") onerr explain "container copy to header"
         header.Name = filepath.ToSlash(filepath.Base(absSourcePath))

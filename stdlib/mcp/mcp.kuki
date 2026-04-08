@@ -22,10 +22,7 @@ type SchemaProperty
 # Example:
 #   server := mcp.New("my-server", "1.0.0")
 func New(name string, version string) reference mcp.Server
-    return mcp.NewServer(reference of mcp.Implementation{
-        Name: name,
-        Version: version,
-    }, empty)
+    return mcp.NewServer(reference of mcp.Implementation{Name: name, Version: version}, empty)
 
 # Serve runs the server on the stdio transport (blocking).
 # Usually called at the very end of func main().
@@ -43,15 +40,9 @@ func Prop(name string, typ string, description string) SchemaProperty
 func Schema(props list of SchemaProperty) map of string to any
     properties := make(map of string to any)
     for prop in props
-        properties[prop.Name] = map of string to any{
-            "type": prop.Type,
-            "description": prop.Description,
-        }
+        properties[prop.Name] = map of string to any{"type": prop.Type, "description": prop.Description}
 
-    return map of string to any{
-        "type": "object",
-        "properties": properties,
-    }
+    return map of string to any{"type": "object", "properties": properties}
 
 # Required adds a list of required property names to a schema
 func Required(schema any, names list of string) any
@@ -60,21 +51,17 @@ func Required(schema any, names list of string) any
         when map of string to any
             s["required"] = names
             result = s
+
     return result
 
 # TextResult creates a successful tool result containing the given text.
 # Useful for returning strings directly to the AI.
 func TextResult(text string) any
-    return reference of mcp.CallToolResult{
-        Content: list of mcp.Content{reference of mcp.TextContent{Text: text}},
-    }
+    return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: text}}}
 
 # ErrorResult creates an error tool result containing the given message.
 func ErrorResult(msg string) any
-    return reference of mcp.CallToolResult{
-        Content: list of mcp.Content{reference of mcp.TextContent{Text: msg}},
-        IsError: true,
-    }
+    return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: msg}}, IsError: true}
 
 # Tool registers an MCP tool with the given handler.
 # The handler receives parsed JSON arguments and returns a result.
@@ -83,11 +70,7 @@ func ErrorResult(msg string) any
 # Example:
 #   server |> mcp.Tool("hello", "Say hello", schema, func(args) { return "Hi!", empty })
 func Tool(server reference mcp.Server, name string, description string, schema any, handler ToolHandler)
-    server.AddTool(reference of mcp.Tool{
-        Name: name,
-        Description: description,
-        InputSchema: schema,
-    }, func(ctx context.Context, req reference mcp.CallToolRequest) (reference mcp.CallToolResult, error)
+    server.AddTool(reference of mcp.Tool{Name: name, Description: description, InputSchema: schema}, func(ctx context.Context, req reference mcp.CallToolRequest) (reference mcp.CallToolResult, error)
         args := make(map of string to any)
         if len(req.Params.Arguments) > 0
             unmarshalErr := json.Unmarshal(req.Params.Arguments, reference of args)
@@ -95,21 +78,16 @@ func Tool(server reference mcp.Server, name string, description string, schema a
                 return empty, unmarshalErr
         res, handlerErr := handler(args)
         if handlerErr != empty
-            return reference of mcp.CallToolResult{
-                Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}},
-                IsError: true,
-            }, empty
+            return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}}, IsError: true}, empty
+
         res |> switch as r
             when reference mcp.CallToolResult
                 return r, empty
             when string
-                return reference of mcp.CallToolResult{
-                    Content: list of mcp.Content{reference of mcp.TextContent{Text: r}},
-                }, empty
+                return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: r}}}, empty
+
         data, _ := json.Marshal(res)
-        return reference of mcp.CallToolResult{
-            Content: list of mcp.Content{reference of mcp.TextContent{Text: string(data)}},
-        }, empty
+        return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: string(data)}}}, empty
     )
 
 # ClientSession is a wrapper around mcp.ClientSession
@@ -165,10 +143,11 @@ func ListTools(ctx context.Context, session ClientSession) (list of ClientTool, 
     result := session.inner.ListTools(ctx, empty) onerr return empty list of ClientTool, error "MCP ListTools failed: {error}"
     tools := make(list of ClientTool, len(result.Tools))
     for i, t in result.Tools
-        schema := map of string to any{}
+        schema := empty map of string to any
         t.InputSchema |> switch as s
             when map of string to any
                 schema = s
+
         tools[i] = ClientTool{Name: t.Name, Description: t.Description, InputSchema: schema}
     return tools, empty
 
@@ -185,6 +164,6 @@ func CallTool(ctx context.Context, session ClientSession, name string, args map 
             otherwise
                 data, _ := json.Marshal(c)
                 parts = append(parts, data as string)
+
     text := strpkg.Join(parts, "\n")
     return CallToolResult{Text: text, IsError: result.IsError}, empty
-

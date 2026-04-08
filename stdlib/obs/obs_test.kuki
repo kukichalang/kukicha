@@ -11,8 +11,8 @@ func TestLoggerFields(t reference testing.T)
     logger = obs.Component(logger, "api")
     logger = obs.WithCorrelation(logger, "cid")
 
-    # Test observable behavior: logger should be created and builders should not panic
-    # (logger is a value type, so we just verify it was assigned)
+# Test observable behavior: logger should be created and builders should not panic
+# (logger is a value type, so we just verify it was assigned)
 
 # Test correlation IDs have expected length
 func TestCorrelationID(t reference testing.T)
@@ -24,5 +24,5 @@ func TestCorrelationID(t reference testing.T)
 func TestTimerStopFail(t reference testing.T)
     logger := obs.New("svc", "env")
     timer := obs.Start(logger, "op")
-    obs.Stop(timer, map of string to any{})
-    obs.Fail(timer, "error", map of string to any{})
+    obs.Stop(timer, empty map of string to any)
+    obs.Fail(timer, "error", empty map of string to any)

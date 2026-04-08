@@ -27,9 +27,9 @@ type ReleaseOptions
 # ListTags returns all tag names for a remote GitHub repo
 # Example: tags := git.ListTags("owner/repo") onerr panic "{error}"
 func ListTags(repo string) (list of string, error)
-    raw := shell.Output("gh", "api", "repos/{repo}/tags", "--paginate", "--jq", ".[].name") onerr return list of string{}, error "failed to fetch tags for {repo}: {error}"
+    raw := shell.Output("gh", "api", "repos/{repo}/tags", "--paginate", "--jq", ".[].name") onerr return empty list of string, error "failed to fetch tags for {repo}: {error}"
     if raw |> string.IsBlank()
-        return list of string{}, empty
+        return empty list of string, empty
     tags := raw |> string.Lines() |> filterBlank()
     return tags, empty
 
@@ -69,10 +69,7 @@ func CreateRelease(repo string, tag string, opts ReleaseOptions) error
     if title equals ""
         title = tag
 
-    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title)
-        |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target)
-        |> shell.FlagIf(opts.GenerateNotes, "--generate-notes")
-        |> shell.FlagIf(opts.Draft, "--draft")
+    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title) |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target) |> shell.FlagIf(opts.GenerateNotes, "--generate-notes") |> shell.FlagIf(opts.Draft, "--draft")
 
     result := cmd |> shell.Execute()
     if not shell.Success(result)
@@ -88,10 +85,7 @@ func PreviewRelease(repo string, tag string, opts ReleaseOptions) string
     if title equals ""
         title = tag
 
-    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title)
-        |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target)
-        |> shell.FlagIf(opts.GenerateNotes, "--generate-notes")
-        |> shell.FlagIf(opts.Draft, "--draft")
+    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title) |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target) |> shell.FlagIf(opts.GenerateNotes, "--generate-notes") |> shell.FlagIf(opts.Draft, "--draft")
 
     return shell.Preview(cmd)
 
@@ -127,7 +121,7 @@ func CloneShallow(url string, path string, depth int) error
 # --- Internal helpers ---
 
 func filterBlank(lines list of string) list of string
-    result := list of string{}
+    result := empty list of string
     for line in lines
         if not string.IsBlank(line)
             result = append(result, line)

@@ -18,13 +18,19 @@ import "stdlib/string" as strpkg
 var version string = "dev"
 
 # ANSI formatting helpers
-const ansiReset = "\033[0m"
-const ansiDim = "\033[2m"
-const ansiYellow = "\033[33m"
-const ansiBoldYellow = "\033[1;33m"
-const ansiBoldCyan = "\033[1;36m"
-const ansiRed = "\033[91m"
-const ansiGreen = "\033[32m"
+const ansiReset = "\x1b[0m"
+
+const ansiDim = "\x1b[2m"
+
+const ansiYellow = "\x1b[33m"
+
+const ansiBoldYellow = "\x1b[1;33m"
+
+const ansiBoldCyan = "\x1b[1;36m"
+
+const ansiRed = "\x1b[91m"
+
+const ansiGreen = "\x1b[32m"
 
 func dimFmt(s string) string
     return "{ansiDim}{s}{ansiReset}"
@@ -88,18 +94,22 @@ func main()
         if cmd equals "models"
             cmdListModels() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "tools"
             cmdListTools() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "health"
             cmdHealth() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "configure"
             cmdConfigure() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "version"
             print("owui {version}")
@@ -125,11 +135,8 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
     if isTTYErr()
         fmt.Fprint(os.Stderr, "{dimFmt("MCP connected:")} {dimFmt("{bridgeToolCount(bridge)} tools from {cfg.TerminalMCPURL}")}\n")
 
-    a := reference of Agent{
-        Bridge: bridge,
-        Config: cfg,
-        MaxRounds: cfg.MaxToolRounds,
-    }
+    a := reference of Agent{Bridge: bridge, Config: cfg, MaxRounds: cfg.MaxToolRounds}
+
     if flagSystem isnt ""
         a.SystemPrompt = flagSystem
 
@@ -149,6 +156,7 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
     if isTTY
         a.OnToolCall = func(name string, toolArgs string)
             fmt.Fprint(os.Stderr, "{toolFmt("-> {name}")} {dimFmt(truncateFmt(toolArgs, 80))}\n")
+
         a.OnToolResult = func(name string, result string)
             fmt.Fprint(os.Stderr, "{toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 120))}\n")
 
@@ -171,11 +179,11 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
 # ---- Subcommands ----
 
 type ModelEntry
-    ID string json:"id"
-    Name string json:"name"
+    ID string as "id"
+    Name string as "name"
 
 type ModelsResponse
-    Data list of ModelEntry json:"data"
+    Data list of ModelEntry as "data"
 
 func cmdListModels() error
     cfg := loadConfig()
@@ -183,9 +191,7 @@ func cmdListModels() error
         return error "Open WebUI API key required"
 
     url := "{strpkg.TrimRight(cfg.WebUIURL, "/")}/api/models"
-    resp := fetch.New(url)
-        |> fetch.BearerAuth(cfg.WebUIAPIKey)
-        |> fetch.Do() onerr return
+    resp := fetch.New(url) |> fetch.BearerAuth(cfg.WebUIAPIKey) |> fetch.Do() onerr return
 
     defer resp.Body.Close()
 
@@ -226,9 +232,8 @@ func cmdHealth() error
     fmt.Printf("Open WebUI  ({cfg.WebUIURL})  ")
     if cfg.WebUIAPIKey isnt ""
         url := "{strpkg.TrimRight(cfg.WebUIURL, "/")}/api/models"
-        resp, err := fetch.New(url)
-            |> fetch.BearerAuth(cfg.WebUIAPIKey)
-            |> fetch.Do()
+        resp, err := fetch.New(url) |> fetch.BearerAuth(cfg.WebUIAPIKey) |> fetch.Do()
+
         if err isnt empty
             fmt.Println(errFmt("x"), err)
         else
@@ -287,7 +292,7 @@ func runChat(ctx context.Context, a reference Agent, initialPrompt string)
     print(dimFmt("owui chat — model: {a.Config.Model} — type 'exit' to quit"))
     print("")
 
-    for
+    for true
         if prompt equals ""
             prompt = input.ReadLine(boldCyanFmt("you> ")) onerr break
             if prompt equals "exit" or prompt equals "quit"
@@ -297,8 +302,10 @@ func runChat(ctx context.Context, a reference Agent, initialPrompt string)
 
         a.OnToolCall = func(name string, toolArgs string)
             fmt.Fprint(os.Stderr, "  {toolFmt("-> {name}")} {dimFmt(truncateFmt(toolArgs, 60))}\n")
+
         a.OnToolResult = func(name string, result string)
             fmt.Fprint(os.Stderr, "  {toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 80))}\n")
+
         a.OnText = empty
 
         result := runAgent(ctx, a, prompt, history) onerr
@@ -346,7 +353,7 @@ func isTTYErr() bool
 func maskKey(k string) string
     if len(k) < 8
         return "--------"
-    return "{k[:4]}...{k[len(k)-4:]}"
+    return "{k[:4]}...{k[len(k) - 4:]}"
 
 func truncateFmt(s string, n int) string
     s = strpkg.ReplaceAll(s, "\n", " ")

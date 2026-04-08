@@ -15,20 +15,8 @@ type WrapCase
     wantEqual bool
 
 func TestWrapAndIs(t reference testing.T)
-    cases := list of WrapCase{
-        WrapCase{
-            name: "wraps and identifies base error",
-            baseMsg: "base",
-            wrapMsg: "context",
-            wantEqual: true,
-        },
-        WrapCase{
-            name: "does not match different error",
-            baseMsg: "base",
-            wrapMsg: "context",
-            wantEqual: false,
-        },
-    }
+    cases := list of WrapCase{WrapCase{name: "wraps and identifies base error", baseMsg: "base", wrapMsg: "context", wantEqual: true}, WrapCase{name: "does not match different error", baseMsg: "base", wrapMsg: "context", wantEqual: false}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             base := goerrors.New(tc.baseMsg)
@@ -37,7 +25,7 @@ func TestWrapAndIs(t reference testing.T)
                 test.AssertTrue(t, errors.Is(wrapped, base))
             else
                 test.AssertFalse(t, errors.Is(wrapped, goerrors.New("different")))
-                
+
             unwrapped := errors.Unwrap(wrapped)
             if tc.wantEqual
                 test.AssertEqual(t, unwrapped.Error(), tc.baseMsg)
@@ -53,17 +41,18 @@ type OpaqueCase
     wantMsg string
 
 func TestOpaque(t reference testing.T)
-    cases := list of OpaqueCase{
-        OpaqueCase{name: "formats message", msg: "inner detail", wrapMsg: "subsystem", wantMsg: "subsystem: inner detail"},
-    }
+    cases := list of OpaqueCase{OpaqueCase{name: "formats message", msg: "inner detail", wrapMsg: "subsystem", wantMsg: "subsystem: inner detail"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             base := goerrors.New(tc.msg)
             opaque := errors.Opaque(base, tc.wrapMsg)
             test.AssertEqual(t, opaque.Error(), tc.wantMsg)
-            # Crucially, errors.Is must NOT traverse through an opaque boundary
+
             test.AssertFalse(t, errors.Is(opaque, base))
         )
+
+# Crucially, errors.Is must NOT traverse through an opaque boundary
 
 # --- TestPublicError ---
 type PublicErrorCase
@@ -72,10 +61,8 @@ type PublicErrorCase
     public string
 
 func TestPublicError(t reference testing.T)
-    cases := list of PublicErrorCase{
-        PublicErrorCase{name: "Error() returns internal message", internal: "pg: connection refused to 10.0.0.1", public: "database unavailable"},
-        PublicErrorCase{name: "Public() returns public message", internal: "auth token expired at 2024-01-01", public: "session expired, please log in again"},
-    }
+    cases := list of PublicErrorCase{PublicErrorCase{name: "Error() returns internal message", internal: "pg: connection refused to 10.0.0.1", public: "database unavailable"}, PublicErrorCase{name: "Public() returns public message", internal: "auth token expired at 2024-01-01", public: "session expired, please log in again"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             e := errors.NewPublic(tc.internal, tc.public)
@@ -95,18 +82,8 @@ type JoinCase
     wantNil bool
 
 func TestJoin(t reference testing.T)
-    cases := list of JoinCase{
-        JoinCase{
-            name: "joins multiple errors",
-            errs: list of error{goerrors.New("a"), goerrors.New("b")},
-            wantNil: false,
-        },
-        JoinCase{
-            name: "returns nil for empty list",
-            errs: list of error{},
-            wantNil: true,
-        },
-    }
+    cases := list of JoinCase{JoinCase{name: "joins multiple errors", errs: list of error{goerrors.New("a"), goerrors.New("b")}, wantNil: false}, JoinCase{name: "returns nil for empty list", errs: empty list of error, wantNil: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             e := errors.Join(many tc.errs)

@@ -14,6 +14,7 @@ func TestDiscoverMissing(t reference testing.T)
     result := skills.Discover("/nonexistent-xyzzy-path-for-skills-test") onerr
         t.Fatal("expected no error for missing dir, got: {error}")
         return
+
     test.AssertEqual(t, len(result), 0)
 
 # --- TestDiscover ---
@@ -21,6 +22,7 @@ func TestDiscover(t reference testing.T)
     dir := os.MkdirTemp("", "skills_test_") onerr
         t.Fatal("MkdirTemp: {error}")
         return
+
     defer os.RemoveAll(dir)
 
     # Create changelog/SKILL.md
@@ -28,6 +30,7 @@ func TestDiscover(t reference testing.T)
     os.MkdirAll(changelogDir, 0o755) onerr
         t.Fatal("MkdirAll changelog: {error}")
         return
+
     changelogContent := "# Changelog\nGenerates CHANGELOG.md entries."
     os.WriteFile(filepath.Join(changelogDir, "SKILL.md"), changelogContent as list of byte, 0o644) onerr
         t.Fatal("WriteFile changelog: {error}")
@@ -38,6 +41,7 @@ func TestDiscover(t reference testing.T)
     os.MkdirAll(releaseDir, 0o755) onerr
         t.Fatal("MkdirAll release: {error}")
         return
+
     releaseContent := "# Release\nCuts a release."
     os.WriteFile(filepath.Join(releaseDir, "SKILL.md"), releaseContent as list of byte, 0o644) onerr
         t.Fatal("WriteFile release: {error}")
@@ -69,14 +73,17 @@ func TestAgentSkillsMissing(t reference testing.T)
     tmpDir := os.MkdirTemp("", "skills_agent_test_") onerr
         t.Fatal("MkdirTemp: {error}")
         return
+
     defer os.RemoveAll(tmpDir)
 
     os.Chdir(tmpDir) onerr
         t.Fatal("Chdir: {error}")
         return
+
     defer os.Chdir(origDir)
 
     result := skills.AgentSkills() onerr
         t.Fatal("AgentSkills: {error}")
         return
+
     test.AssertEqual(t, len(result), 0)

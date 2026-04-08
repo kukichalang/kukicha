@@ -17,21 +17,21 @@ type LengthCase struct {
 func TestRandomStringLength(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:14
 	cases := []LengthCase{LengthCase{name: "lengths"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:17
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:16
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:18
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:17
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:19
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:18
 			s := random.String(10)
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:20
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:19
 			test.AssertEqual(t, len(s), 10)
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:22
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:21
 			zero := random.String(0)
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:23
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:22
 			test.AssertEqual(t, zero, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:25
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:24
 			alpha := random.Alphanumeric(5)
-//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:26
+//line /var/home/tluker/repos/go/kukicha/stdlib/random/random_test.kuki:25
 			test.AssertEqual(t, len(alpha), 5)
 		})
 	}

@@ -14,13 +14,8 @@ type MatchCase
     expected bool
 
 func TestMatch(t reference testing.T)
-    cases := list of MatchCase{
-        MatchCase{name: "digits match", pattern: "\\d+", text: "abc123", expected: true},
-        MatchCase{name: "no digits", pattern: "\\d+", text: "abcdef", expected: false},
-        MatchCase{name: "full match", pattern: "^hello$", text: "hello", expected: true},
-        MatchCase{name: "full no match", pattern: "^hello$", text: "hello world", expected: false},
-        MatchCase{name: "empty pattern matches all", pattern: "", text: "anything", expected: true},
-    }
+    cases := list of MatchCase{MatchCase{name: "digits match", pattern: "\\d+", text: "abc123", expected: true}, MatchCase{name: "no digits", pattern: "\\d+", text: "abcdef", expected: false}, MatchCase{name: "full match", pattern: "^hello$", text: "hello", expected: true}, MatchCase{name: "full no match", pattern: "^hello$", text: "hello world", expected: false}, MatchCase{name: "empty pattern matches all", pattern: "", text: "anything", expected: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.Match(tc.pattern, tc.text)
@@ -36,11 +31,8 @@ type FindCase
     expectErr bool
 
 func TestFind(t reference testing.T)
-    cases := list of FindCase{
-        FindCase{name: "find digits", pattern: "\\d+", text: "abc123def456", expected: "123", expectErr: false},
-        FindCase{name: "find word", pattern: "\\w+", text: "  hello  ", expected: "hello", expectErr: false},
-        FindCase{name: "no match", pattern: "\\d+", text: "abcdef", expected: "", expectErr: true},
-    }
+    cases := list of FindCase{FindCase{name: "find digits", pattern: "\\d+", text: "abc123def456", expected: "123", expectErr: false}, FindCase{name: "find word", pattern: "\\w+", text: "  hello  ", expected: "hello", expectErr: false}, FindCase{name: "no match", pattern: "\\d+", text: "abcdef", expected: "", expectErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got, err := regex.Find(tc.pattern, tc.text)
@@ -59,11 +51,8 @@ type FindAllCase
     expectedLen int
 
 func TestFindAll(t reference testing.T)
-    cases := list of FindAllCase{
-        FindAllCase{name: "find all digits", pattern: "\\d+", text: "a1 b2 c3", expectedLen: 3},
-        FindAllCase{name: "no matches", pattern: "\\d+", text: "abcdef", expectedLen: 0},
-        FindAllCase{name: "single match", pattern: "hello", text: "say hello there", expectedLen: 1},
-    }
+    cases := list of FindAllCase{FindAllCase{name: "find all digits", pattern: "\\d+", text: "a1 b2 c3", expectedLen: 3}, FindAllCase{name: "no matches", pattern: "\\d+", text: "abcdef", expectedLen: 0}, FindAllCase{name: "single match", pattern: "hello", text: "say hello there", expectedLen: 1}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.FindAll(tc.pattern, tc.text)
@@ -79,11 +68,8 @@ type FindGroupsCase
     expectedLen int
 
 func TestFindGroups(t reference testing.T)
-    cases := list of FindGroupsCase{
-        FindGroupsCase{name: "semver groups", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "v1.2.3", expectErr: false, expectedLen: 5},
-        FindGroupsCase{name: "no prefix", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "1.2.3", expectErr: false, expectedLen: 5},
-        FindGroupsCase{name: "no match", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "invalid", expectErr: true, expectedLen: 0},
-    }
+    cases := list of FindGroupsCase{FindGroupsCase{name: "semver groups", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "v1.2.3", expectErr: false, expectedLen: 5}, FindGroupsCase{name: "no prefix", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "1.2.3", expectErr: false, expectedLen: 5}, FindGroupsCase{name: "no match", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "invalid", expectErr: true, expectedLen: 0}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got, err := regex.FindGroups(tc.pattern, tc.text)
@@ -99,9 +85,8 @@ type FindGroupsValuesCase
     name string
 
 func TestFindGroupsValues(t reference testing.T)
-    cases := list of FindGroupsValuesCase{
-        FindGroupsValuesCase{name: "capture group values"},
-    }
+    cases := list of FindGroupsValuesCase{FindGroupsValuesCase{name: "capture group values"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             groups, err := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", "v1.2.3")
@@ -120,10 +105,8 @@ type FindAllGroupsCase
     expectedLen int
 
 func TestFindAllGroups(t reference testing.T)
-    cases := list of FindAllGroupsCase{
-        FindAllGroupsCase{name: "key-value pairs", pattern: "(\\w+)=(\\w+)", text: "a=1 b=2 c=3", expectErr: false, expectedLen: 3},
-        FindAllGroupsCase{name: "no matches", pattern: "(\\d+)-(\\d+)", text: "no dashes here", expectErr: true, expectedLen: 0},
-    }
+    cases := list of FindAllGroupsCase{FindAllGroupsCase{name: "key-value pairs", pattern: "(\\w+)=(\\w+)", text: "a=1 b=2 c=3", expectErr: false, expectedLen: 3}, FindAllGroupsCase{name: "no matches", pattern: "(\\d+)-(\\d+)", text: "no dashes here", expectErr: true, expectedLen: 0}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got, err := regex.FindAllGroups(tc.pattern, tc.text)
@@ -143,11 +126,8 @@ type ReplaceCase
     expected string
 
 func TestReplace(t reference testing.T)
-    cases := list of ReplaceCase{
-        ReplaceCase{name: "collapse spaces", pattern: "\\s+", replacement: " ", text: "too   many   spaces", expected: "too many spaces"},
-        ReplaceCase{name: "remove digits", pattern: "\\d", replacement: "", text: "a1b2c3", expected: "abc"},
-        ReplaceCase{name: "capture group ref", pattern: "(\\w+)=(\\w+)", replacement: "$2=$1", text: "key=val", expected: "val=key"},
-    }
+    cases := list of ReplaceCase{ReplaceCase{name: "collapse spaces", pattern: "\\s+", replacement: " ", text: "too   many   spaces", expected: "too many spaces"}, ReplaceCase{name: "remove digits", pattern: "\\d", replacement: "", text: "a1b2c3", expected: "abc"}, ReplaceCase{name: "capture group ref", pattern: "(\\w+)=(\\w+)", replacement: "$2=$1", text: "key=val", expected: "val=key"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.Replace(tc.pattern, tc.replacement, tc.text)
@@ -159,9 +139,8 @@ type ReplaceFuncCase
     name string
 
 func TestReplaceFunc(t reference testing.T)
-    cases := list of ReplaceFuncCase{
-        ReplaceFuncCase{name: "wrap matches"},
-    }
+    cases := list of ReplaceFuncCase{ReplaceFuncCase{name: "wrap matches"}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.ReplaceFunc("\\d+", (m string) => "[{m}]", "a1 b2 c3")
@@ -176,11 +155,8 @@ type SplitCase
     expectedLen int
 
 func TestSplit(t reference testing.T)
-    cases := list of SplitCase{
-        SplitCase{name: "split on comma-space", pattern: "[,;]\\s*", text: "a, b; c", expectedLen: 3},
-        SplitCase{name: "split on whitespace", pattern: "\\s+", text: "one two three", expectedLen: 3},
-        SplitCase{name: "no match splits whole", pattern: "\\d+", text: "no digits here", expectedLen: 1},
-    }
+    cases := list of SplitCase{SplitCase{name: "split on comma-space", pattern: "[,;]\\s*", text: "a, b; c", expectedLen: 3}, SplitCase{name: "split on whitespace", pattern: "\\s+", text: "one two three", expectedLen: 3}, SplitCase{name: "no match splits whole", pattern: "\\d+", text: "no digits here", expectedLen: 1}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.Split(tc.pattern, tc.text)
@@ -194,12 +170,8 @@ type IsValidCase
     expected bool
 
 func TestIsValid(t reference testing.T)
-    cases := list of IsValidCase{
-        IsValidCase{name: "valid pattern", pattern: "\\d+", expected: true},
-        IsValidCase{name: "valid complex", pattern: "^(v?)(\\d+\\.\\d+\\.\\d+)$", expected: true},
-        IsValidCase{name: "invalid pattern", pattern: "[unclosed", expected: false},
-        IsValidCase{name: "empty is valid", pattern: "", expected: true},
-    }
+    cases := list of IsValidCase{IsValidCase{name: "valid pattern", pattern: "\\d+", expected: true}, IsValidCase{name: "valid complex", pattern: "^(v?)(\\d+\\.\\d+\\.\\d+)$", expected: true}, IsValidCase{name: "invalid pattern", pattern: "[unclosed", expected: false}, IsValidCase{name: "empty is valid", pattern: "", expected: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.IsValid(tc.pattern)
@@ -213,10 +185,8 @@ type CompileCase
     expectErr bool
 
 func TestCompile(t reference testing.T)
-    cases := list of CompileCase{
-        CompileCase{name: "valid compile", pattern: "\\d+", expectErr: false},
-        CompileCase{name: "invalid compile", pattern: "[bad", expectErr: true},
-    }
+    cases := list of CompileCase{CompileCase{name: "valid compile", pattern: "\\d+", expectErr: false}, CompileCase{name: "invalid compile", pattern: "[bad", expectErr: true}}
+
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             _, err := regex.Compile(tc.pattern)
@@ -233,10 +203,8 @@ type CompiledMatchCase
     expected bool
 
 func TestCompiledMatch(t reference testing.T)
-    cases := list of CompiledMatchCase{
-        CompiledMatchCase{name: "compiled match", text: "abc123", expected: true},
-        CompiledMatchCase{name: "compiled no match", text: "abcdef", expected: false},
-    }
+    cases := list of CompiledMatchCase{CompiledMatchCase{name: "compiled match", text: "abc123", expected: true}, CompiledMatchCase{name: "compiled no match", text: "abcdef", expected: false}}
+
     p := regex.MustCompile("\\d+")
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -249,9 +217,8 @@ type CompiledFindCase
     name string
 
 func TestCompiledFind(t reference testing.T)
-    cases := list of CompiledFindCase{
-        CompiledFindCase{name: "compiled find"},
-    }
+    cases := list of CompiledFindCase{CompiledFindCase{name: "compiled find"}}
+
     p := regex.MustCompile("\\d+")
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -268,9 +235,8 @@ type CompiledReplaceCase
     name string
 
 func TestCompiledReplace(t reference testing.T)
-    cases := list of CompiledReplaceCase{
-        CompiledReplaceCase{name: "compiled replace"},
-    }
+    cases := list of CompiledReplaceCase{CompiledReplaceCase{name: "compiled replace"}}
+
     p := regex.MustCompile("\\s+")
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -283,9 +249,8 @@ type CompiledSplitCase
     name string
 
 func TestCompiledSplit(t reference testing.T)
-    cases := list of CompiledSplitCase{
-        CompiledSplitCase{name: "compiled split"},
-    }
+    cases := list of CompiledSplitCase{CompiledSplitCase{name: "compiled split"}}
+
     p := regex.MustCompile("[,;]\\s*")
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
