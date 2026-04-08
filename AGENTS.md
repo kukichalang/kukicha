@@ -61,6 +61,7 @@ make test                 # Run all tests
 make lint                 # Run golangci-lint (errcheck, unused, staticcheck, etc.)
 make vet                  # Run go vet on everything including stdlib
 make modernize            # Check for outdated Go patterns (go fix -diff)
+make fmt-check            # Check all .kuki files are formatted (CI gate)
 make generate             # Regenerate stdlib_registry_gen.go + all stdlib .go files
 make genstdlibregistry    # Regenerate only internal/semantic/stdlib_registry_gen.go
 make gengostdlib          # Regenerate only internal/semantic/go_stdlib_gen.go
@@ -74,6 +75,7 @@ kukicha build --wasm file.kuki       # Build for WebAssembly
 kukicha build --vulncheck file.kuki  # Build + check for vulnerabilities
 kukicha run file.kuki     # Transpile, compile, and run
 kukicha fmt -w file.kuki  # Format in place
+kukicha fmt --check dir/  # Check formatting without modifying (exit 1 if unformatted)
 kukicha audit             # Check dependencies for known vulnerabilities
 kukicha-blend main.go             # Show Kukicha suggestions for Go file
 kukicha-blend --diff ./pkg/       # Preview Go→Kukicha changes

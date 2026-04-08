@@ -148,6 +148,7 @@ git push origin vX.X.X
 - [ ] `make lint` — zero issues
 - [ ] `make vet` — zero issues (covers stdlib, which golangci-lint excludes)
 - [ ] `make modernize` — no outdated Go patterns in generated code
+- [ ] `make fmt-check` — all .kuki files properly formatted
 - [ ] Fuzz tests (`FuzzLexer`, `FuzzPipeline`) — no crashes in 10s runs
 - [ ] `kukicha check --json examples/*.kuki` — no errors on examples
 - [ ] Single commit with all changes

@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ast"
 	"github.com/kukichalang/kukicha/internal/parser"
 	"github.com/kukichalang/kukicha/internal/semantic"
+	"golang.org/x/term"
 )
 
 func checkMain(args []string) {
@@ -46,15 +48,16 @@ func checkCommand(targets []string, strictOnerr bool, jsonOutput bool) {
 		return
 	}
 
-	// Plain text output
+	// Pretty plain text output with source context
+	color := term.IsTerminal(int(os.Stderr.Fd()))
+	sourceCache := loadSourceCache(allDiags)
 	hasErrors := false
 	for _, d := range allDiags {
 		if d.Severity == "error" {
 			hasErrors = true
-			fmt.Fprintln(os.Stderr, d.Severity+": "+d.File+":"+fmt.Sprintf("%d", d.Line)+":"+fmt.Sprintf("%d", d.Col)+": "+d.Message)
-		} else {
-			fmt.Fprintf(os.Stderr, "warning: %s:%d:%d: %s\n", d.File, d.Line, d.Col, d.Message)
 		}
+		lines := sourceCache[d.File]
+		fmt.Fprint(os.Stderr, d.RenderPretty(lines, color))
 	}
 
 	if hasErrors {
@@ -176,4 +179,26 @@ func emitJSONDiagnostics(diags []semantic.Diagnostic) {
 // jsonMarshalDiagnostics marshals diagnostics to indented JSON.
 func jsonMarshalDiagnostics(diags []semantic.Diagnostic) ([]byte, error) {
 	return json.MarshalIndent(diags, "", "  ")
+}
+
+// loadSourceCache reads each unique file referenced by diagnostics and returns
+// a map of file path to pre-split source lines. Files that can't be read are
+// silently skipped (RenderPretty handles nil gracefully).
+func loadSourceCache(diags []semantic.Diagnostic) map[string][]string {
+	cache := make(map[string][]string)
+	for _, d := range diags {
+		if d.File == "" {
+			continue
+		}
+		if _, ok := cache[d.File]; ok {
+			continue
+		}
+		data, err := os.ReadFile(d.File)
+		if err != nil {
+			cache[d.File] = nil
+			continue
+		}
+		cache[d.File] = strings.Split(string(data), "\n")
+	}
+	return cache
 }

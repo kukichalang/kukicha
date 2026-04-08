@@ -421,6 +421,7 @@ kukicha build file.kuki        # transpile and compile to binary (named after so
 kukicha build myapp/           # build directory — binary named after the directory
 kukicha build .                # build current directory — binary named after working dir
 kukicha fmt -w file.kuki       # format in place
+kukicha fmt --check dir/       # check formatting without modifying (exit 1 if unformatted)
 kukicha brew file.kuki         # convert .kuki to standalone Go (no header, no //line)
 kukicha brew --stdout file.kuki  # print brewed Go to stdout
 kukicha brew --remove-kuki dir/  # brew + delete .kuki sources (with confirmation)

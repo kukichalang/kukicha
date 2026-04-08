@@ -1,6 +1,7 @@
 package semantic
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,6 +30,89 @@ type Diagnostic struct {
 	Category   string `json:"category"`   // e.g. "security/sql-injection", or "" for non-categorised
 	Message    string `json:"message"`
 	Suggestion string `json:"suggestion"` // concrete safe alternative, or ""
+}
+
+// RenderPretty formats the diagnostic as an Elm-style block with a header bar,
+// the error/warning message, the source line with a caret, and an optional hint.
+// sourceLines should be the lines of the file (0-indexed). If the source line is
+// unavailable, a compact fallback is returned. When color is true, ANSI escape
+// codes are used (red for errors, yellow for warnings, bold for the header).
+func (d Diagnostic) RenderPretty(sourceLines []string, color bool) string {
+	var b strings.Builder
+
+	sev := strings.ToUpper(d.Severity)
+	if d.Category != "" {
+		sev = strings.ToUpper(d.Category)
+	}
+
+	location := d.File
+	if d.Line > 0 {
+		location = fmt.Sprintf("%s:%d:%d", d.File, d.Line, d.Col)
+	}
+
+	// Header bar: ── ERROR ── ... ── file:line:col ──
+	label := fmt.Sprintf("── %s ──", sev)
+	tail := fmt.Sprintf("── %s ──", location)
+	// Fill dashes to a minimum width of 60
+	minWidth := 60
+	fill := minWidth - len(label) - len(tail)
+	if fill < 1 {
+		fill = 1
+	}
+	header := label + strings.Repeat("─", fill) + tail
+
+	if color {
+		code := "\033[1;31m" // bold red
+		if d.Severity == "warning" {
+			code = "\033[1;33m" // bold yellow
+		}
+		b.WriteString(code + header + "\033[0m")
+	} else {
+		b.WriteString(header)
+	}
+	b.WriteByte('\n')
+
+	// Message
+	b.WriteString(d.Message)
+	b.WriteByte('\n')
+
+	// Source line + caret (if we have the source)
+	if d.Line > 0 && d.Line <= len(sourceLines) {
+		srcLine := sourceLines[d.Line-1]
+		lineStr := strconv.Itoa(d.Line)
+		gutter := strings.Repeat(" ", len(lineStr))
+
+		b.WriteByte('\n')
+		b.WriteString(gutter + " │\n")
+		b.WriteString(lineStr + " │ " + srcLine + "\n")
+
+		// Caret
+		col := d.Col
+		if col < 1 {
+			col = 1
+		}
+		caretPad := strings.Repeat(" ", col-1)
+		b.WriteString(gutter + " │ " + caretPad + "^")
+		b.WriteByte('\n')
+	}
+
+	// Hint (suggestion)
+	if d.Suggestion != "" {
+		hintLine := "hint: " + d.Suggestion
+		if color {
+			hintLine = "\033[36m" + hintLine + "\033[0m" // cyan
+		}
+		b.WriteString(hintLine)
+		b.WriteByte('\n')
+	}
+
+	return b.String()
+}
+
+// RenderCompact formats the diagnostic in the traditional single-line format:
+// severity: file:line:col: message
+func (d Diagnostic) RenderCompact() string {
+	return fmt.Sprintf("%s: %s:%d:%d: %s", d.Severity, d.File, d.Line, d.Col, d.Message)
 }
 
 // posPattern matches the "file:line:col: " prefix produced by Analyzer.error / Analyzer.warn.
