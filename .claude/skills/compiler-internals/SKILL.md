@@ -635,6 +635,40 @@ Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newl
 - `TypeDeclStmt` is preserved in formatting output (even though semantic analysis rejects it) so the user sees the error
 - Integer and float literals with underscore separators or prefixes preserve their original lexeme
 
+### ⚠️ Dual printer architecture — keep in sync
+
+`printer.go` defines `Printer` (base AST→text printer). `formatter.go` defines `PrinterWithComments` which **embeds `Printer` but duplicates key methods** to interleave comments. Any fix to `printer.go` must also be applied to the corresponding `WithComments` variant in `formatter.go`:
+
+| `printer.go` method | `formatter.go` duplicate |
+|---------------------|--------------------------|
+| `Print()` (top-level dispatch) | `PrinterWithComments.Print()` |
+| `printDeclaration()` | `printDeclarationWithComments()` |
+| `printFunctionDecl()` | `printFunctionDeclWithComments()` |
+| `printStatement()` | `printStatementWithComments()` |
+
+Some base `Printer` methods are called directly by both paths (e.g., `printVarDeclStmt`, `printAssignStmt`, `printReturnStmt`, `exprToString`), so fixes there propagate automatically. But inline logic in the duplicated methods must be updated in both places.
+
+### Parenthesis preservation
+
+The parser discards grouping parentheses (`parseGroupedExpression` returns the inner expression). The formatter must re-add parens to preserve semantics:
+
+- **`not`/`!` with lower-precedence operands:** `needsParensAfterNot` checks if the operand is a `BinaryExpr` or `PipeExpr` and wraps in `()` (e.g., `not (value == "")`)
+- **Type casts as field access receivers:** `fieldAccessExprToString` wraps `TypeCastExpr` objects in `()` (e.g., `(val as Item).Id`)
+
+### Multi-line closing paren placement
+
+When a call argument spans multiple lines (function literals, arrow lambdas with blocks), the closing `)` must be on its own dedented line. For nested calls, if the last line of the joined args is already just closing parens (e.g., `)`), the outer `)` is appended directly to produce `))` on one line. This logic lives in `callExprToString` and `methodCallExprToString`.
+
+### After modifying the formatter
+
+1. `make build` — rebuild the compiler
+2. `kukicha fmt -w stdlib/ examples/` — reformat all source files
+3. `kukicha fmt --check stdlib/ examples/` — verify idempotency
+4. `kukicha check` on all formatted files — verify they still parse
+5. `make generate` — regenerate `.go` files from formatted `.kuki` sources
+6. `make test` — run the full test suite
+7. `make lint && make vet` — check for issues
+
 ## LSP (`lsp/`)
 
 **Files:** `server.go`, `document.go`, `completion.go`, `diagnostics.go`, `hover.go`, `definition.go`, `builtins.go`
