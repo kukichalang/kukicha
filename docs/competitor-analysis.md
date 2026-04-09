@@ -55,14 +55,17 @@ with idiomatic Go `(T, error)` returns unchanged.
 
 | Project | Feature | Data variants? | Exhaustive matching? |
 |---------|---------|----------------|----------------------|
-| **Kukicha** | `enum` (typed const block) | No (value enums only) | No (uses if-expressions) |
+| **Kukicha** | `enum` (integer or string typed constants) | No (value enums only) | Yes — compiler warns on missing `when` cases; `String()` auto-generated |
 | **Dingo** | `enum` with tagged union support | Yes (`Ok(value: int)`) | Yes (`match` expressions) |
 | **Soppo** | Tagged unions | Yes | Yes |
 | **Gala** | `sealed type` with `case` variants | Yes | Yes (compiler-enforced) |
 
-**Gap for Kukicha**: Kukicha enums are typed constants — good for status codes and flags,
-but they cannot carry associated data. Dingo, Soppo, and Gala all support full algebraic
-data types. Adding data-carrying variants and exhaustive `match` would close this gap.
+Kukicha enums are exhaustiveness-checked (switch warns on missing cases unless `otherwise`
+is present) and generate a `String()` method automatically — both features the competition
+also claims. The real gap is **data-carrying variants**: Dingo, Soppo, and Gala support
+tagged unions where enum cases carry associated values (e.g. `Ok(value: int)`).
+Kukicha's enums are value-only (integer or string), which is correct for status codes and
+flags but cannot express result/option types natively.
 
 ---
 
@@ -156,8 +159,7 @@ adds build-system complexity. Kukicha and Dingo install like any Go tool.
 
 | Gap | Who has it |
 |-----|-----------|
-| Data-carrying enum variants | Dingo, Soppo, Gala |
-| Exhaustive `match` expressions | Dingo, Soppo, Gala |
+| Data-carrying enum variants (tagged unions) | Dingo, Soppo, Gala |
 | `?` / propagating error operator | Dingo, Soppo |
 | Nil / Option safety | Dingo, Soppo |
 | Immutable-by-default collections | Gala |
