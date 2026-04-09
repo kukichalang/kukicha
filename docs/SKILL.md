@@ -465,6 +465,165 @@ On Windows the binary gets a `.exe` suffix automatically. WASM builds produce a 
 
 ### Stdlib Packages
 
+#### Core & Collections
+
+**stdlib/slice** — List operations
+
+```kukicha
+active  := slice.Filter(items, x => x.active)
+names   := slice.Map(items, x => x.name)
+byGroup := slice.GroupBy(items, x => x.category)
+first   := slice.FirstOr(items, defaultVal)
+val     := slice.GetOr(items, 0, defaultVal)
+ok      := slice.Contains(items, value)
+```
+
+**stdlib/maps** — Map utilities
+
+```kukicha
+keys := maps.Keys(config)
+vals := maps.Values(config)
+ok   := maps.Contains(config, "port")
+```
+
+**stdlib/sort** — Sorting slices (returns sorted copies, originals unchanged)
+
+```kukicha
+sorted := sort.Strings(names)                          # ascending, lexicographic
+sorted := sort.Ints(scores)                            # ascending, numeric
+sorted := sort.Float64s(values)                        # ascending, float64
+
+# Custom comparator (stable sort)
+sorted := sort.By(repos, (a, b) => a.stars < b.stars)
+
+# Sort by extracted key (pipe-friendly)
+sorted := repos |> sort.ByKey(r => r.name)
+
+# Reverse sort
+sorted := sort.Reverse(repos, (a, b) => a.stars < b.stars)
+```
+
+**stdlib/iterator** — Lazy iteration (Go 1.23 iter.Seq)
+
+```kukicha
+import "stdlib/iterator"
+names := repos
+    |> iterator.Values()
+    |> iterator.Filter((r Repo) => r.Stars > 100)
+    |> iterator.Map((r Repo) => r.Name)
+    |> iterator.Take(5)
+    |> iterator.Collect()
+```
+
+Functions: `Values`, `Filter`, `Map`, `FlatMap`, `Take`, `Skip`, `Enumerate`, `Chunk`, `Zip`, `Reduce`, `Collect`, `Any`, `All`, `Find`.
+
+**stdlib/string** (import as `strpkg`) — String utilities
+
+```kukicha
+import "stdlib/string" as strpkg
+parts  := strpkg.Split(line, ",")
+joined := strpkg.Join(parts, " | ")
+lower  := strpkg.ToLower(name)
+ok     := strpkg.Contains(text, "TODO")
+clean  := strpkg.Replace(raw, "\t", " ")
+```
+
+**stdlib/regex** — Regular expressions
+
+```kukicha
+if regex.Match("\\d+", text)
+    print("contains a number")
+
+groups := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", tag) onerr panic "{error}"
+cleaned := regex.Replace("\\s+", " ", messy)
+parts   := regex.Split(",\\s*", line)
+
+# Compiled patterns for hot paths
+p    := regex.MustCompile("\\d+")
+nums := regex.FindAllCompiled(p, "a1 b2 c3")
+```
+
+**stdlib/cast** — Type coercion
+
+```kukicha
+n := cast.SmartInt(value) onerr 0
+s := cast.SmartString(value) onerr ""
+```
+
+#### Data & Encoding
+
+**stdlib/json** (import as `jsonpkg`) — JSON encode/decode
+
+```kukicha
+import "stdlib/json" as jsonpkg
+data   := jsonpkg.Marshal(value)                    onerr panic "{error}"
+result := jsonpkg.Unmarshal(data, empty Repo)       onerr panic "{error}"
+         jsonpkg.UnmarshalString(str, reference of v) onerr panic "{error}"
+```
+
+**stdlib/parse** — Data parsing
+
+```kukicha
+rows := csvData  |> parse.CsvWithHeader() onerr panic "{error}"
+cfg  := yamlData |> parse.Yaml()          onerr panic "{error}"
+```
+
+**stdlib/encoding** — Base64 and hex
+
+```kukicha
+encoded := encoding.Base64Encode(data)
+decoded := encoding.Base64Decode(encoded) onerr panic "{error}"
+hex     := encoding.HexEncode(hashBytes)
+```
+
+**stdlib/template** — Templating
+
+```kukicha
+# text/template (no HTML escaping — for plain text only)
+result := template.RenderSimple(src, data) onerr return
+
+# html/template (auto-escapes {{ }} values — use for HTML responses)
+html := template.HTMLRenderSimple(tmplStr, map of string to any{"name": username}) onerr return
+```
+
+#### I/O & Files
+
+**stdlib/files** — File I/O
+
+```kukicha
+data := files.Read("path.txt")        onerr panic "{error}"
+text := files.ReadString("cfg.json")  onerr panic "{error}"
+       files.Write(data, "out.txt")   onerr panic "{error}"
+       files.Append(line, "log.txt")  onerr discard
+ok   := files.Exists("path.txt")
+       files.Copy(from: src, to: dst) onerr panic "{error}"
+```
+
+**stdlib/sandbox** — Filesystem sandboxing (use in HTTP handlers)
+
+```kukicha
+box     := sandbox.New("/var/data") onerr return
+content := sandbox.Read(box, userPath) onerr return   # can't escape root
+sandbox.Write(box, "out.txt", data) onerr return
+```
+
+**stdlib/shell** — Run commands
+
+```kukicha
+# Run: for fixed string literals only (no variable interpolation)
+diff := shell.Run("git diff --staged") onerr panic "{error}"
+
+# Output: use when any argument is a variable — args passed directly to OS
+out := shell.Output("git", "log", "--oneline", userBranch) onerr panic "{error}"
+
+# Builder: add working directory, env vars, timeout
+result := shell.New("npm", "test") |> shell.Dir(projectPath) |> shell.Env("CI", "true") |> shell.Execute()
+if not shell.Success(result)
+    print(shell.GetError(result) as string)
+```
+
+#### Networking & HTTP
+
 **stdlib/fetch** — HTTP requests
 
 ```kukicha
@@ -498,27 +657,81 @@ url  = fetch.URLWithQuery(url,
     map of string to string{"per_page": "30"}) onerr panic "{error}"
 ```
 
-**stdlib/slice** — List operations
+**stdlib/http** (`import "stdlib/http" as httphelper`) — HTTP helpers + security
 
 ```kukicha
-active  := slice.Filter(items, x => x.active)
-names   := slice.Map(items, x => x.name)
-byGroup := slice.GroupBy(items, x => x.category)
-first   := slice.FirstOr(items, defaultVal)
-val     := slice.GetOr(items, 0, defaultVal)
-ok      := slice.Contains(items, value)
+httphelper.JSON(w, data)                        # 200 OK with JSON body
+httphelper.JSONCreated(w, data)                 # 201 Created
+httphelper.JSONNotFound(w, "not found")         # 404
+httphelper.JSONBadRequest(w, "bad input")       # 400
+httphelper.JSONError(w, "server error", 500)    # any status
+
+httphelper.ReadJSONLimit(r, 1<<20, reference of input) onerr return   # parse + size cap
+httphelper.SafeHTML(w, userContent)             # HTML-escape before write
+httphelper.SafeRedirect(w, r, url, "myapp.com") onerr return  # host-allowlist redirect
+httphelper.SetSecureHeaders(w)                  # per-handler security headers
+http.ListenAndServe(":8080", httphelper.SecureHeaders(mux))   # middleware form
 ```
 
-**stdlib/files** — File I/O
+**stdlib/html** — Component-style HTML rendering with auto-escaping
 
 ```kukicha
-data := files.Read("path.txt")        onerr panic "{error}"
-text := files.ReadString("cfg.json")  onerr panic "{error}"
-       files.Write(data, "out.txt")   onerr panic "{error}"
-       files.Append(line, "log.txt")  onerr discard
-ok   := files.Exists("path.txt")
-       files.Copy(from: src, to: dst) onerr panic "{error}"
+# Render a fragment — use Escape() for user input, Embed() for child fragments
+page := html.Render("<h1>{html.Escape(title)}</h1>")
+nav  := html.Render("<nav>{html.Embed(links)}</nav>")
+
+# Write to HTTP response
+html.WriteTo(w, page) onerr discard
+html.WriteStatusTo(w, errorPage, 404) onerr discard
+
+# Compose fragments
+full := html.Join(header, content, footer)
+
+# Render a list
+items := html.Map(users, (u User) =>
+    return html.Render("<li>{html.Escape(u.Name)}</li>")
+)
+
+# Conditional rendering
+badge := html.When(isAdmin, adminBadge)
+nav   := html.WhenElse(loggedIn, userNav, guestNav)
+
+# Attribute escaping
+link := html.Render("<a href='{html.Attr(url)}'>click</a>")
 ```
+
+**stdlib/net** (import as `netutil`) — IP/CIDR utilities
+
+```kukicha
+import "stdlib/net" as netutil
+ip      := netutil.ParseIP("192.168.1.100")
+network := netutil.ParseCIDR("192.168.0.0/16") onerr panic "{error}"
+if netutil.Contains(network, ip) and netutil.IsPrivate(ip)
+    print("private range")
+```
+
+**stdlib/netguard** — SSRF protection and network restriction
+
+```kukicha
+# Block all private/reserved IPs (standard SSRF protection)
+guard := netguard.NewSSRFGuard()
+client := netguard.HTTPClient(guard)
+
+# Allow only specific CIDRs
+guard := netguard.NewAllow(list of string{"93.184.216.0/24"}) onerr panic "{error}"
+
+# Block specific CIDRs
+guard := netguard.NewBlock(list of string{"10.0.0.0/8"}) onerr panic "{error}"
+
+# Check a single IP
+if netguard.Check(guard, "10.0.0.1")
+    print("allowed")
+
+# Use with fetch via guarded HTTP transport
+transport := netguard.HTTPTransport(guard)
+```
+
+#### CLI & System
 
 **stdlib/cli** — Command-line apps
 
@@ -549,6 +762,26 @@ cli.Warn("disk space low")   # prints "warning: disk space low" to stderr
 
 Use `cli.Fatal(msg)` when you want to print to stderr *and* exit. Use `cli.Error(msg)` when you want to print to stderr and keep running.
 
+**stdlib/input** — Interactive CLI input
+
+```kukicha
+name := input.ReadLine("Enter name: ") onerr return
+name := input.Prompt("Enter name: ")            # panics on stdin failure
+ok   := input.Confirm("Proceed?") onerr return
+idx  := input.Choose("Select:", options) onerr return
+```
+
+**stdlib/table** — Terminal tables (plain, box, markdown)
+
+```kukicha
+tbl := table.New(list of string{"Name", "Stars"})
+tbl  = tbl |> table.AddRow(list of string{"go", "115000"})
+tbl  = tbl |> table.AddRow(list of string{"rust", "97000"})
+table.Print(tbl)                        # plain output
+table.PrintWithStyle(tbl, "markdown")   # markdown table
+table.PrintWithStyle(tbl, "box")        # box-drawing style
+```
+
 **stdlib/must** and **stdlib/env** — Config
 
 ```kukicha
@@ -563,59 +796,57 @@ debug  := env.GetBool("DEBUG") onerr false
 token  := env.Get("TOKEN")     onerr panic "TOKEN required"
 ```
 
-**stdlib/json** (import as `jsonpkg`) — JSON encode/decode
+#### Concurrency & Resilience
+
+**stdlib/concurrent** — Parallel execution and concurrent map
 
 ```kukicha
-import "stdlib/json" as jsonpkg
-data   := jsonpkg.Marshal(value)                    onerr panic "{error}"
-result := jsonpkg.Unmarshal(data, empty Repo)       onerr panic "{error}"
-         jsonpkg.UnmarshalString(str, reference of v) onerr panic "{error}"
+# Run zero-argument functions concurrently, wait for all to finish
+concurrent.Parallel(
+    () => processChunk(chunkA),
+    () => processChunk(chunkB),
+)
+
+# Same with a concurrency limit
+concurrent.ParallelWithLimit(4,
+    () => processChunk(chunkA),
+    () => processChunk(chunkB),
+)
+
+# Transform every element in parallel, results in original order
+results := concurrent.Map(urls, url => check(url))
+
+# Same with a concurrency cap (useful for rate-limited APIs)
+results := concurrent.MapWithLimit(repos, 4, r => fetchDetails(r))
 ```
 
-**stdlib/mcp** — MCP server and client
+**stdlib/ctx** (import as `ctxpkg`) — Context helpers
 
 ```kukicha
-# Server
-server := mcp.New("stock-tool", "1.0.0")
-schema := mcp.Schema(list of mcp.SchemaProperty{
-    mcp.Prop("symbol", "string", "Ticker symbol"),
-}) |> mcp.Required(list of string{"symbol"})
-mcp.Tool(server, "get_price", "Get stock price by ticker", schema, handler)
-mcp.Serve(server) onerr panic "{error}"
-
-# Client
-session := mcp.Connect(ctx, "http://localhost:8000/mcp") onerr panic "{error}"
-defer mcp.Close(session)
-tools := mcp.ListTools(ctx, session) onerr panic "{error}"
-result := mcp.CallTool(ctx, session, "get_price", args) onerr panic "{error}"
-print(result.Text)
-
-# Client with Bearer token authentication
-session := mcp.BearerConnect(ctx, "https://mcp.example.com/mcp", apiKey) onerr panic "{error}"
+import "stdlib/ctx" as ctxpkg
+c := ctxpkg.Background() |> ctxpkg.WithTimeout(30)
+defer ctxpkg.Cancel(c)
 ```
 
-**stdlib/shell** — Run commands
+**stdlib/retry** — Retry with backoff
 
 ```kukicha
-# Run: for fixed string literals only (no variable interpolation)
-diff := shell.Run("git diff --staged") onerr panic "{error}"
-
-# Output: use when any argument is a variable — args passed directly to OS
-out := shell.Output("git", "log", "--oneline", userBranch) onerr panic "{error}"
-
-# Builder: add working directory, env vars, timeout
-result := shell.New("npm", "test") |> shell.Dir(projectPath) |> shell.Env("CI", "true") |> shell.Execute()
-if not shell.Success(result)
-    print(shell.GetError(result) as string)
+cfg := retry.New() |> retry.Attempts(5) |> retry.Delay(200)
+for attempt from 0 to cfg.MaxAttempts
+    result, err := doWork()
+    if err equals empty
+        break
+    retry.Sleep(cfg, attempt)
 ```
 
-**stdlib/obs** — Structured logging
+**stdlib/datetime** — Time formatting and durations
 
 ```kukicha
-logger := obs.New("myapp", "prod") |> obs.Component("worker")
-logger |> obs.Info("starting", map of string to any{"job": "build"})
-logger |> obs.Error("failed",  map of string to any{"err": err})
+formatted := datetime.Format(t, "iso8601")     # not Go's "2006-01-02"!
+timeout   := datetime.Seconds(30)
 ```
+
+#### Data & Storage
 
 **stdlib/db** — SQL database (raw SQL + struct scanning)
 
@@ -640,290 +871,6 @@ db.Transaction(pool, transferFunds) onerr panic "transfer failed: {error}"
 # Convenience
 n     := db.Count(pool, "SELECT COUNT(*) FROM users") onerr panic "{error}"
 found := db.Exists(pool, "SELECT 1 FROM users WHERE email = $1", email) onerr panic "{error}"
-```
-
-**stdlib/regex** — Regular expressions
-
-```kukicha
-if regex.Match("\\d+", text)
-    print("contains a number")
-
-groups := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", tag) onerr panic "{error}"
-cleaned := regex.Replace("\\s+", " ", messy)
-parts   := regex.Split(",\\s*", line)
-
-# Compiled patterns for hot paths
-p    := regex.MustCompile("\\d+")
-nums := regex.FindAllCompiled(p, "a1 b2 c3")
-```
-
-**stdlib/table** — Terminal tables (plain, box, markdown)
-
-```kukicha
-tbl := table.New(list of string{"Name", "Stars"})
-tbl  = tbl |> table.AddRow(list of string{"go", "115000"})
-tbl  = tbl |> table.AddRow(list of string{"rust", "97000"})
-table.Print(tbl)                        # plain output
-table.PrintWithStyle(tbl, "markdown")   # markdown table
-table.PrintWithStyle(tbl, "box")        # box-drawing style
-```
-
-**stdlib/semver** — Semantic versioning
-
-```kukicha
-v    := semver.Parse("v1.2.3") onerr panic "{error}"
-next := v |> semver.Bump("minor") |> semver.Format()   # "v1.3.0"
-best := semver.Highest(tags) onerr panic "{error}"
-if semver.Valid("v2.0.0")
-    print("valid")
-```
-
-**stdlib/container** (import as `docker`) — Docker/Podman client
-
-```kukicha
-import "stdlib/container" as docker
-engine := docker.Connect() onerr panic "{error}"
-defer docker.Close(engine)
-
-images := engine |> docker.ListImages() onerr panic "{error}"
-docker.Pull(engine, "alpine:latest") onerr panic "{error}"
-id   := docker.Run(engine, "alpine:latest", list of string{"echo", "hello"}) onerr panic "{error}"
-logs := docker.Logs(engine, id) onerr panic "{error}"
-code := docker.Wait(engine, id, 60) onerr panic "{error}"
-docker.Remove(engine, id) onerr discard
-```
-
-**stdlib/git** — Git/GitHub operations (requires `gh` CLI)
-
-```kukicha
-tags   := git.ListTags("owner/repo") onerr panic "{error}"
-branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
-me     := git.CurrentUser() onerr panic "{error}"
-exists, _ := git.TagExists("owner/repo", "v1.0.0")
-
-# Create a release
-opts := git.ReleaseOptions{Title: "v1.0.0", Target: "main", Draft: true, GenerateNotes: true}
-git.CreateRelease("owner/repo", "v1.0.0", opts) onerr panic "{error}"
-
-# Dry-run: preview command without executing
-print("Would run: {git.PreviewRelease("owner/repo", "v1.0.0", opts)}")
-```
-
-**stdlib/validate** — Input validation
-
-```kukicha
-email |> validate.Email()          onerr return
-age   |> validate.InRange(18, 120) onerr return
-name  |> validate.NotEmpty()       onerr return
-```
-
-**stdlib/parse** — Data parsing
-
-```kukicha
-rows := csvData  |> parse.CsvWithHeader() onerr panic "{error}"
-cfg  := yamlData |> parse.Yaml()          onerr panic "{error}"
-```
-
-**stdlib/llm** — LLM calls
-
-```kukicha
-# OpenAI-compatible
-reply := llm.New("openai:gpt-4o-mini")
-    |> llm.Retry(3, 2000)
-    |> llm.Ask("Hello!") onerr panic "{error}"
-
-# Anthropic
-reply := llm.NewMessages("claude-opus-4-6")
-    |> llm.MRetry(3, 2000)
-    |> llm.MAsk("Summarize this") onerr panic "{error}"
-```
-
-**stdlib/http** (`import "stdlib/http" as httphelper`) — HTTP helpers + security
-
-```kukicha
-httphelper.JSON(w, data)                        # 200 OK with JSON body
-httphelper.JSONCreated(w, data)                 # 201 Created
-httphelper.JSONNotFound(w, "not found")         # 404
-httphelper.JSONBadRequest(w, "bad input")       # 400
-httphelper.JSONError(w, "server error", 500)    # any status
-
-httphelper.ReadJSONLimit(r, 1<<20, reference of input) onerr return   # parse + size cap
-httphelper.SafeHTML(w, userContent)             # HTML-escape before write
-httphelper.SafeRedirect(w, r, url, "myapp.com") onerr return  # host-allowlist redirect
-httphelper.SetSecureHeaders(w)                  # per-handler security headers
-http.ListenAndServe(":8080", httphelper.SecureHeaders(mux))   # middleware form
-```
-
-**stdlib/template** — Templating
-
-```kukicha
-# text/template (no HTML escaping — for plain text only)
-result := template.RenderSimple(src, data) onerr return
-
-# html/template (auto-escapes {{ }} values — use for HTML responses)
-html := template.HTMLRenderSimple(tmplStr, map of string to any{"name": username}) onerr return
-```
-
-**stdlib/string** (import as `strpkg`) — String utilities
-
-```kukicha
-import "stdlib/string" as strpkg
-parts  := strpkg.Split(line, ",")
-joined := strpkg.Join(parts, " | ")
-lower  := strpkg.ToLower(name)
-ok     := strpkg.Contains(text, "TODO")
-clean  := strpkg.Replace(raw, "\t", " ")
-```
-
-**stdlib/errors** (import as `errs`) — Error wrapping
-
-```kukicha
-import "stdlib/errors" as errs
-wrapped := errs.Wrap(err, "loading config")   # preserves Is/As chain
-opaque  := errs.Opaque(originalErr, "db connect")   # breaks chain at boundaries
-if errs.Is(err, io.EOF)
-    return
-# Dual-message: internal detail + user-safe message
-e := errs.NewPublic("db: refused 10.0.0.1", "database unavailable")
-print(errs.Public(e))   # "database unavailable"
-```
-
-**stdlib/input** — Interactive CLI input
-
-```kukicha
-name := input.ReadLine("Enter name: ") onerr return
-name := input.Prompt("Enter name: ")            # panics on stdin failure
-ok   := input.Confirm("Proceed?") onerr return
-idx  := input.Choose("Select:", options) onerr return
-```
-
-**stdlib/concurrent** — Parallel execution and concurrent map
-
-```kukicha
-# Run zero-argument functions concurrently, wait for all to finish
-concurrent.Parallel(
-    () => processChunk(chunkA),
-    () => processChunk(chunkB),
-)
-
-# Same with a concurrency limit
-concurrent.ParallelWithLimit(4,
-    () => processChunk(chunkA),
-    () => processChunk(chunkB),
-)
-
-# Transform every element in parallel, results in original order
-results := concurrent.Map(urls, url => check(url))
-
-# Same with a concurrency cap (useful for rate-limited APIs)
-results := concurrent.MapWithLimit(repos, 4, r => fetchDetails(r))
-```
-
-**stdlib/datetime** — Time formatting and durations
-
-```kukicha
-formatted := datetime.Format(t, "iso8601")     # not Go's "2006-01-02"!
-timeout   := datetime.Seconds(30)
-```
-
-**stdlib/encoding** — Base64 and hex
-
-```kukicha
-encoded := encoding.Base64Encode(data)
-decoded := encoding.Base64Decode(encoded) onerr panic "{error}"
-hex     := encoding.HexEncode(hashBytes)
-```
-
-**stdlib/retry** — Retry with backoff
-
-```kukicha
-cfg := retry.New() |> retry.Attempts(5) |> retry.Delay(200)
-for attempt from 0 to cfg.MaxAttempts
-    result, err := doWork()
-    if err equals empty
-        break
-    retry.Sleep(cfg, attempt)
-```
-
-**stdlib/sandbox** — Filesystem sandboxing (use in HTTP handlers)
-
-```kukicha
-box     := sandbox.New("/var/data") onerr return
-content := sandbox.Read(box, userPath) onerr return   # can't escape root
-sandbox.Write(box, "out.txt", data) onerr return
-```
-
-**stdlib/ctx** (import as `ctxpkg`) — Context helpers
-
-```kukicha
-import "stdlib/ctx" as ctxpkg
-c := ctxpkg.Background() |> ctxpkg.WithTimeout(30)
-defer ctxpkg.Cancel(c)
-```
-
-**stdlib/cast** — Type coercion
-
-```kukicha
-n := cast.SmartInt(value) onerr 0
-s := cast.SmartString(value) onerr ""
-```
-
-**stdlib/maps** — Map utilities
-
-```kukicha
-keys := maps.Keys(config)
-vals := maps.Values(config)
-ok   := maps.Contains(config, "port")
-```
-
-**stdlib/random** — Random generation
-
-```kukicha
-token := random.String(32)
-```
-
-**stdlib/net** (import as `netutil`) — IP/CIDR utilities
-
-```kukicha
-import "stdlib/net" as netutil
-ip      := netutil.ParseIP("192.168.1.100")
-network := netutil.ParseCIDR("192.168.0.0/16") onerr panic "{error}"
-if netutil.Contains(network, ip) and netutil.IsPrivate(ip)
-    print("private range")
-```
-
-**stdlib/crypto** — Hashing, HMAC, and secure random generation
-
-```kukicha
-hash  := crypto.SHA256("hello world")                # hex-encoded SHA-256
-mac   := crypto.HMAC("secret-key", "message-body")   # hex-encoded HMAC-SHA256
-token := crypto.RandomToken(32) onerr panic "{error}" # 64-char hex string
-bytes := crypto.RandomBytes(16) onerr panic "{error}" # raw random bytes
-
-# Binary variants for byte-level pipelines
-raw   := crypto.SHA256Bytes(data)
-rawMac := crypto.HMACBytes(keyBytes, dataBytes)
-
-# Constant-time comparison (prevents timing attacks)
-if crypto.Equal(expected, actual)
-    print("match")
-```
-
-**stdlib/sort** — Sorting slices (returns sorted copies, originals unchanged)
-
-```kukicha
-sorted := sort.Strings(names)                          # ascending, lexicographic
-sorted := sort.Ints(scores)                            # ascending, numeric
-sorted := sort.Float64s(values)                        # ascending, float64
-
-# Custom comparator (stable sort)
-sorted := sort.By(repos, (a, b) => a.stars < b.stars)
-
-# Sort by extracted key (pipe-friendly)
-sorted := repos |> sort.ByKey(r => r.name)
-
-# Reverse sort
-sorted := sort.Reverse(repos, (a, b) => a.stars < b.stars)
 ```
 
 **stdlib/sqlite** — SQLite convenience layer (WAL, foreign keys, busy timeout by default)
@@ -972,25 +919,139 @@ n := sqlite.BatchExec(pool, "INSERT INTO users (name) VALUES (?)", rows) onerr p
 sql := sqlite.Dump(pool) onerr panic "{error}"
 ```
 
-**stdlib/netguard** — SSRF protection and network restriction
+#### Security & Crypto
+
+**stdlib/crypto** — Hashing, HMAC, and secure random generation
 
 ```kukicha
-# Block all private/reserved IPs (standard SSRF protection)
-guard := netguard.NewSSRFGuard()
-client := netguard.HTTPClient(guard)
+hash  := crypto.SHA256("hello world")                # hex-encoded SHA-256
+mac   := crypto.HMAC("secret-key", "message-body")   # hex-encoded HMAC-SHA256
+token := crypto.RandomToken(32) onerr panic "{error}" # 64-char hex string
+bytes := crypto.RandomBytes(16) onerr panic "{error}" # raw random bytes
 
-# Allow only specific CIDRs
-guard := netguard.NewAllow(list of string{"93.184.216.0/24"}) onerr panic "{error}"
+# Binary variants for byte-level pipelines
+raw   := crypto.SHA256Bytes(data)
+rawMac := crypto.HMACBytes(keyBytes, dataBytes)
 
-# Block specific CIDRs
-guard := netguard.NewBlock(list of string{"10.0.0.0/8"}) onerr panic "{error}"
+# Constant-time comparison (prevents timing attacks)
+if crypto.Equal(expected, actual)
+    print("match")
+```
 
-# Check a single IP
-if netguard.Check(guard, "10.0.0.1")
-    print("allowed")
+**stdlib/validate** — Input validation
 
-# Use with fetch via guarded HTTP transport
-transport := netguard.HTTPTransport(guard)
+```kukicha
+email |> validate.Email()          onerr return
+age   |> validate.InRange(18, 120) onerr return
+name  |> validate.NotEmpty()       onerr return
+```
+
+**stdlib/random** — Random generation
+
+```kukicha
+token := random.String(32)
+```
+
+**stdlib/errors** (import as `errs`) — Error wrapping
+
+```kukicha
+import "stdlib/errors" as errs
+wrapped := errs.Wrap(err, "loading config")   # preserves Is/As chain
+opaque  := errs.Opaque(originalErr, "db connect")   # breaks chain at boundaries
+if errs.Is(err, io.EOF)
+    return
+# Dual-message: internal detail + user-safe message
+e := errs.NewPublic("db: refused 10.0.0.1", "database unavailable")
+print(errs.Public(e))   # "database unavailable"
+```
+
+#### DevOps & Infrastructure
+
+**stdlib/container** (import as `docker`) — Docker/Podman client
+
+```kukicha
+import "stdlib/container" as docker
+engine := docker.Connect() onerr panic "{error}"
+defer docker.Close(engine)
+
+images := engine |> docker.ListImages() onerr panic "{error}"
+docker.Pull(engine, "alpine:latest") onerr panic "{error}"
+id   := docker.Run(engine, "alpine:latest", list of string{"echo", "hello"}) onerr panic "{error}"
+logs := docker.Logs(engine, id) onerr panic "{error}"
+code := docker.Wait(engine, id, 60) onerr panic "{error}"
+docker.Remove(engine, id) onerr discard
+```
+
+**stdlib/git** — Git/GitHub operations (requires `gh` CLI)
+
+```kukicha
+tags   := git.ListTags("owner/repo") onerr panic "{error}"
+branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
+me     := git.CurrentUser() onerr panic "{error}"
+exists, _ := git.TagExists("owner/repo", "v1.0.0")
+
+# Create a release
+opts := git.ReleaseOptions{Title: "v1.0.0", Target: "main", Draft: true, GenerateNotes: true}
+git.CreateRelease("owner/repo", "v1.0.0", opts) onerr panic "{error}"
+
+# Dry-run: preview command without executing
+print("Would run: {git.PreviewRelease("owner/repo", "v1.0.0", opts)}")
+```
+
+**stdlib/semver** — Semantic versioning
+
+```kukicha
+v    := semver.Parse("v1.2.3") onerr panic "{error}"
+next := v |> semver.Bump("minor") |> semver.Format()   # "v1.3.0"
+best := semver.Highest(tags) onerr panic "{error}"
+if semver.Valid("v2.0.0")
+    print("valid")
+```
+
+**stdlib/obs** — Structured logging
+
+```kukicha
+logger := obs.New("myapp", "prod") |> obs.Component("worker")
+logger |> obs.Info("starting", map of string to any{"job": "build"})
+logger |> obs.Error("failed",  map of string to any{"err": err})
+```
+
+#### AI & Agents
+
+**stdlib/llm** — LLM calls
+
+```kukicha
+# OpenAI-compatible
+reply := llm.New("openai:gpt-4o-mini")
+    |> llm.Retry(3, 2000)
+    |> llm.Ask("Hello!") onerr panic "{error}"
+
+# Anthropic
+reply := llm.NewMessages("claude-opus-4-6")
+    |> llm.MRetry(3, 2000)
+    |> llm.MAsk("Summarize this") onerr panic "{error}"
+```
+
+**stdlib/mcp** — MCP server and client
+
+```kukicha
+# Server
+server := mcp.New("stock-tool", "1.0.0")
+schema := mcp.Schema(list of mcp.SchemaProperty{
+    mcp.Prop("symbol", "string", "Ticker symbol"),
+}) |> mcp.Required(list of string{"symbol"})
+mcp.Tool(server, "get_price", "Get stock price by ticker", schema, handler)
+mcp.Serve(server) onerr panic "{error}"
+
+# Client
+session := mcp.Connect(ctx, "http://localhost:8000/mcp") onerr panic "{error}"
+defer mcp.Close(session)
+tools := mcp.ListTools(ctx, session) onerr panic "{error}"
+result := mcp.CallTool(ctx, session, "get_price", args) onerr panic "{error}"
+print(result.Text)
+
+# Client with Bearer token authentication
+session := mcp.BearerConnect(ctx, "https://mcp.example.com/mcp", apiKey) onerr panic "{error}"
 ```
 
 **stdlib/a2a** — A2A protocol client (agent-to-agent communication)
@@ -1023,33 +1084,6 @@ for skill in a2a.Skills(agent)
     print("{skill.Name}: {skill.Description}")
 ```
 
-**stdlib/html** — Component-style HTML rendering with auto-escaping
-
-```kukicha
-# Render a fragment — use Escape() for user input, Embed() for child fragments
-page := html.Render("<h1>{html.Escape(title)}</h1>")
-nav  := html.Render("<nav>{html.Embed(links)}</nav>")
-
-# Write to HTTP response
-html.WriteTo(w, page) onerr discard
-html.WriteStatusTo(w, errorPage, 404) onerr discard
-
-# Compose fragments
-full := html.Join(header, content, footer)
-
-# Render a list
-items := html.Map(users, (u User) =>
-    return html.Render("<li>{html.Escape(u.Name)}</li>")
-)
-
-# Conditional rendering
-badge := html.When(isAdmin, adminBadge)
-nav   := html.WhenElse(loggedIn, userNav, guestNav)
-
-# Attribute escaping
-link := html.Render("<a href='{html.Attr(url)}'>click</a>")
-```
-
 ---
 
 ### Security — Compiler-Enforced Checks
@@ -1065,22 +1099,6 @@ The compiler **rejects** these patterns as errors (not warnings):
 | `httphelper.Redirect(w, r, nonLiteral)` | Open redirect | `httphelper.SafeRedirect(w, r, url, "host")` |
 
 HTTP handler detection: any function with an `http.ResponseWriter` parameter triggers the handler-context checks.
-
----
-
-**stdlib/iterator** — Lazy iteration (Go 1.23 iter.Seq)
-
-```kukicha
-import "stdlib/iterator"
-names := repos
-    |> iterator.Values()
-    |> iterator.Filter((r Repo) => r.Stars > 100)
-    |> iterator.Map((r Repo) => r.Name)
-    |> iterator.Take(5)
-    |> iterator.Collect()
-```
-
-Functions: `Values`, `Filter`, `Map`, `FlatMap`, `Take`, `Skip`, `Enumerate`, `Chunk`, `Zip`, `Reduce`, `Collect`, `Any`, `All`, `Find`.
 
 ---
 
@@ -1210,6 +1228,33 @@ go func()
     task()
 ()
 ```
+
+**Cleanup goroutines — always provide a shutdown path**
+
+Goroutines that loop on a ticker run forever if there's no stop signal. The parent exits, but the goroutine (and any connections it holds) leak.
+
+```kukicha
+# WRONG — cleanup runs forever, no way to stop it
+go func()
+    ticker := time.NewTicker(datetime.Seconds(60))
+    for range ticker.C
+        purgeExpired()
+()
+
+# CORRECT — select on a stop channel or context cancellation
+go func()
+    ticker := time.NewTicker(datetime.Seconds(60))
+    defer ticker.Stop()
+    for
+        select
+            when receive from stop
+                return
+            when receive from ticker.C
+                purgeExpired()
+()
+```
+
+Always pair background goroutines with a `Close()` method that signals them to exit. For context-based shutdown, use `ctxpkg.WithCancel()` and check `ctx.Done()` in the select.
 
 **Context cancel lifetime — defer in the function that uses the resource**
 

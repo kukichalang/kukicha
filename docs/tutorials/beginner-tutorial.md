@@ -61,7 +61,7 @@ cd my-kukicha-project
 kukicha init             
 ```
 
-The `kukicha init` command creates the necessary framework for Kukicha to run in that directory.
+The `kukicha init` command initializes a Go module, extracts the Kukicha standard library, and downloads dependencies. You'll see it print progress messages — this is normal and only happens once per project.
 
 ### Writing Your First Program
 

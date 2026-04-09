@@ -40,6 +40,8 @@ mkdir myapp && cd myapp
 kukicha init
 ```
 
+`kukicha init` initializes a Go module (if `go.mod` is absent), extracts the stdlib, downloads dependencies, and writes an `AGENTS.md` language reference. Add `.kukicha/` to your `.gitignore`.
+
 Create `hello.kuki`:
 
 ```kukicha

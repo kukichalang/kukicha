@@ -194,15 +194,9 @@ The tea anatomy shows up directly in the language itself:
 
 <!-- pause -->
 
-**`stem.toml`** — the project root config file.
-In the tea plant, the **stem** is the central stalk everything grows from.
-In a Kukicha project, `stem.toml` is the anchor the compiler uses to
-locate packages and calculate their names.
-
-<!-- pause -->
-
 **`petiole`** — the Kukicha keyword for package declarations.
 In botany, the **petiole** is the thin stalk connecting a leaf blade to the stem.
+In Kukicha, it connects the source file to its package.
 
 ```
 petiole mypackage
@@ -222,7 +216,6 @@ Each source file is a leaf. Its petiole connects it back to the stem.
 ## The Plant in One Diagram
 
 ```
-  stem.toml              ← the stem (project root)
   │
   ├── src/auth/auth.kuki      petiole auth    ← leaf via petiole
   ├── src/api/api.kuki        petiole api     ← leaf via petiole
@@ -242,7 +235,9 @@ The naming isn't decorative. It's a consistent metaphor for how code is structur
 
 ## Kukicha in One Sentence
 
-Kukicha is a **beginner-friendly language that transpiles to Go.**
+Kukicha is a **strict superset of Go**.
+You can rename any `.go` file to `.kuki` and it will compile unchanged.
+It blends in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, and readable operators.
 
 ```
   .kuki file  →  Kukicha compiler  →  Go source  →  native binary
@@ -260,7 +255,7 @@ Kukicha is a **beginner-friendly language that transpiles to Go.**
 ```
   1. Human describes what they want (in plain language)
        ↓
-  2. AI writes Kukicha code
+  2. AI writes Kukicha code (or suggests blends for existing Go)
        ↓
   3. Human reviews — easy because it reads like English
        ↓
@@ -277,11 +272,11 @@ The human stays **in the loop** without needing to know Go internals.
 
 | Thing | Status |
 |-------|--------|
-| Version | 0.0.11 |
+| Version | 0.1.3 |
 | Go requirement | 1.26+ |
 | License | MIT |
 | LSP support | ✓ (Zed, Neovim, etc.) |
-| Stdlib packages | 35+ |
+| Stdlib packages | 42+ |
 | Editor extension | VS Code, Zed (tree-sitter + LSP) |
 
 <!-- end_slide -->
@@ -634,9 +629,13 @@ else
 
 <!-- pause -->
 
-Python programmers: same structure, no colons required.
+if-expressions allow assigning values directly: `x := if cond then a else b`.
 
+<!-- pause -->
+
+Python programmers: same structure, no colons required.
 R programmers: no braces, `else if` instead of `else if (...)`.
+
 
 <!-- end_slide -->
 
@@ -1751,6 +1750,8 @@ myapp/
 | `kukicha check file.kuki` | Validate syntax (no compile) |
 | `kukicha fmt -w file.kuki` | Format in place |
 | `kukicha init` | Initialize a new project |
+| `kukicha brew file.kuki` | Convert back to standard Go |
+| `kukicha-blend file.go` | Suggest Kukicha idioms for Go code |
 
 <!-- pause -->
 
@@ -1829,7 +1830,7 @@ function main()
 - **Error handling**: `onerr` inline — replaces try/except and tryCatch
 - **Pipes**: left-to-right data flow with `|>` — R's native operator
 - **Typed JSON**: `fetch.Json(list of T)` — no dict unpacking, no runtime KeyError
-- **Stdlib**: 35+ packages — HTTP, DB, LLM, Kubernetes, MCP
+- **Stdlib**: 42+ packages — HTTP, DB, LLM, Kubernetes, MCP, a2a, iterator
 - **Security**: compile-time injection and traversal checks
 - **Concurrency**: real parallelism — no GIL, no single-threaded limitation
 - **Deploy**: one binary, no runtime, ships anywhere
