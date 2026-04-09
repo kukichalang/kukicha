@@ -9,10 +9,15 @@ import "stdlib/env"
 import "stdlib/files"
 import "stdlib/json" as jsonpkg
 
+type MCPServerConfig
+    URL string as "url"
+    APIKey string as "api_key"
+
 type Config
     WebUIURL string as "webui_url"
     WebUIAPIKey string as "webui_api_key"
     Model string as "model"
+    MCPServers map of string to MCPServerConfig as "mcp_servers"
     TerminalMCPURL string as "terminal_mcp_url"
     TerminalMCPAPIKey string as "terminal_mcp_api_key"
     MaxToolRounds int as "max_tool_rounds"
@@ -22,12 +27,15 @@ func defaultConfigPath() string
     return filepath.Join(home, ".config", "owui", "config.json")
 
 func loadConfig() Config
-    cfg := Config{WebUIURL: "http://localhost:3000", TerminalMCPURL: "http://127.0.0.1:9000/mcp", Model: "llama3.1", MaxToolRounds: 15}
+    cfg := Config{WebUIURL: "http://localhost:3000", TerminalMCPURL: "http://127.0.0.1:9000/mcp", Model: "llama3.1", MaxToolRounds: 15, MCPServers: make(map of string to MCPServerConfig)}
 
     # Try loading from config file
     data := files.ReadString(defaultConfigPath()) onerr ""
     if data isnt ""
         jsonpkg.UnmarshalString(data, reference of cfg) onerr ""
+
+    if cfg.MCPServers equals empty
+        cfg.MCPServers = make(map of string to MCPServerConfig)
 
     # Environment variables override file settings
     v := env.GetOr("OWUI_WEBUI_URL", "")
@@ -49,6 +57,9 @@ func loadConfig() Config
     v = env.GetOr("OWUI_TERMINAL_MCP_API_KEY", "")
     if v isnt ""
         cfg.TerminalMCPAPIKey = v
+
+    if cfg.TerminalMCPURL isnt ""
+        cfg.MCPServers["terminal"] = MCPServerConfig{URL: cfg.TerminalMCPURL, APIKey: cfg.TerminalMCPAPIKey}
 
     return cfg
 
