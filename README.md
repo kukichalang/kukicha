@@ -1,6 +1,6 @@
 # Kukicha
 
-Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go** — rename `.go` to `.kuki` and it compiles unchanged. Then blend in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, readable operators. Not sure? `kukicha brew` gives you standard Go back. The stems dissolve, the tea remains.
+Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go** — rename `.go` to `.kuki` and it compiles unchanged. Then blend in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, readable operators. Not sure? `kukicha brew` gives you standard Go back. The stems dissolve and the tea remains.
 
 **[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](docs/SKILL.md)
 
@@ -26,7 +26,7 @@ result := fetchData()
     |> parse() onerr return explain "pipeline failed"
 ```
 
-Both are valid Kukicha. The Go version compiles as-is. The Kukicha version is what you graduate to.
+Both are valid Kukicha. The Go version compiles as-is. 
 
 ---
 
@@ -81,7 +81,7 @@ kukicha brew main.kuki
 
 ## What Kukicha Adds
 
-Go's philosophy is radical simplicity — and that's genuinely powerful. But some proven patterns from Rust, Elixir, Kotlin, and Python didn't fit that vision. Kukicha picks them up.
+Go's philosophy is radical simplicity. Some proven patterns from Rust, Elixir, Kotlin, and Python didn't fit that vision. Kukicha picks them up.
 
 | Feature | Go | Kukicha |
 |---------|-----|---------|
@@ -94,18 +94,18 @@ Go's philosophy is radical simplicity — and that's genuinely powerful. But som
 | **Lambdas** | `func(x int) int { return x*2 }` | `(x int) => x * 2` |
 | **String interpolation** | `fmt.Sprintf("hi %s", name)` | `"hi {name}"` |
 
-All Go syntax is also accepted — Kukicha is a strict superset. Use whichever form you prefer.
+All Go syntax is also accepted — Kukicha is a strict superset. 
 
 ---
 
-## Why Not Just Write Go?
+## What does Kukicha offer?
 
-- **Zero adoption cost** — your existing `.go` files compile as `.kuki` unchanged
-- **Zero lock-in** — `kukicha brew` converts back to standard Go anytime
-- **Gradual migration** — blend in one feature at a time, leave the rest as Go
-- **Security at compile time** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
-- **42+ stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](docs/SKILL.md)
-- **Ships as Go** — single binary, cross-compile, WASM support, full Go ecosystem
+- Existing `.go` files compile as `.kuki` unchanged
+- `kukicha brew` converts back to standard Go anytime
+- Blend in one feature at a time, leave the rest as Go
+- **Security at compile time**, catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
+- **42+ ease-of-use stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](docs/SKILL.md#stdlib-packages)
+- **Ships as Go**, single binary, cross-compile, WASM support, full Go ecosystem
 
 ---
 
@@ -120,8 +120,8 @@ All Go syntax is also accepted — Kukicha is a strict superset. Use whichever f
 ## Documentation
 
 - [Quick Reference](docs/kukicha-quick-reference.md) — Go-to-Kukicha translation table
-- [Beginner Tutorial](docs/tutorials/beginner-tutorial.md) — first program, variables, functions
 - [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
+- [Beginner Tutorial](docs/tutorials/beginner-tutorial.md) — first program, variables, functions
 - [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, auth, retry
 - [FAQ](docs/faq.md) | [Contributing](docs/contributing.md)
 

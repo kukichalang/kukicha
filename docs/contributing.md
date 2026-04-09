@@ -84,13 +84,7 @@ Push your branch and create a pull request on GitHub.
 
 When adding new language features, follow this process:
 
-### Step 1: Update Documentation
-
-1. Update the grammar in `docs/kukicha-grammar.ebnf.md`
-2. Update `docs/kukicha-quick-reference.md`
-3. Update `docs/SKILL.md` with any new syntax, and `stdlib/AGENTS.md` with any new stdlib API changes.
-
-### Step 2: Implement in the Compiler
+### Step 1: If working in the Compiler
 
 Determine which phase(s) need modification:
 
@@ -103,9 +97,9 @@ Determine which phase(s) need modification:
 | New transpilation pattern | CodeGen |
 | New `# kuki:` directive | Lexer (already handles), Parser (already collects), Semantic |
 
-### Step 3: Check for Vulnerabilities
+### Step 2: Check for Vulnerabilities
 
-After adding or updating stdlib dependencies, run a vulnerability audit:
+If adding or updating stdlib dependencies, run a vulnerability audit:
 
 ```bash
 kukicha audit             # check all dependencies for known CVEs
@@ -116,7 +110,7 @@ Since Kukicha transpiles to Go, the stdlib's Go dependencies (declared in `cmd/k
 
 To check the compiler's own dependencies, run `kukicha audit` (or `go run ./cmd/kukicha audit`) in the kukicha repo root.
 
-### Step 4: Add Tests
+### Step 3: Add Tests
 
 For **compiler internals** (`internal/`), add tests in the appropriate Go `*_test.go` file:
 
@@ -133,7 +127,7 @@ func TestYourNewFeature(t *testing.T) {
 
 For **stdlib packages**, write tests in `*_test.kuki` using the table-driven pattern (see "Writing stdlib tests" under "Modifying the Standard Library").
 
-### Step 5: Update Examples
+### Step 4: Update Examples
 
 Add example code to `examples/` if the feature is significant.
 

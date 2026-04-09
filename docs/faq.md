@@ -4,7 +4,7 @@
 
 **Why not just write Go?**
 
-You already know Go's power. Kukicha is a strict superset — your `.go` files compile as `.kuki` unchanged. The question is whether the opt-in features are worth it.
+Your `.go` files compile as `.kuki` unchanged. The question is whether the opt-in features are worth it.
 
 | Go | Kukicha (opt-in) |
 |---|---|
@@ -95,7 +95,7 @@ If your work is ML/data science, stick with Python — Kukicha is aimed at CLI t
 
 ### I don't know how to program. Can I use Kukicha?
 
-Yes — that's a supported use case. The workflow is:
+Yes:
 
 1. Describe what you want to an AI agent (Claude Code, Cursor, ChatGPT)
 2. The agent writes Kukicha code

@@ -6,7 +6,7 @@ use Go syntax or Kukicha syntax (or mix both) in `.kuki` files.
 
 ### Project Structure
 
-**Single-file programs:** No `petiole` needed. Just write `function main()`.
+**Single-file programs:** 
 
 ```kukicha
 # hello.kuki — minimal working program
