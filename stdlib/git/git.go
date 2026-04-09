@@ -8,7 +8,7 @@ import (
 	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:19
+//line /home/user/kukicha/stdlib/git/git.kuki:19
 type ReleaseOptions struct {
 	Title         string
 	Target        string
@@ -16,168 +16,168 @@ type ReleaseOptions struct {
 	GenerateNotes bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:29
+//line /home/user/kukicha/stdlib/git/git.kuki:29
 func ListTags(repo string) ([]string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:30
+//line /home/user/kukicha/stdlib/git/git.kuki:30
 	raw, err_1 := shell.Output("gh", "api", fmt.Sprintf("repos/%v/tags", repo), "--paginate", "--jq", ".[].name")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:30
+//line /home/user/kukicha/stdlib/git/git.kuki:30
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:30
+//line /home/user/kukicha/stdlib/git/git.kuki:30
 		return []string{}, fmt.Errorf("failed to fetch tags for %v: %v", repo, err_1)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:31
+//line /home/user/kukicha/stdlib/git/git.kuki:31
 	if kukistring.IsBlank(raw) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:32
+//line /home/user/kukicha/stdlib/git/git.kuki:32
 		return []string{}, nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:33
+//line /home/user/kukicha/stdlib/git/git.kuki:33
 	tags := filterBlank(kukistring.Lines(raw))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:34
+//line /home/user/kukicha/stdlib/git/git.kuki:34
 	return tags, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:38
+//line /home/user/kukicha/stdlib/git/git.kuki:38
 func TagExists(repo string, tag string) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:39
+//line /home/user/kukicha/stdlib/git/git.kuki:39
 	result := shell.Execute(shell.New("gh", "api", fmt.Sprintf("repos/%v/git/ref/tags/%v", repo, tag)))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:40
+//line /home/user/kukicha/stdlib/git/git.kuki:40
 	return shell.Success(result), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:46
+//line /home/user/kukicha/stdlib/git/git.kuki:46
 func DefaultBranch(repo string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:47
+//line /home/user/kukicha/stdlib/git/git.kuki:47
 	branch, err_2 := shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:47
+//line /home/user/kukicha/stdlib/git/git.kuki:47
 	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:47
+//line /home/user/kukicha/stdlib/git/git.kuki:47
 		return "", fmt.Errorf("failed to get default branch for %v: %v", repo, err_2)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:48
+//line /home/user/kukicha/stdlib/git/git.kuki:48
 	return kukistring.TrimSpace(branch), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:52
+//line /home/user/kukicha/stdlib/git/git.kuki:52
 func CurrentBranch() (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:53
+//line /home/user/kukicha/stdlib/git/git.kuki:53
 	branch, err_3 := shell.Output("git", "rev-parse", "--abbrev-ref", "HEAD")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:53
+//line /home/user/kukicha/stdlib/git/git.kuki:53
 	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:53
+//line /home/user/kukicha/stdlib/git/git.kuki:53
 		return "", fmt.Errorf("failed to get current branch: %v", err_3)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:54
+//line /home/user/kukicha/stdlib/git/git.kuki:54
 	return kukistring.TrimSpace(branch), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:60
+//line /home/user/kukicha/stdlib/git/git.kuki:60
 func ReleaseExists(repo string, tag string) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:61
+//line /home/user/kukicha/stdlib/git/git.kuki:61
 	result := shell.Execute(shell.New("gh", "release", "view", tag, "--repo", repo))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:62
+//line /home/user/kukicha/stdlib/git/git.kuki:62
 	return shell.Success(result), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:67
+//line /home/user/kukicha/stdlib/git/git.kuki:67
 func CreateRelease(repo string, tag string, opts ReleaseOptions) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:68
+//line /home/user/kukicha/stdlib/git/git.kuki:68
 	title := opts.Title
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:69
+//line /home/user/kukicha/stdlib/git/git.kuki:69
 	if title == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:70
+//line /home/user/kukicha/stdlib/git/git.kuki:70
 		title = tag
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:72
+//line /home/user/kukicha/stdlib/git/git.kuki:72
 	cmd := shell.FlagIf(shell.FlagIf(shell.FlagIf(shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title), (opts.Target != ""), "--target", opts.Target), opts.GenerateNotes, "--generate-notes"), opts.Draft, "--draft")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:74
+//line /home/user/kukicha/stdlib/git/git.kuki:74
 	result := shell.Execute(cmd)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:75
+//line /home/user/kukicha/stdlib/git/git.kuki:75
 	if !shell.Success(result) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:76
+//line /home/user/kukicha/stdlib/git/git.kuki:76
 		errStr := string(shell.GetError(result))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:77
+//line /home/user/kukicha/stdlib/git/git.kuki:77
 		return fmt.Errorf("release creation failed: %v", errStr)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:78
+//line /home/user/kukicha/stdlib/git/git.kuki:78
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:83
+//line /home/user/kukicha/stdlib/git/git.kuki:83
 func PreviewRelease(repo string, tag string, opts ReleaseOptions) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:84
+//line /home/user/kukicha/stdlib/git/git.kuki:84
 	title := opts.Title
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:85
+//line /home/user/kukicha/stdlib/git/git.kuki:85
 	if title == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:86
+//line /home/user/kukicha/stdlib/git/git.kuki:86
 		title = tag
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:88
+//line /home/user/kukicha/stdlib/git/git.kuki:88
 	cmd := shell.FlagIf(shell.FlagIf(shell.FlagIf(shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title), (opts.Target != ""), "--target", opts.Target), opts.GenerateNotes, "--generate-notes"), opts.Draft, "--draft")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:90
+//line /home/user/kukicha/stdlib/git/git.kuki:90
 	return shell.Preview(cmd)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:96
+//line /home/user/kukicha/stdlib/git/git.kuki:96
 func RepoExists(repo string) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:97
+//line /home/user/kukicha/stdlib/git/git.kuki:97
 	result := shell.Execute(shell.New("gh", "repo", "view", repo))
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:98
+//line /home/user/kukicha/stdlib/git/git.kuki:98
 	return shell.Success(result), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:102
+//line /home/user/kukicha/stdlib/git/git.kuki:102
 func CurrentUser() (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
+//line /home/user/kukicha/stdlib/git/git.kuki:103
 	login, err_4 := shell.Output("gh", "api", "user", "--jq", ".login")
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
+//line /home/user/kukicha/stdlib/git/git.kuki:103
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:103
+//line /home/user/kukicha/stdlib/git/git.kuki:103
 		return "", fmt.Errorf("failed to get current user: %v", err_4)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:104
+//line /home/user/kukicha/stdlib/git/git.kuki:104
 	return kukistring.TrimSpace(login), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:110
+//line /home/user/kukicha/stdlib/git/git.kuki:110
 func Clone(url string, path string) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:111
+//line /home/user/kukicha/stdlib/git/git.kuki:111
 	_, err_5 := shell.Output("git", "clone", url, path)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:111
+//line /home/user/kukicha/stdlib/git/git.kuki:111
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:111
+//line /home/user/kukicha/stdlib/git/git.kuki:111
 		return fmt.Errorf("clone failed: %v", err_5)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:112
+//line /home/user/kukicha/stdlib/git/git.kuki:112
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:116
+//line /home/user/kukicha/stdlib/git/git.kuki:116
 func CloneShallow(url string, path string, depth int) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:117
+//line /home/user/kukicha/stdlib/git/git.kuki:117
 	depthStr := fmt.Sprintf("%d", depth)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
+//line /home/user/kukicha/stdlib/git/git.kuki:118
 	_, err_6 := shell.Output("git", "clone", "--depth", depthStr, url, path)
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
+//line /home/user/kukicha/stdlib/git/git.kuki:118
 	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:118
+//line /home/user/kukicha/stdlib/git/git.kuki:118
 		return fmt.Errorf("shallow clone failed: %v", err_6)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:119
+//line /home/user/kukicha/stdlib/git/git.kuki:119
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:123
+//line /home/user/kukicha/stdlib/git/git.kuki:123
 func filterBlank(lines []string) []string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:124
+//line /home/user/kukicha/stdlib/git/git.kuki:124
 	result := []string{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:125
+//line /home/user/kukicha/stdlib/git/git.kuki:125
 	for _, line := range lines {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:126
+//line /home/user/kukicha/stdlib/git/git.kuki:126
 		if !kukistring.IsBlank(line) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:127
+//line /home/user/kukicha/stdlib/git/git.kuki:127
 			result = append(result, line)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/git/git.kuki:128
+//line /home/user/kukicha/stdlib/git/git.kuki:128
 	return result
 }

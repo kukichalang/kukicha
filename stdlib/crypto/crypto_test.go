@@ -8,85 +8,85 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:10
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:10
 type SHA256Case struct {
 	name  string
 	input string
 	want  string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:15
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:15
 func TestSHA256(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:16
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:16
 	cases := []SHA256Case{SHA256Case{name: "empty string", input: "", want: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, SHA256Case{name: "hello", input: "hello", want: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:18
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:18
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:19
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:19
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:20
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:20
 			got := crypto.SHA256(tc.input)
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:21
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:21
 			test.AssertEqual(t, got, tc.want)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:25
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:25
 type HMACCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:28
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:28
 func TestHMAC(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:29
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:29
 	cases := []HMACCase{HMACCase{name: "basic hmac"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:31
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:31
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:32
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:32
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:33
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:33
 			mac1 := crypto.HMAC("key", "message")
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:34
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:34
 			mac2 := crypto.HMAC("key", "message")
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:35
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:35
 			test.AssertEqual(t, mac1, mac2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:36
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:36
 			test.AssertEqual(t, len(mac1), 64)
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:38
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:38
 			mac3 := crypto.HMAC("other-key", "message")
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:39
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:39
 			test.AssertTrue(t, (mac1 != mac3))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:43
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:43
 type RandomTokenCase struct {
 	name   string
 	length int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:47
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:47
 func TestRandomToken(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:48
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:48
 	cases := []RandomTokenCase{RandomTokenCase{name: "16 bytes", length: 16}, RandomTokenCase{name: "32 bytes", length: 32}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:50
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:50
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:51
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:51
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:52
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:52
 			token, err := crypto.RandomToken(tc.length)
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:53
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:53
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:54
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:54
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:55
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:55
 			test.AssertEqual(t, len(token), (tc.length * 2))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:59
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:59
 type EqualCase struct {
 	name  string
 	a     string
@@ -94,17 +94,17 @@ type EqualCase struct {
 	equal bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:65
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:65
 func TestEqual(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:66
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:66
 	cases := []EqualCase{EqualCase{name: "same", a: "hello", b: "hello", equal: true}, EqualCase{name: "different", a: "hello", b: "world", equal: false}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:68
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:68
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:69
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:69
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:70
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:70
 			got := crypto.Equal([]byte(tc.a), []byte(tc.b))
-//line /var/home/tluker/repos/go/kukicha/stdlib/crypto/crypto_test.kuki:71
+//line /home/user/kukicha/stdlib/crypto/crypto_test.kuki:71
 			test.AssertEqual(t, got, tc.equal)
 		})
 	}

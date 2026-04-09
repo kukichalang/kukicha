@@ -87,7 +87,21 @@ func (p *Printer) printEnumDecl(decl *ast.EnumDecl) {
 	p.writeLine(fmt.Sprintf("enum %s", decl.Name.Value))
 	p.indentLevel++
 	for _, c := range decl.Cases {
-		p.writeLine(fmt.Sprintf("%s = %s", c.Name.Value, p.exprToString(c.Value)))
+		if c.Value != nil {
+			// Value case: Name = literal
+			p.writeLine(fmt.Sprintf("%s = %s", c.Name.Value, p.exprToString(c.Value)))
+		} else if len(c.Fields) > 0 {
+			// Variant case with fields
+			p.writeLine(c.Name.Value)
+			p.indentLevel++
+			for _, f := range c.Fields {
+				p.writeLine(fmt.Sprintf("%s %s", f.Name.Value, p.typeAnnotationToString(f.Type)))
+			}
+			p.indentLevel--
+		} else {
+			// Unit variant
+			p.writeLine(c.Name.Value)
+		}
 	}
 	p.indentLevel--
 }

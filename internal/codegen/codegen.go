@@ -70,6 +70,7 @@ type Generator struct {
 	varMap               map[string]string        // Maps generated temp variable names to source descriptions (for debugging)
 	warnings             []error                  // Non-fatal diagnostics collected during code generation
 	enumTypes            map[string]bool          // Enum type names for Status.OK → StatusOK rewriting
+	variantCaseTypes     map[string]string        // Variant case name → parent enum name (e.g. "Circle" → "Shape")
 	stripLineDirectives  bool                     // When true, omit //line directives from generated output
 }
 
@@ -85,6 +86,7 @@ func New(program *ast.Program) *Generator {
 		currentReturnIndex: -1,
 		varMap:             make(map[string]string),
 		enumTypes:          make(map[string]bool),
+		variantCaseTypes:   make(map[string]string),
 	}
 }
 

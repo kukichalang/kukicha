@@ -55,6 +55,11 @@ func (g *Generator) generateInterfaceDecl(decl *ast.InterfaceDecl) {
 }
 
 func (g *Generator) generateEnumDecl(decl *ast.EnumDecl) {
+	if decl.IsVariant() {
+		g.generateVariantEnumDecl(decl)
+		return
+	}
+
 	// Register as an enum type for dot-access rewriting
 	g.enumTypes[decl.Name.Value] = true
 
@@ -98,6 +103,53 @@ func (g *Generator) generateEnumDecl(decl *ast.EnumDecl) {
 		g.writeLine("}")
 		g.indent--
 		g.writeLine("}")
+	}
+}
+
+// generateVariantEnumDecl emits a sealed interface and a struct per variant case.
+//
+//	enum Shape
+//	    Circle
+//	        radius float64
+//	    Point
+//
+// →
+//
+//	type Shape interface{ isShape() }
+//	type Circle struct { Radius float64 }
+//	func (Circle) isShape() {}
+//	type Point struct{}
+//	func (Point) isShape() {}
+func (g *Generator) generateVariantEnumDecl(decl *ast.EnumDecl) {
+	markerMethod := "is" + decl.Name.Value
+
+	// Register each case as a variant case type (maps case name → parent enum name)
+	for _, c := range decl.Cases {
+		g.variantCaseTypes[c.Name.Value] = decl.Name.Value
+	}
+
+	// Sealed interface
+	g.writeLine(fmt.Sprintf("type %s interface{ %s() }", decl.Name.Value, markerMethod))
+
+	for _, c := range decl.Cases {
+		g.writeLine("")
+
+		if len(c.Fields) == 0 {
+			// Unit variant → empty struct
+			g.writeLine(fmt.Sprintf("type %s struct{}", c.Name.Value))
+		} else {
+			g.writeLine(fmt.Sprintf("type %s struct {", c.Name.Value))
+			g.indent++
+			for _, f := range c.Fields {
+				fieldType := g.generateTypeAnnotation(f.Type)
+				g.writeLine(fmt.Sprintf("%s %s", f.Name.Value, fieldType))
+			}
+			g.indent--
+			g.writeLine("}")
+		}
+
+		// Marker method implementing the sealed interface
+		g.writeLine(fmt.Sprintf("func (%s) %s() {}", c.Name.Value, markerMethod))
 	}
 }
 

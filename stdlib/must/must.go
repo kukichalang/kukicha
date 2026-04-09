@@ -8,210 +8,210 @@ import (
 	"github.com/kukichalang/kukicha/stdlib/env"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:14
+//line /home/user/kukicha/stdlib/must/must.kuki:14
 func Do(value any, err error) any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:15
+//line /home/user/kukicha/stdlib/must/must.kuki:15
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:16
+//line /home/user/kukicha/stdlib/must/must.kuki:16
 		panic(fmt.Sprintf("must: %v", err))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:17
+//line /home/user/kukicha/stdlib/must/must.kuki:17
 	return value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:21
+//line /home/user/kukicha/stdlib/must/must.kuki:21
 func DoMsg(value any, err error, message string) any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:22
+//line /home/user/kukicha/stdlib/must/must.kuki:22
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:23
+//line /home/user/kukicha/stdlib/must/must.kuki:23
 		panic(fmt.Sprintf("%v: %v", message, err))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:24
+//line /home/user/kukicha/stdlib/must/must.kuki:24
 	return value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:28
+//line /home/user/kukicha/stdlib/must/must.kuki:28
 func Ok(err error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:29
+//line /home/user/kukicha/stdlib/must/must.kuki:29
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:30
+//line /home/user/kukicha/stdlib/must/must.kuki:30
 		panic(fmt.Sprintf("must: %v", err))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:34
+//line /home/user/kukicha/stdlib/must/must.kuki:34
 func OkMsg(err error, message string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:35
+//line /home/user/kukicha/stdlib/must/must.kuki:35
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:36
+//line /home/user/kukicha/stdlib/must/must.kuki:36
 		panic(fmt.Sprintf("%v: %v", message, err))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:42
+//line /home/user/kukicha/stdlib/must/must.kuki:42
 func Env(key string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:43
+//line /home/user/kukicha/stdlib/must/must.kuki:43
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:44
+//line /home/user/kukicha/stdlib/must/must.kuki:44
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:45
+//line /home/user/kukicha/stdlib/must/must.kuki:45
 		panic(fmt.Sprintf("must: environment variable %v is required but not set", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:46
+//line /home/user/kukicha/stdlib/must/must.kuki:46
 	return value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:51
+//line /home/user/kukicha/stdlib/must/must.kuki:51
 func EnvOr(key string, defaultValue string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:52
+//line /home/user/kukicha/stdlib/must/must.kuki:52
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:53
+//line /home/user/kukicha/stdlib/must/must.kuki:53
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:54
+//line /home/user/kukicha/stdlib/must/must.kuki:54
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:55
+//line /home/user/kukicha/stdlib/must/must.kuki:55
 	return value
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:59
+//line /home/user/kukicha/stdlib/must/must.kuki:59
 func EnvInt(key string) int {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:60
+//line /home/user/kukicha/stdlib/must/must.kuki:60
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:61
+//line /home/user/kukicha/stdlib/must/must.kuki:61
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:62
+//line /home/user/kukicha/stdlib/must/must.kuki:62
 		panic(fmt.Sprintf("must: environment variable %v is required but not set", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:63
+//line /home/user/kukicha/stdlib/must/must.kuki:63
 	val, err_1 := cast.Atoi(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:63
+//line /home/user/kukicha/stdlib/must/must.kuki:63
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:63
+//line /home/user/kukicha/stdlib/must/must.kuki:63
 		panic(fmt.Sprintf("must: environment variable %v must be a valid integer", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:64
+//line /home/user/kukicha/stdlib/must/must.kuki:64
 	return val
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:69
+//line /home/user/kukicha/stdlib/must/must.kuki:69
 func EnvIntOr(key string, defaultValue int) int {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:70
+//line /home/user/kukicha/stdlib/must/must.kuki:70
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:71
+//line /home/user/kukicha/stdlib/must/must.kuki:71
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:72
+//line /home/user/kukicha/stdlib/must/must.kuki:72
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:73
+//line /home/user/kukicha/stdlib/must/must.kuki:73
 	val, err_2 := cast.Atoi(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:73
+//line /home/user/kukicha/stdlib/must/must.kuki:73
 	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:73
+//line /home/user/kukicha/stdlib/must/must.kuki:73
 		panic(fmt.Sprintf("must: environment variable %v must be a valid integer", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:74
+//line /home/user/kukicha/stdlib/must/must.kuki:74
 	return val
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:79
+//line /home/user/kukicha/stdlib/must/must.kuki:79
 func EnvBool(key string) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:80
+//line /home/user/kukicha/stdlib/must/must.kuki:80
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:81
+//line /home/user/kukicha/stdlib/must/must.kuki:81
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:82
+//line /home/user/kukicha/stdlib/must/must.kuki:82
 		panic(fmt.Sprintf("must: environment variable %v is required but not set", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:83
+//line /home/user/kukicha/stdlib/must/must.kuki:83
 	val, err_3 := env.ParseBool(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:83
+//line /home/user/kukicha/stdlib/must/must.kuki:83
 	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:83
+//line /home/user/kukicha/stdlib/must/must.kuki:83
 		panic(fmt.Sprintf("must: environment variable %v must be a valid boolean", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:84
+//line /home/user/kukicha/stdlib/must/must.kuki:84
 	return val
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:89
+//line /home/user/kukicha/stdlib/must/must.kuki:89
 func EnvBoolOr(key string, defaultValue bool) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:90
+//line /home/user/kukicha/stdlib/must/must.kuki:90
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:91
+//line /home/user/kukicha/stdlib/must/must.kuki:91
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:92
+//line /home/user/kukicha/stdlib/must/must.kuki:92
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:93
+//line /home/user/kukicha/stdlib/must/must.kuki:93
 	val, err_4 := env.ParseBool(value)
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:93
+//line /home/user/kukicha/stdlib/must/must.kuki:93
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:93
+//line /home/user/kukicha/stdlib/must/must.kuki:93
 		panic(fmt.Sprintf("must: environment variable %v must be a valid boolean", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:94
+//line /home/user/kukicha/stdlib/must/must.kuki:94
 	return val
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:99
+//line /home/user/kukicha/stdlib/must/must.kuki:99
 func EnvList(key string, separator string) []string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:100
+//line /home/user/kukicha/stdlib/must/must.kuki:100
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:101
+//line /home/user/kukicha/stdlib/must/must.kuki:101
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:102
+//line /home/user/kukicha/stdlib/must/must.kuki:102
 		panic(fmt.Sprintf("must: environment variable %v is required but not set", key))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:103
+//line /home/user/kukicha/stdlib/must/must.kuki:103
 	return env.SplitAndTrim(value, separator)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:107
+//line /home/user/kukicha/stdlib/must/must.kuki:107
 func EnvListOr(key string, separator string, defaultValue []string) []string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:108
+//line /home/user/kukicha/stdlib/must/must.kuki:108
 	value := env.GetOr(key, "")
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:109
+//line /home/user/kukicha/stdlib/must/must.kuki:109
 	if value == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:110
+//line /home/user/kukicha/stdlib/must/must.kuki:110
 		return defaultValue
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:111
+//line /home/user/kukicha/stdlib/must/must.kuki:111
 	return env.SplitAndTrim(value, separator)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:118
+//line /home/user/kukicha/stdlib/must/must.kuki:118
 func True(condition bool, message string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:119
+//line /home/user/kukicha/stdlib/must/must.kuki:119
 	if !condition {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:120
+//line /home/user/kukicha/stdlib/must/must.kuki:120
 		panic(fmt.Sprintf("assertion failed: %v", message))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:124
+//line /home/user/kukicha/stdlib/must/must.kuki:124
 func False(condition bool, message string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:125
+//line /home/user/kukicha/stdlib/must/must.kuki:125
 	if condition {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:126
+//line /home/user/kukicha/stdlib/must/must.kuki:126
 		panic(fmt.Sprintf("assertion failed: %v", message))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:130
+//line /home/user/kukicha/stdlib/must/must.kuki:130
 func NotEmpty(s string, name string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:131
+//line /home/user/kukicha/stdlib/must/must.kuki:131
 	if s == "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:132
+//line /home/user/kukicha/stdlib/must/must.kuki:132
 		panic(fmt.Sprintf("%v cannot be empty", name))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:137
+//line /home/user/kukicha/stdlib/must/must.kuki:137
 func NotNil(value any, name string) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:138
+//line /home/user/kukicha/stdlib/must/must.kuki:138
 	if value == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/must/must.kuki:139
+//line /home/user/kukicha/stdlib/must/must.kuki:139
 		panic(fmt.Sprintf("%v cannot be nil", name))
 	}
 }

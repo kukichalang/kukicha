@@ -66,6 +66,7 @@ const (
 	TypeKindInterface
 	TypeKindNamed
 	TypeKindEnum
+	TypeKindVariant     // For variant enums (data-carrying sum types)
 	TypeKindPlaceholder // For generic type placeholders (element, item, etc.)
 	TypeKindNil         // For the 'empty' keyword (nil)
 )
@@ -100,6 +101,8 @@ func (tk TypeKind) String() string {
 		return "named"
 	case TypeKindEnum:
 		return "enum"
+	case TypeKindVariant:
+		return "variant"
 	case TypeKindPlaceholder:
 		return "placeholder"
 	case TypeKindNil:
@@ -125,6 +128,7 @@ type TypeInfo struct {
 	Fields       map[string]*TypeInfo // For structs: field name → field type
 	Methods      map[string]*TypeInfo // For structs: method name → function TypeInfo
 	EnumCases    map[string]*TypeInfo // For enums: case name → case type (the enum type itself)
+	VariantCases map[string]*TypeInfo // For variant enums: case name → struct TypeInfo with fields
 }
 
 func (ti *TypeInfo) String() string {

@@ -513,7 +513,12 @@ func (a *Analyzer) collectEnumDecl(decl *ast.EnumDecl) {
 		return
 	}
 
-	// Validate first case value type
+	if decl.IsVariant() {
+		a.collectVariantEnumDecl(decl)
+		return
+	}
+
+	// Value enum: validate first case value type
 	switch decl.Cases[0].Value.(type) {
 	case *ast.IntegerLiteral:
 		// int-based enum
@@ -544,12 +549,71 @@ func (a *Analyzer) collectEnumDecl(decl *ast.EnumDecl) {
 	}
 }
 
+func (a *Analyzer) collectVariantEnumDecl(decl *ast.EnumDecl) {
+	// Validate: no case may have a value (= literal) — mixing is not allowed
+	for _, c := range decl.Cases {
+		if c.Value != nil {
+			a.error(c.Value.Pos(), fmt.Sprintf("enum '%s': cannot mix value cases (= ...) and variant cases", decl.Name.Value))
+			return
+		}
+	}
+
+	// Build variant cases map — each case is a struct type
+	variantType := &TypeInfo{
+		Kind:         TypeKindVariant,
+		Name:         decl.Name.Value,
+		VariantCases: make(map[string]*TypeInfo, len(decl.Cases)),
+	}
+
+	for _, c := range decl.Cases {
+		fields := make(map[string]*TypeInfo, len(c.Fields))
+		for _, f := range c.Fields {
+			fields[f.Name.Value] = a.typeAnnotationToTypeInfo(f.Type)
+		}
+		caseType := &TypeInfo{
+			Kind:   TypeKindStruct,
+			Name:   c.Name.Value,
+			Fields: fields,
+		}
+		variantType.VariantCases[c.Name.Value] = caseType
+
+		// Register each case as a struct type so it resolves in expressions
+		caseSym := &Symbol{
+			Name:     c.Name.Value,
+			Kind:     SymbolType,
+			Type:     caseType,
+			Defined:  c.Name.Pos(),
+			Exported: isExported(c.Name.Value),
+		}
+		if err := a.symbolTable.Define(caseSym); err != nil {
+			a.error(c.Name.Pos(), err.Error())
+		}
+	}
+
+	symbol := &Symbol{
+		Name:     decl.Name.Value,
+		Kind:     SymbolType,
+		Type:     variantType,
+		Defined:  decl.Name.Pos(),
+		Exported: isExported(decl.Name.Value),
+	}
+
+	if err := a.symbolTable.Define(symbol); err != nil {
+		a.error(decl.Name.Pos(), err.Error())
+	}
+}
+
 func (a *Analyzer) analyzeEnumDecl(decl *ast.EnumDecl) {
 	if len(decl.Cases) == 0 {
 		return
 	}
 
-	// Validate all cases have the same type
+	// Variant enums have no values to validate — nothing more to do here.
+	if decl.IsVariant() {
+		return
+	}
+
+	// Value enum: validate all cases have the same type
 	var expectedKind string
 	switch decl.Cases[0].Value.(type) {
 	case *ast.IntegerLiteral:
@@ -560,6 +624,11 @@ func (a *Analyzer) analyzeEnumDecl(decl *ast.EnumDecl) {
 
 	hasZero := false
 	for _, c := range decl.Cases {
+		if c.Value == nil {
+			// Variant case mixed into a value enum
+			a.error(c.Name.Pos(), fmt.Sprintf("enum '%s': cannot mix value cases (= ...) and variant cases", decl.Name.Value))
+			continue
+		}
 		switch v := c.Value.(type) {
 		case *ast.IntegerLiteral:
 			if expectedKind != "integer" {

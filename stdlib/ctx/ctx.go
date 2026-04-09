@@ -7,111 +7,111 @@ import (
 	"time"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:18
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:18
 type Handle struct {
 	ctx    context.Context
 	cancel func()
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:23
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:23
 func Background() Handle {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:24
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:24
 	return Handle{ctx: context.Background(), cancel: nil}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:28
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:28
 func WithTimeout(parent Handle, seconds int64) Handle {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:29
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:29
 	base := parent.ctx
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:30
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:30
 	if base == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:31
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:31
 		base = context.Background()
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:32
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:32
 	timeout := (time.Duration(seconds) * time.Second)
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:33
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:33
 	child, cancel := context.WithTimeout(base, timeout)
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:34
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:34
 	return Handle{ctx: child, cancel: cancel}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:38
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:38
 func WithTimeoutMs(parent Handle, timeoutMs int64) Handle {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:39
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:39
 	base := parent.ctx
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:40
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:40
 	if base == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:41
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:41
 		base = context.Background()
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:42
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:42
 	timeout := (time.Duration(timeoutMs) * time.Millisecond)
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:43
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:43
 	child, cancel := context.WithTimeout(base, timeout)
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:44
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:44
 	return Handle{ctx: child, cancel: cancel}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:48
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:48
 func WithDeadlineUnix(parent Handle, unixSeconds int64) Handle {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:49
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:49
 	base := parent.ctx
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:50
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:50
 	if base == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:51
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:51
 		base = context.Background()
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:52
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:52
 	deadline := time.Unix(unixSeconds, 0)
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:53
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:53
 	child, cancel := context.WithDeadline(base, deadline)
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:54
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:54
 	return Handle{ctx: child, cancel: cancel}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:58
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:58
 func Cancel(handle Handle) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:59
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:59
 	if handle.cancel != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:60
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:60
 		handle.cancel()
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:61
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:61
 		return true
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:62
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:62
 	return false
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:65
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:65
 func Done(handle Handle) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:66
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:66
 	if handle.ctx == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:67
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:67
 		return false
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:68
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:68
 	return (handle.ctx.Err() != nil)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:71
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:71
 func Err(handle Handle) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:72
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:72
 	if handle.ctx == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:73
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:73
 		return nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:74
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:74
 	return handle.ctx.Err()
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:77
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:77
 func Value(handle Handle) context.Context {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:78
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:78
 	if handle.ctx == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:79
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:79
 		return context.Background()
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/ctx/ctx.kuki:80
+//line /home/user/kukicha/stdlib/ctx/ctx.kuki:80
 	return handle.ctx
 }

@@ -1,0 +1,37 @@
+import "fmt"
+
+enum Shape
+    Circle
+        radius float64
+    Rectangle
+        width  float64
+        height float64
+    Point
+
+func area(s Shape) float64
+    switch s as v
+        when Circle
+            return 3.14159 * v.radius * v.radius
+        when Rectangle
+            return v.width * v.height
+        when Point
+            return 0.0
+
+func describe(s Shape) string
+    switch s as v
+        when Circle
+            return fmt.Sprintf("circle with radius %.2f", v.radius)
+        when Rectangle
+            return fmt.Sprintf("%.2f x %.2f rectangle", v.width, v.height)
+        when Point
+            return "a point"
+
+func main()
+    shapes := []Shape{
+        Circle{radius: 5.0},
+        Rectangle{width: 3.0, height: 4.0},
+        Point{},
+    }
+
+    for s in shapes
+        fmt.Printf("%s — area: %.2f\n", describe(s), area(s))

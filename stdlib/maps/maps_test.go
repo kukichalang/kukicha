@@ -8,116 +8,116 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:10
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:10
 func TestMapHelpers(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:13
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:13
 	sample := map[any]any{any("a"): any("1"), any("b"): any("2")}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:14
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:14
 	keys := maps.Keys(sample)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:15
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:15
 	if len(keys) != 2 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:16
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:16
 		t.Fatalf("Expected 2 keys, got %v", len(keys))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:17
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:17
 	if !slice.Contains(keys, "a") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:18
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:18
 		t.Errorf("Keys should include 'a'")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:20
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:20
 	values := maps.Values(sample)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:21
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:21
 	if len(values) != 2 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:22
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:22
 		t.Fatalf("Expected 2 values, got %v", len(values))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:23
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:23
 	if !slice.Contains(values, "2") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:24
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:24
 		t.Errorf("Values should include '2'")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:26
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:26
 	if !maps.Contains(sample, "a") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:27
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:27
 		t.Errorf("Contains should return true for existing key")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:28
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:28
 	if maps.Contains(sample, "missing") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:29
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:29
 		t.Errorf("Contains should return false for missing key")
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:32
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:32
 func TestHas(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:33
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:33
 	sample := map[any]any{any("x"): any("1")}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:34
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:34
 	if !maps.Has(sample, "x") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:35
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:35
 		t.Errorf("Has should return true for existing key")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:36
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:36
 	if maps.Has(sample, "missing") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:37
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:37
 		t.Errorf("Has should return false for missing key")
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:40
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:40
 func TestMerge(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:41
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:41
 	base := map[any]any{any("a"): any("1"), any("b"): any("2")}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:42
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:42
 	overlay := map[any]any{any("b"): any("99"), any("c"): any("3")}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:43
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:43
 	merged := maps.Merge(base, overlay)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:44
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:44
 	if len(merged) != 3 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:45
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:45
 		t.Fatalf("Expected 3 keys, got %v", len(merged))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:46
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:46
 	if merged["a"] != "1" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:47
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:47
 		t.Errorf("Merge should keep base key 'a'")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:48
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:48
 	if merged["b"] != "99" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:49
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:49
 		t.Errorf("Merge should prefer overlay value for 'b'")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:50
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:50
 	if merged["c"] != "3" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:51
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:51
 		t.Errorf("Merge should include overlay key 'c'")
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:54
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:54
 func TestSortedKeys(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:55
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:55
 	sample := map[any]any{any("c"): any("3"), any("a"): any("1"), any("b"): any("2")}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:56
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:56
 	keys := maps.SortedKeys(sample)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:57
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:57
 	if len(keys) != 3 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:58
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:58
 		t.Fatalf("Expected 3 keys, got %v", len(keys))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:59
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:59
 	if keys[0] != "a" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:60
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:60
 		t.Errorf("Expected first key 'a', got '%v'", keys[0])
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:61
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:61
 	if keys[1] != "b" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:62
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:62
 		t.Errorf("Expected second key 'b', got '%v'", keys[1])
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:63
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:63
 	if keys[2] != "c" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps_test.kuki:64
+//line /home/user/kukicha/stdlib/maps/maps_test.kuki:64
 		t.Errorf("Expected third key 'c', got '%v'", keys[2])
 	}
 }
