@@ -1,6 +1,6 @@
 # Kukicha
 
-Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go** — rename `.go` to `.kuki` and it compiles unchanged. Then blend in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, readable operators. Not sure? `kukicha brew` gives you standard Go back. The stems dissolve and the tea remains.
+Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go**, rename `.go` to `.kuki` and it compiles unchanged. Then blend in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, readable operators. Not sure? `kukicha brew` gives you standard Go back. The stems dissolve and the tea remains.
 
 **[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](docs/SKILL.md)
 
