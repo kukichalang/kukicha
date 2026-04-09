@@ -94,7 +94,7 @@ Go's philosophy is radical simplicity. Some proven patterns from Rust, Elixir, K
 | **Lambdas** | `func(x int) int { return x*2 }` | `(x int) => x * 2` |
 | **String interpolation** | `fmt.Sprintf("hi %s", name)` | `"hi {name}"` |
 
-All Go syntax is also accepted — Kukicha is a strict superset. 
+All Go syntax is also accepted, Kukicha is a strict superset. 
 
 ---
 
@@ -105,7 +105,7 @@ All Go syntax is also accepted — Kukicha is a strict superset.
 - Blend in one feature at a time, leave the rest as Go
 - **Security at compile time**, catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
 - **42+ ease-of-use stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](docs/SKILL.md#stdlib-packages)
-- **Ships as Go**, single binary, cross-compile, WASM support, full Go ecosystem
+- **Ships as Go**, single binary, cross-compile, WASM support and the full Go ecosystem
 
 ---
 
