@@ -19,11 +19,17 @@ var version string = "dev"
 
 # ANSI formatting helpers
 const ansiReset = "\x1b[0m"
+
 const ansiDim = "\x1b[2m"
+
 const ansiYellow = "\x1b[33m"
+
 const ansiBoldYellow = "\x1b[1;33m"
+
 const ansiBoldCyan = "\x1b[1;36m"
+
 const ansiRed = "\x1b[91m"
+
 const ansiGreen = "\x1b[32m"
 
 func dimFmt(s string) string
@@ -88,18 +94,22 @@ func main()
         if cmd equals "models"
             cmdListModels() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "tools"
             cmdListTools() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "health"
             cmdHealth() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "configure"
             cmdConfigure() onerr
                 cli.Fatal(errFmt("error: {error}"))
+
             return
         if cmd equals "version"
             print("owui {version}")

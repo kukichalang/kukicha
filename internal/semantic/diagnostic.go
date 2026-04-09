@@ -26,8 +26,8 @@ type Diagnostic struct {
 	File       string `json:"file"`
 	Line       int    `json:"line"`
 	Col        int    `json:"col"`
-	Severity   string `json:"severity"`   // "error" or "warning"
-	Category   string `json:"category"`   // e.g. "security/sql-injection", or "" for non-categorised
+	Severity   string `json:"severity"` // "error" or "warning"
+	Category   string `json:"category"` // e.g. "security/sql-injection", or "" for non-categorised
 	Message    string `json:"message"`
 	Suggestion string `json:"suggestion"` // concrete safe alternative, or ""
 }
@@ -55,10 +55,7 @@ func (d Diagnostic) RenderPretty(sourceLines []string, color bool) string {
 	tail := fmt.Sprintf("── %s ──", location)
 	// Fill dashes to a minimum width of 60
 	minWidth := 60
-	fill := minWidth - len(label) - len(tail)
-	if fill < 1 {
-		fill = 1
-	}
+	fill := max(minWidth-len(label)-len(tail), 1)
 	header := label + strings.Repeat("─", fill) + tail
 
 	if color {
@@ -87,10 +84,7 @@ func (d Diagnostic) RenderPretty(sourceLines []string, color bool) string {
 		b.WriteString(lineStr + " │ " + srcLine + "\n")
 
 		// Caret
-		col := d.Col
-		if col < 1 {
-			col = 1
-		}
+		col := max(d.Col, 1)
 		caretPad := strings.Repeat(" ", col-1)
 		b.WriteString(gutter + " │ " + caretPad + "^")
 		b.WriteByte('\n')
