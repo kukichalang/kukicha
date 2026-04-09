@@ -6,6 +6,7 @@ petiole maps
 import "fmt"
 import "maps" as gomaps
 import "sort"
+import "stdlib/set"
 
 # Keys returns a list of all keys in the map
 # The order of keys is random
@@ -84,11 +85,9 @@ func Pick(m map of any to any, keys list of any) map of any to any
 # Omit returns a new map excluding the specified keys
 # Example: safe := maps.Omit(config, list of any{"password" as any, "secret" as any})
 func Omit(m map of any to any, keys list of any) map of any to any
-    excluded := make(map of any to bool)
-    for key in keys
-        excluded[key] = true
+    excluded := set.From(keys)
     result := make(map of any to any)
     for k, v in m
-        if not excluded[k]
+        if not set.Contains(excluded, k)
             result[k] = v
     return result

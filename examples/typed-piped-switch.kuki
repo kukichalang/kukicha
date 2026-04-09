@@ -1,31 +1,27 @@
 # Example demonstrating typed piped switches (|> switch as v)
-# Branch on a value's type and get a correctly-typed binding in each case
+# Uses a variant enum instead of an interface + separate structs
 
-interface Shape
-    Area() float64
+enum Shape
+    Circle
+        radius float64
+    Rectangle
+        width float64
+        height float64
 
-type Circle
-    radius float64
-
-func Area on c Circle float64
-    return 3.14159 * c.radius * c.radius
-
-type Rectangle
-    width float64
-    height float64
-
-func Area on r Rectangle float64
-    return r.width * r.height
-
-func Describe(s Shape) string
-    # Typed piped switch — branch on the concrete type of s
+func area(s Shape) float64
     return s |> switch as v
         when Circle
-            return "Circle with radius {v.radius}, area {v.Area()}"
+            return 3.14159 * v.radius * v.radius
         when Rectangle
-            return "{v.width}x{v.height} rectangle, area {v.Area()}"
-        otherwise
-            return "Unknown shape with area {s.Area()}"
+            return v.width * v.height
+
+func Describe(s Shape) string
+    # Typed piped switch — branch on the variant case of s
+    return s |> switch as v
+        when Circle
+            return "Circle with radius {v.radius}, area {area(s)}"
+        when Rectangle
+            return "{v.width}x{v.height} rectangle, area {area(s)}"
 
 func main()
     shapes := list of Shape{Circle{radius: 5.0}, Rectangle{width: 3.0, height: 4.0}, Circle{radius: 1.0}}
