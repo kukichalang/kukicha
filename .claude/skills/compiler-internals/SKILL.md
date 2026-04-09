@@ -24,7 +24,7 @@ Semantic analysis produces an `*AnalysisResult` (via `analyzer.AnalyzeResult()`)
 
 Tests that only need errors and warnings use `analyzeSourceResult(t, src)` which returns `*AnalysisResult`. Tests that need to inspect unexported `*Analyzer` fields (e.g. `exprTypes`, `symbolTable`) call `analyzeSource(t, src)` which returns `(*Analyzer, []error)`.
 
-The formatter (`formatter/`) is a separate pipeline that re-parses and pretty-prints. The LSP (`lsp/`) wraps the compiler pipeline and is independent of the above.
+The formatter (`formatter/`) is a separate AST-based pipeline that re-parses and pretty-prints. It has exhaustiveness tests that parse `ast.go` to ensure every `Expression`, `Statement`, and `Declaration` type has a corresponding formatter case — adding a new AST node without updating the formatter will fail tests. Default cases emit `/* unhandled: %T */` instead of silent empty strings. The LSP (`lsp/`) wraps the compiler pipeline (lexer → parser → semantic) for diagnostics, hover, completion, definition, formatting, and signature help.
 
 ## Package Overview
 
@@ -36,8 +36,8 @@ The formatter (`formatter/`) is a separate pipeline that re-parses and pretty-pr
 | `semantic/` | Type checking, symbol resolution, security checks | `New(program).Analyze()` |
 | `ir/` | Intermediate representation (Go-level imperative nodes) | `Block`, `Assign`, `IfErrCheck`, `Goto`, `Label` |
 | `codegen/` | AST → IR lowering → Go source emission | `New()` then `Generate()` |
-| `formatter/` | Kukicha source code formatting | `Format(source, file, opts)` |
-| `lsp/` | Language Server Protocol implementation | `NewServer(reader, writer).Run(ctx)` |
+| `formatter/` | AST-based source formatting (exhaustiveness-tested against AST node types) | `Format(source, file, opts)` |
+| `lsp/` | Language Server (hover, completion, definition, symbols, formatting, signature help) | `NewServer(reader, writer).Run(ctx)` |
 | `version/` | Single `const Version` for the compiler | `version.Version` |
 
 ---

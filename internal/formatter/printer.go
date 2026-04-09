@@ -422,7 +422,7 @@ func (p *Printer) stmtToString(stmt ast.Statement) string {
 	case *ast.ExpressionStmt:
 		return p.exprToString(s.Expression)
 	default:
-		return ""
+		return fmt.Sprintf("/* unhandled: %T */", stmt)
 	}
 }
 
@@ -939,8 +939,10 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		then := p.exprToString(e.Then)
 		els := p.exprToString(e.Else)
 		return fmt.Sprintf("if %s then %s else %s", cond, then, els)
+	case *ast.NamedArgument:
+		return fmt.Sprintf("%s: %s", e.Name.Value, p.exprToString(e.Value))
 	default:
-		return ""
+		return fmt.Sprintf("/* unhandled: %T */", expr)
 	}
 }
 

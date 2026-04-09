@@ -57,7 +57,36 @@ Key internal functions in `stdlib.go`:
 
 ### `cmd/kukicha-lsp/` — Language Server
 
-Thin entry point that creates an `lsp.NewServer` (from `internal/lsp`) and runs it over stdin/stdout. All logic lives in `internal/lsp/`.
+Thin entry point (~25 lines) that creates an `lsp.NewServer` (from `internal/lsp`) and runs it over stdin/stdout. All logic lives in `internal/lsp/`.
+
+Build: `make install-lsp` or `go build -o ./kukicha-lsp ./cmd/kukicha-lsp`
+
+**Supported LSP capabilities:**
+
+| Method | Handler file | Description |
+|--------|-------------|-------------|
+| `textDocument/hover` | `hover.go` | Signatures, types, docstrings for functions, types, interfaces, enums, constants, locals, builtins |
+| `textDocument/completion` | `completion.go` | Keywords, builtins, primitive types, declarations, enum members. Triggers: `.`, `:` |
+| `textDocument/definition` | `definition.go` | Go-to-definition for functions, types, fields, interfaces, enums, constants |
+| `textDocument/documentSymbol` | `completion.go` | Document outline with hierarchy |
+| `textDocument/formatting` | `format.go` | Calls `formatter.Format()`, returns full-document text edit |
+| `textDocument/signatureHelp` | `signature.go` | Parameter info for function calls. Triggers: `(`, `,` |
+| `textDocument/publishDiagnostics` | `diagnostics.go` | Parse + semantic errors. Published on open, save, and change (150ms debounce) |
+
+**Key internal files:**
+
+| File | Role |
+|------|------|
+| `server.go` | JSONRPC2 handler dispatch, initialize capabilities, debounce timers |
+| `document.go` | `DocumentStore` (thread-safe cache of open docs), per-doc analysis (lexer → parser → semantic) |
+| `builtins.go` | Single source of truth for builtin function metadata (used by hover + completion) |
+
+**Architecture notes:**
+- Full document sync (`textDocumentSync: Full`) — entire content sent on each change
+- `didChange` uses 150ms debounce per URI (`time.AfterFunc`) to avoid running the full pipeline on every keystroke
+- Analysis runs outside the document store lock to avoid blocking concurrent reads
+- Timers cleaned up on `didClose`
+- Currently single-file only — no cross-file symbol resolution (planned: see `docs/plans/LSP-FORMATTER.md`)
 
 ### `cmd/kukicha-blend/` — Go → Kukicha Converter
 

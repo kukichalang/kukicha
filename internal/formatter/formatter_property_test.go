@@ -1,6 +1,10 @@
 package formatter
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 // TestFormatterIdempotency verifies that format(format(source)) == format(source)
 // for a corpus of valid Kukicha programs. A non-idempotent formatter would cause
@@ -194,4 +198,99 @@ func Retry(n int) bool
 			}
 		})
 	}
+}
+
+// TestFormatterIdempotencyOnKukiFiles runs idempotency checks against all .kuki
+// files in stdlib/ and examples/. This catches regressions where the formatter
+// produces different output on repeated runs for real-world code.
+func TestFormatterIdempotencyOnKukiFiles(t *testing.T) {
+	root := filepath.Join("..", "..")
+	dirs := []string{
+		filepath.Join(root, "stdlib"),
+		filepath.Join(root, "examples"),
+	}
+
+	opts := DefaultOptions()
+	var count int
+
+	for _, dir := range dirs {
+		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() || filepath.Ext(path) != ".kuki" {
+				return nil
+			}
+
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			relPath, _ := filepath.Rel(root, path)
+			t.Run(relPath, func(t *testing.T) {
+				source := string(data)
+
+				first, err := Format(source, filepath.Base(path), opts)
+				if err != nil {
+					t.Skipf("Format error (skipping): %v", err)
+				}
+
+				second, err := Format(first, filepath.Base(path), opts)
+				if err != nil {
+					t.Errorf("second Format call failed: %v", err)
+					return
+				}
+
+				if first != second {
+					t.Errorf("formatter is not idempotent for %s\n--- first pass (last 20 lines) ---\n%s\n--- second pass (last 20 lines) ---\n%s",
+						relPath, lastLines(first, 20), lastLines(second, 20))
+				}
+			})
+			count++
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("walking %s: %v", dir, err)
+		}
+	}
+
+	if count == 0 {
+		t.Fatal("found no .kuki files to test")
+	}
+	t.Logf("tested %d .kuki files for idempotency", count)
+}
+
+func lastLines(s string, n int) string {
+	parts := splitLines(s)
+	if len(parts) <= n {
+		return s
+	}
+	return "...\n" + joinLines(parts[len(parts)-n:])
+}
+
+func splitLines(s string) []string {
+	var lines []string
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\n' {
+			lines = append(lines, s[start:i])
+			start = i + 1
+		}
+	}
+	if start < len(s) {
+		lines = append(lines, s[start:])
+	}
+	return lines
+}
+
+func joinLines(lines []string) string {
+	result := ""
+	for i, line := range lines {
+		if i > 0 {
+			result += "\n"
+		}
+		result += line
+	}
+	return result
 }

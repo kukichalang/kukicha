@@ -7,9 +7,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sync"
+	"time"
+
 	"github.com/sourcegraph/go-lsp"
 	"github.com/sourcegraph/jsonrpc2"
 )
+
+// diagnosticDebounce is the delay before running diagnostics after a change.
+const diagnosticDebounce = 150 * time.Millisecond
 
 // Server implements the Kukicha Language Server Protocol
 type Server struct {
@@ -17,14 +23,19 @@ type Server struct {
 	reader    io.Reader
 	writer    io.Writer
 	documents *DocumentStore
+
+	// debounceTimers tracks per-document debounce timers for diagnostics.
+	debounceTimers map[lsp.DocumentURI]*time.Timer
+	debounceMu     sync.Mutex
 }
 
 // NewServer creates a new LSP server
 func NewServer(reader io.Reader, writer io.Writer) *Server {
 	return &Server{
-		reader:    reader,
-		writer:    writer,
-		documents: NewDocumentStore(),
+		reader:         reader,
+		writer:         writer,
+		documents:      NewDocumentStore(),
+		debounceTimers: make(map[lsp.DocumentURI]*time.Timer),
 	}
 }
 
@@ -88,6 +99,10 @@ func (s *Server) handleRequest(ctx context.Context, req *jsonrpc2.Request) (any,
 		return s.handleCompletion(ctx, req)
 	case "textDocument/documentSymbol":
 		return s.handleDocumentSymbol(ctx, req)
+	case "textDocument/formatting":
+		return s.handleFormatting(ctx, req)
+	case "textDocument/signatureHelp":
+		return s.handleSignatureHelp(ctx, req)
 	default:
 		return nil, &jsonrpc2.Error{
 			Code:    jsonrpc2.CodeMethodNotFound,
@@ -126,7 +141,11 @@ func (s *Server) handleInitialize(ctx context.Context, req *jsonrpc2.Request) (*
 			CompletionProvider: &lsp.CompletionOptions{
 				TriggerCharacters: []string{".", ":"},
 			},
-			DocumentSymbolProvider: true,
+			DocumentSymbolProvider:    true,
+			DocumentFormattingProvider: true,
+			SignatureHelpProvider: &lsp.SignatureHelpOptions{
+				TriggerCharacters: []string{"(", ","},
+			},
 		},
 	}
 
@@ -166,10 +185,25 @@ func (s *Server) handleDidChange(ctx context.Context, req *jsonrpc2.Request) (an
 		s.documents.Update(params.TextDocument.URI, params.ContentChanges[0].Text, params.TextDocument.Version)
 	}
 
-	// Analyze and publish diagnostics
-	s.publishDiagnostics(ctx, params.TextDocument.URI)
+	// Debounce diagnostics — wait for typing to pause before running analysis
+	s.debounceDiagnostics(params.TextDocument.URI)
 
 	return nil, nil
+}
+
+// debounceDiagnostics resets the debounce timer for the given URI.
+// Diagnostics are published after diagnosticDebounce of inactivity.
+func (s *Server) debounceDiagnostics(uri lsp.DocumentURI) {
+	s.debounceMu.Lock()
+	defer s.debounceMu.Unlock()
+
+	if timer, ok := s.debounceTimers[uri]; ok {
+		timer.Stop()
+	}
+
+	s.debounceTimers[uri] = time.AfterFunc(diagnosticDebounce, func() {
+		s.publishDiagnostics(context.Background(), uri)
+	})
 }
 
 func (s *Server) handleDidSave(ctx context.Context, req *jsonrpc2.Request) (any, error) {
@@ -199,6 +233,14 @@ func (s *Server) handleDidClose(ctx context.Context, req *jsonrpc2.Request) (any
 	}
 
 	log.Printf("Document closed: %s", params.TextDocument.URI)
+
+	// Cancel any pending debounced diagnostics
+	s.debounceMu.Lock()
+	if timer, ok := s.debounceTimers[params.TextDocument.URI]; ok {
+		timer.Stop()
+		delete(s.debounceTimers, params.TextDocument.URI)
+	}
+	s.debounceMu.Unlock()
 
 	s.documents.Close(params.TextDocument.URI)
 
