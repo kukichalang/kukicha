@@ -1,0 +1,211 @@
+# Tests for Kukicha Standard Library - Set Package
+
+petiole set_test
+
+import "stdlib/set"
+import "stdlib/slice"
+import "stdlib/test"
+import "testing"
+
+# --- TestFrom ---
+type FromCase
+    name string
+    input list of string
+    wantLen int
+
+func TestFrom(t reference testing.T)
+    cases := list of FromCase{FromCase{name: "empty", input: empty list of string, wantLen: 0}, FromCase{name: "three unique", input: list of string{"a", "b", "c"}, wantLen: 3}, FromCase{name: "duplicates deduplicated", input: list of string{"a", "a", "b"}, wantLen: 2}}
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            s := set.From(tc.input)
+            test.AssertEqual(t, set.Len(s), tc.wantLen)
+        )
+
+# --- TestAdd ---
+type AddCase
+    name string
+    item string
+    wantLen int
+
+func TestAdd(t reference testing.T)
+    base := set.From(list of string{"a", "b"})
+    cases := list of AddCase{AddCase{name: "new item", item: "c", wantLen: 3}, AddCase{name: "existing item", item: "a", wantLen: 2}}
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            s2 := set.Add(base, tc.item)
+            test.AssertEqual(t, set.Len(s2), tc.wantLen)
+            test.AssertEqual(t, set.Len(base), 2)
+        )
+
+# --- TestAddIn ---
+func TestAddIn(t reference testing.T)
+    t.Run("adds new item in place", (t reference testing.T) =>
+        s := set.From(list of string{"a", "b"})
+        set.AddIn(s, "c")
+        test.AssertEqual(t, set.Len(s), 3)
+        test.AssertTrue(t, set.Contains(s, "c"))
+    )
+
+    t.Run("idempotent for existing item", (t reference testing.T) =>
+        s := set.From(list of string{"a"})
+        set.AddIn(s, "a")
+        test.AssertEqual(t, set.Len(s), 1)
+    )
+
+# --- TestRemove ---
+type RemoveCase
+    name string
+    item string
+    wantLen int
+
+func TestRemove(t reference testing.T)
+    base := set.From(list of string{"a", "b", "c"})
+    cases := list of RemoveCase{RemoveCase{name: "existing item", item: "b", wantLen: 2}, RemoveCase{name: "missing item", item: "z", wantLen: 3}}
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            s2 := set.Remove(base, tc.item)
+            test.AssertEqual(t, set.Len(s2), tc.wantLen)
+            test.AssertEqual(t, set.Len(base), 3)
+        )
+
+# --- TestRemoveIn ---
+func TestRemoveIn(t reference testing.T)
+    t.Run("removes existing item in place", (t reference testing.T) =>
+        s := set.From(list of string{"a", "b", "c"})
+        set.RemoveIn(s, "b")
+        test.AssertEqual(t, set.Len(s), 2)
+        test.AssertFalse(t, set.Contains(s, "b"))
+    )
+
+    t.Run("no-op for missing item", (t reference testing.T) =>
+        s := set.From(list of string{"a"})
+        set.RemoveIn(s, "z")
+        test.AssertEqual(t, set.Len(s), 1)
+    )
+
+# --- TestContains ---
+func TestContains(t reference testing.T)
+    s := set.From(list of string{"x", "y"})
+    t.Run("present", (t reference testing.T) =>
+        test.AssertTrue(t, set.Contains(s, "x"))
+    )
+
+    t.Run("absent", (t reference testing.T) =>
+        test.AssertFalse(t, set.Contains(s, "z"))
+    )
+
+# --- TestIsEmpty ---
+func TestIsEmpty(t reference testing.T)
+    t.Run("empty set", (t reference testing.T) =>
+        test.AssertTrue(t, set.IsEmpty(set.From(empty list of string)))
+    )
+
+    t.Run("non-empty set", (t reference testing.T) =>
+        test.AssertFalse(t, set.IsEmpty(set.From(list of string{"a"})))
+    )
+
+# --- TestToSlice ---
+func TestToSlice(t reference testing.T)
+    s := set.From(list of string{"a", "b", "c"})
+    items := set.ToSlice(s)
+    test.AssertEqual(t, len(items), 3)
+    t.Run("contains all elements", (t reference testing.T) =>
+        test.AssertTrue(t, slice.Contains(items, "a"))
+        test.AssertTrue(t, slice.Contains(items, "b"))
+        test.AssertTrue(t, slice.Contains(items, "c"))
+    )
+
+# --- TestUnion ---
+func TestUnion(t reference testing.T)
+    a := set.From(list of string{"a", "b"})
+    b := set.From(list of string{"b", "c"})
+    u := set.Union(a, b)
+    t.Run("correct size", (t reference testing.T) =>
+        test.AssertEqual(t, set.Len(u), 3)
+    )
+
+    t.Run("contains all elements", (t reference testing.T) =>
+        test.AssertTrue(t, set.Contains(u, "a"))
+        test.AssertTrue(t, set.Contains(u, "b"))
+        test.AssertTrue(t, set.Contains(u, "c"))
+    )
+
+# --- TestIntersect ---
+func TestIntersect(t reference testing.T)
+    a := set.From(list of string{"a", "b", "c"})
+    b := set.From(list of string{"b", "c", "d"})
+    i := set.Intersect(a, b)
+    t.Run("correct size", (t reference testing.T) =>
+        test.AssertEqual(t, set.Len(i), 2)
+    )
+
+    t.Run("contains shared elements", (t reference testing.T) =>
+        test.AssertTrue(t, set.Contains(i, "b"))
+        test.AssertTrue(t, set.Contains(i, "c"))
+        test.AssertFalse(t, set.Contains(i, "a"))
+        test.AssertFalse(t, set.Contains(i, "d"))
+    )
+
+    t.Run("disjoint sets yield empty", (t reference testing.T) =>
+        x := set.From(list of string{"x"})
+        y := set.From(list of string{"y"})
+        test.AssertTrue(t, set.IsEmpty(set.Intersect(x, y)))
+    )
+
+# --- TestDifference ---
+func TestDifference(t reference testing.T)
+    a := set.From(list of string{"a", "b", "c"})
+    b := set.From(list of string{"b", "c", "d"})
+    d := set.Difference(a, b)
+    t.Run("correct size", (t reference testing.T) =>
+        test.AssertEqual(t, set.Len(d), 1)
+    )
+
+    t.Run("only a-exclusive elements", (t reference testing.T) =>
+        test.AssertTrue(t, set.Contains(d, "a"))
+        test.AssertFalse(t, set.Contains(d, "b"))
+        test.AssertFalse(t, set.Contains(d, "d"))
+    )
+
+# --- TestIsSubset ---
+type SubsetCase
+    name string
+    sub list of string
+    super list of string
+    want bool
+
+func TestIsSubset(t reference testing.T)
+    cases := list of SubsetCase{SubsetCase{name: "proper subset", sub: list of string{"a"}, super: list of string{"a", "b"}, want: true}, SubsetCase{name: "equal sets", sub: list of string{"a", "b"}, super: list of string{"a", "b"}, want: true}, SubsetCase{name: "not a subset", sub: list of string{"a", "c"}, super: list of string{"a", "b"}, want: false}, SubsetCase{name: "empty is subset of all", sub: empty list of string, super: list of string{"a"}, want: true}}
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            test.AssertEqual(t, set.IsSubset(set.From(tc.sub), set.From(tc.super)), tc.want)
+        )
+
+# --- TestIsSuperset ---
+func TestIsSuperset(t reference testing.T)
+    t.Run("superset", (t reference testing.T) =>
+        test.AssertTrue(t, set.IsSuperset(set.From(list of string{"a", "b", "c"}), set.From(list of string{"a", "b"})))
+    )
+
+    t.Run("not superset", (t reference testing.T) =>
+        test.AssertFalse(t, set.IsSuperset(set.From(list of string{"a"}), set.From(list of string{"a", "b"})))
+    )
+
+# --- TestEqual ---
+type EqualCase
+    name string
+    a list of string
+    b list of string
+    want bool
+
+func TestEqual(t reference testing.T)
+    cases := list of EqualCase{EqualCase{name: "equal", a: list of string{"a", "b"}, b: list of string{"b", "a"}, want: true}, EqualCase{name: "different elements", a: list of string{"a"}, b: list of string{"b"}, want: false}, EqualCase{name: "different sizes", a: list of string{"a", "b"}, b: list of string{"a"}, want: false}, EqualCase{name: "both empty", a: empty list of string, b: empty list of string, want: true}}
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            test.AssertEqual(t, set.Equal(set.From(tc.a), set.From(tc.b)), tc.want)
+        )

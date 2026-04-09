@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ast"
 	"github.com/kukichalang/kukicha/internal/lexer"
@@ -266,7 +267,7 @@ func (a *Analyzer) analyzeSwitchStmt(stmt *ast.SwitchStmt) {
 }
 
 func (a *Analyzer) analyzeTypeSwitchStmt(stmt *ast.TypeSwitchStmt) {
-	a.analyzeExpression(stmt.Expression)
+	exprType := a.analyzeExpression(stmt.Expression)
 
 	a.switchDepth++
 	defer func() { a.switchDepth-- }()
@@ -297,6 +298,68 @@ func (a *Analyzer) analyzeTypeSwitchStmt(stmt *ast.TypeSwitchStmt) {
 		a.analyzeBlock(stmt.Otherwise.Body)
 		a.symbolTable.ExitScope()
 	}
+
+	// Exhaustiveness check for variant enums when there is no otherwise clause
+	if stmt.Otherwise == nil {
+		a.checkVariantExhaustiveness(exprType, stmt.Cases, stmt.Token.Line, stmt.Token.Column, stmt.Token.File)
+	}
+}
+
+// checkVariantExhaustiveness warns when a typed switch on a variant enum is missing cases.
+func (a *Analyzer) checkVariantExhaustiveness(exprType *TypeInfo, cases []*ast.TypeCase, line, col int, file string) {
+	if exprType == nil {
+		return
+	}
+
+	// Resolve to the variant enum type
+	var variantSym *Symbol
+	if exprType.Kind == TypeKindVariant {
+		variantSym = a.symbolTable.Resolve(exprType.Name)
+	} else if exprType.Name != "" {
+		sym := a.symbolTable.Resolve(exprType.Name)
+		if sym != nil && sym.Type != nil && sym.Type.Kind == TypeKindVariant {
+			variantSym = sym
+		}
+	}
+
+	if variantSym == nil || variantSym.Type == nil || variantSym.Type.VariantCases == nil {
+		return
+	}
+
+	// Collect covered case names from when clauses
+	covered := make(map[string]bool)
+	for _, c := range cases {
+		typeName := typeCaseName(c.Type)
+		if typeName != "" {
+			covered[typeName] = true
+		}
+	}
+
+	// Find missing cases
+	var missing []string
+	for caseName := range variantSym.Type.VariantCases {
+		if !covered[caseName] {
+			missing = append(missing, variantSym.Name+"."+caseName)
+		}
+	}
+
+	if len(missing) > 0 {
+		sortStrings(missing)
+		pos := ast.Position{Line: line, Column: col, File: file}
+		a.recordLint(LintEnum, pos, fmt.Sprintf("switch on %s is missing cases: %s", variantSym.Name, strings.Join(missing, ", ")))
+	}
+}
+
+// typeCaseName extracts the base type name from a TypeAnnotation for a when clause.
+// Returns "Circle" for both `when Circle` and `when reference Circle`.
+func typeCaseName(t ast.TypeAnnotation) string {
+	switch tp := t.(type) {
+	case *ast.NamedType:
+		return tp.Name
+	case *ast.ReferenceType:
+		return typeCaseName(tp.ElementType)
+	}
+	return ""
 }
 
 func (a *Analyzer) analyzeVarDeclStmt(stmt *ast.VarDeclStmt) {

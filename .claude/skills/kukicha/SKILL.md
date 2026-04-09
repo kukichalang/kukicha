@@ -152,6 +152,32 @@ switch status
 - Auto-generated `String()` method (skipped if user defines one)
 - Cross-package enums from stdlib are resolved automatically
 
+### Variant Enums — tagged unions with pattern matching
+
+```kukicha
+enum Shape
+    Circle
+        radius float64
+    Rectangle
+        width  float64
+        height float64
+    Point              # unit variant (no fields)
+
+func area(s Shape) float64
+    switch s as v
+        when Circle
+            return 3.14159 * v.radius * v.radius
+        when Rectangle
+            return v.width * v.height
+        when Point
+            return 0.0
+```
+
+- Cases without `=` are variant cases; each becomes a Go struct implementing a sealed interface
+- `switch s as v` + `when CaseName` for type-safe pattern matching
+- Compiler warns on missing cases (unless `otherwise` present)
+- Cannot mix value cases and variant cases in the same enum
+
 ### Shorthand `.Field` / `.Method()` — pipe context only
 
 ```kukicha

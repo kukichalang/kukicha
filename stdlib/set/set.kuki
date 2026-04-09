@@ -1,0 +1,117 @@
+# Kukicha Standard Library - Set Operations
+# Generic HashSet implemented as map of any2 to bool
+# Elements must be comparable (strings, ints, etc.)
+
+petiole set
+
+# From creates a new set from a slice of items
+# Example: s := set.From(list of string{"a", "b", "c"})
+func From(items list of any2) map of any2 to bool
+    s := make(map of any2 to bool, len(items))
+    for item in items
+        s[item] = true
+    return s
+
+# Add returns a new set with the given item added
+# Does not modify the original set
+# Example: s2 := set.Add(s, "d")
+func Add(s map of any2 to bool, item any2) map of any2 to bool
+    result := make(map of any2 to bool, len(s) + 1)
+    for k, _ in s
+        result[k] = true
+    result[item] = true
+    return result
+
+# AddIn adds the given item to the set in place
+# Modifies the set directly
+# Example: set.AddIn(s, "d")
+func AddIn(s map of any2 to bool, item any2)
+    s[item] = true
+
+# Remove returns a new set with the given item removed
+# Does not modify the original set
+# Example: s2 := set.Remove(s, "a")
+func Remove(s map of any2 to bool, item any2) map of any2 to bool
+    result := make(map of any2 to bool, len(s))
+    for k, _ in s
+        if k isnt item
+            result[k] = true
+    return result
+
+# RemoveIn removes the given item from the set in place
+# Modifies the set directly
+# Example: set.RemoveIn(s, "a")
+func RemoveIn(s map of any2 to bool, item any2)
+    delete(s, item)
+
+# Contains reports whether the set contains the given item
+# Example: if set.Contains(s, "a") ...
+func Contains(s map of any2 to bool, item any2) bool
+    return s[item]
+
+# Len returns the number of elements in the set
+# Example: n := set.Len(s)
+func Len(s map of any2 to bool) int
+    return len(s)
+
+# IsEmpty returns true if the set has no elements
+# Example: if set.IsEmpty(s) ...
+func IsEmpty(s map of any2 to bool) bool
+    return len(s) == 0
+
+# ToSlice converts the set to a slice of its elements
+# Order is non-deterministic (map iteration order)
+# Example: items := set.ToSlice(s)
+func ToSlice(s map of any2 to bool) list of any2
+    result := make(list of any2, 0, len(s))
+    for k, _ in s
+        result = append(result, k)
+    return result
+
+# Union returns a new set containing all elements from both sets
+# Example: u := set.Union(s1, s2)
+func Union(a map of any2 to bool, b map of any2 to bool) map of any2 to bool
+    result := make(map of any2 to bool, len(a) + len(b))
+    for k, _ in a
+        result[k] = true
+    for k, _ in b
+        result[k] = true
+    return result
+
+# Intersect returns a new set containing only elements present in both sets
+# Example: i := set.Intersect(s1, s2)
+func Intersect(a map of any2 to bool, b map of any2 to bool) map of any2 to bool
+    result := make(map of any2 to bool)
+    for k, _ in a
+        if b[k]
+            result[k] = true
+    return result
+
+# Difference returns a new set with elements in a that are not in b (a minus b)
+# Example: d := set.Difference(s1, s2)
+func Difference(a map of any2 to bool, b map of any2 to bool) map of any2 to bool
+    result := make(map of any2 to bool)
+    for k, _ in a
+        if not b[k]
+            result[k] = true
+    return result
+
+# IsSubset returns true if every element of sub is also in super
+# Example: if set.IsSubset(small, large) ...
+func IsSubset(sub map of any2 to bool, super map of any2 to bool) bool
+    for k, _ in sub
+        if not super[k]
+            return false
+    return true
+
+# IsSuperset returns true if every element of sub is also in super (super contains sub)
+# Example: if set.IsSuperset(large, small) ...
+func IsSuperset(super map of any2 to bool, sub map of any2 to bool) bool
+    return IsSubset(sub, super)
+
+# Equal returns true if both sets contain exactly the same elements
+# Example: if set.Equal(s1, s2) ...
+func Equal(a map of any2 to bool, b map of any2 to bool) bool
+    if len(a) isnt len(b)
+        return false
+    return IsSubset(a, b)

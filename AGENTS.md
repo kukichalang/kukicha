@@ -22,6 +22,7 @@ All valid Go is valid Kukicha. Current version: **0.1.3**
 | `func(x T) T { return expr }` | `(x T) => expr` | |
 | `go func() { ... }()` | `go` + indented block | |
 | `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` | |
+| (no sum types) | `enum Shape` with `Circle` / `Point` (variant enum) | |
 | (no ternary) | `if COND then EXPR else EXPR` (if-expression) | |
 
 ## Keyword Aliases (English-Friendly Forms)

@@ -35,7 +35,8 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/iterator` | Functional iteration (Go 1.23 iter.Seq) | Values, Filter, Map, FlatMap, Take, Skip, Enumerate, Chunk, Zip, Reduce, Collect, Any, All, Find |
 | `stdlib/json` | encoding/json wrapper | Marshal, MarshalPretty, Unmarshal, MarshalWrite, UnmarshalRead, DecodeRead, NewEncoder, NewDecoder, Encode, Decode, WithDeterministic, WithIndent, WriteOutput |
 | `stdlib/llm` | Large language model client (Chat Completions, OpenResponses, Anthropic; Retry) | New/Ask/Send/SendRaw/Complete, NewResponse/RAsk/RSend/Respond, NewMessages/MAsk/MSend/AnthropicComplete, Retry/RRetry/MRetry, Stream/RStream/MStream |
-| `stdlib/maps` | Map utilities | Keys, Values, Contains, Has, Merge, SortedKeys |
+| `stdlib/maps` | Map utilities | Keys, Values, Contains, Has, Merge, SortedKeys, Filter, MapValues, Pick, Omit |
+| `stdlib/set` | Generic set operations | From, Add, AddIn, Remove, RemoveIn, Contains, Len, IsEmpty, ToSlice, Union, Intersect, Difference, IsSubset, IsSuperset, Equal |
 | `stdlib/mcp` | Model Context Protocol server + client | New, Serve, Tool, Prop, Schema, Required, TextResult, ErrorResult, Connect, BearerConnect, ConnectWithClient, Close, ListTools, CallTool |
 | `stdlib/must` | Panic-on-error startup helpers | Do, DoMsg, Ok, OkMsg, Env, EnvOr, EnvInt, EnvIntOr, EnvBool, EnvBoolOr, EnvList, EnvListOr, True, False, NotEmpty, NotNil |
 | `stdlib/net` | IP address and CIDR utilities | ParseIP, ParseCIDR, Contains, SplitHostPort, JoinHostPort, LookupHost, IsLoopback, IsPrivate, IsMulticast, IsNil, IPString |

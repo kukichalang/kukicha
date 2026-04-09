@@ -162,6 +162,17 @@ func (g *Generator) isStdlibJSON() bool {
 	return strings.Contains(g.sourceFile, "stdlib/json/") || strings.Contains(g.sourceFile, "stdlib\\json\\")
 }
 
+// isStdlibSet checks if we're generating code in stdlib/set.
+func (g *Generator) isStdlibSet() bool {
+	return strings.Contains(g.sourceFile, "stdlib/set/") || strings.Contains(g.sourceFile, "stdlib\\set\\")
+}
+
+// inferSetTypeParameters infers type parameters for stdlib/set functions.
+func (g *Generator) inferSetTypeParameters(decl *ast.FunctionDecl) []*TypeParameter {
+	class := semantic.GetSliceGenericClass("set." + decl.Name.Value)
+	return g.typeParamsFromClass(class)
+}
+
 // inferSliceTypeParameters infers type parameters for stdlib/slice functions
 // using the generated registry (generatedSliceGenericClass) which classifies
 // each function by its placeholder usage:

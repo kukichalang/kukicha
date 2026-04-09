@@ -251,7 +251,7 @@ Always store the keyword's `lexer.Token` as the first field — it carries line/
 
 ### EnumDecl and EnumCase
 
-`EnumDecl` represents an `enum` declaration with named integer or string constants. `EnumCase` holds a single case name and its literal value. Directives (`# kuki:deprecated`) can annotate the enum.
+`EnumDecl` represents an `enum` declaration with named integer or string constants, or a variant enum (tagged union). `EnumCase` holds a case name and either a literal `Value` (value enum) or `Fields` (variant enum). `IsVariant()` returns true when the first case has no value. Directives (`# kuki:deprecated`) can annotate the enum.
 
 ### DeferStmt
 
@@ -426,6 +426,10 @@ Enums are registered during `collectDeclarations()` as `SymbolType` with `Kind =
 
 Cross-package enums (from stdlib) are resolved via `GetStdlibEnum(qualifiedName)` in `analyzeFieldAccessExpr` — handles `pkg.EnumType.Case` patterns.
 
+### Variant enum analysis
+
+Variant enums are detected by `EnumDecl.IsVariant()` (first case has no `Value`). `collectVariantEnumDecl()` registers the enum as `TypeKindVariant` with a `VariantCases` map (case name → struct `TypeInfo` with fields). Each case is also registered as a standalone struct type in the symbol table. Mixing value and variant cases is rejected. `checkVariantExhaustiveness()` in `semantic_statements.go` warns when a typed switch on a variant enum misses cases (unless `otherwise` is present).
+
 ### Adding a new security check
 
 1. Add `# kuki:security "category"` to the function in its `.kuki` file
@@ -515,6 +519,10 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 `generateEnumDecl()` emits: (1) `type X int` or `type X string`, (2) a `const (...)` block with prefixed names (`StatusOK`, `StatusNotFound`), and (3) an auto-generated `String()` method (switch-based for int enums, `return string(e)` for string enums). The `String()` method is skipped if `hasMethodOnType()` finds a user-defined one.
 
 **Dot-access rewriting:** `generateFieldAccessExpr` checks `g.enumTypes[object]` — if the object is an enum name, `Status.OK` becomes `StatusOK`. The `enumTypes` map is populated in two pre-scans in `Generate()`: (1) local enums from the program's declarations, (2) cross-package enums by checking each imported package against `GetAllStdlibEnums()`.
+
+### Variant enum codegen
+
+`generateVariantEnumDecl()` (in `codegen_decl.go`) emits: (1) a sealed marker interface (`type Shape interface{ isShape() }`), (2) a struct per case (`type Circle struct { radius float64 }`), and (3) marker methods (`func (Circle) isShape() {}`). Unit variants get empty structs. The `variantCaseTypes` map tracks case name → parent enum name.
 
 ### onerr code generation (Lowerer + IR)
 

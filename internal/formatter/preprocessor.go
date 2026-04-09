@@ -187,10 +187,15 @@ func (p *Preprocessor) isExpressionBrace(line string) bool {
 		return true
 	}
 
-	// Check for struct literal: ends with a capitalized identifier or package.Type
+	// Check for slice/array literal with type: []Type{ or [n]Type{
+	// The beforeBrace may have a word like "[]Shape" or "[5]int" which starts with [
 	words := strings.Fields(beforeBrace)
 	if len(words) > 0 {
 		lastWord := words[len(words)-1]
+		if strings.HasPrefix(lastWord, "[") {
+			return true // []Type{ or [n]Type{
+		}
+
 		// Remove assignment operators
 		lastWord = strings.TrimSuffix(lastWord, ":=")
 		lastWord = strings.TrimSuffix(lastWord, "=")

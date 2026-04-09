@@ -62,3 +62,88 @@ func TestSortedKeys(t reference testing.T)
         t.Errorf("Expected second key 'b', got '{keys[1]}'")
     if keys[2] != "c"
         t.Errorf("Expected third key 'c', got '{keys[2]}'")
+
+# --- TestFilter ---
+func TestFilter(t reference testing.T)
+    m := map of any to any{"a" as any: "1" as any, "b" as any: "2" as any, "c" as any: "3" as any}
+    t.Run("filters by value", (t reference testing.T) =>
+        result := maps.Filter(m, (k any, v any) => v != "1" as any)
+        if len(result) != 2
+            t.Errorf("Expected 2 entries, got {len(result)}")
+        _, hasA := result["a"]
+        if hasA
+            t.Errorf("Key 'a' should have been filtered out")
+    )
+
+    t.Run("all pass", (t reference testing.T) =>
+        result := maps.Filter(m, (k any, v any) => true)
+        if len(result) != 3
+            t.Errorf("Expected 3 entries, got {len(result)}")
+    )
+
+    t.Run("none pass", (t reference testing.T) =>
+        result := maps.Filter(m, (k any, v any) => false)
+        if len(result) != 0
+            t.Errorf("Expected 0 entries, got {len(result)}")
+    )
+
+# --- TestMapValues ---
+func TestMapValues(t reference testing.T)
+    m := map of any to any{"x" as any: 1 as any, "y" as any: 2 as any}
+    result := maps.MapValues(m, (v any) => v)
+    t.Run("same number of keys", (t reference testing.T) =>
+        if len(result) != 2
+            t.Errorf("Expected 2 entries, got {len(result)}")
+    )
+
+    t.Run("keys preserved", (t reference testing.T) =>
+        _, hasX := result["x"]
+        if not hasX
+            t.Errorf("Key 'x' should be present")
+    )
+
+    t.Run("does not modify original", (t reference testing.T) =>
+        maps.MapValues(m, (v any) => "transformed" as any)
+        if m["x"] != 1 as any
+            t.Errorf("Original map should not be modified")
+    )
+
+# --- TestPick ---
+func TestPick(t reference testing.T)
+    m := map of any to any{"a" as any: "1" as any, "b" as any: "2" as any, "c" as any: "3" as any}
+    t.Run("picks specified keys", (t reference testing.T) =>
+        result := maps.Pick(m, list of any{"a" as any, "c" as any})
+        if len(result) != 2
+            t.Errorf("Expected 2 entries, got {len(result)}")
+        if result["a"] != "1" as any
+            t.Errorf("Expected value '1' for key 'a'")
+        _, hasB := result["b"]
+        if hasB
+            t.Errorf("Key 'b' should not be in result")
+    )
+
+    t.Run("missing keys ignored", (t reference testing.T) =>
+        result := maps.Pick(m, list of any{"a" as any, "z" as any})
+        if len(result) != 1
+            t.Errorf("Expected 1 entry, got {len(result)}")
+    )
+
+# --- TestOmit ---
+func TestOmit(t reference testing.T)
+    m := map of any to any{"a" as any: "1" as any, "b" as any: "2" as any, "c" as any: "3" as any}
+    t.Run("omits specified keys", (t reference testing.T) =>
+        result := maps.Omit(m, list of any{"b" as any})
+        if len(result) != 2
+            t.Errorf("Expected 2 entries, got {len(result)}")
+        _, hasB := result["b"]
+        if hasB
+            t.Errorf("Key 'b' should have been omitted")
+        if result["a"] != "1" as any
+            t.Errorf("Expected value '1' for key 'a'")
+    )
+
+    t.Run("omit missing key is no-op", (t reference testing.T) =>
+        result := maps.Omit(m, list of any{"z" as any})
+        if len(result) != 3
+            t.Errorf("Expected 3 entries, got {len(result)}")
+    )

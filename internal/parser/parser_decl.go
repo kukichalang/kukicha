@@ -627,11 +627,20 @@ func (p *Parser) parseVarDeclaration() ast.Declaration {
 	}
 }
 
-// parseEnumDecl parses an enum declaration:
+// parseEnumDecl parses an enum declaration.
+//
+// Value enum (all cases have = literal):
 //
 //	enum Status
 //	    OK = 200
 //	    NotFound = 404
+//
+// Variant enum (cases have no =, may have an indented field block):
+//
+//	enum Shape
+//	    Circle
+//	        radius float64
+//	    Point
 func (p *Parser) parseEnumDecl() ast.Declaration {
 	token := p.advance() // consume 'enum'
 	p.skipNewlines()
@@ -660,13 +669,45 @@ func (p *Parser) parseEnumDecl() ast.Declaration {
 			p.skipNewlines()
 			continue
 		}
-		p.consume(lexer.TOKEN_ASSIGN, fmt.Sprintf("expected '=' after enum case '%s'", caseName.Value))
-		value := p.parseExpression()
+		p.skipNewlines()
 
-		cases = append(cases, &ast.EnumCase{
-			Name:  caseName,
-			Value: value,
-		})
+		if p.check(lexer.TOKEN_ASSIGN) {
+			// Value case: Name = literal
+			p.advance() // consume '='
+			value := p.parseExpression()
+			cases = append(cases, &ast.EnumCase{
+				Name:  caseName,
+				Value: value,
+			})
+		} else if p.check(lexer.TOKEN_INDENT) {
+			// Variant case with fields
+			p.advance() // consume INDENT
+			var fields []*ast.FieldDecl
+			for !p.check(lexer.TOKEN_DEDENT) && !p.isAtEnd() {
+				p.skipNewlines()
+				if p.check(lexer.TOKEN_DEDENT) {
+					break
+				}
+				fieldName := p.parseIdentifier()
+				fieldType := p.parseTypeAnnotation()
+				fields = append(fields, &ast.FieldDecl{
+					Name: fieldName,
+					Type: fieldType,
+				})
+				p.skipNewlines()
+			}
+			p.consume(lexer.TOKEN_DEDENT, "expected dedent after variant fields")
+			cases = append(cases, &ast.EnumCase{
+				Name:   caseName,
+				Fields: fields,
+			})
+		} else {
+			// Unit variant: no = and no indented fields
+			cases = append(cases, &ast.EnumCase{
+				Name:   caseName,
+				Fields: []*ast.FieldDecl{},
+			})
+		}
 		p.skipNewlines()
 	}
 

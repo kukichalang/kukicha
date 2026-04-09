@@ -171,10 +171,20 @@ func (d *EnumDecl) Pos() Position {
 }
 func (d *EnumDecl) declNode() {}
 
-// EnumCase is a single named value in an enum.
+// EnumCase is a single named value in an enum (value enum) or a struct variant (variant enum).
+// Exactly one of Value or Fields is non-nil.
+//   - Value non-nil: value case, e.g.  OK = 200
+//   - Fields non-nil (possibly empty): variant case, e.g.  Circle / Circle with fields
 type EnumCase struct {
-	Name  *Identifier
-	Value Expression // Must be a literal (integer or string)
+	Name   *Identifier
+	Value  Expression   // Non-nil for value cases (= literal)
+	Fields []*FieldDecl // Non-nil for variant cases (may be empty for unit variants)
+}
+
+// IsVariant reports whether this is a variant enum declaration (data-carrying sum type).
+// An EnumDecl is a variant enum when its first case has no Value.
+func (d *EnumDecl) IsVariant() bool {
+	return len(d.Cases) > 0 && d.Cases[0].Value == nil
 }
 
 type InterfaceDecl struct {
