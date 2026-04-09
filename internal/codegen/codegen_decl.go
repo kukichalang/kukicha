@@ -244,6 +244,12 @@ func (g *Generator) generateFunctionDecl(decl *ast.FunctionDecl) {
 		for _, tp := range typeParams {
 			g.placeholderMap[tp.Placeholder] = tp.Name
 		}
+	} else if g.isStdlibSet() {
+		// Generate type parameters for stdlib/set functions
+		typeParams = g.inferSetTypeParameters(decl)
+		for _, tp := range typeParams {
+			g.placeholderMap[tp.Placeholder] = tp.Name
+		}
 	}
 
 	// Generate function signature

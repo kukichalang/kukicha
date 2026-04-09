@@ -309,6 +309,16 @@ func (a *Analyzer) analyzeIdentifier(ident *ast.Identifier) *TypeInfo {
 		}
 	}
 
+	if ident.Value == "delete" {
+		// delete(map, key) removes the key from the map; returns nothing
+		return &TypeInfo{
+			Kind:     TypeKindFunction,
+			Params:   []*TypeInfo{{Kind: TypeKindUnknown}, {Kind: TypeKindUnknown}},
+			Variadic: false,
+			Returns:  nil,
+		}
+	}
+
 	// "_" is the pipe placeholder; treat as unknown in all contexts.
 	if ident.Value == "_" {
 		return &TypeInfo{Kind: TypeKindUnknown}

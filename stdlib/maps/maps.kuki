@@ -51,3 +51,44 @@ func SortedKeys(m map of any to any) list of string
         keys = append(keys, fmt.Sprint(k))
     sort.Strings(keys)
     return keys
+
+# Filter returns a new map containing only entries for which predicate returns true
+# predicate receives (key, value) and returns bool
+# Example: active := maps.Filter(users, (k, v) => v != empty)
+func Filter(m map of any to any, predicate func(any, any) bool) map of any to any
+    result := make(map of any to any)
+    for k, v in m
+        if predicate(k, v)
+            result[k] = v
+    return result
+
+# MapValues returns a new map with the same keys but values transformed by fn
+# Example: uppercased := maps.MapValues(labels, v => strings.ToUpper(v as string))
+func MapValues(m map of any to any, fn func(any) any) map of any to any
+    out := make(map of any to any, len(m))
+    for k, v in m
+        out[k] = fn(v)
+    return out
+
+# Pick returns a new map containing only the specified keys
+# Keys not present in the original map are silently ignored
+# Example: subset := maps.Pick(config, list of any{"host" as any, "port" as any})
+func Pick(m map of any to any, keys list of any) map of any to any
+    result := make(map of any to any)
+    for key in keys
+        v, ok := m[key]
+        if ok
+            result[key] = v
+    return result
+
+# Omit returns a new map excluding the specified keys
+# Example: safe := maps.Omit(config, list of any{"password" as any, "secret" as any})
+func Omit(m map of any to any, keys list of any) map of any to any
+    excluded := make(map of any to bool)
+    for key in keys
+        excluded[key] = true
+    result := make(map of any to any)
+    for k, v in m
+        if not excluded[k]
+            result[k] = v
+    return result
