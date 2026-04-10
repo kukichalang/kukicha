@@ -61,7 +61,10 @@ func TextResult(text string) any
 
 # ErrorResult creates an error tool result containing the given message.
 func ErrorResult(msg string) any
-    return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: msg}}, IsError: true}
+    return reference of mcp.CallToolResult{
+        Content: list of mcp.Content{reference of mcp.TextContent{Text: msg}},
+        IsError: true,
+    }
 
 # Tool registers an MCP tool with the given handler.
 # The handler receives parsed JSON arguments and returns a result.
@@ -78,16 +81,23 @@ func Tool(server reference mcp.Server, name string, description string, schema a
                 return empty, unmarshalErr
         res, handlerErr := handler(args)
         if handlerErr != empty
-            return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}}, IsError: true}, empty
+            return reference of mcp.CallToolResult{
+                Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}},
+                IsError: true,
+            }, empty
 
         res |> switch as r
             when reference mcp.CallToolResult
                 return r, empty
             when string
-                return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: r}}}, empty
+                return reference of mcp.CallToolResult{
+                    Content: list of mcp.Content{reference of mcp.TextContent{Text: r}},
+                }, empty
 
         data, _ := json.Marshal(res)
-        return reference of mcp.CallToolResult{Content: list of mcp.Content{reference of mcp.TextContent{Text: string(data)}}}, empty
+        return reference of mcp.CallToolResult{
+            Content: list of mcp.Content{reference of mcp.TextContent{Text: string(data)}},
+        }, empty
     )
 
 # ClientSession is a wrapper around mcp.ClientSession

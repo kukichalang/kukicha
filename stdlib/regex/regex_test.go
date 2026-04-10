@@ -21,19 +21,19 @@ type MatchCase struct {
 func TestMatch(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:17
 	cases := []MatchCase{MatchCase{name: "digits match", pattern: "\\d+", text: "abc123", expected: true}, MatchCase{name: "no digits", pattern: "\\d+", text: "abcdef", expected: false}, MatchCase{name: "full match", pattern: "^hello$", text: "hello", expected: true}, MatchCase{name: "full no match", pattern: "^hello$", text: "hello world", expected: false}, MatchCase{name: "empty pattern matches all", pattern: "", text: "anything", expected: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:19
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:25
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:20
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:26
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:21
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:27
 			got := regex.Match(tc.pattern, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:22
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:28
 			test.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:26
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:32
 type FindCase struct {
 	name      string
 	pattern   string
@@ -42,31 +42,31 @@ type FindCase struct {
 	expectErr bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:33
-func TestFind(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:34
-	cases := []FindCase{FindCase{name: "find digits", pattern: "\\d+", text: "abc123def456", expected: "123", expectErr: false}, FindCase{name: "find word", pattern: "\\w+", text: "  hello  ", expected: "hello", expectErr: false}, FindCase{name: "no match", pattern: "\\d+", text: "abcdef", expected: "", expectErr: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:36
-	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:37
-		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:38
-			got, err := regex.Find(tc.pattern, tc.text)
 //line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:39
-			if tc.expectErr {
+func TestFind(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:40
+	cases := []FindCase{FindCase{name: "find digits", pattern: "\\d+", text: "abc123def456", expected: "123", expectErr: false}, FindCase{name: "find word", pattern: "\\w+", text: "  hello  ", expected: "hello", expectErr: false}, FindCase{name: "no match", pattern: "\\d+", text: "abcdef", expected: "", expectErr: true}}
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:58
+	for _, tc := range cases {
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:59
+		t.Run(tc.name, func(t *testing.T) {
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:60
+			got, err := regex.Find(tc.pattern, tc.text)
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:61
+			if tc.expectErr {
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:62
 				test.AssertError(t, err)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:42
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:64
 				test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:43
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:65
 				test.AssertEqual(t, got, tc.expected)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:47
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:69
 type FindAllCase struct {
 	name        string
 	pattern     string
@@ -74,23 +74,23 @@ type FindAllCase struct {
 	expectedLen int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:53
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:75
 func TestFindAll(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:54
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:76
 	cases := []FindAllCase{FindAllCase{name: "find all digits", pattern: "\\d+", text: "a1 b2 c3", expectedLen: 3}, FindAllCase{name: "no matches", pattern: "\\d+", text: "abcdef", expectedLen: 0}, FindAllCase{name: "single match", pattern: "hello", text: "say hello there", expectedLen: 1}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:56
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:82
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:57
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:83
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:58
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:84
 			got := regex.FindAll(tc.pattern, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:59
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:85
 			test.AssertEqual(t, len(got), tc.expectedLen)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:63
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:89
 type FindGroupsCase struct {
 	name        string
 	pattern     string
@@ -99,58 +99,58 @@ type FindGroupsCase struct {
 	expectedLen int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:70
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:96
 func TestFindGroups(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:71
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:97
 	cases := []FindGroupsCase{FindGroupsCase{name: "semver groups", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "v1.2.3", expectErr: false, expectedLen: 5}, FindGroupsCase{name: "no prefix", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "1.2.3", expectErr: false, expectedLen: 5}, FindGroupsCase{name: "no match", pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$", text: "invalid", expectErr: true, expectedLen: 0}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:73
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:121
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:74
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:122
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:75
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:123
 			got, err := regex.FindGroups(tc.pattern, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:76
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:124
 			if tc.expectErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:77
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:125
 				test.AssertError(t, err)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:79
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:127
 				test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:80
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:128
 				test.AssertEqual(t, len(got), tc.expectedLen)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:84
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:132
 type FindGroupsValuesCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:87
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:135
 func TestFindGroupsValues(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:88
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:136
 	cases := []FindGroupsValuesCase{FindGroupsValuesCase{name: "capture group values"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:90
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:138
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:91
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:139
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:92
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:140
 			groups, err := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", "v1.2.3")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:93
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:141
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:94
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:142
 			test.AssertEqual(t, groups[0], "v1.2.3")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:95
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:143
 			test.AssertEqual(t, groups[1], "v")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:96
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:144
 			test.AssertEqual(t, groups[2], "1.2.3")
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:100
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:148
 type FindAllGroupsCase struct {
 	name        string
 	pattern     string
@@ -159,31 +159,31 @@ type FindAllGroupsCase struct {
 	expectedLen int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:107
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:155
 func TestFindAllGroups(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:108
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:156
 	cases := []FindAllGroupsCase{FindAllGroupsCase{name: "key-value pairs", pattern: "(\\w+)=(\\w+)", text: "a=1 b=2 c=3", expectErr: false, expectedLen: 3}, FindAllGroupsCase{name: "no matches", pattern: "(\\d+)-(\\d+)", text: "no dashes here", expectErr: true, expectedLen: 0}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:110
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:173
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:111
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:174
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:112
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:175
 			got, err := regex.FindAllGroups(tc.pattern, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:113
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:176
 			if tc.expectErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:114
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:177
 				test.AssertError(t, err)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:116
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:179
 				test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:180
 				test.AssertEqual(t, len(got), tc.expectedLen)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:121
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:184
 type ReplaceCase struct {
 	name        string
 	pattern     string
@@ -192,44 +192,44 @@ type ReplaceCase struct {
 	expected    string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:128
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:191
 func TestReplace(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:129
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:192
 	cases := []ReplaceCase{ReplaceCase{name: "collapse spaces", pattern: "\\s+", replacement: " ", text: "too   many   spaces", expected: "too many spaces"}, ReplaceCase{name: "remove digits", pattern: "\\d", replacement: "", text: "a1b2c3", expected: "abc"}, ReplaceCase{name: "capture group ref", pattern: "(\\w+)=(\\w+)", replacement: "$2=$1", text: "key=val", expected: "val=key"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:131
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:216
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:132
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:217
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:133
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:218
 			got := regex.Replace(tc.pattern, tc.replacement, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:134
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:219
 			test.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:138
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:223
 type ReplaceFuncCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:141
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:226
 func TestReplaceFunc(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:142
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:227
 	cases := []ReplaceFuncCase{ReplaceFuncCase{name: "wrap matches"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:144
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:229
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:145
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:230
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:146
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:231
 			got := regex.ReplaceFunc("\\d+", func(m string) string { return fmt.Sprintf("[%v]", m) }, "a1 b2 c3")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:147
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:232
 			test.AssertEqual(t, got, "a[1] b[2] c[3]")
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:151
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:236
 type SplitCase struct {
 	name        string
 	pattern     string
@@ -237,169 +237,169 @@ type SplitCase struct {
 	expectedLen int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:157
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:242
 func TestSplit(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:158
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:243
 	cases := []SplitCase{SplitCase{name: "split on comma-space", pattern: "[,;]\\s*", text: "a, b; c", expectedLen: 3}, SplitCase{name: "split on whitespace", pattern: "\\s+", text: "one two three", expectedLen: 3}, SplitCase{name: "no match splits whole", pattern: "\\d+", text: "no digits here", expectedLen: 1}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:160
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:254
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:161
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:255
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:162
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:256
 			got := regex.Split(tc.pattern, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:163
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:257
 			test.AssertEqual(t, len(got), tc.expectedLen)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:167
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:261
 type IsValidCase struct {
 	name     string
 	pattern  string
 	expected bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:172
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:266
 func TestIsValid(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:173
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:267
 	cases := []IsValidCase{IsValidCase{name: "valid pattern", pattern: "\\d+", expected: true}, IsValidCase{name: "valid complex", pattern: "^(v?)(\\d+\\.\\d+\\.\\d+)$", expected: true}, IsValidCase{name: "invalid pattern", pattern: "[unclosed", expected: false}, IsValidCase{name: "empty is valid", pattern: "", expected: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:175
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:274
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:176
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:275
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:177
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:276
 			got := regex.IsValid(tc.pattern)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:178
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:277
 			test.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:182
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:281
 type CompileCase struct {
 	name      string
 	pattern   string
 	expectErr bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:187
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:286
 func TestCompile(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:188
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:287
 	cases := []CompileCase{CompileCase{name: "valid compile", pattern: "\\d+", expectErr: false}, CompileCase{name: "invalid compile", pattern: "[bad", expectErr: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:190
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:292
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:191
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:293
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:192
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:294
 			_, err := regex.Compile(tc.pattern)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:193
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:295
 			if tc.expectErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:194
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:296
 				test.AssertError(t, err)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:196
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:298
 				test.AssertNoError(t, err)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:200
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:302
 type CompiledMatchCase struct {
 	name     string
 	text     string
 	expected bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:205
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:307
 func TestCompiledMatch(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:206
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:308
 	cases := []CompiledMatchCase{CompiledMatchCase{name: "compiled match", text: "abc123", expected: true}, CompiledMatchCase{name: "compiled no match", text: "abcdef", expected: false}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:208
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:313
 	p := regex.MustCompile("\\d+")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:209
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:314
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:210
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:315
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:211
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:316
 			got := regex.MatchCompiled(p, tc.text)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:212
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:317
 			test.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:216
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:321
 type CompiledFindCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:219
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:324
 func TestCompiledFind(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:220
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:325
 	cases := []CompiledFindCase{CompiledFindCase{name: "compiled find"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:222
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:327
 	p := regex.MustCompile("\\d+")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:223
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:328
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:224
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:329
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:225
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:330
 			got, err := regex.FindCompiled(p, "abc123def456")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:226
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:331
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:227
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:332
 			test.AssertEqual(t, got, "123")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:229
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:334
 			all := regex.FindAllCompiled(p, "a1 b2 c3")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:230
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:335
 			test.AssertEqual(t, len(all), 3)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:234
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:339
 type CompiledReplaceCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:237
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:342
 func TestCompiledReplace(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:238
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:343
 	cases := []CompiledReplaceCase{CompiledReplaceCase{name: "compiled replace"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:240
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:345
 	p := regex.MustCompile("\\s+")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:241
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:346
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:242
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:347
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:243
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:348
 			got := regex.ReplaceCompiled(p, "-", "a b  c")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:349
 			test.AssertEqual(t, got, "a-b-c")
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:248
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:353
 type CompiledSplitCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:251
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:356
 func TestCompiledSplit(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:252
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:357
 	cases := []CompiledSplitCase{CompiledSplitCase{name: "compiled split"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:254
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:359
 	p := regex.MustCompile("[,;]\\s*")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:255
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:360
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:256
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:361
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:257
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:362
 			got := regex.SplitCompiled(p, "a, b; c")
-//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:258
+//line /var/home/tluker/repos/go/kukicha/stdlib/regex/regex_test.kuki:363
 			test.AssertEqual(t, len(got), 3)
 		})
 	}

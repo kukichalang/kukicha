@@ -30,7 +30,55 @@ type PreviewReleaseCase
     expectContains string
 
 func TestPreviewRelease(t reference testing.T)
-    cases := list of PreviewReleaseCase{PreviewReleaseCase{name: "basic release", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{}, expectContains: "gh release create v1.0.0 --repo owner/repo --title v1.0.0"}, PreviewReleaseCase{name: "with draft", repo: "owner/repo", tag: "v2.0.0", opts: git.ReleaseOptions{Draft: true}, expectContains: "--draft"}, PreviewReleaseCase{name: "with target", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{Target: "main"}, expectContains: "--target main"}, PreviewReleaseCase{name: "with generate notes", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{GenerateNotes: true}, expectContains: "--generate-notes"}, PreviewReleaseCase{name: "custom title", repo: "owner/repo", tag: "v1.0.0", opts: git.ReleaseOptions{Title: "Release 1.0"}, expectContains: "--title Release 1.0"}, PreviewReleaseCase{name: "all options", repo: "myorg/myrepo", tag: "v3.0.0", opts: git.ReleaseOptions{Title: "Big Release", Target: "release-branch", Draft: true, GenerateNotes: true}, expectContains: "gh release create v3.0.0 --repo myorg/myrepo"}}
+    cases := list of PreviewReleaseCase{
+        PreviewReleaseCase{
+        name: "basic release",
+        repo: "owner/repo",
+        tag: "v1.0.0",
+        opts: git.ReleaseOptions{},
+        expectContains: "gh release create v1.0.0 --repo owner/repo --title v1.0.0",
+    },
+        PreviewReleaseCase{
+        name: "with draft",
+        repo: "owner/repo",
+        tag: "v2.0.0",
+        opts: git.ReleaseOptions{Draft: true},
+        expectContains: "--draft",
+    },
+        PreviewReleaseCase{
+        name: "with target",
+        repo: "owner/repo",
+        tag: "v1.0.0",
+        opts: git.ReleaseOptions{Target: "main"},
+        expectContains: "--target main",
+    },
+        PreviewReleaseCase{
+        name: "with generate notes",
+        repo: "owner/repo",
+        tag: "v1.0.0",
+        opts: git.ReleaseOptions{GenerateNotes: true},
+        expectContains: "--generate-notes",
+    },
+        PreviewReleaseCase{
+        name: "custom title",
+        repo: "owner/repo",
+        tag: "v1.0.0",
+        opts: git.ReleaseOptions{Title: "Release 1.0"},
+        expectContains: "--title Release 1.0",
+    },
+        PreviewReleaseCase{
+        name: "all options",
+        repo: "myorg/myrepo",
+        tag: "v3.0.0",
+        opts: git.ReleaseOptions{
+        Title: "Big Release",
+        Target: "release-branch",
+        Draft: true,
+        GenerateNotes: true,
+    },
+        expectContains: "gh release create v3.0.0 --repo myorg/myrepo",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -47,7 +95,12 @@ func TestPreviewReleaseAllFlags(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            opts := git.ReleaseOptions{Title: "My Release", Target: "main", Draft: true, GenerateNotes: true}
+            opts := git.ReleaseOptions{
+                Title: "My Release",
+                Target: "main",
+                Draft: true,
+                GenerateNotes: true,
+            }
             got := git.PreviewRelease("owner/repo", "v1.0.0", opts)
             test.AssertTrue(t, string.Contains(got, "--target main"))
             test.AssertTrue(t, string.Contains(got, "--generate-notes"))

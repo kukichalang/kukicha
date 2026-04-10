@@ -103,7 +103,9 @@ type PragmaCase
     setValue string
 
 func TestPragma(t reference testing.T)
-    cases := list of PragmaCase{PragmaCase{name: "get and set cache_size", pragma: "cache_size", setValue: "-4000"}}
+    cases := list of PragmaCase{
+        PragmaCase{name: "get and set cache_size", pragma: "cache_size", setValue: "-4000"},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -121,7 +123,9 @@ type PragmaInvalidCase
     pragma string
 
 func TestPragmaInvalidName(t reference testing.T)
-    cases := list of PragmaInvalidCase{PragmaInvalidCase{name: "reject injection attempt", pragma: "cache_size; DROP TABLE users"}}
+    cases := list of PragmaInvalidCase{
+        PragmaInvalidCase{name: "reject injection attempt", pragma: "cache_size; DROP TABLE users"},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -161,7 +165,17 @@ type TablesCase
     wantLen int
 
 func TestTables(t reference testing.T)
-    cases := list of TablesCase{TablesCase{name: "list created tables", createSQL: list of string{"CREATE TABLE alpha (id INTEGER PRIMARY KEY)", "CREATE TABLE beta (id INTEGER PRIMARY KEY)"}, wantLen: 2}, TablesCase{name: "empty database", createSQL: empty list of string, wantLen: 0}}
+    cases := list of TablesCase{
+        TablesCase{
+        name: "list created tables",
+        createSQL: list of string{
+        "CREATE TABLE alpha (id INTEGER PRIMARY KEY)",
+        "CREATE TABLE beta (id INTEGER PRIMARY KEY)",
+    },
+        wantLen: 2,
+    },
+        TablesCase{name: "empty database", createSQL: empty list of string, wantLen: 0},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -184,7 +198,10 @@ type TableExistsCase
     want bool
 
 func TestTableExists(t reference testing.T)
-    cases := list of TableExistsCase{TableExistsCase{name: "existing table", table: "users", want: true}, TableExistsCase{name: "missing table", table: "nonexistent", want: false}}
+    cases := list of TableExistsCase{
+        TableExistsCase{name: "existing table", table: "users", want: true},
+        TableExistsCase{name: "missing table", table: "nonexistent", want: false},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

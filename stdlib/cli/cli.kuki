@@ -49,7 +49,15 @@ func NewArgs(values map of string to string) Args
 # New creates a new CLI application builder
 # Example: app := cli.New("myapp")
 func New(name string) App
-    return App{name: name, description: "", args: make(list of ArgDef), flags: make(list of FlagDef), globalFlags: make(list of FlagDef), subcommands: make(list of SubcommandDef), action: empty}
+    return App{
+        name: name,
+        description: "",
+        args: make(list of ArgDef),
+        flags: make(list of FlagDef),
+        globalFlags: make(list of FlagDef),
+        subcommands: make(list of SubcommandDef),
+        action: empty,
+    }
 
 # Description sets the app description shown in help text
 # Example: app |> cli.Description("A tool for managing releases")

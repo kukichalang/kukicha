@@ -14,7 +14,9 @@ type JsonCase
     want string
 
 func TestJson(t reference testing.T)
-    cases := list of JsonCase{JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"}}
+    cases := list of JsonCase{
+        JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -31,7 +33,14 @@ type JsonLinesCase
     firstLine string
 
 func TestJsonLines(t reference testing.T)
-    cases := list of JsonLinesCase{JsonLinesCase{name: "basic ndjson", ndjson: "{\"a\":1}\n\n {\"b\":2}\n", wantCount: 2, firstLine: "{\"a\":1}"}}
+    cases := list of JsonLinesCase{
+        JsonLinesCase{
+        name: "basic ndjson",
+        ndjson: "{\"a\":1}\n\n {\"b\":2}\n",
+        wantCount: 2,
+        firstLine: "{\"a\":1}",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -51,7 +60,15 @@ type CsvCase
     firstRowName string
 
 func TestCsvWithHeader(t reference testing.T)
-    cases := list of CsvCase{CsvCase{name: "basic csv", csv: "name,age\nalice,30\nbob,25", wantRecords: 3, wantHeaderRows: 2, firstRowName: "alice"}}
+    cases := list of CsvCase{
+        CsvCase{
+        name: "basic csv",
+        csv: "name,age\nalice,30\nbob,25",
+        wantRecords: 3,
+        wantHeaderRows: 2,
+        firstRowName: "alice",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -73,7 +90,13 @@ type YamlPrettyCase
     contains string
 
 func TestYamlPretty(t reference testing.T)
-    cases := list of YamlPrettyCase{YamlPrettyCase{name: "basic map", data: map of string to any{"user": map of string to any{"name": "sam"}}, contains: "user"}}
+    cases := list of YamlPrettyCase{
+        YamlPrettyCase{
+        name: "basic map",
+        data: map of string to any{"user": map of string to any{"name": "sam"}},
+        contains: "user",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -89,7 +112,13 @@ type JsonYamlCase
     want string
 
 func TestYaml(t reference testing.T)
-    cases := list of JsonYamlCase{JsonYamlCase{name: "basic yaml", payload: "user: alice\nemail: test@example.com", want: "user: alice\nemail: test@example.com"}}
+    cases := list of JsonYamlCase{
+        JsonYamlCase{
+        name: "basic yaml",
+        payload: "user: alice\nemail: test@example.com",
+        want: "user: alice\nemail: test@example.com",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

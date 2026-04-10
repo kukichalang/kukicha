@@ -205,14 +205,14 @@ func TestChain(t *testing.T) {
 	t.Run("filter then take", func(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:135
 		result := iterator.Collect(iterator.Take(iterator.Filter(iterator.Values(items), func(n int) bool { return ((n % 2) == 0) }), 2))
-//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:136
+//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:140
 		test.AssertEqual(t, len(result), 2)
 	})
-//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:139
+//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:143
 	t.Run("skip then filter", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:140
+//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:144
 		result := iterator.Collect(iterator.Filter(iterator.Skip(iterator.Values(items), 5), func(n int) bool { return ((n % 2) == 0) }))
-//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:141
+//line /var/home/tluker/repos/go/kukicha/stdlib/iterator/iterator_test.kuki:149
 		test.AssertEqual(t, len(result), 3)
 	})
 }

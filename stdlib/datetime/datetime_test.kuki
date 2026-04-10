@@ -43,7 +43,14 @@ type FormatCase
 # --- TestFormat ---
 func TestFormat(t reference testing.T)
     baseTime := time.Date(2024, 1, 15, 14, 30, 45, 0, time.UTC)
-    cases := list of FormatCase{FormatCase{name: "iso8601", format: "iso8601", want: "2024-01-15T14:30:45Z"}, FormatCase{name: "date", format: "date", want: "2024-01-15"}, FormatCase{name: "time", format: "time", want: "14:30:45"}, FormatCase{name: "datetime", format: "datetime", want: "2024-01-15 14:30:45"}, FormatCase{name: "kitchen", format: "kitchen", want: "2:30PM"}, FormatCase{name: "custom", format: "2006/01/02", want: "2024/01/15"}}
+    cases := list of FormatCase{
+        FormatCase{name: "iso8601", format: "iso8601", want: "2024-01-15T14:30:45Z"},
+        FormatCase{name: "date", format: "date", want: "2024-01-15"},
+        FormatCase{name: "time", format: "time", want: "14:30:45"},
+        FormatCase{name: "datetime", format: "datetime", want: "2024-01-15 14:30:45"},
+        FormatCase{name: "kitchen", format: "kitchen", want: "2:30PM"},
+        FormatCase{name: "custom", format: "2006/01/02", want: "2024/01/15"},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

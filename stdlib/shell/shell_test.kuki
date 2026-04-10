@@ -103,7 +103,20 @@ type ArgsCase
     expected string
 
 func TestArgs(t reference testing.T)
-    cases := list of ArgsCase{ArgsCase{name: "append single arg", initial: list of string{"--repo", "foo"}, extra: list of string{"--verbose"}, expected: "hello world\n"}, ArgsCase{name: "append multiple args", initial: empty list of string, extra: list of string{"--foo", "bar"}, expected: "hello world\n"}}
+    cases := list of ArgsCase{
+        ArgsCase{
+        name: "append single arg",
+        initial: list of string{"--repo", "foo"},
+        extra: list of string{"--verbose"},
+        expected: "hello world\n",
+    },
+        ArgsCase{
+        name: "append multiple args",
+        initial: empty list of string,
+        extra: list of string{"--foo", "bar"},
+        expected: "hello world\n",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -125,7 +138,22 @@ type FlagIfCase
     expectMissing string
 
 func TestFlagIf(t reference testing.T)
-    cases := list of FlagIfCase{FlagIfCase{name: "condition true adds flag", condition: true, flag: "--verbose", expectContains: "--verbose", expectMissing: ""}, FlagIfCase{name: "condition false skips flag", condition: false, flag: "--verbose", expectContains: "", expectMissing: "--verbose"}}
+    cases := list of FlagIfCase{
+        FlagIfCase{
+        name: "condition true adds flag",
+        condition: true,
+        flag: "--verbose",
+        expectContains: "--verbose",
+        expectMissing: "",
+    },
+        FlagIfCase{
+        name: "condition false skips flag",
+        condition: false,
+        flag: "--verbose",
+        expectContains: "",
+        expectMissing: "--verbose",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -164,7 +192,21 @@ type PreviewCase
     expected string
 
 func TestPreview(t reference testing.T)
-    cases := list of PreviewCase{PreviewCase{name: "simple command", cmdName: "echo", args: list of string{"hello"}, expected: "echo hello"}, PreviewCase{name: "no args", cmdName: "ls", args: empty list of string, expected: "ls"}, PreviewCase{name: "multiple args", cmdName: "gh", args: list of string{"release", "create", "v1.0.0", "--repo", "org/repo"}, expected: "gh release create v1.0.0 --repo org/repo"}}
+    cases := list of PreviewCase{
+        PreviewCase{
+        name: "simple command",
+        cmdName: "echo",
+        args: list of string{"hello"},
+        expected: "echo hello",
+    },
+        PreviewCase{name: "no args", cmdName: "ls", args: empty list of string, expected: "ls"},
+        PreviewCase{
+        name: "multiple args",
+        cmdName: "gh",
+        args: list of string{"release", "create", "v1.0.0", "--repo", "org/repo"},
+        expected: "gh release create v1.0.0 --repo org/repo",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

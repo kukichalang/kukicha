@@ -14,14 +14,22 @@ type StringCase
 
 # --- TestToUpperToLower ---
 func TestToUpperToLower(t reference testing.T)
-    upperCases := list of StringCase{StringCase{name: "all lower", input: "hello", want: "HELLO"}, StringCase{name: "mixed", input: "Hello World", want: "HELLO WORLD"}, StringCase{name: "empty", input: "", want: ""}}
+    upperCases := list of StringCase{
+        StringCase{name: "all lower", input: "hello", want: "HELLO"},
+        StringCase{name: "mixed", input: "Hello World", want: "HELLO WORLD"},
+        StringCase{name: "empty", input: "", want: ""},
+    }
 
     for tc in upperCases
         t.Run("ToUpper/{tc.name}", (t reference testing.T) =>
             test.AssertEqual(t, string.ToUpper(tc.input), tc.want)
         )
 
-    lowerCases := list of StringCase{StringCase{name: "all upper", input: "HELLO", want: "hello"}, StringCase{name: "mixed", input: "Hello World", want: "hello world"}, StringCase{name: "empty", input: "", want: ""}}
+    lowerCases := list of StringCase{
+        StringCase{name: "all upper", input: "HELLO", want: "hello"},
+        StringCase{name: "mixed", input: "Hello World", want: "hello world"},
+        StringCase{name: "empty", input: "", want: ""},
+    }
 
     for tc in lowerCases
         t.Run("ToLower/{tc.name}", (t reference testing.T) =>
@@ -30,7 +38,12 @@ func TestToUpperToLower(t reference testing.T)
 
 # --- TestTitle ---
 func TestTitle(t reference testing.T)
-    titleCases := list of StringCase{StringCase{name: "simple", input: "hello world", want: "Hello World"}, StringCase{name: "already titled", input: "Hello World", want: "Hello World"}, StringCase{name: "empty", input: "", want: ""}, StringCase{name: "single word", input: "hello", want: "Hello"}}
+    titleCases := list of StringCase{
+        StringCase{name: "simple", input: "hello world", want: "Hello World"},
+        StringCase{name: "already titled", input: "Hello World", want: "Hello World"},
+        StringCase{name: "empty", input: "", want: ""},
+        StringCase{name: "single word", input: "hello", want: "Hello"},
+    }
 
     for tc in titleCases
         t.Run(tc.name, (t reference testing.T) =>
@@ -45,28 +58,41 @@ type TrimCase
     want string
 
 func TestTrimFunctions(t reference testing.T)
-    trimCases := list of TrimCase{TrimCase{name: "spaces", input: "  hello  ", cutset: " ", want: "hello"}, TrimCase{name: "x chars", input: "xxhelloxx", cutset: "x", want: "hello"}}
+    trimCases := list of TrimCase{
+        TrimCase{name: "spaces", input: "  hello  ", cutset: " ", want: "hello"},
+        TrimCase{name: "x chars", input: "xxhelloxx", cutset: "x", want: "hello"},
+    }
 
     for tc in trimCases
         t.Run("Trim/{tc.name}", (t reference testing.T) =>
             test.AssertEqual(t, string.Trim(tc.input, tc.cutset), tc.want)
         )
 
-    trimSpaceCases := list of StringCase{StringCase{name: "spaces", input: "  hello  ", want: "hello"}, StringCase{name: "tabs and newlines", input: "\t hello \n", want: "hello"}}
+    trimSpaceCases := list of StringCase{
+        StringCase{name: "spaces", input: "  hello  ", want: "hello"},
+        StringCase{name: "tabs and newlines", input: "\t hello \n", want: "hello"},
+    }
 
     for tc in trimSpaceCases
         t.Run("TrimSpace/{tc.name}", (t reference testing.T) =>
             test.AssertEqual(t, string.TrimSpace(tc.input), tc.want)
         )
 
-    prefixCases := list of TrimCase{TrimCase{name: "removes prefix", input: "hello world", cutset: "hello ", want: "world"}, TrimCase{name: "not present", input: "hello world", cutset: "xyz", want: "hello world"}, TrimCase{name: "empty prefix", input: "hello world", cutset: "", want: "hello world"}}
+    prefixCases := list of TrimCase{
+        TrimCase{name: "removes prefix", input: "hello world", cutset: "hello ", want: "world"},
+        TrimCase{name: "not present", input: "hello world", cutset: "xyz", want: "hello world"},
+        TrimCase{name: "empty prefix", input: "hello world", cutset: "", want: "hello world"},
+    }
 
     for tc in prefixCases
         t.Run("TrimPrefix/{tc.name}", (t reference testing.T) =>
             test.AssertEqual(t, string.TrimPrefix(tc.input, tc.cutset), tc.want)
         )
 
-    suffixCases := list of TrimCase{TrimCase{name: "removes suffix", input: "hello world", cutset: " world", want: "hello"}, TrimCase{name: "not present", input: "hello world", cutset: "xyz", want: "hello world"}}
+    suffixCases := list of TrimCase{
+        TrimCase{name: "removes suffix", input: "hello world", cutset: " world", want: "hello"},
+        TrimCase{name: "not present", input: "hello world", cutset: "xyz", want: "hello world"},
+    }
 
     for tc in suffixCases
         t.Run("TrimSuffix/{tc.name}", (t reference testing.T) =>
@@ -133,7 +159,12 @@ func TestFields(t reference testing.T)
 func TestSearchFunctions(t reference testing.T)
     s := "hello world"
 
-    containsCases := list of TrimCase{TrimCase{name: "world present", input: s, cutset: "world", want: "true"}, TrimCase{name: "hello present", input: s, cutset: "hello", want: "true"}, TrimCase{name: "xyz absent", input: s, cutset: "xyz", want: "false"}, TrimCase{name: "empty always present", input: s, cutset: "", want: "true"}}
+    containsCases := list of TrimCase{
+        TrimCase{name: "world present", input: s, cutset: "world", want: "true"},
+        TrimCase{name: "hello present", input: s, cutset: "hello", want: "true"},
+        TrimCase{name: "xyz absent", input: s, cutset: "xyz", want: "false"},
+        TrimCase{name: "empty always present", input: s, cutset: "", want: "true"},
+    }
 
     for tc in containsCases
         t.Run("Contains/{tc.name}", (t reference testing.T) =>
@@ -183,14 +214,21 @@ type IndexCase
     want int
 
 func TestIndexFunctions(t reference testing.T)
-    indexCases := list of IndexCase{IndexCase{name: "world at 6", input: "hello world", sub: "world", want: 6}, IndexCase{name: "hello at 0", input: "hello world", sub: "hello", want: 0}, IndexCase{name: "xyz not found", input: "hello world", sub: "xyz", want: -1}}
+    indexCases := list of IndexCase{
+        IndexCase{name: "world at 6", input: "hello world", sub: "world", want: 6},
+        IndexCase{name: "hello at 0", input: "hello world", sub: "hello", want: 0},
+        IndexCase{name: "xyz not found", input: "hello world", sub: "xyz", want: -1},
+    }
 
     for tc in indexCases
         t.Run("Index/{tc.name}", (t reference testing.T) =>
             test.AssertEqual(t, string.Index(tc.input, tc.sub), tc.want)
         )
 
-    lastIndexCases := list of IndexCase{IndexCase{name: "last abc at 3", input: "abcabc", sub: "abc", want: 3}, IndexCase{name: "xyz not found", input: "abcabc", sub: "xyz", want: -1}}
+    lastIndexCases := list of IndexCase{
+        IndexCase{name: "last abc at 3", input: "abcabc", sub: "abc", want: 3},
+        IndexCase{name: "xyz not found", input: "abcabc", sub: "xyz", want: -1},
+    }
 
     for tc in lastIndexCases
         t.Run("LastIndex/{tc.name}", (t reference testing.T) =>
@@ -205,7 +243,11 @@ type CountCase
     want int
 
 func TestCount(t reference testing.T)
-    cases := list of CountCase{CountCase{name: "l appears twice", input: "hello", sub: "l", want: 2}, CountCase{name: "ll appears once", input: "hello", sub: "ll", want: 1}, CountCase{name: "x absent", input: "hello", sub: "x", want: 0}}
+    cases := list of CountCase{
+        CountCase{name: "l appears twice", input: "hello", sub: "l", want: 2},
+        CountCase{name: "ll appears once", input: "hello", sub: "ll", want: 1},
+        CountCase{name: "x absent", input: "hello", sub: "x", want: 0},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -232,7 +274,11 @@ func TestReplaceFunctions(t reference testing.T)
 
 # --- TestRepeat ---
 func TestRepeat(t reference testing.T)
-    cases := list of StringCase{StringCase{name: "repeat 3 times", input: "ab", want: "ababab"}, StringCase{name: "repeat 1 time", input: "x", want: "x"}, StringCase{name: "repeat 0 times", input: "x", want: ""}}
+    cases := list of StringCase{
+        StringCase{name: "repeat 3 times", input: "ab", want: "ababab"},
+        StringCase{name: "repeat 1 time", input: "x", want: "x"},
+        StringCase{name: "repeat 0 times", input: "x", want: ""},
+    }
 
     counts := list of int{3, 1, 0}
     for i from 0 to len(cases)
@@ -251,14 +297,22 @@ type PadCase
     want string
 
 func TestPadFunctions(t reference testing.T)
-    rightCases := list of PadCase{PadCase{name: "pad with spaces", input: "hi", width: 5, pad: " ", want: "hi   "}, PadCase{name: "already long enough", input: "hello", width: 3, pad: " ", want: "hello"}, PadCase{name: "pad with dash", input: "hi", width: 5, pad: "-", want: "hi---"}}
+    rightCases := list of PadCase{
+        PadCase{name: "pad with spaces", input: "hi", width: 5, pad: " ", want: "hi   "},
+        PadCase{name: "already long enough", input: "hello", width: 3, pad: " ", want: "hello"},
+        PadCase{name: "pad with dash", input: "hi", width: 5, pad: "-", want: "hi---"},
+    }
 
     for tc in rightCases
         t.Run("PadRight/{tc.name}", (t reference testing.T) =>
             test.AssertEqual(t, string.PadRight(tc.input, tc.width, tc.pad), tc.want)
         )
 
-    leftCases := list of PadCase{PadCase{name: "pad with spaces", input: "hi", width: 5, pad: " ", want: "   hi"}, PadCase{name: "already long enough", input: "hello", width: 3, pad: " ", want: "hello"}, PadCase{name: "pad with dash", input: "hi", width: 5, pad: "-", want: "---hi"}}
+    leftCases := list of PadCase{
+        PadCase{name: "pad with spaces", input: "hi", width: 5, pad: " ", want: "   hi"},
+        PadCase{name: "already long enough", input: "hello", width: 3, pad: " ", want: "hello"},
+        PadCase{name: "pad with dash", input: "hi", width: 5, pad: "-", want: "---hi"},
+    }
 
     for tc in leftCases
         t.Run("PadLeft/{tc.name}", (t reference testing.T) =>
@@ -267,7 +321,12 @@ func TestPadFunctions(t reference testing.T)
 
 # --- TestEqualFold ---
 func TestEqualFold(t reference testing.T)
-    cases := list of TrimCase{TrimCase{name: "same case diff", input: "Hello", cutset: "hello", want: "true"}, TrimCase{name: "all caps", input: "WORLD", cutset: "world", want: "true"}, TrimCase{name: "different strings", input: "hello", cutset: "world", want: "false"}, TrimCase{name: "both empty", input: "", cutset: "", want: "true"}}
+    cases := list of TrimCase{
+        TrimCase{name: "same case diff", input: "Hello", cutset: "hello", want: "true"},
+        TrimCase{name: "all caps", input: "WORLD", cutset: "world", want: "true"},
+        TrimCase{name: "different strings", input: "hello", cutset: "world", want: "false"},
+        TrimCase{name: "both empty", input: "", cutset: "", want: "true"},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -278,7 +337,11 @@ func TestEqualFold(t reference testing.T)
 
 # --- TestLen ---
 func TestLen(t reference testing.T)
-    cases := list of IndexCase{IndexCase{name: "hello is 5", input: "hello", sub: "", want: 5}, IndexCase{name: "empty is 0", input: "", sub: "", want: 0}, IndexCase{name: "single char is 1", input: "a", sub: "", want: 1}}
+    cases := list of IndexCase{
+        IndexCase{name: "hello is 5", input: "hello", sub: "", want: 5},
+        IndexCase{name: "empty is 0", input: "", sub: "", want: 0},
+        IndexCase{name: "single char is 1", input: "a", sub: "", want: 1},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

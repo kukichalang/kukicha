@@ -47,7 +47,15 @@ type EnvCase
     want string
 
 func TestEnvHelpers(t reference testing.T)
-    cases := list of EnvCase{EnvCase{name: "returns set env value", envKey: "MUST_TEST", envValue: "value", want: "value"}, EnvCase{name: "returns default when env missing", envKey: "MISSING_TEST", envValue: "", want: "default"}}
+    cases := list of EnvCase{
+        EnvCase{name: "returns set env value", envKey: "MUST_TEST", envValue: "value", want: "value"},
+        EnvCase{
+        name: "returns default when env missing",
+        envKey: "MISSING_TEST",
+        envValue: "",
+        want: "default",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -74,7 +82,12 @@ type AssertionCase
     wantPanic bool
 
 func TestAssertionHelpers(t reference testing.T)
-    cases := list of AssertionCase{AssertionCase{name: "True succeeds on true", condition: true, wantPanic: false}, AssertionCase{name: "False succeeds on false", condition: false, wantPanic: false}, AssertionCase{name: "NotEmpty succeeds on non-empty", condition: true, wantPanic: false}, AssertionCase{name: "NotNil succeeds on non-nil", condition: true, wantPanic: false}}
+    cases := list of AssertionCase{
+        AssertionCase{name: "True succeeds on true", condition: true, wantPanic: false},
+        AssertionCase{name: "False succeeds on false", condition: false, wantPanic: false},
+        AssertionCase{name: "NotEmpty succeeds on non-empty", condition: true, wantPanic: false},
+        AssertionCase{name: "NotNil succeeds on non-nil", condition: true, wantPanic: false},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

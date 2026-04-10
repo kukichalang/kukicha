@@ -161,7 +161,11 @@ func Login(username string, password string, server string) Auth
 
 # AuthEncode encodes auth credentials as a base64 JSON string for Docker registry headers.
 func AuthEncode(auth Auth) string
-    authJSON, _ := json.Marshal(map of string to string{"username": auth.username, "password": auth.password, "serveraddress": auth.serverAddress})
+    authJSON, _ := json.Marshal(map of string to string{
+        "username": auth.username,
+        "password": auth.password,
+        "serveraddress": auth.serverAddress,
+    })
 
     return base64.URLEncoding.EncodeToString(authJSON)
 
@@ -337,7 +341,13 @@ func convertEvent(msg dockerevents.Message) ContainerEvent
     actor := msg.Actor.ID
     if name, ok := msg.Actor.Attributes["name"]; ok and name != ""
         actor = name
-    return ContainerEvent{id: msg.ID, resource: msg.Type as string, action: msg.Action as string, actor: actor, time: ts}
+    return ContainerEvent{
+        id: msg.ID,
+        resource: msg.Type as string,
+        action: msg.Action as string,
+        actor: actor,
+        time: ts,
+    }
 
 # eventsWithContext collects runtime events until the context is canceled.
 func eventsWithContext(engine Engine, h ctxpkg.Handle) (list of ContainerEvent, error)
@@ -395,7 +405,11 @@ func Pull(engine Engine, ref string, many handles ctxpkg.Handle) (string, error)
 
 # PullAuth pulls an image using registry credentials.
 func PullAuth(engine Engine, ref string, auth Auth) (string, error)
-    authJSON := json.Marshal(map of string to string{"username": auth.username, "password": auth.password, "serveraddress": auth.serverAddress}) onerr explain "container pull auth"
+    authJSON := json.Marshal(map of string to string{
+        "username": auth.username,
+        "password": auth.password,
+        "serveraddress": auth.serverAddress,
+    }) onerr explain "container pull auth"
 
     encoded := base64.URLEncoding.EncodeToString(authJSON)
     reader := engine.cli.ImagePull(ctxpkg.Value(ctxpkg.Background()), ref, dockerimage.PullOptions{RegistryAuth: encoded}) onerr explain "container pull"
@@ -426,7 +440,12 @@ func loadDockerAuth(serverAddress string) (string, string, string, error)
     json.Unmarshal(data, reference of config) onerr explain "container auth parse"
     authEntry, ok := config.Auths[serverAddress]
     if not ok
-        variations := list of string{"https://" + serverAddress, "http://" + serverAddress, string.TrimPrefix(serverAddress, "https://"), string.TrimPrefix(serverAddress, "http://")}
+        variations := list of string{
+            "https://" + serverAddress,
+            "http://" + serverAddress,
+            string.TrimPrefix(serverAddress, "https://"),
+            string.TrimPrefix(serverAddress, "http://"),
+        }
 
         for v in variations
             a, found := config.Auths[v]
@@ -463,7 +482,11 @@ func newClient(host string) (reference client.Client, error)
 
 # Connect creates an Engine using auto-detected socket or DOCKER_HOST.
 func Connect() (Engine, error)
-    socketPaths := list of string{fmt.Sprintf("/run/user/%d/podman/podman.sock", os.Getuid()), "/var/run/docker.sock", "/run/podman/podman.sock"}
+    socketPaths := list of string{
+        fmt.Sprintf("/run/user/%d/podman/podman.sock", os.Getuid()),
+        "/var/run/docker.sock",
+        "/run/podman/podman.sock",
+    }
 
     host := ""
     for p in socketPaths

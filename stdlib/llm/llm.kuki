@@ -759,7 +759,14 @@ func executeStreamRaw(c Client) (Completion, error)
         if ok
             toolCalls = append(toolCalls, callsMap[i])
 
-    comp := Completion{Choices: list of Choice{Choice{Index: 0, Message: ResponseMessage{Role: "assistant", Content: fullContent, ToolCalls: toolCalls}}}}
+    comp := Completion{
+        Choices: list of Choice{
+        Choice{
+        Index: 0,
+        Message: ResponseMessage{Role: "assistant", Content: fullContent, ToolCalls: toolCalls},
+    },
+    },
+    }
 
     return comp, empty
 

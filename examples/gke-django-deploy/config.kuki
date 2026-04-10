@@ -83,13 +83,48 @@ func baseConfig() map of string to any
 
 func overridesFor(namespace string) map of string to any
     if namespace equals "dev"
-        return map of string to any{"node_count": 1, "machine_type": "e2-small", "disk_size_gb": 30, "preemptible": true, "django_replicas": 1, "cpu_request": "100m", "cpu_limit": "500m", "memory_request": "256Mi", "memory_limit": "512Mi", "debug_mode": true, "log_level": "debug", "db_pool_size": 2, "hpa_min": 1, "hpa_max": 2}
+        return map of string to any{
+            "node_count": 1,
+            "machine_type": "e2-small",
+            "disk_size_gb": 30,
+            "preemptible": true,
+            "django_replicas": 1,
+            "cpu_request": "100m",
+            "cpu_limit": "500m",
+            "memory_request": "256Mi",
+            "memory_limit": "512Mi",
+            "debug_mode": true,
+            "log_level": "debug",
+            "db_pool_size": 2,
+            "hpa_min": 1,
+            "hpa_max": 2,
+        }
 
     if namespace equals "test"
-        return map of string to any{"node_count": 2, "machine_type": "e2-standard-2", "disk_size_gb": 50, "preemptible": true, "django_replicas": 2, "cpu_request": "200m", "cpu_limit": "750m", "memory_request": "384Mi", "memory_limit": "768Mi", "log_level": "warning", "db_pool_size": 5, "hpa_min": 2, "hpa_max": 5}
+        return map of string to any{
+            "node_count": 2,
+            "machine_type": "e2-standard-2",
+            "disk_size_gb": 50,
+            "preemptible": true,
+            "django_replicas": 2,
+            "cpu_request": "200m",
+            "cpu_limit": "750m",
+            "memory_request": "384Mi",
+            "memory_limit": "768Mi",
+            "log_level": "warning",
+            "db_pool_size": 5,
+            "hpa_min": 2,
+            "hpa_max": 5,
+        }
 
     if namespace equals "prod"
-        return map of string to any{"enable_cdn": true, "enable_waf": true, "ssl_certificate": env.GetOr("SSL_CERT", "projects/my-project/global/sslCertificates/my-cert"), "hpa_min": 3, "hpa_max": 20}
+        return map of string to any{
+            "enable_cdn": true,
+            "enable_waf": true,
+            "ssl_certificate": env.GetOr("SSL_CERT", "projects/my-project/global/sslCertificates/my-cert"),
+            "hpa_min": 3,
+            "hpa_max": 20,
+        }
 
     return make(map of string to any)
 
@@ -97,8 +132,18 @@ func overridesFor(namespace string) map of string to any
 
 # GKE cluster: pick only infrastructure keys
 func gkeConfig() map of string to any
-    return baseConfig()
-        |> maps.Pick(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})
+    return baseConfig() |> maps.Pick(list of string{
+        "project",
+        "region",
+        "cluster_name",
+        "k8s_version",
+        "node_count",
+        "machine_type",
+        "disk_size_gb",
+        "preemptible",
+        "enable_monitoring",
+        "enable_logging",
+    })
 
 # Django app: merge base + env overrides, then strip what doesn't belong
 func djangoConfigFor(namespace string) map of string to any
@@ -109,5 +154,15 @@ func djangoConfigFor(namespace string) map of string to any
         merged = merged |> maps.Omit(list of string{"enable_cdn", "enable_waf", "ssl_certificate"})
 
     # Drop infrastructure keys — the Django stack doesn't use them
-    return merged
-        |> maps.Omit(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})
+    return merged |> maps.Omit(list of string{
+        "project",
+        "region",
+        "cluster_name",
+        "k8s_version",
+        "node_count",
+        "machine_type",
+        "disk_size_gb",
+        "preemptible",
+        "enable_monitoring",
+        "enable_logging",
+    })

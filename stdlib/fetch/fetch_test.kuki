@@ -135,7 +135,22 @@ type URLTemplateCase
 func TestURLTemplate(t reference testing.T)
     tmpl := "https://api.example.com/users/\{username\}/repos/\{repo\}"
 
-    cases := list of URLTemplateCase{URLTemplateCase{name: "success with encoding", tmpl: tmpl, args: map of string to string{"username": "acme/dev team", "repo": "hello world"}, want: "https://api.example.com/users/acme%2Fdev%20team/repos/hello%20world", wantErr: false}, URLTemplateCase{name: "missing placeholder", tmpl: tmpl, args: map of string to string{"username": "golang"}, want: "", wantErr: true}}
+    cases := list of URLTemplateCase{
+        URLTemplateCase{
+        name: "success with encoding",
+        tmpl: tmpl,
+        args: map of string to string{"username": "acme/dev team", "repo": "hello world"},
+        want: "https://api.example.com/users/acme%2Fdev%20team/repos/hello%20world",
+        wantErr: false,
+    },
+        URLTemplateCase{
+        name: "missing placeholder",
+        tmpl: tmpl,
+        args: map of string to string{"username": "golang"},
+        want: "",
+        wantErr: true,
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -156,7 +171,15 @@ type URLWithQueryCase
     want2 string
 
 func TestURLWithQuery(t reference testing.T)
-    cases := list of URLWithQueryCase{URLWithQueryCase{name: "encode multiple params", url: "https://api.example.com/search", query: map of string to string{"q": "go lang", "sort": "stars desc"}, want1: "https://api.example.com/search?q=go+lang&sort=stars+desc", want2: "https://api.example.com/search?sort=stars+desc&q=go+lang"}}
+    cases := list of URLWithQueryCase{
+        URLWithQueryCase{
+        name: "encode multiple params",
+        url: "https://api.example.com/search",
+        query: map of string to string{"q": "go lang", "sort": "stars desc"},
+        want1: "https://api.example.com/search?q=go+lang&sort=stars+desc",
+        want2: "https://api.example.com/search?sort=stars+desc&q=go+lang",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -230,7 +253,10 @@ func TestCheckStatus(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of CheckStatusCase{CheckStatusCase{name: "success status", code: 200, wantErr: false}, CheckStatusCase{name: "error status", code: 404, wantErr: true}}
+    cases := list of CheckStatusCase{
+        CheckStatusCase{name: "success status", code: 200, wantErr: false},
+        CheckStatusCase{name: "error status", code: 404, wantErr: true},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

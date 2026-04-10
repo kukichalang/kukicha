@@ -49,7 +49,10 @@ func main()
     )
 
     # write_file tool
-    writeProps := list of mcp.SchemaProperty{mcp.Prop("path", "string", "File path relative to sandbox root"), mcp.Prop("content", "string", "File content to write")}
+    writeProps := list of mcp.SchemaProperty{
+        mcp.Prop("path", "string", "File path relative to sandbox root"),
+        mcp.Prop("content", "string", "File content to write"),
+    }
     writeSchema := mcp.Schema(writeProps)
     writeSchema = mcp.Required(writeSchema, list of string{"path", "content"}).(map of string to any)
 
@@ -58,7 +61,9 @@ func main()
     )
 
     # list_files tool
-    listProps := list of mcp.SchemaProperty{mcp.Prop("path", "string", "Directory path relative to sandbox root")}
+    listProps := list of mcp.SchemaProperty{
+        mcp.Prop("path", "string", "Directory path relative to sandbox root"),
+    }
     listSchema := mcp.Schema(listProps)
 
     server |> mcp.Tool("list_files", "List files in the sandbox", listSchema, func(args map of string to any) (any, error)

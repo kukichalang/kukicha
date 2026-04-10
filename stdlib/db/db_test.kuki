@@ -44,7 +44,9 @@ type OpenInvalidCase
     connStr string
 
 func TestOpenInvalidDriver(t reference testing.T)
-    cases := list of OpenInvalidCase{OpenInvalidCase{name: "unknown driver", driver: "nosuchdriver", connStr: ""}}
+    cases := list of OpenInvalidCase{
+        OpenInvalidCase{name: "unknown driver", driver: "nosuchdriver", connStr: ""},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -61,7 +63,14 @@ type ExecCase
 func TestExec(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ExecCase{ExecCase{name: "update one row", query: "UPDATE users SET name = 'Alice2' WHERE id = 1", wantAffected: 1}, ExecCase{name: "delete one row", query: "DELETE FROM users WHERE id = 2", wantAffected: 1}}
+    cases := list of ExecCase{
+        ExecCase{
+        name: "update one row",
+        query: "UPDATE users SET name = 'Alice2' WHERE id = 1",
+        wantAffected: 1,
+    },
+        ExecCase{name: "delete one row", query: "DELETE FROM users WHERE id = 2", wantAffected: 1},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -78,7 +87,23 @@ type ScanAllCase
 func TestScanAll(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanAllCase{ScanAllCase{name: "all users", query: "SELECT id, name, email FROM users ORDER BY id", wantLen: 3}, ScanAllCase{name: "filtered", query: "SELECT id, name, email FROM users WHERE id = 1", wantLen: 1}, ScanAllCase{name: "no results", query: "SELECT id, name, email FROM users WHERE id = 999", wantLen: 0}}
+    cases := list of ScanAllCase{
+        ScanAllCase{
+        name: "all users",
+        query: "SELECT id, name, email FROM users ORDER BY id",
+        wantLen: 3,
+    },
+        ScanAllCase{
+        name: "filtered",
+        query: "SELECT id, name, email FROM users WHERE id = 1",
+        wantLen: 1,
+    },
+        ScanAllCase{
+        name: "no results",
+        query: "SELECT id, name, email FROM users WHERE id = 999",
+        wantLen: 0,
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -118,7 +143,18 @@ type ScanOneCase
 func TestScanOne(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanOneCase{ScanOneCase{name: "one row", query: "SELECT id, name, email FROM users WHERE id = 1", wantErr: false}, ScanOneCase{name: "no rows", query: "SELECT id, name, email FROM users WHERE id = 999", wantErr: true}}
+    cases := list of ScanOneCase{
+        ScanOneCase{
+        name: "one row",
+        query: "SELECT id, name, email FROM users WHERE id = 1",
+        wantErr: false,
+    },
+        ScanOneCase{
+        name: "no rows",
+        query: "SELECT id, name, email FROM users WHERE id = 999",
+        wantErr: true,
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -202,7 +238,10 @@ type CountCase
 func TestCount(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of CountCase{CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3}, CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2}}
+    cases := list of CountCase{
+        CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3},
+        CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -219,7 +258,10 @@ type ExistsCase
 func TestExists(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ExistsCase{ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true}, ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false}}
+    cases := list of ExistsCase{
+        ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true},
+        ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

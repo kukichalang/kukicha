@@ -13,7 +13,18 @@ type SHA256Case
     want string
 
 func TestSHA256(t reference testing.T)
-    cases := list of SHA256Case{SHA256Case{name: "empty string", input: "", want: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, SHA256Case{name: "hello", input: "hello", want: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"}}
+    cases := list of SHA256Case{
+        SHA256Case{
+        name: "empty string",
+        input: "",
+        want: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    },
+        SHA256Case{
+        name: "hello",
+        input: "hello",
+        want: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -45,7 +56,10 @@ type RandomTokenCase
     length int
 
 func TestRandomToken(t reference testing.T)
-    cases := list of RandomTokenCase{RandomTokenCase{name: "16 bytes", length: 16}, RandomTokenCase{name: "32 bytes", length: 32}}
+    cases := list of RandomTokenCase{
+        RandomTokenCase{name: "16 bytes", length: 16},
+        RandomTokenCase{name: "32 bytes", length: 32},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -63,7 +77,10 @@ type EqualCase
     equal bool
 
 func TestEqual(t reference testing.T)
-    cases := list of EqualCase{EqualCase{name: "same", a: "hello", b: "hello", equal: true}, EqualCase{name: "different", a: "hello", b: "world", equal: false}}
+    cases := list of EqualCase{
+        EqualCase{name: "same", a: "hello", b: "hello", equal: true},
+        EqualCase{name: "different", a: "hello", b: "world", equal: false},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

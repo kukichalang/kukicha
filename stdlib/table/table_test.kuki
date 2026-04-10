@@ -13,7 +13,10 @@ type NewCase
     headers list of string
 
 func TestNew(t reference testing.T)
-    cases := list of NewCase{NewCase{name: "two headers", headers: list of string{"Name", "Age"}}, NewCase{name: "empty headers", headers: empty list of string}}
+    cases := list of NewCase{
+        NewCase{name: "two headers", headers: list of string{"Name", "Age"}},
+        NewCase{name: "empty headers", headers: empty list of string},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

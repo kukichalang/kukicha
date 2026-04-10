@@ -27,7 +27,13 @@ func defaultConfigPath() string
     return filepath.Join(home, ".config", "owui", "config.json")
 
 func loadConfig() Config
-    cfg := Config{WebUIURL: "http://localhost:3000", TerminalMCPURL: "http://127.0.0.1:9000/mcp", Model: "llama3.1", MaxToolRounds: 15, MCPServers: make(map of string to MCPServerConfig)}
+    cfg := Config{
+        WebUIURL: "http://localhost:3000",
+        TerminalMCPURL: "http://127.0.0.1:9000/mcp",
+        Model: "llama3.1",
+        MaxToolRounds: 15,
+        MCPServers: make(map of string to MCPServerConfig),
+    }
 
     # Try loading from config file
     data := files.ReadString(defaultConfigPath()) onerr ""

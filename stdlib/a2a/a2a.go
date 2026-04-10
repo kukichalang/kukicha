@@ -351,122 +351,122 @@ func streamRequest(agent Agent, text string, contextID string, onText TextHandle
 //line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:187
 					statusMsg = extractPartsText(e.Status.Message.Parts)
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:188
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:193
 				onStatus(StatusUpdate{TaskID: string(e.TaskID), State: string(e.Status.State), Message: statusMsg, Final: e.Final})
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:189
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:194
 			result.ID = string(e.TaskID)
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:190
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:195
 			result.ContextID = e.ContextID
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:191
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:196
 			result.State = string(e.Status.State)
 		case *a2a.TaskArtifactUpdateEvent:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:193
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:198
 			if e.Artifact != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:194
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:199
 				artText := extractPartsText(e.Artifact.Parts)
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:195
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:200
 				if (onText != nil) && (artText != "") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:196
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:201
 					onText(artText)
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:197
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:202
 				result.Artifacts = append(result.Artifacts, Artifact{Name: e.Artifact.Name, Text: artText})
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:198
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:203
 			result.ID = string(e.TaskID)
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:199
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:204
 			result.ContextID = e.ContextID
 		case *a2a.Task:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:201
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:206
 			result = taskFromA2A(e)
 		case *a2a.Message:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:203
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:208
 			msgText := extractPartsText(e.Parts)
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:204
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:209
 			if (onText != nil) && (msgText != "") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:205
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:210
 				onText(msgText)
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:206
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:211
 			result.Text = msgText
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:208
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:213
 	return result, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:211
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:216
 func resultToTask(result a2a.SendMessageResult) Task {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:212
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:217
 	task := func() Task {
 		switch r := result.(type) {
 		case *a2a.Task:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:214
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:219
 			return taskFromA2A(r)
 		case *a2a.Message:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:216
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:221
 			return Task{ID: string(r.TaskID), ContextID: r.ContextID, Text: extractPartsText(r.Parts)}
 		default:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:218
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:223
 			var _zero0 Task
 			return _zero0
 		}
 	}()
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:220
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:225
 	return task
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:223
-func taskFromA2A(t *a2a.Task) Task {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:224
-	result := Task{ID: string(t.ID), ContextID: t.ContextID, State: string(t.Status.State)}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:226
-	for _, art := range t.Artifacts {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:227
-		artText := extractPartsText(art.Parts)
 //line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:228
+func taskFromA2A(t *a2a.Task) Task {
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:229
+	result := Task{ID: string(t.ID), ContextID: t.ContextID, State: string(t.Status.State)}
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:231
+	for _, art := range t.Artifacts {
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:232
+		artText := extractPartsText(art.Parts)
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:233
 		result.Artifacts = append(result.Artifacts, Artifact{Name: art.Name, Text: artText})
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:230
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:235
 	texts := []string{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:231
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:236
 	if t.Status.Message != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:232
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:237
 		msg := extractPartsText(t.Status.Message.Parts)
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:233
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:238
 		if msg != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:234
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:239
 			texts = append(texts, msg)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:235
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:240
 	for _, art := range result.Artifacts {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:236
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:241
 		if art.Text != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:237
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:242
 			texts = append(texts, art.Text)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:238
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:243
 	result.Text = kukistring.Join(texts, "\n")
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:240
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:245
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:243
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:248
 func extractPartsText(parts []a2a.Part) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:244
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:249
 	texts := []string{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:245
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:250
 	for _, p := range parts {
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:246
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:251
 		switch tp := p.(type) {
 		case a2a.TextPart:
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:248
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:253
 			texts = append(texts, tp.Text)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:250
+//line /var/home/tluker/repos/go/kukicha/stdlib/a2a/a2a.kuki:255
 	return kukistring.Join(texts, "")
 }

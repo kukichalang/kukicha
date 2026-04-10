@@ -293,7 +293,7 @@ func (p *Printer) typeAnnotationToString(typeAnn ast.TypeAnnotation) string {
 func (p *Printer) printBlock(block *ast.BlockStmt) {
 	prevEndLine := 0
 	for _, stmt := range block.Statements {
-		stmtLine := stmt.Pos().Line
+		stmtLine := stmtStartLine(stmt)
 		// Preserve blank lines between statements when positions are available
 		if prevEndLine > 0 && stmtLine > prevEndLine+1 {
 			p.writeLine("")
@@ -370,30 +370,155 @@ func (p *Printer) estimateEndLine(stmt ast.Statement) int {
 	return line
 }
 
+// stmtStartLine returns the line on which a statement visually starts.
+// For most statements this is just stmt.Pos().Line, but CallExpr's token
+// is the closing ')' which may be on a later line than the function name
+// for multiline calls. This helper walks into the leftmost expression to
+// find the earliest line so blank-line preservation works correctly after
+// the formatter has introduced line wraps.
+func stmtStartLine(stmt ast.Statement) int {
+	line := stmt.Pos().Line
+	var exprs []ast.Expression
+	switch s := stmt.(type) {
+	case *ast.ExpressionStmt:
+		exprs = append(exprs, s.Expression)
+	case *ast.VarDeclStmt:
+		exprs = append(exprs, s.Values...)
+	case *ast.AssignStmt:
+		exprs = append(exprs, s.Targets...)
+		exprs = append(exprs, s.Values...)
+	case *ast.ReturnStmt:
+		exprs = append(exprs, s.Values...)
+	}
+	for _, e := range exprs {
+		if l := minExprLine(e); l > 0 && l < line {
+			line = l
+		}
+	}
+	return line
+}
+
+// minExprLine returns the minimum (earliest) source line touched by the
+// expression tree. Used for CallExpr/MethodCallExpr where Token points to
+// the closing ')' rather than the function name.
+func minExprLine(expr ast.Expression) int {
+	if expr == nil {
+		return 0
+	}
+	line := expr.Pos().Line
+	switch e := expr.(type) {
+	case *ast.CallExpr:
+		if e.Function != nil {
+			if fl := minExprLine(e.Function); fl > 0 && fl < line {
+				line = fl
+			}
+		}
+	case *ast.MethodCallExpr:
+		if e.Object != nil {
+			if ol := minExprLine(e.Object); ol > 0 && ol < line {
+				line = ol
+			}
+		}
+	case *ast.FieldAccessExpr:
+		if e.Object != nil {
+			if ol := minExprLine(e.Object); ol > 0 && ol < line {
+				line = ol
+			}
+		}
+	case *ast.PipeExpr:
+		if e.Left != nil {
+			if ll := minExprLine(e.Left); ll > 0 && ll < line {
+				line = ll
+			}
+		}
+	}
+	return line
+}
+
 // maxExprLine walks an expression tree and returns the maximum source
 // line number found. This accounts for pipe chains and other expressions
 // that may span multiple source lines after formatting.
 func maxExprLine(expr ast.Expression) int {
-	line := expr.Pos().Line
-	pe, ok := expr.(*ast.PipeExpr)
-	if !ok {
-		return line
+	if expr == nil {
+		return 0
 	}
-	for {
-		if pe.Token.Line > line {
-			line = pe.Token.Line
-		}
-		if rl := pe.Right.Pos().Line; rl > line {
-			line = rl
-		}
-		left, ok := pe.Left.(*ast.PipeExpr)
-		if !ok {
-			if ll := pe.Left.Pos().Line; ll > line {
-				line = ll
+	line := expr.Pos().Line
+	switch e := expr.(type) {
+	case *ast.PipeExpr:
+		pe := e
+		for {
+			if pe.Token.Line > line {
+				line = pe.Token.Line
 			}
-			break
+			if rl := maxExprLine(pe.Right); rl > line {
+				line = rl
+			}
+			left, ok := pe.Left.(*ast.PipeExpr)
+			if !ok {
+				if ll := maxExprLine(pe.Left); ll > line {
+					line = ll
+				}
+				break
+			}
+			pe = left
 		}
-		pe = left
+	case *ast.CallExpr:
+		// Call's closing `)` is merged with the last arg's closing `}`/`]`/`)`
+		// when that arg is multi-line (see callExprToString), so no +1 is
+		// needed for the call itself.
+		for _, arg := range e.Arguments {
+			if al := maxExprLine(arg); al > line {
+				line = al
+			}
+		}
+	case *ast.MethodCallExpr:
+		if ol := maxExprLine(e.Object); ol > line {
+			line = ol
+		}
+		for _, arg := range e.Arguments {
+			if al := maxExprLine(arg); al > line {
+				line = al
+			}
+		}
+	case *ast.StructLiteralExpr:
+		openLine := line
+		for _, field := range e.Fields {
+			if field.Value != nil {
+				if vl := maxExprLine(field.Value); vl > line {
+					line = vl
+				}
+			}
+		}
+		if line > openLine {
+			line++
+		}
+	case *ast.ListLiteralExpr:
+		openLine := line
+		for _, elem := range e.Elements {
+			if el := maxExprLine(elem); el > line {
+				line = el
+			}
+		}
+		if line > openLine {
+			line++
+		}
+	case *ast.MapLiteralExpr:
+		openLine := line
+		for _, pair := range e.Pairs {
+			if pair.Value != nil {
+				if vl := maxExprLine(pair.Value); vl > line {
+					line = vl
+				}
+			}
+			if pair.Key != nil {
+				if kl := maxExprLine(pair.Key); kl > line {
+					line = kl
+				}
+			}
+		}
+		if line > openLine {
+			line++
+		}
 	}
 	return line
 }
@@ -1231,11 +1356,11 @@ func (p *Printer) callExprToString(expr *ast.CallExpr) string {
 
 	// Multi-line argument: closing ) must be on its own dedented line so the
 	// parser sees a proper DEDENT before the paren. However, if the last
-	// line is already just closing parens (from nested calls), merge our )
-	// onto that line to produce )) instead of separate lines.
+	// line is already just closing delimiters (from nested calls or
+	// multiline literals), merge our ) onto that line.
 	lastNL := strings.LastIndex(joined, "\n")
 	lastLine := strings.TrimSpace(joined[lastNL+1:])
-	if lastLine != "" && strings.Trim(lastLine, ")") == "" {
+	if lastLine != "" && strings.Trim(lastLine, ")}]") == "" {
 		return fmt.Sprintf("%s(%s)", funcName, joined)
 	}
 	return fmt.Sprintf("%s(%s\n%s)", funcName, joined, p.indent())
@@ -1263,10 +1388,10 @@ func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
 		return fmt.Sprintf("%s.%s(%s)", object, method, joined)
 	}
 
-	// Merge closing parens if the last line is already just ) chars.
+	// Merge closing delimiters if the last line is already just )}] chars.
 	lastNL := strings.LastIndex(joined, "\n")
 	lastLine := strings.TrimSpace(joined[lastNL+1:])
-	if lastLine != "" && strings.Trim(lastLine, ")") == "" {
+	if lastLine != "" && strings.Trim(lastLine, ")}]") == "" {
 		return fmt.Sprintf("%s.%s(%s)", object, method, joined)
 	}
 	return fmt.Sprintf("%s.%s(%s\n%s)", object, method, joined, p.indent())
@@ -1309,7 +1434,12 @@ func (p *Printer) structLiteralToString(expr *ast.StructLiteralExpr) string {
 		fields[i] = fmt.Sprintf("%s: %s", field.Name.Value, value)
 	}
 
-	return fmt.Sprintf("%s{%s}", typeName, strings.Join(fields, ", "))
+	singleLine := fmt.Sprintf("%s{%s}", typeName, strings.Join(fields, ", "))
+	if len(p.indent())+len(singleLine) <= maxLineWidth {
+		return singleLine
+	}
+
+	return p.multilineBraced(typeName, fields)
 }
 
 func (p *Printer) listLiteralToString(expr *ast.ListLiteralExpr) string {
@@ -1328,9 +1458,18 @@ func (p *Printer) listLiteralToString(expr *ast.ListLiteralExpr) string {
 
 	if expr.Type != nil {
 		elemType := p.typeAnnotationToString(expr.Type)
-		return fmt.Sprintf("list of %s{%s}", elemType, strings.Join(elements, ", "))
+		singleLine := fmt.Sprintf("list of %s{%s}", elemType, strings.Join(elements, ", "))
+		if len(p.indent())+len(singleLine) <= maxLineWidth {
+			return singleLine
+		}
+		return p.multilineBraced("list of "+elemType, elements)
 	}
-	return fmt.Sprintf("[%s]", strings.Join(elements, ", "))
+
+	singleLine := fmt.Sprintf("[%s]", strings.Join(elements, ", "))
+	if len(p.indent())+len(singleLine) <= maxLineWidth {
+		return singleLine
+	}
+	return p.multilineBracketed(elements)
 }
 
 func (p *Printer) mapLiteralToString(expr *ast.MapLiteralExpr) string {
@@ -1348,7 +1487,54 @@ func (p *Printer) mapLiteralToString(expr *ast.MapLiteralExpr) string {
 		pairs[i] = fmt.Sprintf("%s: %s", key, value)
 	}
 
-	return fmt.Sprintf("map of %s to %s{%s}", keyType, valType, strings.Join(pairs, ", "))
+	prefix := fmt.Sprintf("map of %s to %s", keyType, valType)
+	singleLine := fmt.Sprintf("%s{%s}", prefix, strings.Join(pairs, ", "))
+	if len(p.indent())+len(singleLine) <= maxLineWidth {
+		return singleLine
+	}
+
+	return p.multilineBraced(prefix, pairs)
+}
+
+// multilineBraced formats entries as a multiline brace-delimited literal:
+//
+//	prefix{
+//	    entry1,
+//	    entry2,
+//	}
+func (p *Printer) multilineBraced(prefix string, entries []string) string {
+	innerIndent := p.indent() + p.indentStr
+	var b strings.Builder
+	b.WriteString(prefix)
+	b.WriteString("{\n")
+	for _, entry := range entries {
+		b.WriteString(innerIndent)
+		b.WriteString(entry)
+		b.WriteString(",\n")
+	}
+	b.WriteString(p.indent())
+	b.WriteByte('}')
+	return b.String()
+}
+
+// multilineBracketed formats entries as a multiline bracket-delimited list:
+//
+//	[
+//	    entry1,
+//	    entry2,
+//	]
+func (p *Printer) multilineBracketed(entries []string) string {
+	innerIndent := p.indent() + p.indentStr
+	var b strings.Builder
+	b.WriteString("[\n")
+	for _, entry := range entries {
+		b.WriteString(innerIndent)
+		b.WriteString(entry)
+		b.WriteString(",\n")
+	}
+	b.WriteString(p.indent())
+	b.WriteByte(']')
+	return b.String()
 }
 
 func (p *Printer) makeExprToString(expr *ast.MakeExpr) string {

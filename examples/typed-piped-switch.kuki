@@ -25,7 +25,12 @@ func summarize(run ToolRun) string
             return fmt.Sprintf("%s: timed out", run.name)
 
 func main()
-    runs := list of ToolRun{ToolRun{name: "read_file", result: Success{output: "48 lines"}}, ToolRun{name: "exec", result: Error{message: "permission denied", code: 126}}, ToolRun{name: "web_search", result: Timeout{}}, ToolRun{name: "write_file", result: Success{output: "wrote config.yaml"}}}
+    runs := list of ToolRun{
+        ToolRun{name: "read_file", result: Success{output: "48 lines"}},
+        ToolRun{name: "exec", result: Error{message: "permission denied", code: 126}},
+        ToolRun{name: "web_search", result: Timeout{}},
+        ToolRun{name: "write_file", result: Success{output: "wrote config.yaml"}},
+    }
 
     for run in runs
         print(summarize(run))

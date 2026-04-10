@@ -185,7 +185,12 @@ func streamRequest(agent Agent, text string, contextID string, onText TextHandle
                     statusMsg := ""
                     if e.Status.Message != empty
                         statusMsg = extractPartsText(e.Status.Message.Parts)
-                    onStatus(StatusUpdate{TaskID: e.TaskID as string, State: e.Status.State as string, Message: statusMsg, Final: e.Final})
+                    onStatus(StatusUpdate{
+                        TaskID: e.TaskID as string,
+                        State: e.Status.State as string,
+                        Message: statusMsg,
+                        Final: e.Final,
+                    })
                 result.ID = e.TaskID as string
                 result.ContextID = e.ContextID
                 result.State = e.Status.State as string

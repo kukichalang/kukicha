@@ -25,7 +25,10 @@ type Bridge
     ToolMap map of string to ToolRoute
 
 func connectBridges(ctx context.Context, configs map of string to MCPServerConfig) (reference Bridge, error)
-    b := reference of Bridge{Servers: make(list of reference BridgeServer, 0), ToolMap: make(map of string to ToolRoute)}
+    b := reference of Bridge{
+        Servers: make(list of reference BridgeServer, 0),
+        ToolMap: make(map of string to ToolRoute),
+    }
 
     for name, cfg in configs
         session, err := connectOne(ctx, cfg)
@@ -68,7 +71,14 @@ func bridgeTools(b reference Bridge) list of llm.Tool
     for _, s in b.Servers
         for _, t in s.Tools
             prefixed := "{s.Name}_{sanitizeName(t.Name)}"
-            tools = append(tools, llm.Tool{Type: "function", Function: llm.ToolFunction{Name: prefixed, Description: "({s.Name}) {t.Description}", Parameters: t.InputSchema}})
+            tools = append(tools, llm.Tool{
+                Type: "function",
+                Function: llm.ToolFunction{
+                Name: prefixed,
+                Description: "({s.Name}) {t.Description}",
+                Parameters: t.InputSchema,
+            },
+            })
 
     return tools
 

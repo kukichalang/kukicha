@@ -290,7 +290,7 @@ func (p *PrinterWithComments) printFunctionDeclWithComments(decl *ast.FunctionDe
 func (p *PrinterWithComments) printBlockWithComments(block *ast.BlockStmt) {
 	prevEndLine := 0
 	for _, stmt := range block.Statements {
-		stmtLine := stmt.Pos().Line
+		stmtLine := stmtStartLine(stmt)
 		// Check if there's a leading comment — if so, use its line for blank line detection
 		if attachment, ok := p.comments[stmt]; ok && len(attachment.Leading) > 0 {
 			stmtLine = attachment.Leading[0].Line

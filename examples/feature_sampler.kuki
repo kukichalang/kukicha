@@ -80,7 +80,12 @@ func TestFeatures()
 
     # 7. Map utilities — filter, pick, omit
     print("\nMap utilities:")
-    config := map of any to any{"host" as any: "db.example.com" as any, "port" as any: 5432 as any, "password" as any: "hunter2" as any, "sslmode" as any: "require" as any}
+    config := map of any to any{
+        "host" as any: "db.example.com" as any,
+        "port" as any: 5432 as any,
+        "password" as any: "hunter2" as any,
+        "sslmode" as any: "require" as any,
+    }
 
     safe := maps.Omit(config, list of any{"password" as any})
     print("Safe config (password omitted):")

@@ -58,7 +58,11 @@ func Error(logger Logger, message string, fields map of string to any)
 
 # Log emits a structured JSON log line with common metadata and custom fields.
 func Log(logger Logger, level string, message string, fields map of string to any)
-    payload := map of string to any{"ts": time.Now().Format(time.RFC3339Nano), "level": level, "message": message}
+    payload := map of string to any{
+        "ts": time.Now().Format(time.RFC3339Nano),
+        "level": level,
+        "message": message,
+    }
 
     if logger.service not equals ""
         payload["service"] = logger.service

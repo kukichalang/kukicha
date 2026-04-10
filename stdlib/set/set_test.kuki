@@ -14,7 +14,11 @@ type FromCase
     wantLen int
 
 func TestFrom(t reference testing.T)
-    cases := list of FromCase{FromCase{name: "empty", input: empty list of string, wantLen: 0}, FromCase{name: "three unique", input: list of string{"a", "b", "c"}, wantLen: 3}, FromCase{name: "duplicates deduplicated", input: list of string{"a", "a", "b"}, wantLen: 2}}
+    cases := list of FromCase{
+        FromCase{name: "empty", input: empty list of string, wantLen: 0},
+        FromCase{name: "three unique", input: list of string{"a", "b", "c"}, wantLen: 3},
+        FromCase{name: "duplicates deduplicated", input: list of string{"a", "a", "b"}, wantLen: 2},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -30,7 +34,10 @@ type AddCase
 
 func TestAdd(t reference testing.T)
     base := set.From(list of string{"a", "b"})
-    cases := list of AddCase{AddCase{name: "new item", item: "c", wantLen: 3}, AddCase{name: "existing item", item: "a", wantLen: 2}}
+    cases := list of AddCase{
+        AddCase{name: "new item", item: "c", wantLen: 3},
+        AddCase{name: "existing item", item: "a", wantLen: 2},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -62,7 +69,10 @@ type RemoveCase
 
 func TestRemove(t reference testing.T)
     base := set.From(list of string{"a", "b", "c"})
-    cases := list of RemoveCase{RemoveCase{name: "existing item", item: "b", wantLen: 2}, RemoveCase{name: "missing item", item: "z", wantLen: 3}}
+    cases := list of RemoveCase{
+        RemoveCase{name: "existing item", item: "b", wantLen: 2},
+        RemoveCase{name: "missing item", item: "z", wantLen: 3},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -178,7 +188,32 @@ type SubsetCase
     want bool
 
 func TestIsSubset(t reference testing.T)
-    cases := list of SubsetCase{SubsetCase{name: "proper subset", sub: list of string{"a"}, super: list of string{"a", "b"}, want: true}, SubsetCase{name: "equal sets", sub: list of string{"a", "b"}, super: list of string{"a", "b"}, want: true}, SubsetCase{name: "not a subset", sub: list of string{"a", "c"}, super: list of string{"a", "b"}, want: false}, SubsetCase{name: "empty is subset of all", sub: empty list of string, super: list of string{"a"}, want: true}}
+    cases := list of SubsetCase{
+        SubsetCase{
+        name: "proper subset",
+        sub: list of string{"a"},
+        super: list of string{"a", "b"},
+        want: true,
+    },
+        SubsetCase{
+        name: "equal sets",
+        sub: list of string{"a", "b"},
+        super: list of string{"a", "b"},
+        want: true,
+    },
+        SubsetCase{
+        name: "not a subset",
+        sub: list of string{"a", "c"},
+        super: list of string{"a", "b"},
+        want: false,
+    },
+        SubsetCase{
+        name: "empty is subset of all",
+        sub: empty list of string,
+        super: list of string{"a"},
+        want: true,
+    },
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -203,7 +238,22 @@ type EqualCase
     want bool
 
 func TestEqual(t reference testing.T)
-    cases := list of EqualCase{EqualCase{name: "equal", a: list of string{"a", "b"}, b: list of string{"b", "a"}, want: true}, EqualCase{name: "different elements", a: list of string{"a"}, b: list of string{"b"}, want: false}, EqualCase{name: "different sizes", a: list of string{"a", "b"}, b: list of string{"a"}, want: false}, EqualCase{name: "both empty", a: empty list of string, b: empty list of string, want: true}}
+    cases := list of EqualCase{
+        EqualCase{name: "equal", a: list of string{"a", "b"}, b: list of string{"b", "a"}, want: true},
+        EqualCase{
+        name: "different elements",
+        a: list of string{"a"},
+        b: list of string{"b"},
+        want: false,
+    },
+        EqualCase{
+        name: "different sizes",
+        a: list of string{"a", "b"},
+        b: list of string{"a"},
+        want: false,
+    },
+        EqualCase{name: "both empty", a: empty list of string, b: empty list of string, want: true},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

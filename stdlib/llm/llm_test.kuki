@@ -13,7 +13,10 @@ type GetContentCase
     want string
 
 func TestGetContent(t reference testing.T)
-    cases := list of GetContentCase{GetContentCase{name: "basic content", content: "response text", want: "response text"}, GetContentCase{name: "empty content", content: "", want: ""}}
+    cases := list of GetContentCase{
+        GetContentCase{name: "basic content", content: "response text", want: "response text"},
+        GetContentCase{name: "empty content", content: "", want: ""},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -38,7 +41,9 @@ type GetToolCallsCase
     wantCount int
 
 func TestGetToolCalls(t reference testing.T)
-    cases := list of GetToolCallsCase{GetToolCallsCase{name: "one tool call", callID: "call-1", funcName: "do_thing", wantCount: 1}}
+    cases := list of GetToolCallsCase{
+        GetToolCallsCase{name: "one tool call", callID: "call-1", funcName: "do_thing", wantCount: 1},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -73,7 +78,10 @@ type HasToolCallsCase
     want bool
 
 func TestHasToolCalls(t reference testing.T)
-    cases := list of HasToolCallsCase{HasToolCallsCase{name: "no calls", hasCalls: false, want: false}, HasToolCallsCase{name: "has calls", hasCalls: true, want: true}}
+    cases := list of HasToolCallsCase{
+        HasToolCallsCase{name: "no calls", hasCalls: false, want: false},
+        HasToolCallsCase{name: "has calls", hasCalls: true, want: true},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

@@ -19,7 +19,10 @@ func main()
     server := mcp.New("Kukicha Example", "1.0.0")
 
     # Define the schema for the 'add' tool
-    props := list of mcp.SchemaProperty{mcp.Prop("a", "number", "The first number"), mcp.Prop("b", "number", "The second number")}
+    props := list of mcp.SchemaProperty{
+        mcp.Prop("a", "number", "The first number"),
+        mcp.Prop("b", "number", "The second number"),
+    }
     addSchema := mcp.Schema(props)
     addSchema = mcp.Required(addSchema, list of string{"a", "b"}).(map of string to any)
 

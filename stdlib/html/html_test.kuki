@@ -13,7 +13,10 @@ type RenderCase
     want string
 
 func TestRender(t reference testing.T)
-    cases := list of RenderCase{RenderCase{name: "plain HTML passthrough", input: "<h1>Hello</h1>", want: "<h1>Hello</h1>"}, RenderCase{name: "empty string", input: "", want: ""}}
+    cases := list of RenderCase{
+        RenderCase{name: "plain HTML passthrough", input: "<h1>Hello</h1>", want: "<h1>Hello</h1>"},
+        RenderCase{name: "empty string", input: "", want: ""},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -28,7 +31,16 @@ type EscapeCase
     want string
 
 func TestEscape(t reference testing.T)
-    cases := list of EscapeCase{EscapeCase{name: "escapes script tag", input: "<script>alert('xss')</script>", want: "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"}, EscapeCase{name: "escapes ampersand", input: "rock & roll", want: "rock &amp; roll"}, EscapeCase{name: "escapes double quotes", input: "say \"hello\"", want: "say &#34;hello&#34;"}, EscapeCase{name: "plain text unchanged", input: "hello world", want: "hello world"}}
+    cases := list of EscapeCase{
+        EscapeCase{
+        name: "escapes script tag",
+        input: "<script>alert('xss')</script>",
+        want: "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;",
+    },
+        EscapeCase{name: "escapes ampersand", input: "rock & roll", want: "rock &amp; roll"},
+        EscapeCase{name: "escapes double quotes", input: "say \"hello\"", want: "say &#34;hello&#34;"},
+        EscapeCase{name: "plain text unchanged", input: "hello world", want: "hello world"},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -67,7 +79,10 @@ type IsEmptyCase
     want bool
 
 func TestIsEmpty(t reference testing.T)
-    cases := list of IsEmptyCase{IsEmptyCase{name: "empty fragment", input: "", want: true}, IsEmptyCase{name: "non-empty fragment", input: "<p>hi</p>", want: false}}
+    cases := list of IsEmptyCase{
+        IsEmptyCase{name: "empty fragment", input: "", want: true},
+        IsEmptyCase{name: "non-empty fragment", input: "<p>hi</p>", want: false},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

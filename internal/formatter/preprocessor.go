@@ -187,6 +187,30 @@ func (p *Preprocessor) isExpressionBrace(line string) bool {
 		return true
 	}
 
+	// Extract the identifier immediately before the {. This handles cases
+	// where the type is nested inside a call or other expression, e.g.
+	// `onStatus(StatusUpdate{` — the word-level scan below would pick up
+	// `onStatus(StatusUpdate` and miss that `StatusUpdate` is the type.
+	if ident := trailingIdentifier(beforeBrace); ident != "" {
+		// package.Type or TypeName starting with uppercase is a struct literal
+		name := ident
+		if dot := strings.LastIndex(ident, "."); dot >= 0 {
+			name = ident[dot+1:]
+		}
+		if len(name) > 0 && unicode.IsUpper(rune(name[0])) {
+			// Guard against control-flow constructs like `if Foo{` at the
+			// start of the line. Note: `return Foo{` is always a struct
+			// literal (return cannot introduce a block), so it is not here.
+			controlKeywords := []string{"if", "for", "func", "else", "type", "interface", "switch"}
+			for _, kw := range controlKeywords {
+				if strings.HasPrefix(line, kw+" ") || line == kw {
+					return false
+				}
+			}
+			return true
+		}
+	}
+
 	// Check for slice/array literal with type: []Type{ or [n]Type{
 	// The beforeBrace may have a word like "[]Shape" or "[5]int" which starts with [
 	words := strings.Fields(beforeBrace)
@@ -222,6 +246,24 @@ func (p *Preprocessor) isExpressionBrace(line string) bool {
 	}
 
 	return false
+}
+
+// trailingIdentifier returns the identifier at the end of s (scanning back
+// through [A-Za-z0-9_] and . characters). Returns "" if s ends with a
+// non-identifier character. e.g. "onStatus(StatusUpdate" → "StatusUpdate",
+// "foo.Bar" → "foo.Bar", "x := Foo" → "Foo".
+func trailingIdentifier(s string) string {
+	i := len(s)
+	for i > 0 {
+		r := rune(s[i-1])
+		if r == '_' || r == '.' || unicode.IsLetter(r) || unicode.IsDigit(r) {
+			i--
+			continue
+		}
+		break
+	}
+	ident := strings.Trim(s[i:], ".")
+	return ident
 }
 
 // isTypeName checks if the end of a string looks like a type name for a struct literal

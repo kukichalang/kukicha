@@ -42,7 +42,13 @@ func isHealthy(s DeployStatus) bool
     return false
 
 func main()
-    services := list of Service{Service{name: "api", status: Running{replicas: 3, healthy: 3}}, Service{name: "worker", status: Building{logURL: "https://ci.example.com/builds/1847"}}, Service{name: "web", status: Failed{reason: "OOMKilled", exitCode: 137}}, Service{name: "cron", status: RolledBack{previousVersion: "v2.3.1"}}, Service{name: "ingester", status: Queued{}}}
+    services := list of Service{
+        Service{name: "api", status: Running{replicas: 3, healthy: 3}},
+        Service{name: "worker", status: Building{logURL: "https://ci.example.com/builds/1847"}},
+        Service{name: "web", status: Failed{reason: "OOMKilled", exitCode: 137}},
+        Service{name: "cron", status: RolledBack{previousVersion: "v2.3.1"}},
+        Service{name: "ingester", status: Queued{}},
+    }
 
     print("Deploy status:")
     for svc in services

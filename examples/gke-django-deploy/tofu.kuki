@@ -63,7 +63,10 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
         hasDeletes := logContent |> string.Contains("\"delete\"")
         hasReplaces := logContent |> string.Contains("\"replace\"")
         if hasDeletes or hasReplaces
-            return NeedsApproval{summary: "Plan contains destructive changes — review output above", planFile: planFile}
+            return NeedsApproval{
+                summary: "Plan contains destructive changes — review output above",
+                planFile: planFile,
+            }
 
     # Apply: same dual-output pattern
     applyLog := "/tmp/kukicha-{label}-apply.json"

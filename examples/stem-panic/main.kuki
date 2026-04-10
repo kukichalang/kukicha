@@ -214,9 +214,17 @@ variable shakeIntensity float64 = 0.0
 
 variable levelNames list of string = list of string{"First Steep", "Quality Control", "The Full Blend"}
 
-variable levelDescs list of string = list of string{"Two lanes. Match the order.", "Flaky stations. Use onerr catcher.", "Chain stations. Pick the right lane."}
+variable levelDescs list of string = list of string{
+    "Two lanes. Match the order.",
+    "Flaky stations. Use onerr catcher.",
+    "Chain stations. Pick the right lane.",
+}
 
-variable levelHints list of string = list of string{"|> pipe sends data through functions", "onerr catches errors before they crash", "chain functions in sequence with |>"}
+variable levelHints list of string = list of string{
+    "|> pipe sends data through functions",
+    "onerr catches errors before they crash",
+    "chain functions in sequence with |>",
+}
 
 # ── Helpers ──
 
@@ -284,22 +292,42 @@ func setup()
 
 func setupLevel1()
     # Two lanes: steam and dry
-    stations = list of Station{Station{x: 250.0, lane: 0, funcName: "steam", outputState: StemState.Steamed}, Station{x: 250.0, lane: 1, funcName: "dry", outputState: StemState.Dried}}
+    stations = list of Station{
+        Station{x: 250.0, lane: 0, funcName: "steam", outputState: StemState.Steamed},
+        Station{x: 250.0, lane: 1, funcName: "dry", outputState: StemState.Dried},
+    }
 
     catchers = make(list of Catcher, 0)
 
 func setupLevel2()
     # Three lanes with flaky stations + onerr catchers
-    stations = list of Station{Station{x: 220.0, lane: 0, funcName: "roll", isFlaky: true, outputState: StemState.Rolled}, Station{x: 220.0, lane: 1, funcName: "sort", isFlaky: true, outputState: StemState.Sorted}, Station{x: 220.0, lane: 2, funcName: "dry", isFlaky: true, outputState: StemState.Dried}}
+    stations = list of Station{
+        Station{x: 220.0, lane: 0, funcName: "roll", isFlaky: true, outputState: StemState.Rolled},
+        Station{x: 220.0, lane: 1, funcName: "sort", isFlaky: true, outputState: StemState.Sorted},
+        Station{x: 220.0, lane: 2, funcName: "dry", isFlaky: true, outputState: StemState.Dried},
+    }
 
-    catchers = list of Catcher{Catcher{x: 360.0, lane: 0}, Catcher{x: 360.0, lane: 1}, Catcher{x: 360.0, lane: 2}}
+    catchers = list of Catcher{
+        Catcher{x: 360.0, lane: 0},
+        Catcher{x: 360.0, lane: 1},
+        Catcher{x: 360.0, lane: 2},
+    }
 
 func setupLevel3()
     # Three lanes with multi-station chains
     # Lane 0: harvest |> steam  (produces "steamed")
     # Lane 1: harvest |> dry    (produces "dried")
     # Lane 2: harvest |> steam |> dry |> separate (produces "blended")
-    stations = list of Station{Station{x: 180.0, lane: 0, funcName: "harvest", outputState: StemState.Harvested}, Station{x: 320.0, lane: 0, funcName: "steam", outputState: StemState.Steamed}, Station{x: 180.0, lane: 1, funcName: "harvest", outputState: StemState.Harvested}, Station{x: 320.0, lane: 1, funcName: "dry", outputState: StemState.Dried}, Station{x: 150.0, lane: 2, funcName: "harvest", outputState: StemState.Harvested}, Station{x: 240.0, lane: 2, funcName: "steam", outputState: StemState.Steamed}, Station{x: 340.0, lane: 2, funcName: "dry", outputState: StemState.Dried}, Station{x: 440.0, lane: 2, funcName: "separate", outputState: StemState.Blended}}
+    stations = list of Station{
+        Station{x: 180.0, lane: 0, funcName: "harvest", outputState: StemState.Harvested},
+        Station{x: 320.0, lane: 0, funcName: "steam", outputState: StemState.Steamed},
+        Station{x: 180.0, lane: 1, funcName: "harvest", outputState: StemState.Harvested},
+        Station{x: 320.0, lane: 1, funcName: "dry", outputState: StemState.Dried},
+        Station{x: 150.0, lane: 2, funcName: "harvest", outputState: StemState.Harvested},
+        Station{x: 240.0, lane: 2, funcName: "steam", outputState: StemState.Steamed},
+        Station{x: 340.0, lane: 2, funcName: "dry", outputState: StemState.Dried},
+        Station{x: 440.0, lane: 2, funcName: "separate", outputState: StemState.Blended},
+    }
 
     catchers = make(list of Catcher, 0)
 
@@ -316,14 +344,28 @@ func spawnOrder()
         if lane equals 1
             wantState = StemState.Dried
             wantLabel = "dried"
-        orders = append(orders, Order{lane: lane, wantState: wantState, wantLabel: wantLabel, timer: 480, maxTimer: 480, active: true})
+        orders = append(orders, Order{
+            lane: lane,
+            wantState: wantState,
+            wantLabel: wantLabel,
+            timer: 480,
+            maxTimer: 480,
+            active: true,
+        })
     else if level equals 2
         lane := game.Random(0, 3)
         if activeOrderOnLane(lane) >= 0
             return
         states := list of StemState{StemState.Rolled, StemState.Sorted, StemState.Dried}
         labels := list of string{"rolled", "sorted", "dried"}
-        orders = append(orders, Order{lane: lane, wantState: states[lane], wantLabel: labels[lane], timer: 360, maxTimer: 360, active: true})
+        orders = append(orders, Order{
+            lane: lane,
+            wantState: states[lane],
+            wantLabel: labels[lane],
+            timer: 360,
+            maxTimer: 360,
+            active: true,
+        })
     else if level equals 3
         # Orders for steamed, dried, or blended
         pick := game.Random(0, 3)
@@ -332,7 +374,14 @@ func spawnOrder()
             return
         states := list of StemState{StemState.Steamed, StemState.Dried, StemState.Blended}
         labels := list of string{"steamed", "dried", "blended"}
-        orders = append(orders, Order{lane: lanes[pick], wantState: states[pick], wantLabel: labels[pick], timer: 300, maxTimer: 300, active: true})
+        orders = append(orders, Order{
+            lane: lanes[pick],
+            wantState: states[pick],
+            wantLabel: labels[pick],
+            timer: 300,
+            maxTimer: 300,
+            active: true,
+        })
 
 func activeOrderOnLane(lane int) int
     for i from 0 to len(orders)
@@ -417,7 +466,14 @@ func updatePlaying()
             if stems[i].active and stems[i].lane equals currentLane and stems[i].x < laneStartX + 40.0
                 canSend = false
         if canSend
-            stems = append(stems, Stem{x: laneStartX, y: laneY(currentLane), lane: currentLane, dx: stemSpeed, state: StemState.Raw, active: true})
+            stems = append(stems, Stem{
+                x: laneStartX,
+                y: laneY(currentLane),
+                lane: currentLane,
+                dx: stemSpeed,
+                state: StemState.Raw,
+                active: true,
+            })
 
     # Tea Master movement
     if game.IsKeyPressed(game.KeyUp) and currentLane > 0
@@ -434,7 +490,14 @@ func updatePlaying()
                 canSend = false
 
         if canSend
-            stems = append(stems, Stem{x: laneStartX, y: laneY(currentLane), lane: currentLane, dx: stemSpeed, state: StemState.Raw, active: true})
+            stems = append(stems, Stem{
+                x: laneStartX,
+                y: laneY(currentLane),
+                lane: currentLane,
+                dx: stemSpeed,
+                state: StemState.Raw,
+                active: true,
+            })
 
     # Activate onerr catcher on current lane (level 2)
     if level equals 2
@@ -527,7 +590,12 @@ func checkStationHit(si int)
             continue
 
         # Robust collision check using game.CircleOverlapsRect
-        sRect := game.Rect{X: stations[j].x, Y: laneY(stations[j].lane) - stationH / 2.0, Width: stationW, Height: stationH}
+        sRect := game.Rect{
+            X: stations[j].x,
+            Y: laneY(stations[j].lane) - stationH / 2.0,
+            Width: stationW,
+            Height: stationH,
+        }
         sCircle := game.Circle{X: stems[si].x, Y: stems[si].y, Radius: stemRadius}
 
         if game.CircleOverlapsRect(sCircle, sRect) and stems[si].x < stations[j].x + 10.0

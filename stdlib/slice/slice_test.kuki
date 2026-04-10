@@ -15,7 +15,11 @@ type SliceNCase
 # --- TestFirst ---
 func TestFirst(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{SliceNCase{name: "3 elements", n: 3, wantLen: 3}, SliceNCase{name: "n > length", n: 10, wantLen: 5}, SliceNCase{name: "n=0", n: 0, wantLen: 0}}
+    cases := list of SliceNCase{
+        SliceNCase{name: "3 elements", n: 3, wantLen: 3},
+        SliceNCase{name: "n > length", n: 10, wantLen: 5},
+        SliceNCase{name: "n=0", n: 0, wantLen: 0},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -32,7 +36,11 @@ func TestFirst(t reference testing.T)
 # --- TestLast ---
 func TestLast(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{SliceNCase{name: "2 elements", n: 2, wantLen: 2}, SliceNCase{name: "n > length", n: 10, wantLen: 5}, SliceNCase{name: "n=0", n: 0, wantLen: 0}}
+    cases := list of SliceNCase{
+        SliceNCase{name: "2 elements", n: 2, wantLen: 2},
+        SliceNCase{name: "n > length", n: 10, wantLen: 5},
+        SliceNCase{name: "n=0", n: 0, wantLen: 0},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -49,7 +57,11 @@ func TestLast(t reference testing.T)
 # --- TestDrop ---
 func TestDrop(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{SliceNCase{name: "drop 2", n: 2, wantLen: 3}, SliceNCase{name: "n >= length", n: 10, wantLen: 0}, SliceNCase{name: "n=0", n: 0, wantLen: 5}}
+    cases := list of SliceNCase{
+        SliceNCase{name: "drop 2", n: 2, wantLen: 3},
+        SliceNCase{name: "n >= length", n: 10, wantLen: 0},
+        SliceNCase{name: "n=0", n: 0, wantLen: 5},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -65,7 +77,11 @@ func TestDrop(t reference testing.T)
 # --- TestDropLast ---
 func TestDropLast(t reference testing.T)
     items := list of string{"a", "b", "c", "d", "e"}
-    cases := list of SliceNCase{SliceNCase{name: "drop last 2", n: 2, wantLen: 3}, SliceNCase{name: "n >= length", n: 10, wantLen: 0}, SliceNCase{name: "n=0", n: 0, wantLen: 5}}
+    cases := list of SliceNCase{
+        SliceNCase{name: "drop last 2", n: 2, wantLen: 3},
+        SliceNCase{name: "n >= length", n: 10, wantLen: 0},
+        SliceNCase{name: "n=0", n: 0, wantLen: 5},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -122,7 +138,10 @@ type ContainsCase
 # --- TestContains ---
 func TestContains(t reference testing.T)
     items := list of string{"apple", "banana", "cherry"}
-    cases := list of ContainsCase{ContainsCase{name: "banana present", needle: "banana", want: true}, ContainsCase{name: "grape absent", needle: "grape", want: false}}
+    cases := list of ContainsCase{
+        ContainsCase{name: "banana present", needle: "banana", want: true},
+        ContainsCase{name: "grape absent", needle: "grape", want: false},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -138,7 +157,11 @@ type IndexOfCase
 # --- TestIndexOf ---
 func TestIndexOf(t reference testing.T)
     items := list of string{"a", "b", "c"}
-    cases := list of IndexOfCase{IndexOfCase{name: "b at 1", needle: "b", want: 1}, IndexOfCase{name: "a at 0", needle: "a", want: 0}, IndexOfCase{name: "z not found", needle: "z", want: -1}}
+    cases := list of IndexOfCase{
+        IndexOfCase{name: "b at 1", needle: "b", want: 1},
+        IndexOfCase{name: "a at 0", needle: "a", want: 0},
+        IndexOfCase{name: "z not found", needle: "z", want: -1},
+    }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
