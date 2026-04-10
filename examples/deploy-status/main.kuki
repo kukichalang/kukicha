@@ -1,0 +1,56 @@
+# Example: Variant enums for deployment pipeline status
+# Each deploy state carries different data — no more nullable fields
+# Exhaustive switch ensures every state is handled
+
+import "fmt"
+
+enum DeployStatus
+    Queued
+    Building
+        logURL string
+    Running
+        replicas int
+        healthy int
+    Failed
+        reason string
+        exitCode int
+    RolledBack
+        previousVersion string
+
+type Service
+    name string
+    status DeployStatus
+
+func statusLine(svc Service) string
+    return svc.status |> switch as v
+        when Queued
+            return fmt.Sprintf("  %-12s  waiting", svc.name)
+        when Building
+            return fmt.Sprintf("  %-12s  building  logs: %s", svc.name, v.logURL)
+        when Running
+            return fmt.Sprintf("  %-12s  running   %d/%d healthy", svc.name, v.healthy, v.replicas)
+        when Failed
+            return fmt.Sprintf("  %-12s  FAILED    %s (exit %d)", svc.name, v.reason, v.exitCode)
+        when RolledBack
+            return fmt.Sprintf("  %-12s  rolled back to %s", svc.name, v.previousVersion)
+
+func isHealthy(s DeployStatus) bool
+    switch s as v
+        when Running
+            return v.healthy equals v.replicas
+
+    return false
+
+func main()
+    services := list of Service{Service{name: "api", status: Running{replicas: 3, healthy: 3}}, Service{name: "worker", status: Building{logURL: "https://ci.example.com/builds/1847"}}, Service{name: "web", status: Failed{reason: "OOMKilled", exitCode: 137}}, Service{name: "cron", status: RolledBack{previousVersion: "v2.3.1"}}, Service{name: "ingester", status: Queued{}}}
+
+    print("Deploy status:")
+    for svc in services
+        print(statusLine(svc))
+
+    print("\nHealth check:")
+    for svc in services
+        if isHealthy(svc.status)
+            fmt.Printf("  %s: ok\n", svc.name)
+        else
+            fmt.Printf("  %s: not ready\n", svc.name)

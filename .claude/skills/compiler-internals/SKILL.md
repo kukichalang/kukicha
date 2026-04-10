@@ -276,7 +276,7 @@ Always store the keyword's `lexer.Token` as the first field — it carries line/
 
 The AST stores the body as a `PipedSwitchBody`, implemented by both `*SwitchStmt` and `*TypeSwitchStmt`. `parsePipeExpr()` creates a `PipedSwitchExpr` when it sees `TOKEN_SWITCH` after `|>`, and dispatches to `parseSwitchBody()` or `parseTypeSwitchBody()` depending on whether `as binding` is present.
 
-In codegen, value-producing piped switches are wrapped in an IIFE. Regular piped switches generate `switch left { ... }`; typed piped switches generate `switch v := left.(type) { ... }`. Return-type inference for typed piped switches special-cases `return v` so the IIFE can stay strongly typed instead of falling back to `any`.
+In codegen, value-producing piped switches are wrapped in an IIFE. Regular piped switches generate `switch left { ... }`; typed piped switches generate `switch v := left.(type) { ... }`. Return-type inference for typed piped switches special-cases `return v` so the IIFE can stay strongly typed instead of falling back to `any`. When the IIFE has a return type and the switch has no `otherwise` clause, `generatePipedSwitchExpr` appends `panic("unreachable")` after the switch body inside the IIFE — this satisfies Go's "missing return" check for exhaustive variant switches.
 
 ### Directive
 
@@ -428,7 +428,9 @@ Cross-package enums (from stdlib) are resolved via `GetStdlibEnum(qualifiedName)
 
 ### Variant enum analysis
 
-Variant enums are detected by `EnumDecl.IsVariant()` (first case has no `Value`). `collectVariantEnumDecl()` registers the enum as `TypeKindVariant` with a `VariantCases` map (case name → struct `TypeInfo` with fields). Each case is also registered as a standalone struct type in the symbol table. Mixing value and variant cases is rejected. `checkVariantExhaustiveness()` in `semantic_statements.go` warns when a typed switch on a variant enum misses cases (unless `otherwise` is present).
+Variant enums are detected by `EnumDecl.IsVariant()` (first case has no `Value`). `collectVariantEnumDecl()` registers the enum as `TypeKindVariant` with a `VariantCases` map (case name → struct `TypeInfo` with fields). Each case is also registered as a standalone struct type in the symbol table, with `VariantParent` pointing back to the parent variant `TypeInfo`. Mixing value and variant cases is rejected. `checkVariantExhaustiveness()` in `semantic_statements.go` warns when a typed switch on a variant enum misses cases (unless `otherwise` is present).
+
+**Variant case coercion:** `typesCompatible()` allows variant case types to be used where the parent variant enum type is expected (e.g., `Circle{}` assignable to a `Shape` field). Three rules handle this: (1) direct `TypeKindVariant` vs `TypeKindNamed`/`TypeKindStruct` via `VariantCases` lookup, (2) `TypeKindNamed` vs `TypeKindNamed` via `isVariantCaseOf()` symbol table resolution, and (3) `TypeKindStruct` vs `TypeKindNamed` via `isVariantCaseOf()`. This enables struct fields, map values, and function arguments typed as the parent enum to accept any of its cases.
 
 ### Adding a new security check
 

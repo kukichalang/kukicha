@@ -236,6 +236,15 @@ func (g *Generator) generatePipedSwitchExpr(expr *ast.PipedSwitchExpr) string {
 
 	returnType := g.pipedSwitchReturnType(expr)
 
+	// Check if the switch has no otherwise/default clause
+	hasOtherwise := false
+	switch stmt := expr.Switch.(type) {
+	case *ast.SwitchStmt:
+		hasOtherwise = stmt.Otherwise != nil
+	case *ast.TypeSwitchStmt:
+		hasOtherwise = stmt.Otherwise != nil
+	}
+
 	var result strings.Builder
 	if returnType != "" {
 		fmt.Fprintf(&result, "func() %s {\n", returnType)
@@ -243,6 +252,16 @@ func (g *Generator) generatePipedSwitchExpr(expr *ast.PipedSwitchExpr) string {
 		result.WriteString("func() {\n")
 	}
 	result.WriteString(tempGen.output.String())
+	// When the IIFE has a return type but no default case, Go's compiler
+	// reports "missing return". Add a panic after the switch so Go sees
+	// all paths return. This is safe because Kukicha's semantic analysis
+	// enforces exhaustiveness for variant enums.
+	if returnType != "" && !hasOtherwise {
+		for i := 0; i < g.indent+1; i++ {
+			result.WriteString("\t")
+		}
+		result.WriteString("panic(\"unreachable\")\n")
+	}
 	for i := 0; i < g.indent; i++ {
 		result.WriteString("\t")
 	}

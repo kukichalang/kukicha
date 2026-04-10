@@ -106,6 +106,71 @@ func area(s Shape) float64
 	}
 }
 
+func TestVariantEnum_CaseAssignableToParent_StructField(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+type Drawing
+    name  string
+    shape Shape
+
+func main()
+    d := Drawing{name: "test", shape: Circle{radius: 5.0}}
+    _ = d
+`
+	_, errs := analyzeSource(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected variant case assignable to parent in struct field, got: %v", errs)
+	}
+}
+
+func TestVariantEnum_CaseAssignableToParent_MapValue(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func main()
+    m := map of string to Shape{"a": Circle{radius: 1.0}, "b": Point{}}
+    _ = m
+`
+	_, errs := analyzeSource(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected variant case assignable to parent in map value, got: %v", errs)
+	}
+}
+
+func TestVariantEnum_CaseNotAssignableToWrongParent(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+
+enum Color
+    Red
+    Blue
+
+type Drawing
+    shape Shape
+
+func main()
+    d := Drawing{shape: Red{}}
+    _ = d
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "cannot use") && strings.Contains(e.Error(), "Red") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected error assigning wrong variant case to struct field, got: %v", errs)
+	}
+}
+
 func TestVariantEnum_ExhaustivenessAllCovered(t *testing.T) {
 	input := `enum Shape
     Circle

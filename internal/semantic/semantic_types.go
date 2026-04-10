@@ -242,6 +242,38 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 			return true
 		}
 
+		// Variant case → parent variant compatibility (e.g., Circle assignable to Shape)
+		// Check if the named/struct type is a known case of the variant enum.
+		if t1.Kind == TypeKindVariant && (t2.Kind == TypeKindNamed || t2.Kind == TypeKindStruct) {
+			if _, ok := t1.VariantCases[t2.Name]; ok {
+				return true
+			}
+		}
+		if t2.Kind == TypeKindVariant && (t1.Kind == TypeKindNamed || t1.Kind == TypeKindStruct) {
+			if _, ok := t2.VariantCases[t1.Name]; ok {
+				return true
+			}
+		}
+
+		// Variant case ↔ parent variant when both sides resolve as TypeKindNamed
+		// (e.g., struct field typed DeployStatus receives Running{}).
+		// Resolve through the symbol table to find the variant relationship.
+		if t1.Kind == TypeKindNamed && t2.Kind == TypeKindNamed && t1.Name != t2.Name {
+			if a.isVariantCaseOf(t2.Name, t1.Name) || a.isVariantCaseOf(t1.Name, t2.Name) {
+				return true
+			}
+		}
+		if t1.Kind == TypeKindStruct && t2.Kind == TypeKindNamed {
+			if a.isVariantCaseOf(t1.Name, t2.Name) {
+				return true
+			}
+		}
+		if t2.Kind == TypeKindStruct && t1.Kind == TypeKindNamed {
+			if a.isVariantCaseOf(t2.Name, t1.Name) {
+				return true
+			}
+		}
+
 		// Interface types are compatible with named types (defer structural
 		// check to Go compiler — we can't verify interface satisfaction here)
 		if t1.Kind == TypeKindInterface || t2.Kind == TypeKindInterface {
@@ -280,17 +312,35 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 		// Allow unqualified vs qualified name match (e.g., "Handle" == "ctx.Handle")
 		// only when at least one side is unqualified (no package prefix).
 		if !strings.Contains(t1.Name, ".") || !strings.Contains(t2.Name, ".") {
-			return unqualifiedName(t1.Name) == unqualifiedName(t2.Name)
+			if unqualifiedName(t1.Name) == unqualifiedName(t2.Name) {
+				return true
+			}
 		}
 		// Both qualified — resolve import aliases before comparing
 		// (e.g., "ctxpkg.Handle" and "ctx.Handle" are the same type)
 		if a.resolveQualifiedName(t1.Name) == a.resolveQualifiedName(t2.Name) {
 			return true
 		}
+		// Variant case ↔ parent: one name may be a variant enum whose
+		// cases include the other name (e.g., "Circle" is a case of "Shape").
+		if a.isVariantCaseOf(t2.Name, t1.Name) || a.isVariantCaseOf(t1.Name, t2.Name) {
+			return true
+		}
 		return false
 	default:
 		return true
 	}
+}
+
+// isVariantCaseOf checks whether caseName is a variant case of parentName
+// by resolving parentName in the symbol table and checking its VariantCases.
+func (a *Analyzer) isVariantCaseOf(caseName, parentName string) bool {
+	sym := a.symbolTable.Resolve(parentName)
+	if sym == nil || sym.Type == nil || sym.Type.Kind != TypeKindVariant {
+		return false
+	}
+	_, ok := sym.Type.VariantCases[caseName]
+	return ok
 }
 
 // unqualifiedName strips the package prefix from a qualified type name.

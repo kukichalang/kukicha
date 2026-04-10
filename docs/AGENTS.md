@@ -196,6 +196,7 @@ func area(s Shape) float64
 
 - Cases without `=` are variant cases (data-carrying or unit)
 - Each case becomes a Go struct implementing a sealed interface
+- Variant cases are assignable to the parent enum type (struct fields, map values, function args)
 - `switch s as v` + `when CaseName` for pattern matching
 - Compiler warns if switch misses variant cases (unless `otherwise` present)
 - Cannot mix value cases (`= literal`) and variant cases in the same enum

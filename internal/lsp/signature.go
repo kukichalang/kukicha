@@ -56,7 +56,6 @@ func findCallContext(line string, col int) (string, int) {
 	// Count commas at current paren depth to determine active parameter
 	commas := 0
 	depth := 0
-	parenPos := -1
 
 	for i := col - 1; i >= 0; i-- {
 		switch line[i] {
@@ -64,8 +63,27 @@ func findCallContext(line string, col int) (string, int) {
 			depth++
 		case '(':
 			if depth == 0 {
-				parenPos = i
-				goto found
+				// Extract function name before the paren
+				end := i
+				for end > 0 && line[end-1] == ' ' {
+					end--
+				}
+				start := end
+				for start > 0 && isIdentifierChar(line[start-1]) {
+					start--
+				}
+				if start == end {
+					return "", 0
+				}
+
+				funcName := line[start:end]
+
+				// Handle dotted method names — we want just the method name
+				if dotIdx := strings.LastIndex(funcName, "."); dotIdx >= 0 {
+					funcName = funcName[dotIdx+1:]
+				}
+
+				return funcName, commas
 			}
 			depth--
 		case ',':
@@ -75,25 +93,6 @@ func findCallContext(line string, col int) (string, int) {
 		}
 	}
 	return "", 0
-
-found:
-	// Extract function name before the paren
-	end := parenPos
-	for end > 0 && line[end-1] == ' ' {
-		end--
-	}
-	start := end
-	for start > 0 && isIdentifierChar(line[start-1]) {
-		start--
-	}
-	if start == end {
-		return "", 0
-	}
-
-	// Handle method calls: skip past the dot and object
-	name := line[start:end]
-
-	return name, commas
 }
 
 // findSignature looks up a function by name in builtins, then AST declarations.
@@ -135,7 +134,7 @@ func builtinToSignature(b BuiltinInfo) *golsp.SignatureInformation {
 	if start >= 0 && end > start {
 		paramStr := b.Signature[start+1 : end]
 		if paramStr != "" {
-			for _, p := range strings.Split(paramStr, ", ") {
+			for p := range strings.SplitSeq(paramStr, ", ") {
 				sig.Parameters = append(sig.Parameters, golsp.ParameterInformation{
 					Label: strings.TrimSpace(p),
 				})

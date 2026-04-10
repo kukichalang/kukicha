@@ -107,6 +107,54 @@ func area(s Shape) float64
 	}
 }
 
+func TestVariantEnum_PipedSwitchIIFE_PanicUnreachable(t *testing.T) {
+	// When a piped switch expression is used as a return value with no
+	// otherwise clause, the generated IIFE must include panic("unreachable")
+	// so Go's compiler doesn't report "missing return".
+	input := `import "fmt"
+
+enum Shape
+    Circle
+        radius float64
+    Point
+
+func describe(s Shape) string
+    return s |> switch as v
+        when Circle
+            return fmt.Sprintf("circle r=%.1f", v.radius)
+        when Point
+            return "point"
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, `panic("unreachable")`) {
+		t.Errorf("expected panic(\"unreachable\") in IIFE without otherwise, got:\n%s", output)
+	}
+}
+
+func TestVariantEnum_PipedSwitchIIFE_NoPanicWithOtherwise(t *testing.T) {
+	// When otherwise is present, no panic should be injected
+	input := `import "fmt"
+
+enum Shape
+    Circle
+        radius float64
+    Point
+
+func describe(s Shape) string
+    return s |> switch as v
+        when Circle
+            return fmt.Sprintf("circle r=%.1f", v.radius)
+        otherwise
+            return "other"
+`
+	output := generateSource(t, input)
+
+	if strings.Contains(output, `panic("unreachable")`) {
+		t.Errorf("should not have panic when otherwise is present, got:\n%s", output)
+	}
+}
+
 func TestVariantEnum_NoConstBlock(t *testing.T) {
 	// Variant enums must NOT emit a const block (that's for value enums only)
 	input := `enum Shape

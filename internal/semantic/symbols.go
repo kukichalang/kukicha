@@ -129,6 +129,7 @@ type TypeInfo struct {
 	Methods      map[string]*TypeInfo // For structs: method name → function TypeInfo
 	EnumCases    map[string]*TypeInfo // For enums: case name → case type (the enum type itself)
 	VariantCases map[string]*TypeInfo // For variant enums: case name → struct TypeInfo with fields
+	VariantParent *TypeInfo           // For variant case structs: pointer to the parent variant enum type
 }
 
 func (ti *TypeInfo) String() string {

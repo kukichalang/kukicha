@@ -36,10 +36,7 @@ func (s *Server) handleFormatting(ctx context.Context, req *jsonrpc2.Request) ([
 	}
 
 	// Replace entire document content
-	lastLine := len(doc.Lines) - 1
-	if lastLine < 0 {
-		lastLine = 0
-	}
+	lastLine := max(len(doc.Lines)-1, 0)
 	lastChar := 0
 	if lastLine < len(doc.Lines) {
 		lastChar = len(doc.Lines[lastLine])

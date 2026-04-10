@@ -571,9 +571,10 @@ func (a *Analyzer) collectVariantEnumDecl(decl *ast.EnumDecl) {
 			fields[f.Name.Value] = a.typeAnnotationToTypeInfo(f.Type)
 		}
 		caseType := &TypeInfo{
-			Kind:   TypeKindStruct,
-			Name:   c.Name.Value,
-			Fields: fields,
+			Kind:          TypeKindStruct,
+			Name:          c.Name.Value,
+			Fields:        fields,
+			VariantParent: variantType,
 		}
 		variantType.VariantCases[c.Name.Value] = caseType
 

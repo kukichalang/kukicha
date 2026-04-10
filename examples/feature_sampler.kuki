@@ -1,4 +1,7 @@
+import "fmt"
 import "stdlib/slice"
+import "stdlib/set"
+import "stdlib/maps"
 
 func Do(f func(string))
     f("hello")
@@ -57,5 +60,36 @@ func TestFeatures()
             return "other"
 
     print("Piped Switch Result: {res2}")
+
+    # 6. Set operations — deduplicate and compare
+    print("\nSet operations:")
+    admins := set.From(list of string{"alice", "bob"})
+    oncall := set.From(list of string{"bob", "charlie"})
+
+    overlap := set.Intersect(admins, oncall)
+    print("Admin + oncall overlap: {set.ToSlice(overlap)}")
+
+    allPeople := set.Union(admins, oncall)
+    print("All people: {set.ToSlice(allPeople)}")
+
+    adminsOnly := set.Difference(admins, oncall)
+    print("Admins not on call: {set.ToSlice(adminsOnly)}")
+
+    if set.Contains(oncall, "charlie")
+        print("Charlie is on call")
+
+    # 7. Map utilities — filter, pick, omit
+    print("\nMap utilities:")
+    config := map of any to any{"host" as any: "db.example.com" as any, "port" as any: 5432 as any, "password" as any: "hunter2" as any, "sslmode" as any: "require" as any}
+
+    safe := maps.Omit(config, list of any{"password" as any})
+    print("Safe config (password omitted):")
+    for k in maps.SortedKeys(safe)
+        fmt.Printf("  %s = %v\n", k, safe[k])
+
+    connInfo := maps.Pick(config, list of any{"host" as any, "port" as any})
+    print("Connection info:")
+    for k in maps.SortedKeys(connInfo)
+        fmt.Printf("  %s = %v\n", k, connInfo[k])
 
     print("\nDone!")
