@@ -119,3 +119,10 @@ Yes. `kukicha brew` converts `.kuki` files to standalone, idiomatic Go — no Ku
 ### Which languages was this inspired by?
 
 Besides Go, so far Python, Elixir, and Nim.
+
+Kukicha also draws inspiration from several Go-adjacent transpiler projects:
+[soppo](https://github.com/halcyonnouveau/soppo) (nil-safety, exhaustive pattern matching, `?` error propagation),
+[dingo](https://github.com/MadAppGang/dingo) (result types, sum types, watch mode, lambda inference),
+[gala](https://github.com/martianoff/gala) (sealed types, Option/Either/Try, LSP architecture), and
+[sky](https://github.com/anzellai/sky) (Hindley-Milner inference, ADTs, applicative combinators).
+These communities are each scratching their own itch — we respect their work and learn from it.
