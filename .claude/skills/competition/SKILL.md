@@ -48,7 +48,7 @@ If nothing is new, report "No new releases since last scan on `<last_scan>`" and
 ### Step 4 — Analyse each new release
 
 For every new release, apply the Analysis Lens below and record findings.
-Group findings under: **Compiler**, **LSP/Tooling**, **Language Features**, **DX/UX**.
+Group findings under: **Compiler**, **LSP/Tooling**, **Language Features**, **Stdlib**, **DX/UX**.
 
 ### Step 5 — Update the tracking file
 
@@ -72,6 +72,8 @@ Produce a short markdown report:
 #### LSP / Tooling
 - ...
 #### Language Features
+- ...
+#### Stdlib
 - ...
 #### DX / UX
 - ...
@@ -115,6 +117,19 @@ learn from. Map each finding to one of these buckets:
 - Error propagation operators (`?`, `onerr` cousins)
 - Hindley-Milner inference (where applicable to Kukicha's typed model)
 - Immutability-by-default for value types
+
+### Stdlib
+
+Look for packages or functions in competitor stdlibs that Kukicha's `stdlib/` is missing or could improve. Cross-reference against the existing Kukicha stdlib packages before flagging — avoid duplicating what's already there. When a finding is actionable, follow the `/stdlib` skill rules (security directives, `make genstdlibregistry`, etc.).
+
+- **Collection helpers**: `map`, `filter`, `reduce`, `flatMap`, `zip`, `partition` on slices and maps — gap-fill for `stdlib/slice` and `stdlib/maps`
+- **Result / Option types**: combinator functions (`map`, `flatMap`, `orElse`, `unwrapOr`) that wrap Go's `(T, error)` pattern into a chainable form
+- **JSON ergonomics**: typed decode helpers, streaming, schema validation — improvements to `stdlib/json`
+- **Concurrency primitives**: worker pools, fan-out/fan-in, rate limiters, cancellable tasks — additions to `stdlib/sync` or new packages
+- **String utilities**: slugify, truncate, pad, word-wrap, template helpers — `stdlib/str` gaps
+- **Math / numeric**: clamping, rounding modes, safe integer ops — `stdlib/math` gaps
+- **Time / duration helpers**: humanise, parse natural language, truncate to boundary — `stdlib/time` gaps
+- **Security-adjacent**: constant-time comparison, secure random, base64url — note any `# kuki:security` directives competitors attach to dangerous functions
 
 ### DX / UX
 - CRLF / Windows line-ending handling in lexer
