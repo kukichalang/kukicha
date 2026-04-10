@@ -17,7 +17,7 @@ type ToolRoute
 type BridgeServer
     Name string
     URL string
-    Session mcp.ClientSession
+    Session reference mcp.ClientSession
     Tools list of mcp.ClientTool
 
 type Bridge
@@ -50,7 +50,7 @@ func connectBridges(ctx context.Context, configs map of string to MCPServerConfi
 
     return b, empty
 
-func connectOne(ctx context.Context, cfg MCPServerConfig) (mcp.ClientSession, error)
+func connectOne(ctx context.Context, cfg MCPServerConfig) (reference mcp.ClientSession, error)
     if cfg.APIKey isnt ""
         return mcp.BearerConnect(ctx, cfg.URL, cfg.APIKey)
 
@@ -90,29 +90,22 @@ func callBridgeTool(ctx context.Context, b reference Bridge, name string, argsJS
     if not ok
         return "", error "unknown tool: {name}"
 
-    found := false
-    session := mcp.ClientSession{}
     for _, s in b.Servers
         if s.Name equals route.ServerName
-            session = s.Session
-            found = true
-            break
+            args := make(map of string to any)
+            if argsJSON isnt "" and argsJSON isnt "{}"
+                jsonpkg.UnmarshalString(argsJSON, reference of args) onerr return "", error "invalid tool arguments: {error}"
 
-    if not found
-        return "", error "server {route.ServerName} not connected"
+            result, err := mcp.CallTool(ctx, s.Session, route.OriginalName, args)
+            if err isnt empty
+                return "", err
 
-    args := make(map of string to any)
-    if argsJSON isnt "" and argsJSON isnt "{}"
-        jsonpkg.UnmarshalString(argsJSON, reference of args) onerr return "", error "invalid tool arguments: {error}"
+            if result.IsError
+                return "ERROR: {result.Text}", empty
 
-    result, err := mcp.CallTool(ctx, session, route.OriginalName, args)
-    if err isnt empty
-        return "", err
+            return result.Text, empty
 
-    if result.IsError
-        return "ERROR: {result.Text}", empty
-
-    return result.Text, empty
+    return "", error "server {route.ServerName} not connected"
 
 func sanitizeName(name string) string
     result := strpkg.ReplaceAll(name, "/", "_")
