@@ -11,166 +11,166 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:13
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:13
 func TestDiscoverMissing(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:14
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:14
 	result, err_1 := skills.Discover("/nonexistent-xyzzy-path-for-skills-test")
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:14
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:14
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:14
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:15
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:14
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:15
 		t.Fatal(fmt.Sprintf("expected no error for missing dir, got: %v", err_1))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:16
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:16
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:18
 	test.AssertEqual(t, len(result), 0)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:21
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:21
 func TestDiscover(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:22
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:22
 	dir, err_2 := os.MkdirTemp("", "skills_test_")
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:22
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:22
 	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:22
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:23
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:22
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:23
 		t.Fatal(fmt.Sprintf("MkdirTemp: %v", err_2))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:24
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:24
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:26
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:26
 	defer os.RemoveAll(dir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:29
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:29
 	changelogDir := filepath.Join(dir, "changelog")
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:30
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:30
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:30
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:30
 	err_3 := os.MkdirAll(changelogDir, 0o755)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:30
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:30
 	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:30
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:31
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:30
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:31
 		t.Fatal(fmt.Sprintf("MkdirAll changelog: %v", err_3))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:32
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:32
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:34
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:34
 	changelogContent := "# Changelog\nGenerates CHANGELOG.md entries."
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:35
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:35
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:35
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:35
 	err_4 := os.WriteFile(filepath.Join(changelogDir, "SKILL.md"), []byte(changelogContent), 0o644)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:35
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:35
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:35
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:36
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:35
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:36
 		t.Fatal(fmt.Sprintf("WriteFile changelog: %v", err_4))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:37
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:37
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:40
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:40
 	releaseDir := filepath.Join(dir, "release")
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:41
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:41
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:41
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:41
 	err_5 := os.MkdirAll(releaseDir, 0o755)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:41
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:41
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:41
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:42
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:41
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:42
 		t.Fatal(fmt.Sprintf("MkdirAll release: %v", err_5))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:43
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:43
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:45
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:45
 	releaseContent := "# Release\nCuts a release."
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:46
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:46
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:46
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:46
 	err_6 := os.WriteFile(filepath.Join(releaseDir, "SKILL.md"), []byte(releaseContent), 0o644)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:46
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:46
 	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:46
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:47
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:46
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:47
 		t.Fatal(fmt.Sprintf("WriteFile release: %v", err_6))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:48
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:48
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:51
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:51
 	_ = os.WriteFile(filepath.Join(changelogDir, "README.md"), []byte("ignore me"), 0o644)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:53
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:53
 	result, err_7 := skills.Discover(dir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:53
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:53
 	if err_7 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:53
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:54
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:53
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:54
 		t.Fatal(fmt.Sprintf("Discover: %v", err_7))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:55
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:55
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:57
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:57
 	test.AssertEqual(t, len(result), 2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:59
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:59
 	foundChangelog := false
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:60
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:60
 	for _, s := range result {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:61
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:61
 		if s.Name == "changelog" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:62
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:62
 			foundChangelog = true
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:63
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:63
 			test.AssertEqual(t, s.Content, changelogContent)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:64
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:64
 	test.AssertTrue(t, foundChangelog)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:68
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:68
 func TestAgentSkillsMissing(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:69
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:69
 	origDir, err_8 := os.Getwd()
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:69
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:69
 	if err_8 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:69
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:70
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:69
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:70
 		t.Fatal(fmt.Sprintf("Getwd: %v", err_8))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:71
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:71
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:73
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:73
 	tmpDir, err_9 := os.MkdirTemp("", "skills_agent_test_")
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:73
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:73
 	if err_9 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:73
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:74
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:73
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:74
 		t.Fatal(fmt.Sprintf("MkdirTemp: %v", err_9))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:75
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:75
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:77
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:77
 	defer os.RemoveAll(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:79
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:79
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:79
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:79
 	err_10 := os.Chdir(tmpDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:79
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:79
 	if err_10 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:79
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:80
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:79
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:80
 		t.Fatal(fmt.Sprintf("Chdir: %v", err_10))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:81
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:81
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:83
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:83
 	defer os.Chdir(origDir)
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:85
 	result, err_11 := skills.AgentSkills()
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:85
 	if err_11 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:85
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:86
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:85
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:86
 		t.Fatal(fmt.Sprintf("AgentSkills: %v", err_11))
-		//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:87
+		//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:87
 		return
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/skills/skills_test.kuki:89
+//line /home/runner/work/kukicha/kukicha/stdlib/skills/skills_test.kuki:89
 	test.AssertEqual(t, len(result), 0)
 }

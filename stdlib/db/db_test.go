@@ -11,523 +11,523 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:11
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:11
 type User struct {
 	Id    int64  `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:16
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:16
 func setupTestDB(t *testing.T) db.Pool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:17
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:17
 	pool, err_1 := db.Open("sqlite3", ":memory:")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:17
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:17
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:17
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:17
 		panic(fmt.Sprintf("open failed: %v", err_1))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:18
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:18
 	_, err_2 := db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:18
 	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:18
 		panic(fmt.Sprintf("create failed: %v", err_2))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:19
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:19
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:19
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:19
 	_, err_3 := db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 1, "Alice", "alice@example.com")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:19
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:19
 	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:19
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:19
 		panic(fmt.Sprintf("insert failed: %v", err_3))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:20
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:20
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:20
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:20
 	_, err_4 := db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 2, "Bob", "bob@example.com")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:20
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:20
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:20
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:20
 		panic(fmt.Sprintf("insert failed: %v", err_4))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:21
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:21
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:21
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:21
 	_, err_5 := db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 3, "Charlie", "charlie@example.com")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:21
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:21
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:21
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:21
 		panic(fmt.Sprintf("insert failed: %v", err_5))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:22
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:22
 	return pool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:25
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:25
 type OpenCloseCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:28
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:28
 func TestOpenAndClose(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:29
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:29
 	cases := []OpenCloseCase{OpenCloseCase{name: "open and close in-memory"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:31
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:31
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:32
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:32
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:33
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:33
 			pool, err_1 := db.Open("sqlite3", ":memory:")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:33
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:33
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:33
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:33
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:34
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:34
 			err := db.Ping(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:35
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:35
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:36
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:36
 			err = db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:37
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:37
 			test.AssertNoError(t, err)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:41
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:41
 type OpenInvalidCase struct {
 	name    string
 	driver  string
 	connStr string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:46
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:46
 func TestOpenInvalidDriver(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:47
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:47
 	cases := []OpenInvalidCase{OpenInvalidCase{name: "unknown driver", driver: "nosuchdriver", connStr: ""}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:49
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:49
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:50
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:50
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:51
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:51
 			_, err := db.Open(tc.driver, tc.connStr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:52
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:52
 			test.AssertError(t, err)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:56
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:56
 type ExecCase struct {
 	name         string
 	query        string
 	wantAffected int64
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:61
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:61
 func TestExec(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:62
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:62
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:63
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:63
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:64
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:64
 	cases := []ExecCase{ExecCase{name: "update one row", query: "UPDATE users SET name = 'Alice2' WHERE id = 1", wantAffected: 1}, ExecCase{name: "delete one row", query: "DELETE FROM users WHERE id = 2", wantAffected: 1}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:66
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:66
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:67
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:67
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:68
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:68
 			affected, err_1 := db.Exec(pool, tc.query)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:68
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:68
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:68
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:68
 				panic(fmt.Sprintf("exec: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:69
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:69
 			test.AssertEqual(t, affected, tc.wantAffected)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:73
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:73
 type ScanAllCase struct {
 	name    string
 	query   string
 	wantLen int
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:78
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:78
 func TestScanAll(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:79
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:79
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:80
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:80
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:81
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:81
 	cases := []ScanAllCase{ScanAllCase{name: "all users", query: "SELECT id, name, email FROM users ORDER BY id", wantLen: 3}, ScanAllCase{name: "filtered", query: "SELECT id, name, email FROM users WHERE id = 1", wantLen: 1}, ScanAllCase{name: "no results", query: "SELECT id, name, email FROM users WHERE id = 999", wantLen: 0}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:83
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:83
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:84
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:84
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 			// pipe step 1: db.Query(...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 			pipe_1, err_2 := db.Query(pool, tc.query)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 			if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 				panic(fmt.Sprintf("scan: %v", err_2))
 			}
 			// pipe step 2: db.ScanAll(...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 			result, err_4 := db.ScanAll(pipe_1, []User{})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 			if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:85
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:85
 				panic(fmt.Sprintf("scan: %v", err_4))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:87
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:87
 			users := result.([]User)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:88
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:88
 			test.AssertEqual(t, len(users), tc.wantLen)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:92
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:92
 type ScanAllValuesCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:95
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:95
 func TestScanAllValues(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:96
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:96
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:97
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:97
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:98
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:98
 	cases := []ScanAllValuesCase{ScanAllValuesCase{name: "verify field values"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:100
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:100
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:101
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:101
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:102
 			// pipe step 1: db.Query(...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:102
 			pipe_1, err_2 := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:103
 			if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:103
 				panic(fmt.Sprintf("scan: %v", err_2))
 			}
 			// pipe step 2: db.ScanAll(...)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:103
 			result, err_4 := db.ScanAll(pipe_1, []User{})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:103
 			if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:103
 				panic(fmt.Sprintf("scan: %v", err_4))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:104
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:105
 			users := result.([]User)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:105
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:106
 			test.AssertEqual(t, len(users), 1)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:106
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:107
 			test.AssertEqual(t, users[0].Id, int64(1))
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:107
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:108
 			test.AssertEqual(t, users[0].Name, "Alice")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:108
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:109
 			test.AssertEqual(t, users[0].Email, "alice@example.com")
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:112
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:113
 type ScanOneCase struct {
 	name    string
 	query   string
 	wantErr bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:117
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:118
 func TestScanOne(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:118
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:119
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:119
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:120
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:120
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:121
 	cases := []ScanOneCase{ScanOneCase{name: "one row", query: "SELECT id, name, email FROM users WHERE id = 1", wantErr: false}, ScanOneCase{name: "no rows", query: "SELECT id, name, email FROM users WHERE id = 999", wantErr: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:122
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:123
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:123
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:124
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:124
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:125
 			result, err := db.ScanOne(func() db.Rows { val, _ := db.Query(pool, tc.query); return val }(), User{})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:125
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:126
 			if tc.wantErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:126
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:127
 				test.AssertError(t, err)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:128
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:129
 				test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:129
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:130
 				user := result.(User)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:130
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:131
 				test.AssertEqual(t, user.Id, int64(1))
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:131
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:132
 				test.AssertEqual(t, user.Name, "Alice")
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:135
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:136
 type ScanRowCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:138
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:139
 func TestScanRow(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:139
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:140
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:140
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:141
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:141
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:142
 	cases := []ScanRowCase{ScanRowCase{name: "single row via QueryRow"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:143
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:144
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:144
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:145
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:145
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:146
 			row := db.QueryRow(pool, "SELECT id, name, email FROM users WHERE id = 1")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:146
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:147
 			result, err_1 := db.ScanRow(row, User{})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:146
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:147
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:146
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:147
 				panic(fmt.Sprintf("scan: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:147
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:148
 			user := result.(User)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:148
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:149
 			test.AssertEqual(t, user.Name, "Alice")
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:152
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:153
 type TransactionCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:155
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:156
 func TestTransaction(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:156
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:157
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:157
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:158
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:158
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:159
 	cases := []TransactionCase{TransactionCase{name: "commit on success"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:160
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:161
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:161
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:162
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:162
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:163
 			err := db.Transaction(pool, func(tx db.Tx) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:163
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:163
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:164
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:164
 				_, err_1 := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:163
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:164
 				if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:163
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:164
 					return err_1
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:164
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:165
 				return nil
 			})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:167
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:168
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:169
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:170
 			found, err_1 := db.Exists(pool, "SELECT 1 FROM users WHERE id = 4")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:169
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:170
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:169
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:170
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:170
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:171
 			test.AssertTrue(t, found)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:174
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:175
 type TransactionRollbackCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:177
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:178
 func TestTransactionRollback(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:178
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:179
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:179
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:180
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:180
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:181
 	cases := []TransactionRollbackCase{TransactionRollbackCase{name: "rollback on error"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:182
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:183
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:183
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:184
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:184
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:185
 			err := db.Transaction(pool, func(tx db.Tx) error {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:185
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:185
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:186
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:186
 				_, err_1 := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:185
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:186
 				if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:185
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:186
 					return err_1
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:186
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:187
 				return errors.New("deliberate rollback")
 			})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:189
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:190
 			test.AssertError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:191
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:192
 			found, err_1 := db.Exists(pool, "SELECT 1 FROM users WHERE id = 5")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:191
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:192
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:191
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:192
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:192
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:193
 			test.AssertFalse(t, found)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:196
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:197
 type CountCase struct {
 	name      string
 	query     string
 	wantCount int64
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:201
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:202
 func TestCount(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:202
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:203
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:203
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:204
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:204
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:205
 	cases := []CountCase{CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3}, CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:206
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:207
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:207
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:208
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:208
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:209
 			n, err_1 := db.Count(pool, tc.query)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:208
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:209
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:208
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:209
 				panic(fmt.Sprintf("count: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:209
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:210
 			test.AssertEqual(t, n, tc.wantCount)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:213
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:214
 type ExistsCase struct {
 	name       string
 	query      string
 	wantExists bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:218
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:219
 func TestExists(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:219
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:220
 	pool := setupTestDB(t)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:220
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:221
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:221
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:222
 	cases := []ExistsCase{ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true}, ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:223
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:224
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:224
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:225
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:225
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:226
 			found, err_1 := db.Exists(pool, tc.query)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:225
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:226
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:225
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:226
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:226
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:227
 			test.AssertEqual(t, found, tc.wantExists)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:230
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:231
 type NullUser struct {
 	Id   int64  `json:"id"`
 	Name string `json:"name"`
 	Bio  string `json:"bio"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:235
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:236
 type NullCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:238
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:239
 func TestNullHandling(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:239
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:240
 	pool, err_6 := db.Open("sqlite3", ":memory:")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:239
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:240
 	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:239
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:240
 		panic(fmt.Sprintf("open: %v", err_6))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:240
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:241
 	defer db.Close(pool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:241
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:241
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:242
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:242
 	_, err_7 := db.Exec(pool, "CREATE TABLE null_test (id INTEGER PRIMARY KEY, name TEXT, bio TEXT)")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:241
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:242
 	if err_7 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:241
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:242
 		panic(fmt.Sprintf("create: %v", err_7))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:242
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:242
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:243
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:243
 	_, err_8 := db.Exec(pool, "INSERT INTO null_test (id, name) VALUES (?, ?)", 1, "Alice")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:242
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:243
 	if err_8 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:242
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:243
 		panic(fmt.Sprintf("insert: %v", err_8))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:244
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:245
 	cases := []NullCase{NullCase{name: "null becomes zero value"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:246
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:247
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:247
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:248
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:248
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:249
 			row := db.QueryRow(pool, "SELECT id, name, bio FROM null_test WHERE id = 1")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:249
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:250
 			result, err_1 := db.ScanRow(row, NullUser{})
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:249
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:250
 			if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:249
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:250
 				panic(fmt.Sprintf("scan: %v", err_1))
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:250
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:251
 			user := result.(NullUser)
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:251
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:252
 			test.AssertEqual(t, user.Name, "Alice")
-//line /var/home/tluker/repos/go/kukicha/stdlib/db/db_test.kuki:252
+//line /home/runner/work/kukicha/kukicha/stdlib/db/db_test.kuki:253
 			test.AssertEqual(t, user.Bio, "")
 		})
 	}

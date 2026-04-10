@@ -9,183 +9,183 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:10
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:10
 type RenderCase struct {
 	name  string
 	input string
 	want  string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:15
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:15
 func TestRender(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:16
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:16
 	cases := []RenderCase{RenderCase{name: "plain HTML passthrough", input: "<h1>Hello</h1>", want: "<h1>Hello</h1>"}, RenderCase{name: "empty string", input: "", want: ""}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:18
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:19
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:19
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:20
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:20
 			f := html.Render(tc.input)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:21
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:21
 			test.AssertEqual(t, html.String(f), tc.want)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:25
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:25
 type EscapeCase struct {
 	name  string
 	input string
 	want  string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:30
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:30
 func TestEscape(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:31
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:31
 	cases := []EscapeCase{EscapeCase{name: "escapes script tag", input: "<script>alert('xss')</script>", want: "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"}, EscapeCase{name: "escapes ampersand", input: "rock & roll", want: "rock &amp; roll"}, EscapeCase{name: "escapes double quotes", input: "say \"hello\"", want: "say &#34;hello&#34;"}, EscapeCase{name: "plain text unchanged", input: "hello world", want: "hello world"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:33
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:33
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:34
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:34
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:35
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:35
 			result := html.Escape(tc.input)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:36
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:36
 			test.AssertEqual(t, result, tc.want)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:40
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:40
 func TestAttr(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:41
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:41
 	result := html.Attr("value with \"quotes\"")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:42
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:42
 	test.AssertEqual(t, result, "value with &#34;quotes&#34;")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:45
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:45
 func TestEmbed(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:46
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:46
 	child := html.Render("<p>inner</p>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:47
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:47
 	raw := html.Embed(child)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:48
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:48
 	test.AssertEqual(t, raw, "<p>inner</p>")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:51
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:51
 func TestJoin(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:52
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:52
 	a := html.Render("<h1>Title</h1>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:53
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:53
 	b := html.Render("<p>Body</p>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:54
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:54
 	c := html.Render("<footer>End</footer>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:55
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:55
 	result := html.Join(a, b, c)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:56
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:56
 	test.AssertEqual(t, html.String(result), "<h1>Title</h1><p>Body</p><footer>End</footer>")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:59
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:59
 func TestJoinEmpty(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:60
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:60
 	result := html.Join()
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:61
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:61
 	test.AssertTrue(t, html.IsEmpty(result))
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:64
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:64
 type IsEmptyCase struct {
 	name  string
 	input string
 	want  bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:69
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:69
 func TestIsEmpty(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:70
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:70
 	cases := []IsEmptyCase{IsEmptyCase{name: "empty fragment", input: "", want: true}, IsEmptyCase{name: "non-empty fragment", input: "<p>hi</p>", want: false}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:72
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:72
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:73
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:73
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:74
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:74
 			f := html.Render(tc.input)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:75
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:75
 			test.AssertEqual(t, html.IsEmpty(f), tc.want)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:79
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:79
 func TestWhen(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:80
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:80
 	badge := html.Render("<span>admin</span>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:82
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:82
 	t.Run("condition true", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:83
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:83
 		result := html.When(true, badge)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:84
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:84
 		test.AssertEqual(t, html.String(result), "<span>admin</span>")
 	})
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:87
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:87
 	t.Run("condition false", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:88
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:88
 		result := html.When(false, badge)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:89
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:89
 		test.AssertTrue(t, html.IsEmpty(result))
 	})
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:93
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:93
 func TestWhenElse(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:94
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:94
 	yes := html.Render("<span>yes</span>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:95
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:95
 	no := html.Render("<span>no</span>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:97
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:97
 	t.Run("condition true", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:98
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:98
 		result := html.WhenElse(true, yes, no)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:99
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:99
 		test.AssertEqual(t, html.String(result), "<span>yes</span>")
 	})
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:102
 	t.Run("condition false", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:103
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:103
 		result := html.WhenElse(false, yes, no)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:104
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:104
 		test.AssertEqual(t, html.String(result), "<span>no</span>")
 	})
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:108
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:108
 func TestComposition(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:109
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:109
 	t.Run("nested fragments with escaped content", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:110
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:110
 		name := "<script>alert('xss')</script>"
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:111
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:111
 		inner := html.Render(fmt.Sprintf("<p>%v</p>", html.Escape(name)))
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:112
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:112
 		outer := html.Render(fmt.Sprintf("<div>%v</div>", html.Embed(inner)))
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:113
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:113
 		want := "<div><p>&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;</p></div>"
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:114
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:114
 		test.AssertEqual(t, html.String(outer), want)
 	})
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:117
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:117
 	t.Run("join then embed", func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:118
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:118
 		a := html.Render("<li>one</li>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:119
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:119
 		b := html.Render("<li>two</li>")
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:120
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:120
 		items := html.Join(a, b)
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:121
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:121
 		result := html.Render(fmt.Sprintf("<ul>%v</ul>", html.Embed(items)))
-//line /var/home/tluker/repos/go/kukicha/stdlib/html/html_test.kuki:122
+//line /home/runner/work/kukicha/kukicha/stdlib/html/html_test.kuki:122
 		test.AssertEqual(t, html.String(result), "<ul><li>one</li><li>two</li></ul>")
 	})
 }

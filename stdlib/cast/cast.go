@@ -9,149 +9,149 @@ import (
 	"strconv"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:18
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:18
 func Atoi(s string) (int, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:19
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:19
 	return strconv.Atoi(s)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:24
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:24
 func ParseFloat(s string, bitSize int) (float64, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:25
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:25
 	return strconv.ParseFloat(s, bitSize)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:29
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:29
 func SmartInt(value any) (int, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:30
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:30
 	switch v := value.(type) {
 	case int:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:32
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:32
 		return v, nil
 	case int64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:34
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:34
 		return int(v), nil
 	case float64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:36
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:36
 		return int(v), nil
 	case string:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:38
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:38
 		n, err := strconv.Atoi(v)
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:39
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:39
 		return n, err
 	case jsonpkg.Number:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:41
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:41
 		i, err := v.Int64()
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:42
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:42
 		return int(i), err
 	case bool:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:44
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:44
 		if v {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:45
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:45
 			return 1, nil
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:46
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:46
 		return 0, nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:48
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:48
 	return 0, errors.New("cannot convert to int")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:52
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:52
 func SmartFloat64(value any) (float64, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:53
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:53
 	switch v := value.(type) {
 	case float64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:55
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:55
 		return v, nil
 	case float32:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:57
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:57
 		return float64(v), nil
 	case int:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:59
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:59
 		return float64(v), nil
 	case int64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:61
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:61
 		return float64(v), nil
 	case string:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:63
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:63
 		f, err := strconv.ParseFloat(v, 64)
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:64
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:64
 		return f, err
 	case jsonpkg.Number:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:66
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:66
 		f, err := v.Float64()
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:67
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:67
 		return f, err
 	case bool:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:69
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:69
 		if v {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:70
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:70
 			return 1.0, nil
 		}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:71
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:71
 		return 0.0, nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:73
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:73
 	return 0.0, errors.New("cannot convert to float64")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:77
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:77
 func SmartBool(value any) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:78
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:78
 	switch v := value.(type) {
 	case bool:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:80
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:80
 		return v, nil
 	case int:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:82
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:82
 		return (v != 0), nil
 	case float64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:84
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:84
 		return (v != 0.0), nil
 	case string:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:86
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:86
 		b, err := strconv.ParseBool(v)
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:87
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:87
 		return b, err
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:89
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:89
 	return false, errors.New("cannot convert to bool")
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:93
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:93
 func SmartString(value any) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:94
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:94
 	if value == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:95
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:95
 		return "", nil
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:96
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:96
 	result := func() string {
 		switch v := value.(type) {
 		case string:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:98
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:98
 			return v
 		case int:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:100
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:100
 			return strconv.Itoa(v)
 		case int64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:102
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:102
 			return strconv.FormatInt(v, 10)
 		case float64:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:104
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:104
 			return fmt.Sprintf("%g", v)
 		case bool:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:106
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:106
 			return strconv.FormatBool(v)
 		case []byte:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:108
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:108
 			return string(v)
 		default:
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:110
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:110
 			return fmt.Sprintf("%v", value)
 		}
 	}()
-//line /var/home/tluker/repos/go/kukicha/stdlib/cast/cast.kuki:112
+//line /home/runner/work/kukicha/kukicha/stdlib/cast/cast.kuki:112
 	return result, nil
 }
