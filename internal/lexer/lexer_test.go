@@ -434,6 +434,61 @@ func TestSingleQuoteStrings(t *testing.T) {
 	}
 }
 
+func TestRawStringLiteral(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "simple raw string",
+			input:    "`hello`",
+			expected: "hello",
+		},
+		{
+			name:     "raw string with double quotes",
+			input:    "`say \"hello\"`",
+			expected: `say "hello"`,
+		},
+		{
+			name:     "raw string with backslashes (regex pattern)",
+			input:    "`\\d+`",
+			expected: `\d+`,
+		},
+		{
+			name:     "raw string with complex regex",
+			input:    "`^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$`",
+			expected: `^(v?)(\d+)\.(\d+)\.(\d+)$`,
+		},
+		{
+			name:     "multiline raw string",
+			input:    "`line1\nline2`",
+			expected: "line1\nline2",
+		},
+		{
+			name:     "raw string no interpolation of braces",
+			input:    "`{not interpolated}`",
+			expected: "{not interpolated}",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := NewLexer(tt.input, "test.kuki")
+			tokens, err := l.ScanTokens()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(tokens) < 1 || tokens[0].Type != TOKEN_STRING_RAW {
+				t.Fatalf("expected TOKEN_STRING_RAW, got %v", tokens[0].Type)
+			}
+			if tokens[0].Lexeme != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, tokens[0].Lexeme)
+			}
+		})
+	}
+}
+
 func TestSingleQuoteMultiLine(t *testing.T) {
 	input := "'\n        <div>\n            hello\n        </div>\n    '"
 	lexer := NewLexer(input, "test.kuki")
@@ -923,6 +978,16 @@ func TestErrorCases(t *testing.T) {
 			name:        "NUL byte in single-quoted string",
 			input:       "'\x00'",
 			expectedMsg: "invalid character (NUL)",
+		},
+		{
+			name:        "NUL byte in raw string",
+			input:       "`hello\x00world`",
+			expectedMsg: "NUL byte",
+		},
+		{
+			name:        "unterminated raw string",
+			input:       "`hello",
+			expectedMsg: "unterminated raw string",
 		},
 	}
 

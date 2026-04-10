@@ -91,7 +91,7 @@ func Matches(s string, pattern string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:64
 func Email(s string) (string, error) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:66
-	pattern := "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
+	pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:67
 	matched, err_2 := regexp.MatchString(pattern, s)
 //line /var/home/tluker/repos/go/kukicha/stdlib/validate/validate.kuki:67

@@ -672,6 +672,7 @@ func (e *FloatLiteral) exprNode() {}
 type StringLiteral struct {
 	Token        lexer.Token
 	Value        string
+	Raw          bool                   // True for backtick raw string literals
 	Interpolated bool                   // True if contains {expr}
 	Parts        []*StringInterpolation // For interpolated strings
 }

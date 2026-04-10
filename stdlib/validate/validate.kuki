@@ -63,7 +63,7 @@ func Matches(s string, pattern string) (string, error)
 # Example: email |> validate.Email() onerr return
 func Email(s string) (string, error)
     # Simple email pattern: something@something.something
-    pattern := "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
+    pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
     matched := regexp.MatchString(pattern, s) onerr panic "validate: invalid email pattern: {error}"
     if not matched
         return s, error "invalid email address"

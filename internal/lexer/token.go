@@ -17,6 +17,7 @@ const (
 	TOKEN_STRING_HEAD // Leading literal of an interpolated string (before first {expr})
 	TOKEN_STRING_MID  // Middle literal between two interpolations (between }...{)
 	TOKEN_STRING_TAIL // Trailing literal after last interpolation (after last })
+	TOKEN_STRING_RAW  // Backtick raw string literal — no escape processing, no interpolation
 	TOKEN_TRUE
 	TOKEN_FALSE
 
@@ -151,6 +152,8 @@ func (t TokenType) String() string {
 		return "STRING_MID"
 	case TOKEN_STRING_TAIL:
 		return "STRING_TAIL"
+	case TOKEN_STRING_RAW:
+		return "STRING_RAW"
 	case TOKEN_TRUE:
 		return "TRUE"
 	case TOKEN_FALSE:

@@ -60,8 +60,8 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
     # Guard: flag destructive changes for human review
     if not autoApprove
         logContent := files.ReadString(jsonLog) onerr ""
-        hasDeletes := logContent |> string.Contains("\"delete\"")
-        hasReplaces := logContent |> string.Contains("\"replace\"")
+        hasDeletes := logContent |> string.Contains(`"delete"`)
+        hasReplaces := logContent |> string.Contains(`"replace"`)
         if hasDeletes or hasReplaces
             return NeedsApproval{
                 summary: "Plan contains destructive changes — review output above",

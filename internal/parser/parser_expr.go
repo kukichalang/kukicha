@@ -432,6 +432,8 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 		return p.parseFloatLiteral()
 	case lexer.TOKEN_STRING:
 		return p.parseStringLiteral()
+	case lexer.TOKEN_STRING_RAW:
+		return p.parseRawStringLiteral()
 	case lexer.TOKEN_STRING_HEAD:
 		return p.parseInterpolatedStringLiteral()
 	case lexer.TOKEN_TRUE, lexer.TOKEN_FALSE:
@@ -619,6 +621,16 @@ func (p *Parser) parseStringLiteral() *ast.StringLiteral {
 		Token:        token,
 		Value:        token.Lexeme,
 		Interpolated: false,
+	}
+}
+
+// parseRawStringLiteral parses a backtick raw string literal (TOKEN_STRING_RAW).
+func (p *Parser) parseRawStringLiteral() *ast.StringLiteral {
+	token := p.advance()
+	return &ast.StringLiteral{
+		Token: token,
+		Value: token.Lexeme,
+		Raw:   true,
 	}
 }
 

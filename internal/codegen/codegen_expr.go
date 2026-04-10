@@ -523,6 +523,9 @@ func (g *Generator) generateErrorExpr(strLit *ast.StringLiteral) string {
 }
 
 func (g *Generator) generateStringLiteral(lit *ast.StringLiteral) string {
+	if lit.Raw {
+		return "`" + lit.Value + "`"
+	}
 	if !lit.Interpolated && !strings.ContainsRune(lit.Value, '\uE002') {
 		return fmt.Sprintf("\"%s\"", g.escapeString(lit.Value))
 	}

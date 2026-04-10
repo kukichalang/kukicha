@@ -198,6 +198,8 @@ func (l *Lexer) scanToken() {
 		l.scanString()
 	case '\'':
 		l.scanSingleQuoteString()
+	case '`':
+		l.scanRawString()
 	case '(':
 		l.parenDepth++
 		l.addToken(TOKEN_LPAREN)
@@ -825,6 +827,38 @@ func (l *Lexer) scanSingleQuoteString() {
 }
 
 
+
+// scanRawString scans a backtick-delimited raw string literal.
+//
+// Follows Go semantics: no escape processing, no interpolation, may span
+// multiple lines. Backtick characters cannot appear in the content (Go's
+// own restriction — there is no escape mechanism inside raw strings).
+// NUL bytes are rejected as they are not valid in source files.
+func (l *Lexer) scanRawString() {
+	startLine := l.line
+	var value strings.Builder
+	for {
+		if l.isAtEnd() {
+			l.line = startLine
+			l.error("unterminated raw string literal")
+			return
+		}
+		ch := l.advance()
+		if ch == '`' {
+			break
+		}
+		if ch == '\x00' {
+			l.error("raw string literal contains NUL byte")
+			return
+		}
+		if ch == '\n' {
+			l.line++
+			l.column = 0
+		}
+		value.WriteRune(ch)
+	}
+	l.addTokenWithLexeme(TOKEN_STRING_RAW, value.String())
+}
 
 // scanNumber scans a number (integer or float)
 func (l *Lexer) scanNumber() {

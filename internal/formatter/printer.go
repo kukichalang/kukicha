@@ -1142,6 +1142,9 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 }
 
 func (p *Printer) stringLiteralToString(lit *ast.StringLiteral) string {
+	if lit.Raw {
+		return "`" + lit.Value + "`"
+	}
 	// The lexer resolves escape sequences in Value (e.g., \n → newline,
 	// \\ → backslash). We must re-escape when emitting source.
 	if len(lit.Parts) > 0 {

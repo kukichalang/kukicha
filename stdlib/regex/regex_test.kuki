@@ -15,8 +15,8 @@ type MatchCase
 
 func TestMatch(t reference testing.T)
     cases := list of MatchCase{
-        MatchCase{name: "digits match", pattern: "\\d+", text: "abc123", expected: true},
-        MatchCase{name: "no digits", pattern: "\\d+", text: "abcdef", expected: false},
+        MatchCase{name: "digits match", pattern: `\d+`, text: "abc123", expected: true},
+        MatchCase{name: "no digits", pattern: `\d+`, text: "abcdef", expected: false},
         MatchCase{name: "full match", pattern: "^hello$", text: "hello", expected: true},
         MatchCase{name: "full no match", pattern: "^hello$", text: "hello world", expected: false},
         MatchCase{name: "empty pattern matches all", pattern: "", text: "anything", expected: true},
@@ -40,19 +40,19 @@ func TestFind(t reference testing.T)
     cases := list of FindCase{
         FindCase{
         name: "find digits",
-        pattern: "\\d+",
+        pattern: `\d+`,
         text: "abc123def456",
         expected: "123",
         expectErr: false,
     },
         FindCase{
         name: "find word",
-        pattern: "\\w+",
+        pattern: `\w+`,
         text: "  hello  ",
         expected: "hello",
         expectErr: false,
     },
-        FindCase{name: "no match", pattern: "\\d+", text: "abcdef", expected: "", expectErr: true},
+        FindCase{name: "no match", pattern: `\d+`, text: "abcdef", expected: "", expectErr: true},
     }
 
     for tc in cases
@@ -74,8 +74,8 @@ type FindAllCase
 
 func TestFindAll(t reference testing.T)
     cases := list of FindAllCase{
-        FindAllCase{name: "find all digits", pattern: "\\d+", text: "a1 b2 c3", expectedLen: 3},
-        FindAllCase{name: "no matches", pattern: "\\d+", text: "abcdef", expectedLen: 0},
+        FindAllCase{name: "find all digits", pattern: `\d+`, text: "a1 b2 c3", expectedLen: 3},
+        FindAllCase{name: "no matches", pattern: `\d+`, text: "abcdef", expectedLen: 0},
         FindAllCase{name: "single match", pattern: "hello", text: "say hello there", expectedLen: 1},
     }
 
@@ -97,21 +97,21 @@ func TestFindGroups(t reference testing.T)
     cases := list of FindGroupsCase{
         FindGroupsCase{
         name: "semver groups",
-        pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$",
+        pattern: `^(v?)(\d+)\.(\d+)\.(\d+)$`,
         text: "v1.2.3",
         expectErr: false,
         expectedLen: 5,
     },
         FindGroupsCase{
         name: "no prefix",
-        pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$",
+        pattern: `^(v?)(\d+)\.(\d+)\.(\d+)$`,
         text: "1.2.3",
         expectErr: false,
         expectedLen: 5,
     },
         FindGroupsCase{
         name: "no match",
-        pattern: "^(v?)(\\d+)\\.(\\d+)\\.(\\d+)$",
+        pattern: `^(v?)(\d+)\.(\d+)\.(\d+)$`,
         text: "invalid",
         expectErr: true,
         expectedLen: 0,
@@ -137,7 +137,7 @@ func TestFindGroupsValues(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            groups, err := regex.FindGroups("^(v?)(\\d+\\.\\d+\\.\\d+)$", "v1.2.3")
+            groups, err := regex.FindGroups(`^(v?)(\d+\.\d+\.\d+)$`, "v1.2.3")
             test.AssertNoError(t, err)
             test.AssertEqual(t, groups[0], "v1.2.3")
             test.AssertEqual(t, groups[1], "v")
@@ -156,14 +156,14 @@ func TestFindAllGroups(t reference testing.T)
     cases := list of FindAllGroupsCase{
         FindAllGroupsCase{
         name: "key-value pairs",
-        pattern: "(\\w+)=(\\w+)",
+        pattern: `(\w+)=(\w+)`,
         text: "a=1 b=2 c=3",
         expectErr: false,
         expectedLen: 3,
     },
         FindAllGroupsCase{
         name: "no matches",
-        pattern: "(\\d+)-(\\d+)",
+        pattern: `(\d+)-(\d+)`,
         text: "no dashes here",
         expectErr: true,
         expectedLen: 0,
@@ -192,21 +192,21 @@ func TestReplace(t reference testing.T)
     cases := list of ReplaceCase{
         ReplaceCase{
         name: "collapse spaces",
-        pattern: "\\s+",
+        pattern: `\s+`,
         replacement: " ",
         text: "too   many   spaces",
         expected: "too many spaces",
     },
         ReplaceCase{
         name: "remove digits",
-        pattern: "\\d",
+        pattern: `\d`,
         replacement: "",
         text: "a1b2c3",
         expected: "abc",
     },
         ReplaceCase{
         name: "capture group ref",
-        pattern: "(\\w+)=(\\w+)",
+        pattern: `(\w+)=(\w+)`,
         replacement: "$2=$1",
         text: "key=val",
         expected: "val=key",
@@ -228,7 +228,7 @@ func TestReplaceFunc(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            got := regex.ReplaceFunc("\\d+", (m string) => "[{m}]", "a1 b2 c3")
+            got := regex.ReplaceFunc(`\d+`, (m string) => "[{m}]", "a1 b2 c3")
             test.AssertEqual(t, got, "a[1] b[2] c[3]")
         )
 
@@ -241,11 +241,11 @@ type SplitCase
 
 func TestSplit(t reference testing.T)
     cases := list of SplitCase{
-        SplitCase{name: "split on comma-space", pattern: "[,;]\\s*", text: "a, b; c", expectedLen: 3},
-        SplitCase{name: "split on whitespace", pattern: "\\s+", text: "one two three", expectedLen: 3},
+        SplitCase{name: "split on comma-space", pattern: `[,;]\s*`, text: "a, b; c", expectedLen: 3},
+        SplitCase{name: "split on whitespace", pattern: `\s+`, text: "one two three", expectedLen: 3},
         SplitCase{
         name: "no match splits whole",
-        pattern: "\\d+",
+        pattern: `\d+`,
         text: "no digits here",
         expectedLen: 1,
     },
@@ -265,8 +265,8 @@ type IsValidCase
 
 func TestIsValid(t reference testing.T)
     cases := list of IsValidCase{
-        IsValidCase{name: "valid pattern", pattern: "\\d+", expected: true},
-        IsValidCase{name: "valid complex", pattern: "^(v?)(\\d+\\.\\d+\\.\\d+)$", expected: true},
+        IsValidCase{name: "valid pattern", pattern: `\d+`, expected: true},
+        IsValidCase{name: "valid complex", pattern: `^(v?)(\d+\.\d+\.\d+)$`, expected: true},
         IsValidCase{name: "invalid pattern", pattern: "[unclosed", expected: false},
         IsValidCase{name: "empty is valid", pattern: "", expected: true},
     }
@@ -285,7 +285,7 @@ type CompileCase
 
 func TestCompile(t reference testing.T)
     cases := list of CompileCase{
-        CompileCase{name: "valid compile", pattern: "\\d+", expectErr: false},
+        CompileCase{name: "valid compile", pattern: `\d+`, expectErr: false},
         CompileCase{name: "invalid compile", pattern: "[bad", expectErr: true},
     }
 
@@ -310,7 +310,7 @@ func TestCompiledMatch(t reference testing.T)
         CompiledMatchCase{name: "compiled no match", text: "abcdef", expected: false},
     }
 
-    p := regex.MustCompile("\\d+")
+    p := regex.MustCompile(`\d+`)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.MatchCompiled(p, tc.text)
@@ -324,7 +324,7 @@ type CompiledFindCase
 func TestCompiledFind(t reference testing.T)
     cases := list of CompiledFindCase{CompiledFindCase{name: "compiled find"}}
 
-    p := regex.MustCompile("\\d+")
+    p := regex.MustCompile(`\d+`)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got, err := regex.FindCompiled(p, "abc123def456")
@@ -342,7 +342,7 @@ type CompiledReplaceCase
 func TestCompiledReplace(t reference testing.T)
     cases := list of CompiledReplaceCase{CompiledReplaceCase{name: "compiled replace"}}
 
-    p := regex.MustCompile("\\s+")
+    p := regex.MustCompile(`\s+`)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.ReplaceCompiled(p, "-", "a b  c")
@@ -356,7 +356,7 @@ type CompiledSplitCase
 func TestCompiledSplit(t reference testing.T)
     cases := list of CompiledSplitCase{CompiledSplitCase{name: "compiled split"}}
 
-    p := regex.MustCompile("[,;]\\s*")
+    p := regex.MustCompile(`[,;]\s*`)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             got := regex.SplitCompiled(p, "a, b; c")
