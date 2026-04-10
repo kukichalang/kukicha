@@ -99,6 +99,38 @@ func NewClient(name string, version string) reference Client
     inner := mcp.NewClient(reference of mcp.Implementation{Name: name, Version: version}, empty)
     return reference of Client{inner: inner}
 
+# SamplingHandler handles a basic sampling/createMessage request from the
+# connected MCP server. Set it via NewClientWithSampling.
+type SamplingHandler func(context.Context, reference mcp.CreateMessageParams) (reference mcp.CreateMessageResult, error)
+
+# SamplingWithToolsHandler handles a tool-enabled sampling/createMessage
+# request. Set it via NewClientWithSamplingTools.
+type SamplingWithToolsHandler func(context.Context, reference mcp.CreateMessageWithToolsParams) (reference mcp.CreateMessageWithToolsResult, error)
+
+# NewClientWithSampling creates a new MCP client that advertises sampling
+# support and handles sampling/createMessage requests from the server.
+# Use this when the MCP server may call back into the client to generate AI
+# completions (agentic tool loops).
+# Example:
+#   client := mcp.NewClientWithSampling("my-app", "1.0.0", func(ctx, params) { return myLLM.Complete(ctx, params) })
+func NewClientWithSampling(name string, version string, handler SamplingHandler) reference Client
+    opts := reference of mcp.ClientOptions{}
+    opts.CreateMessageHandler = func(ctx context.Context, req reference mcp.CreateMessageRequest) (reference mcp.CreateMessageResult, error)
+        return handler(ctx, req.Params)
+    inner := mcp.NewClient(reference of mcp.Implementation{Name: name, Version: version}, opts)
+    return reference of Client{inner: inner}
+
+# NewClientWithSamplingTools creates a new MCP client that advertises
+# sampling-with-tools support. The handler receives CreateMessageWithToolsParams
+# and may return multiple content blocks (e.g. parallel tool_use blocks).
+# Use this when the server may send tools in sampling requests.
+func NewClientWithSamplingTools(name string, version string, handler SamplingWithToolsHandler) reference Client
+    opts := reference of mcp.ClientOptions{}
+    opts.CreateMessageWithToolsHandler = func(ctx context.Context, req reference mcp.CreateMessageWithToolsRequest) (reference mcp.CreateMessageWithToolsResult, error)
+        return handler(ctx, req.Params)
+    inner := mcp.NewClient(reference of mcp.Implementation{Name: name, Version: version}, opts)
+    return reference of Client{inner: inner}
+
 # Connect creates a new MCP client session using a streamable HTTP transport.
 func Connect on c reference Client(ctx context.Context, endpoint string) (reference ClientSession, error)
     return c.ConnectWith(ctx, endpoint, empty)
