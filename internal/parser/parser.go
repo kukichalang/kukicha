@@ -25,12 +25,26 @@ type Parser struct {
 	pendingDirectives []ast.Directive // Directives collected before the next declaration
 }
 
-// New creates a new parser from a source string
+// New creates a new parser from a source string.
+//
+// Lexer errors (invalid characters, bad indentation, etc.) are collected into
+// the parser's error list and returned by Parse() as individual positioned
+// errors ("file:line:col: message"). The error return value is always nil; it
+// exists only for backward compatibility and will be removed in a future
+// version. Callers should check the errors returned by Parse() instead of the
+// error returned here.
 func New(source string, filename string) (*Parser, error) {
 	l := lexer.NewLexer(source, filename)
-	tokens, err := l.ScanTokens()
-	if err != nil {
-		return nil, err
+	tokens, scanErr := l.ScanTokens()
+	if scanErr != nil {
+		// Lexer errors: store each individually so callers see properly
+		// positioned "file:line:col: message" diagnostics rather than a
+		// single opaque "lexer errors: [...]" string.
+		return &Parser{
+			tokens: nil,
+			pos:    0,
+			errors: l.Errors(),
+		}, nil
 	}
 	return &Parser{
 		tokens: tokens,

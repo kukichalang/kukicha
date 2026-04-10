@@ -27,11 +27,7 @@ type transpileResult struct {
 // transpile runs the full Kukicha pipeline on source and returns Go source +
 // any errors. It never panics — all error paths are collected and returned.
 func transpile(source string) transpileResult {
-	p, err := parser.New(source, "playground.kuki")
-	if err != nil {
-		return transpileResult{Errors: []string{err.Error()}}
-	}
-
+	p, _ := parser.New(source, "playground.kuki")
 	program, parseErrors := p.Parse()
 	if len(parseErrors) > 0 {
 		errs := make([]string, len(parseErrors))

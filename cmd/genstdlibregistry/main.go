@@ -106,12 +106,7 @@ func scanRegistry(paths []string) (scanResult, []error) {
 			continue
 		}
 
-		p, err := parser.New(string(src), path)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("lex %s: %v", path, err))
-			continue
-		}
-
+		p, _ := parser.New(string(src), path)
 		prog, parseErrs := p.Parse()
 		if len(parseErrs) > 0 {
 			for _, e := range parseErrs {

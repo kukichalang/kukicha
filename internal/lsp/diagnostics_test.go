@@ -108,3 +108,28 @@ func TestErrorToDiagnostic_MessageWithColons(t *testing.T) {
 		t.Errorf("expected line 1, got %d", diag.Range.Start.Line)
 	}
 }
+
+// TestDocumentAnalyze_LexerErrorsHaveLineNumbers verifies that lexer errors
+// (e.g. tab indentation) surfaced via document analysis carry accurate line
+// numbers and are not placed at line 0. Previously, lexer errors were wrapped
+// into a single opaque "lexer errors: [...]" string that did not match the
+// position regex, so they silently fell back to line 0.
+func TestDocumentAnalyze_LexerErrorsHaveLineNumbers(t *testing.T) {
+	// Tab indentation on line 2 is a lexer error in Kukicha.
+	content := "func Foo() int\n\treturn 1\n"
+
+	doc := newDocument("file:///test.kuki", content, 1)
+
+	if len(doc.Errors) == 0 {
+		t.Fatal("expected at least one error for tab-indented source, got none")
+	}
+
+	for _, e := range doc.Errors {
+		diag := errorToDiagnostic(e)
+		if diag.Range.Start.Line == 0 && diag.Range.Start.Character == 0 {
+			// Line 0, col 0 is the fallback position used when the error has no
+			// position info. Any real error in this source is on line 2.
+			t.Errorf("lexer error has no position info (shows at line 0, col 0): %v", e)
+		}
+	}
+}

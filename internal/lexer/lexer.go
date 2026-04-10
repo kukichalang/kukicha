@@ -992,6 +992,12 @@ func (l *Lexer) error(message string) {
 	l.errors = append(l.errors, err)
 }
 
+// Errors returns the individual lexer errors collected during scanning.
+// Each error is formatted as "file:line:col: message".
+func (l *Lexer) Errors() []error {
+	return l.errors
+}
+
 // Character classification helpers
 
 func isDigit(c rune) bool {

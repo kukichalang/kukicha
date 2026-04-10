@@ -122,11 +122,7 @@ func analyzeTarget(target string) []semantic.Diagnostic {
 			parseDiags = append(parseDiags, semantic.Diagnostic{File: absF, Severity: "error", Message: readErr.Error()})
 			continue
 		}
-		p, lexErr := parser.New(string(source), absF)
-		if lexErr != nil {
-			parseDiags = append(parseDiags, semantic.Diagnostic{File: absF, Severity: "error", Message: lexErr.Error()})
-			continue
-		}
+		p, _ := parser.New(string(source), absF)
 		program, parseErrors := p.Parse()
 		if len(parseErrors) > 0 {
 			for _, pe := range parseErrors {
