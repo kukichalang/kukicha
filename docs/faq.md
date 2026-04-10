@@ -125,4 +125,5 @@ Kukicha also draws inspiration from several Go-adjacent transpiler projects:
 [dingo](https://github.com/MadAppGang/dingo) (result types, sum types, watch mode, lambda inference),
 [gala](https://github.com/martianoff/gala) (sealed types, Option/Either/Try, LSP architecture), and
 [sky](https://github.com/anzellai/sky) (Hindley-Milner inference, ADTs, applicative combinators).
+
 These communities are each scratching their own itch — we respect their work and learn from it.
