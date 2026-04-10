@@ -1,0 +1,144 @@
+# GKE Django Deployer — orchestrate OpenTofu stacks with Kukicha
+#
+# Creates a GKE cluster, three namespaces (dev / test / prod), and deploys
+# a Django app with environment-specific config into each namespace.
+# Uses OpenTofu's -json-into flag for dual human + machine-readable output.
+#
+# Usage:
+#   kukicha run gke-django-deploy/ deploy [--env dev|test|prod|all] [--auto-approve]
+#   kukicha run gke-django-deploy/ status
+#
+# Prerequisites:
+#   export GCP_PROJECT="my-gcp-project"
+#   export DJANGO_IMAGE="gcr.io/my-project/django-app:v1.2.3"
+#
+# Showcases: variant enums, set operations, concurrent deployment,
+#   maps.Merge/Pick/Omit, pipes, onerr, multi-file directory build
+
+petiole main
+
+import "fmt"
+import "os"
+import "stdlib/cli"
+import "stdlib/concurrent"
+import "stdlib/maps"
+import "stdlib/set"
+import "stdlib/table"
+
+# ── CLI Entry Point ───────────────────────────────────────────
+
+func main()
+    _ = cli.New("gke-deploy") |> cli.Description("Deploy Django to GKE with OpenTofu") |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all") |> cli.GlobalFlag("auto-approve", "Skip approval for destructive changes", "false") |> cli.Command("deploy", "Create GKE cluster, namespaces, and deploy Django") |> cli.Command("status", "Compare configuration across namespaces") |> cli.CommandAction("deploy", args => doDeploy(args)) |> cli.CommandAction("status", args => doStatus(args)) |> cli.RunApp() onerr cli.Fatal("{error}")
+
+# ── Deploy Command ────────────────────────────────────────────
+
+func doDeploy(args cli.Args)
+    autoApprove := cli.GetBool(args, "auto-approve")
+    targetEnv := cli.GetString(args, "env")
+
+    # Validate the target namespace using a set membership check
+    validEnvs := targetNamespaces() |> set.From()
+    if targetEnv isnt "all" and not set.Contains(validEnvs, targetEnv)
+        cli.Fatal("unknown environment '{targetEnv}' — expected dev, test, or prod")
+
+    # ── Step 1: Create the GKE Cluster ────────────────────────
+    cli.Info("Step 1 · Creating GKE cluster...")
+    gkeVars := "/tmp/kukicha-gke.tfvars"
+    writeTfvars(gkeConfig(), gkeVars)
+
+    gkeResult := applyStack(gkeStack(), gkeVars, "gke", autoApprove)
+    printResult("gke", gkeResult)
+    exitUnlessSucceeded("gke", gkeResult)
+
+    # ── Step 2: Create Namespaces ─────────────────────────────
+    cli.Info("Step 2 · Creating namespaces (dev, test, prod)...")
+    nsVars := "/tmp/kukicha-ns.tfvars"
+    writeTfvars(map of string to any{"namespaces": "dev,test,prod"}, nsVars)
+
+    nsResult := applyStack(namespacesStack(), nsVars, "namespaces", autoApprove)
+    printResult("namespaces", nsResult)
+    exitUnlessSucceeded("namespaces", nsResult)
+
+    # ── Step 3: Deploy Django per Namespace ───────────────────
+    namespaces := targetNamespaces()
+    if targetEnv isnt "all"
+        namespaces = list of string{targetEnv}
+
+    cli.Info("Step 3 · Deploying Django into {len(namespaces)} namespace(s)...")
+
+    # Generate per-namespace tfvars (fast file I/O, no need to parallelize)
+    for ns in namespaces
+        config := djangoConfigFor(ns)
+        config["namespace"] = ns
+        writeTfvars(config, "/tmp/kukicha-django-{ns}.tfvars")
+
+    # Apply Django stacks concurrently — two at a time to respect API limits
+    results := concurrent.MapWithLimit(namespaces, 2, ns => applyStack(djangoStack(), "/tmp/kukicha-django-{ns}.tfvars", "django-{ns}", autoApprove))
+
+    # ── Summary ───────────────────────────────────────────────
+    print("")
+    succeeded := set.From(empty list of string)
+    failed := set.From(empty list of string)
+
+    for i, result in results
+        ns := namespaces[i]
+        printResult("django/" + ns, result)
+        if isSucceeded(result)
+            set.AddIn(succeeded, ns)
+        else
+            set.AddIn(failed, ns)
+
+    print("")
+    if set.IsEmpty(failed)
+        cli.Success("All {set.Len(succeeded)} namespace(s) deployed!")
+    else
+        cli.Error("{set.Len(failed)} deployment(s) failed — check output above")
+        os.Exit(1)
+
+# ── Status Command ────────────────────────────────────────────
+# Shows the config differences across namespaces as a table
+
+func doStatus(args cli.Args)
+    cli.Info("Configuration per namespace:")
+    print("")
+
+    t := table.New(list of string{"namespace", "replicas", "cpu (req/lim)", "memory (req/lim)", "debug", "extras"})
+
+    for ns in targetNamespaces()
+        config := djangoConfigFor(ns)
+        replicas := fmt.Sprintf("%v", config["django_replicas"])
+        cpu := fmt.Sprintf("%v / %v", config["cpu_request"], config["cpu_limit"])
+        memory := fmt.Sprintf("%v / %v", config["memory_request"], config["memory_limit"])
+        debug := fmt.Sprintf("%v", config["debug_mode"])
+
+        # Prod keeps cdn/waf/ssl keys (maps.Omit strips them from non-prod)
+        extras := "—"
+        if maps.Contains(config, "enable_cdn")
+            extras = "cdn, waf, ssl"
+
+        t = t |> table.AddRow(list of string{ns, replicas, cpu, memory, debug, extras})
+
+    t |> table.Print()
+
+# ── Helpers ───────────────────────────────────────────────────
+
+func isSucceeded(result ApplyResult) bool
+    switch result as v
+        when Succeeded
+            return true
+        otherwise
+            return false
+
+func exitUnlessSucceeded(name string, result ApplyResult)
+    if not isSucceeded(result)
+        os.Exit(1)
+
+func printResult(name string, result ApplyResult)
+    switch result as v
+        when Succeeded
+            cli.Success("{name}: applied in {v.elapsed}")
+        when Failed
+            cli.Error("{name}: {v.step} failed — {v.reason}")
+        when NeedsApproval
+            cli.Warn("{name}: {v.summary}")
+            print("    Review and run: tofu apply {v.planFile}")

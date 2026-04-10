@@ -1,0 +1,111 @@
+# Environment-aware infrastructure configuration
+# Showcases: maps.Merge, maps.Pick, maps.Omit, maps.SortedKeys, variant enums
+
+petiole main
+
+import "stdlib/env"
+import "stdlib/maps"
+import "time"
+
+# ── Types ─────────────────────────────────────────────────────
+
+type Stack
+    name string
+    path string
+    dependsOn list of string
+
+# Each deploy outcome carries only the data relevant to that outcome —
+# no nullable fields, no stringly-typed status codes
+enum ApplyResult
+    Succeeded
+        outputs map of string to string
+        elapsed time.Duration
+    Failed
+        reason string
+        step string
+    NeedsApproval
+        summary string
+        planFile string
+
+# ── Stacks in dependency order ────────────────────────────────
+
+func gkeStack() Stack
+    return Stack{name: "gke", path: "stacks/gke", dependsOn: empty list of string}
+
+func namespacesStack() Stack
+    return Stack{name: "namespaces", path: "stacks/namespaces", dependsOn: list of string{"gke"}}
+
+func djangoStack() Stack
+    return Stack{name: "django", path: "stacks/django", dependsOn: list of string{"namespaces"}}
+
+func allStacks() list of Stack
+    return list of Stack{gkeStack(), namespacesStack(), djangoStack()}
+
+func targetNamespaces() list of string
+    return list of string{"dev", "test", "prod"}
+
+# ── Base Configuration (production-grade defaults) ────────────
+
+func baseConfig() map of string to any
+    config := make(map of string to any)
+    # GKE cluster
+    config["project"] = env.GetOr("GCP_PROJECT", "my-gcp-project")
+    config["region"] = "us-central1"
+    config["cluster_name"] = "kukicha-gke"
+    config["k8s_version"] = "1.31"
+    config["node_count"] = 3
+    config["machine_type"] = "e2-standard-4"
+    config["disk_size_gb"] = 100
+    config["preemptible"] = false
+    config["enable_monitoring"] = true
+    config["enable_logging"] = true
+    # Django application
+    config["django_replicas"] = 3
+    config["django_image"] = env.GetOr("DJANGO_IMAGE", "gcr.io/my-project/django-app:latest")
+    config["django_port"] = 8000
+    config["cpu_request"] = "250m"
+    config["cpu_limit"] = "1000m"
+    config["memory_request"] = "512Mi"
+    config["memory_limit"] = "1Gi"
+    config["debug_mode"] = false
+    config["log_level"] = "info"
+    config["db_pool_size"] = 10
+    # Production security (stripped from non-prod via maps.Omit)
+    config["enable_cdn"] = false
+    config["enable_waf"] = false
+    config["ssl_certificate"] = ""
+    config["hpa_min"] = 3
+    config["hpa_max"] = 10
+    return config
+
+# ── Per-Environment Overrides ─────────────────────────────────
+# Only what differs — everything else is inherited from the base
+
+func overridesFor(namespace string) map of string to any
+    if namespace equals "dev"
+        return map of string to any{"node_count": 1, "machine_type": "e2-small", "disk_size_gb": 30, "preemptible": true, "django_replicas": 1, "cpu_request": "100m", "cpu_limit": "500m", "memory_request": "256Mi", "memory_limit": "512Mi", "debug_mode": true, "log_level": "debug", "db_pool_size": 2, "hpa_min": 1, "hpa_max": 2}
+
+    if namespace equals "test"
+        return map of string to any{"node_count": 2, "machine_type": "e2-standard-2", "disk_size_gb": 50, "preemptible": true, "django_replicas": 2, "cpu_request": "200m", "cpu_limit": "750m", "memory_request": "384Mi", "memory_limit": "768Mi", "log_level": "warning", "db_pool_size": 5, "hpa_min": 2, "hpa_max": 5}
+
+    if namespace equals "prod"
+        return map of string to any{"enable_cdn": true, "enable_waf": true, "ssl_certificate": env.GetOr("SSL_CERT", "projects/my-project/global/sslCertificates/my-cert"), "hpa_min": 3, "hpa_max": 20}
+
+    return make(map of string to any)
+
+# ── Config Extraction ─────────────────────────────────────────
+
+# GKE cluster: pick only infrastructure keys
+func gkeConfig() map of string to any
+    return baseConfig() |> maps.Pick(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})
+
+# Django app: merge base + env overrides, then strip what doesn't belong
+func djangoConfigFor(namespace string) map of string to any
+    merged := maps.Merge(baseConfig(), overridesFor(namespace))
+
+    # Non-prod environments don't need CDN, WAF, or SSL certificates
+    if namespace isnt "prod"
+        merged = merged |> maps.Omit(list of string{"enable_cdn", "enable_waf", "ssl_certificate"})
+
+    # Drop infrastructure keys — the Django stack doesn't use them
+    return merged |> maps.Omit(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})

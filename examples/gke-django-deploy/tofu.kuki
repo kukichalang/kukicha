@@ -1,0 +1,73 @@
+# OpenTofu CLI wrapper with -json-into for dual human + machine output
+# Showcases: shell commands, onerr error handling, files, maps.SortedKeys
+
+petiole main
+
+import "fmt"
+import "stdlib/cli"
+import "stdlib/files"
+import "stdlib/maps"
+import "stdlib/shell"
+import "stdlib/string"
+import "time"
+
+# ── Generate .tfvars from a config map ────────────────────────
+# SortedKeys ensures deterministic output (safe to diff / commit)
+
+func writeTfvars(config map of string to any, filepath string)
+    lines := empty list of string
+    for key in maps.SortedKeys(config)
+        lines = append(lines, formatTfvar(key, config[key]))
+    content := string.Join(lines, "\n") + "\n"
+    files.WriteString(filepath, content) onerr
+        cli.Fatal("failed to write {filepath}: {error}")
+
+func formatTfvar(key string, value any) string
+    str, isString := value as string
+    if isString
+        return fmt.Sprintf("%s = %q", key, str)
+    b, isBool := value as bool
+    if isBool
+        return fmt.Sprintf("%s = %t", key, b)
+    return fmt.Sprintf("%s = %v", key, value)
+
+# ── OpenTofu Wrappers ────────────────────────────────────────
+
+func tofuInit(stackPath string)
+    shell.Run("tofu", "-chdir=" + stackPath, "init", "-upgrade", "-input=false") onerr
+        cli.Fatal("tofu init failed for {stackPath}: {error}")
+
+func tofuOutput(stackPath string, key string) string
+    result := shell.Output("tofu", "-chdir=" + stackPath, "output", "-raw", key) onerr
+        return ""
+
+    return result
+
+# ── Apply a Stack (plan → guard → apply) ─────────────────────
+# Returns a variant enum — caller pattern-matches on the outcome
+
+func applyStack(stack Stack, varsFile string, label string, autoApprove bool) ApplyResult
+    start := time.Now()
+    planFile := "/tmp/kukicha-{label}.tfplan"
+    jsonLog := "/tmp/kukicha-{label}.json"
+
+    tofuInit(stack.path)
+
+    # Plan: human output streams to terminal, structured log goes to file
+    shell.Run("tofu", "-chdir=" + stack.path, "plan", "-var-file=" + varsFile, "-out=" + planFile, "-json-into=" + jsonLog, "-input=false") onerr
+        return Failed{reason: "{error}", step: "plan"}
+
+    # Guard: flag destructive changes for human review
+    if not autoApprove
+        logContent := files.ReadString(jsonLog) onerr ""
+        hasDeletes := logContent |> string.Contains("\"delete\"")
+        hasReplaces := logContent |> string.Contains("\"replace\"")
+        if hasDeletes or hasReplaces
+            return NeedsApproval{summary: "Plan contains destructive changes — review output above", planFile: planFile}
+
+    # Apply: same dual-output pattern
+    applyLog := "/tmp/kukicha-{label}-apply.json"
+    shell.Run("tofu", "-chdir=" + stack.path, "apply", "-auto-approve", planFile, "-json-into=" + applyLog, "-input=false") onerr
+        return Failed{reason: "{error}", step: "apply"}
+
+    return Succeeded{outputs: make(map of string to string), elapsed: time.Since(start)}
