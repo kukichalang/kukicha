@@ -124,15 +124,16 @@ kukicha run maps.kuki
 
 ### Checking for Existence
 
-What if you look up a key that doesn't exist?
+What if you look up a key that doesn't exist? The `stdlib/maps` package has a `Contains` function:
 
 ```kukicha
-    city := capitals["Mars"]
-    if city equals ""
+import "stdlib/maps"
+
+    if not maps.Contains(capitals, "Mars")
         print("Capital of Mars not found.")
 ```
 
-For `map of string to string`, a missing key returns `""` (empty string). For `map of string to int`, it returns `0`.
+Under the hood, Go maps return a **zero value** for missing keys (`""` for strings, `0` for ints). `maps.Contains` is cleaner when you just need to know whether a key is present.
 
 ---
 

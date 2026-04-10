@@ -310,9 +310,7 @@ function handleListLinks on store reference LinkStore(response http.ResponseWrit
         return
 
     # Convert map values to a list for JSON output
-    result := empty list of Link
-    for _, link in store.links
-        result = append(result, link)
+    result := store.links |> maps.Values()
 
     httphelper.JSON(response, result)
 
