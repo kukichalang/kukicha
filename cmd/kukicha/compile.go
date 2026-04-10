@@ -212,11 +212,7 @@ func parseFile(filename string) (*ast.Program, error) {
 		return nil, fmt.Errorf("error reading file %s: %v", filename, err)
 	}
 
-	p, err := parser.New(string(source), filename)
-	if err != nil {
-		return nil, fmt.Errorf("lexer error in %s: %v", filename, err)
-	}
-
+	p, _ := parser.New(string(source), filename)
 	program, parseErrors := p.Parse()
 	if len(parseErrors) > 0 {
 		var msgs []string
@@ -339,11 +335,7 @@ func loadAndAnalyze(filename string) (*ast.Program, *semantic.AnalysisResult, er
 		return nil, nil, fmt.Errorf("error reading file: %v", err)
 	}
 
-	p, err := parser.New(string(source), filename)
-	if err != nil {
-		return nil, nil, fmt.Errorf("lexer error: %v", err)
-	}
-
+	p, _ := parser.New(string(source), filename)
 	program, parseErrors := p.Parse()
 	if len(parseErrors) > 0 {
 		var msgs []string

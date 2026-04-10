@@ -117,14 +117,9 @@ func (doc *Document) analyze() {
 	// Extract filename from URI
 	filename := uriToFilename(doc.URI)
 
-	// Parse the content (parser handles lexing internally)
-	p, err := parser.New(doc.Content, filename)
-	if err != nil {
-		doc.Errors = []error{err}
-		doc.Program = nil
-		return
-	}
-
+	// Parse the content (parser handles lexing internally).
+	// Lexer errors are surfaced as individual positioned errors in parseErrors.
+	p, _ := parser.New(doc.Content, filename)
 	program, parseErrors := p.Parse()
 	doc.Program = program
 	doc.Errors = parseErrors
