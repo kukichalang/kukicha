@@ -97,7 +97,8 @@ func overridesFor(namespace string) map of string to any
 
 # GKE cluster: pick only infrastructure keys
 func gkeConfig() map of string to any
-    return baseConfig() |> maps.Pick(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})
+    return baseConfig()
+        |> maps.Pick(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})
 
 # Django app: merge base + env overrides, then strip what doesn't belong
 func djangoConfigFor(namespace string) map of string to any
@@ -108,4 +109,5 @@ func djangoConfigFor(namespace string) map of string to any
         merged = merged |> maps.Omit(list of string{"enable_cdn", "enable_waf", "ssl_certificate"})
 
     # Drop infrastructure keys — the Django stack doesn't use them
-    return merged |> maps.Omit(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})
+    return merged
+        |> maps.Omit(list of string{"project", "region", "cluster_name", "k8s_version", "node_count", "machine_type", "disk_size_gb", "preemptible", "enable_monitoring", "enable_logging"})

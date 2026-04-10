@@ -46,7 +46,12 @@ func runAgent(ctx context.Context, a reference Agent, userPrompt string, history
 
     for round from 0 to maxRounds
         # Build the LLM client for this round
-        client := llm.New("") |> llm.Model(a.Config.Model) |> llm.BaseURL(a.Config.WebUIURL) |> llm.Path("/api/chat/completions") |> llm.APIKey(a.Config.WebUIAPIKey) |> llm.Messages(messages)
+        client := llm.New("")
+            |> llm.Model(a.Config.Model)
+            |> llm.BaseURL(a.Config.WebUIURL)
+            |> llm.Path("/api/chat/completions")
+            |> llm.APIKey(a.Config.WebUIAPIKey)
+            |> llm.Messages(messages)
 
         # Add discovered MCP tools
         for t in tools

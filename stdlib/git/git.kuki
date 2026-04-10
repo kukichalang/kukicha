@@ -69,7 +69,10 @@ func CreateRelease(repo string, tag string, opts ReleaseOptions) error
     if title equals ""
         title = tag
 
-    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title) |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target) |> shell.FlagIf(opts.GenerateNotes, "--generate-notes") |> shell.FlagIf(opts.Draft, "--draft")
+    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title)
+        |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target)
+        |> shell.FlagIf(opts.GenerateNotes, "--generate-notes")
+        |> shell.FlagIf(opts.Draft, "--draft")
 
     result := cmd |> shell.Execute()
     if not shell.Success(result)
@@ -85,7 +88,10 @@ func PreviewRelease(repo string, tag string, opts ReleaseOptions) string
     if title equals ""
         title = tag
 
-    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title) |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target) |> shell.FlagIf(opts.GenerateNotes, "--generate-notes") |> shell.FlagIf(opts.Draft, "--draft")
+    cmd := shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title)
+        |> shell.FlagIf(opts.Target not equals "", "--target", opts.Target)
+        |> shell.FlagIf(opts.GenerateNotes, "--generate-notes")
+        |> shell.FlagIf(opts.Draft, "--draft")
 
     return shell.Preview(cmd)
 

@@ -245,7 +245,11 @@ func outputStateForLane(lane int) StemState
 # ── Entry Point ──
 
 func main()
-    _ = game.Window("Stem Panic", screenW, screenH) |> game.OnSetup(setup) |> game.OnUpdate(update) |> game.OnDraw(draw) |> game.Run() onerr panic "{error}"
+    _ = game.Window("Stem Panic", screenW, screenH)
+        |> game.OnSetup(setup)
+        |> game.OnUpdate(update)
+        |> game.OnDraw(draw)
+        |> game.Run() onerr panic "{error}"
 
 # ── Setup ──
 

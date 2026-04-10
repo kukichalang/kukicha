@@ -7,6 +7,10 @@ import (
 	"github.com/kukichalang/kukicha/internal/ast"
 )
 
+// maxLineWidth is the target line width. Pipe chains that exceed this
+// (accounting for current indentation) are broken across multiple lines.
+const maxLineWidth = 100
+
 // Printer prints an AST as formatted Kukicha source code
 type Printer struct {
 	output      strings.Builder
@@ -301,7 +305,9 @@ func (p *Printer) printBlock(block *ast.BlockStmt) {
 
 // estimateEndLine returns the last line a statement occupies.
 // For simple statements this is just Pos().Line; for compound statements
-// we check the body to find the deepest line.
+// we check the body to find the deepest line. For statements containing
+// expressions that span multiple lines (e.g. multiline pipe chains),
+// we walk the expression tree to find the deepest source line.
 func (p *Printer) estimateEndLine(stmt ast.Statement) int {
 	line := stmt.Pos().Line
 	switch s := stmt.(type) {
@@ -338,6 +344,56 @@ func (p *Printer) estimateEndLine(stmt ast.Statement) int {
 				return p.estimateEndLine(lastCase.Body.Statements[len(lastCase.Body.Statements)-1])
 			}
 		}
+	case *ast.VarDeclStmt:
+		for _, v := range s.Values {
+			if vl := maxExprLine(v); vl > line {
+				line = vl
+			}
+		}
+	case *ast.AssignStmt:
+		for _, v := range s.Values {
+			if vl := maxExprLine(v); vl > line {
+				line = vl
+			}
+		}
+	case *ast.ExpressionStmt:
+		if el := maxExprLine(s.Expression); el > line {
+			line = el
+		}
+	case *ast.ReturnStmt:
+		for _, v := range s.Values {
+			if vl := maxExprLine(v); vl > line {
+				line = vl
+			}
+		}
+	}
+	return line
+}
+
+// maxExprLine walks an expression tree and returns the maximum source
+// line number found. This accounts for pipe chains and other expressions
+// that may span multiple source lines after formatting.
+func maxExprLine(expr ast.Expression) int {
+	line := expr.Pos().Line
+	pe, ok := expr.(*ast.PipeExpr)
+	if !ok {
+		return line
+	}
+	for {
+		if pe.Token.Line > line {
+			line = pe.Token.Line
+		}
+		if rl := pe.Right.Pos().Line; rl > line {
+			line = rl
+		}
+		left, ok := pe.Left.(*ast.PipeExpr)
+		if !ok {
+			if ll := pe.Left.Pos().Line; ll > line {
+				line = ll
+			}
+			break
+		}
+		pe = left
 	}
 	return line
 }
@@ -864,9 +920,7 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 	case *ast.UnaryExpr:
 		return p.unaryExprToString(e)
 	case *ast.PipeExpr:
-		left := p.exprToString(e.Left)
-		right := p.exprToString(e.Right)
-		return fmt.Sprintf("%s |> %s", left, right)
+		return p.pipeExprToString(e)
 	// Note: OnErrExpr removed — onerr is now a clause on VarDeclStmt, AssignStmt, ExpressionStmt
 	case *ast.CallExpr:
 		return p.callExprToString(e)
@@ -1091,6 +1145,71 @@ func needsParensAfterNot(expr ast.Expression) bool {
 		return true
 	}
 	return false
+}
+
+// pipeExprToString formats a pipe chain expression.
+// Short chains stay on one line; long chains are broken across lines
+// with each |> stage on its own indented line.
+func (p *Printer) pipeExprToString(expr *ast.PipeExpr) string {
+	stages := flattenPipeChain(expr)
+
+	formatted := make([]string, len(stages))
+	hasMultilineStage := false
+	for i, stage := range stages {
+		formatted[i] = p.exprToString(stage)
+		if strings.Contains(formatted[i], "\n") {
+			hasMultilineStage = true
+		}
+	}
+
+	singleLine := strings.Join(formatted, " |> ")
+
+	// If any stage is already multi-line (e.g., contains a function literal
+	// body), keep the pipe join on one line so the existing multi-line
+	// formatting within the stage is preserved.
+	if hasMultilineStage {
+		return singleLine
+	}
+
+	// Keep on one line if it fits within the target width.
+	lineWidth := len(p.indent()) + len(singleLine)
+	if lineWidth <= maxLineWidth {
+		return singleLine
+	}
+
+	// Multi-line: first stage on current line, subsequent stages each on
+	// their own line indented one level deeper than the current context.
+	contIndent := p.indent() + p.indentStr
+	var b strings.Builder
+	b.WriteString(formatted[0])
+	for _, stage := range formatted[1:] {
+		b.WriteByte('\n')
+		b.WriteString(contIndent)
+		b.WriteString("|> ")
+		b.WriteString(stage)
+	}
+	return b.String()
+}
+
+// flattenPipeChain collects all stages in a pipe chain.
+// For a |> b |> c (parsed as (a |> b) |> c), returns [a, b, c].
+func flattenPipeChain(expr *ast.PipeExpr) []ast.Expression {
+	var stages []ast.Expression
+	current := ast.Expression(expr)
+	for {
+		pe, ok := current.(*ast.PipeExpr)
+		if !ok {
+			stages = append(stages, current)
+			break
+		}
+		stages = append(stages, pe.Right)
+		current = pe.Left
+	}
+	// Reverse: we collected right-to-left.
+	for i, j := 0, len(stages)-1; i < j; i, j = i+1, j-1 {
+		stages[i], stages[j] = stages[j], stages[i]
+	}
+	return stages
 }
 
 func (p *Printer) callExprToString(expr *ast.CallExpr) string {

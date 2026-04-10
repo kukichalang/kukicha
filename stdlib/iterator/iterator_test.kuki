@@ -132,11 +132,19 @@ func TestFind(t reference testing.T)
 func TestChain(t reference testing.T)
     items := list of int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
     t.Run("filter then take", (t reference testing.T) =>
-        result := items |> iterator.Values() |> iterator.Filter((n int) => n % 2 == 0) |> iterator.Take(2) |> iterator.Collect()
+        result := items
+            |> iterator.Values()
+            |> iterator.Filter((n int) => n % 2 == 0)
+            |> iterator.Take(2)
+            |> iterator.Collect()
         test.AssertEqual(t, len(result), 2)
     )
 
     t.Run("skip then filter", (t reference testing.T) =>
-        result := items |> iterator.Values() |> iterator.Skip(5) |> iterator.Filter((n int) => n % 2 == 0) |> iterator.Collect()
+        result := items
+            |> iterator.Values()
+            |> iterator.Skip(5)
+            |> iterator.Filter((n int) => n % 2 == 0)
+            |> iterator.Collect()
         test.AssertEqual(t, len(result), 3)
     )

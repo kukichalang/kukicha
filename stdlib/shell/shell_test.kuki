@@ -147,7 +147,9 @@ func TestFlagIfMultiArg(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            cmd := shell.New("gh", "release", "create") |> shell.FlagIf(true, "--target", "main") |> shell.FlagIf(false, "--draft")
+            cmd := shell.New("gh", "release", "create")
+                |> shell.FlagIf(true, "--target", "main")
+                |> shell.FlagIf(false, "--draft")
 
             preview := shell.Preview(cmd)
             test.AssertTrue(t, string.Contains(preview, "--target main"))

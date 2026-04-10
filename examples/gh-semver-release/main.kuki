@@ -83,7 +83,11 @@ func listReposWhereICommitted(org string) (list of string, error)
 
     raw := shell.Output("gh", "api", "graphql", "--paginate", "-f", "login={me}", "-f", "query={query}", "--jq", jqFilter) onerr return empty list of string, error "failed to list repos: {error}"
 
-    repos := raw |> string.Lines() |> slice.Filter(r => not string.IsBlank(r)) |> slice.Unique() |> sort.Strings()
+    repos := raw
+        |> string.Lines()
+        |> slice.Filter(r => not string.IsBlank(r))
+        |> slice.Unique()
+        |> sort.Strings()
 
     if org isnt ""
         repos = repos |> slice.Filter(r => r |> string.HasPrefix("{org}/"))
@@ -119,7 +123,9 @@ func doList(args cli.Args, initialTag string)
         os.Exit(1)
 
     # Fetch tags in parallel (at most 4 concurrent GitHub API calls)
-    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag)) |> slice.Filter(e => e.name isnt "") |> sort.ByKey(e => e.name)
+    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
+        |> slice.Filter(e => e.name isnt "")
+        |> sort.ByKey(e => e.name)
 
     if jsonOut
         result := empty list of ListEntryJSON
@@ -262,7 +268,8 @@ func doPick(args cli.Args, initialTag string)
         cli.Fatal("Failed to list repos: {error}")
 
     # Fetch tags in parallel and compute next versions
-    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag)) |> slice.Filter(e => e.name isnt "")
+    entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
+        |> slice.Filter(e => e.name isnt "")
 
     if slice.IsEmpty(entries)
         print("No repos found.")
@@ -302,4 +309,21 @@ func main()
     if not shell.Which("gh")
         cli.Fatal("Missing required command: gh")
 
-    _ = cli.New("gh-semver-release") |> cli.Description("Create GitHub releases with auto-bumped semver tags") |> cli.GlobalFlag("org", "Limit to repos under this org", "") |> cli.GlobalFlag("bump", "Bump type: patch, minor, major", DefaultBump) |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of human-readable output", "false") |> cli.Command("list", "List repos with current and next semver tags") |> cli.CommandFlag("list", "csv", "CSV output", "false") |> cli.Command("release", "Create a release for a specific repo") |> cli.CommandFlag("release", "repo", "OWNER/REPO to release", "") |> cli.CommandFlag("release", "dry-run", "Show what would happen", "false") |> cli.CommandFlag("release", "draft", "Create draft release", "true") |> cli.Command("pick", "Interactively choose a repo to release") |> cli.CommandFlag("pick", "dry-run", "Show what would happen", "false") |> cli.CommandFlag("pick", "draft", "Create draft release", "true") |> cli.CommandAction("list", a => doList(a, initialTag)) |> cli.CommandAction("release", a => doRelease(a, initialTag)) |> cli.CommandAction("pick", a => doPick(a, initialTag)) |> cli.RunApp() onerr cli.Fatal("{error}")
+    _ = cli.New("gh-semver-release")
+        |> cli.Description("Create GitHub releases with auto-bumped semver tags")
+        |> cli.GlobalFlag("org", "Limit to repos under this org", "")
+        |> cli.GlobalFlag("bump", "Bump type: patch, minor, major", DefaultBump)
+        |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of human-readable output", "false")
+        |> cli.Command("list", "List repos with current and next semver tags")
+        |> cli.CommandFlag("list", "csv", "CSV output", "false")
+        |> cli.Command("release", "Create a release for a specific repo")
+        |> cli.CommandFlag("release", "repo", "OWNER/REPO to release", "")
+        |> cli.CommandFlag("release", "dry-run", "Show what would happen", "false")
+        |> cli.CommandFlag("release", "draft", "Create draft release", "true")
+        |> cli.Command("pick", "Interactively choose a repo to release")
+        |> cli.CommandFlag("pick", "dry-run", "Show what would happen", "false")
+        |> cli.CommandFlag("pick", "draft", "Create draft release", "true")
+        |> cli.CommandAction("list", a => doList(a, initialTag))
+        |> cli.CommandAction("release", a => doRelease(a, initialTag))
+        |> cli.CommandAction("pick", a => doPick(a, initialTag))
+        |> cli.RunApp() onerr cli.Fatal("{error}")

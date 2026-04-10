@@ -99,7 +99,8 @@ func TestScanAllValues(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            result := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1") |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
+            result := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
+                |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
 
             users := result.(list of User)
             test.AssertEqual(t, len(users), 1)

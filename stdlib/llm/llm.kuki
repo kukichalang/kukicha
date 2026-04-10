@@ -654,7 +654,10 @@ func executeRaw(c Client) (Completion, error)
     url := "{baseURL}{chatPath}"
     body := buildRequest(c)
 
-    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Body(body)
+    req := fetch.New(url)
+        |> fetch.Method("POST")
+        |> fetch.Header("Content-Type", "application/json")
+        |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -688,7 +691,11 @@ func executeStreamRaw(c Client) (Completion, error)
     url := "{baseURL}{chatPath}"
     body := buildRequest(c)
 
-    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("Accept", "text/event-stream") |> fetch.Body(body)
+    req := fetch.New(url)
+        |> fetch.Method("POST")
+        |> fetch.Header("Content-Type", "application/json")
+        |> fetch.Header("Accept", "text/event-stream")
+        |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -1340,7 +1347,10 @@ func rExecuteRaw(c ResponseClient) (Response, error)
     url := "{baseURL}{responsePath}"
     body := rBuildRequest(c)
 
-    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Body(body)
+    req := fetch.New(url)
+        |> fetch.Method("POST")
+        |> fetch.Header("Content-Type", "application/json")
+        |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -1374,7 +1384,11 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
     url := "{baseURL}{responsePath}"
     body := rBuildRequest(c)
 
-    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("Accept", "text/event-stream") |> fetch.Body(body)
+    req := fetch.New(url)
+        |> fetch.Method("POST")
+        |> fetch.Header("Content-Type", "application/json")
+        |> fetch.Header("Accept", "text/event-stream")
+        |> fetch.Body(body)
 
     if apiKey != ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
@@ -1956,7 +1970,10 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error)
     body := mBuildRequest(c)
 
     # Anthropic uses x-api-key header, not Bearer token
-    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("anthropic-version", c.apiVersion)
+    req := fetch.New(url)
+        |> fetch.Method("POST")
+        |> fetch.Header("Content-Type", "application/json")
+        |> fetch.Header("anthropic-version", c.apiVersion)
 
     if apiKey != ""
         req = fetch.Header(req, "x-api-key", apiKey)
@@ -1992,7 +2009,11 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
     url := "{baseURL}{msgPath}"
     body := mBuildRequest(c)
 
-    req := fetch.New(url) |> fetch.Method("POST") |> fetch.Header("Content-Type", "application/json") |> fetch.Header("Accept", "text/event-stream") |> fetch.Header("anthropic-version", c.apiVersion)
+    req := fetch.New(url)
+        |> fetch.Method("POST")
+        |> fetch.Header("Content-Type", "application/json")
+        |> fetch.Header("Accept", "text/event-stream")
+        |> fetch.Header("anthropic-version", c.apiVersion)
 
     if apiKey != ""
         req = fetch.Header(req, "x-api-key", apiKey)

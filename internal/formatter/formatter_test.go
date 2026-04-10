@@ -244,3 +244,63 @@ func TestFormatStringEscapeSequences(t *testing.T) {
 
 	assertFormatted(t, source, expected)
 }
+
+func TestFormatLongPipeChainWraps(t *testing.T) {
+	// A long pipe chain should be broken across lines with each |> on its own line.
+	source := `import "stdlib/cli"
+
+func main()
+    _ = cli.New("gke-deploy") |> cli.Description("Deploy Django to GKE with OpenTofu") |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all") |> cli.Command("deploy", "Create GKE cluster") |> cli.RunApp()
+`
+	expected := `import "stdlib/cli"
+
+func main()
+    _ = cli.New("gke-deploy")
+        |> cli.Description("Deploy Django to GKE with OpenTofu")
+        |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all")
+        |> cli.Command("deploy", "Create GKE cluster")
+        |> cli.RunApp()
+`
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatShortPipeChainStaysOneLine(t *testing.T) {
+	// A short pipe chain should remain on a single line.
+	source := `func Double(x int) int
+    return x |> Double() |> Double()
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatMultilinePipePreserved(t *testing.T) {
+	// A pipe chain that is already multiline should be normalized
+	// to the same wrapped format and round-trip cleanly.
+	source := `import "stdlib/cli"
+
+func main()
+    _ = cli.New("gke-deploy")
+        |> cli.Description("Deploy Django to GKE with OpenTofu")
+        |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all")
+        |> cli.Command("deploy", "Create GKE cluster")
+        |> cli.RunApp()
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatPipeChainWithOnerr(t *testing.T) {
+	// Pipe chain with onerr suffix should wrap correctly.
+	source := `import "stdlib/cli"
+
+func main()
+    _ = cli.New("gke-deploy") |> cli.Description("Deploy Django to GKE with OpenTofu") |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all") |> cli.RunApp() onerr cli.Fatal("{error}")
+`
+	expected := `import "stdlib/cli"
+
+func main()
+    _ = cli.New("gke-deploy")
+        |> cli.Description("Deploy Django to GKE with OpenTofu")
+        |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all")
+        |> cli.RunApp() onerr cli.Fatal("{error}")
+`
+	assertFormatted(t, source, expected)
+}

@@ -28,7 +28,15 @@ import "stdlib/table"
 # ── CLI Entry Point ───────────────────────────────────────────
 
 func main()
-    _ = cli.New("gke-deploy") |> cli.Description("Deploy Django to GKE with OpenTofu") |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all") |> cli.GlobalFlag("auto-approve", "Skip approval for destructive changes", "false") |> cli.Command("deploy", "Create GKE cluster, namespaces, and deploy Django") |> cli.Command("status", "Compare configuration across namespaces") |> cli.CommandAction("deploy", args => doDeploy(args)) |> cli.CommandAction("status", args => doStatus(args)) |> cli.RunApp() onerr cli.Fatal("{error}")
+    _ = cli.New("gke-deploy")
+        |> cli.Description("Deploy Django to GKE with OpenTofu")
+        |> cli.GlobalFlag("env", "Target: dev, test, prod, or all", "all")
+        |> cli.GlobalFlag("auto-approve", "Skip approval for destructive changes", "false")
+        |> cli.Command("deploy", "Create GKE cluster, namespaces, and deploy Django")
+        |> cli.Command("status", "Compare configuration across namespaces")
+        |> cli.CommandAction("deploy", args => doDeploy(args))
+        |> cli.CommandAction("status", args => doStatus(args))
+        |> cli.RunApp() onerr cli.Fatal("{error}")
 
 # ── Deploy Command ────────────────────────────────────────────
 

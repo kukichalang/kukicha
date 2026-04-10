@@ -34,7 +34,8 @@ func TestOpenMemory(t reference testing.T)
         t.Run(tc.name, (t reference testing.T) =>
             pool := setupTestDB(t)
             defer db.Close(pool)
-            result := db.Query(pool, "SELECT id, name, email FROM users ORDER BY id") |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
+            result := db.Query(pool, "SELECT id, name, email FROM users ORDER BY id")
+                |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
 
             users := result.(list of User)
             test.AssertEqual(t, len(users), 2)
@@ -254,7 +255,8 @@ func TestBackup(t reference testing.T)
             backupPool := sqlite.Open(backupPath) onerr panic "open backup: {error}"
             defer db.Close(backupPool)
 
-            result := db.Query(backupPool, "SELECT id, name, email FROM users ORDER BY id") |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
+            result := db.Query(backupPool, "SELECT id, name, email FROM users ORDER BY id")
+                |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
 
             users := result.(list of User)
             test.AssertEqual(t, len(users), 2)

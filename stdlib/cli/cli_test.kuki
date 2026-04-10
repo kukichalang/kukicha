@@ -81,7 +81,13 @@ func TestBuilderChain(t reference testing.T)
     handler := (args cli.Args) =>
         _ = args
 
-    _ = cli.New("myapp") |> cli.Description("A great tool") |> cli.GlobalFlag("verbose", "Enable verbose output", "false") |> cli.Command("list", "List items") |> cli.CommandFlag("list", "csv", "CSV output", "false") |> cli.CommandAction("list", handler) |> cli.Command("add", "Add an item")
+    _ = cli.New("myapp")
+        |> cli.Description("A great tool")
+        |> cli.GlobalFlag("verbose", "Enable verbose output", "false")
+        |> cli.Command("list", "List items")
+        |> cli.CommandFlag("list", "csv", "CSV output", "false")
+        |> cli.CommandAction("list", handler)
+        |> cli.Command("add", "Add an item")
 
     test.AssertTrue(t, true)
 
