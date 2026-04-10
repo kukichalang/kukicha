@@ -7,7 +7,7 @@ description: Scan recent releases from competitor Go-superset/transpiler languag
 
 Monitors four Go-adjacent language projects for new releases and extracts ideas
 relevant to Kukicha. Uses `seen-releases.json` as a persistent deduplication log
-so only genuinely new releases are analysed each run.
+so only genuinely new releases are analysed each run. Note: competition is used in a "tongue-in-cheek" manner, we are all scratching our own itch here.
 
 ---
 
