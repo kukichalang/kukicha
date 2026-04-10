@@ -83,6 +83,8 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return "false"
 	case *ast.BinaryExpr:
 		return g.generateBinaryExpr(e)
+	case *ast.IsExpr:
+		return g.generateIsExpr(e)
 	case *ast.UnaryExpr:
 		return g.generateUnaryExpr(e)
 	case *ast.PipeExpr:
@@ -654,6 +656,21 @@ func (g *Generator) generateBinaryExpr(expr *ast.BinaryExpr) string {
 	}
 
 	return fmt.Sprintf("(%s %s %s)", left, op, right)
+}
+
+// generateIsExpr lowers `VALUE is Case` to an IIFE containing a type
+// assertion, so it works in any expression position. The binding form
+// (`is Case as v`) is handled specially by generateIfStmt when it appears
+// as the top-level if condition — if we get here with a binding it means
+// the check is being used as a pure bool expression and the binding name
+// is irrelevant.
+func (g *Generator) generateIsExpr(expr *ast.IsExpr) string {
+	value := g.exprToString(expr.Value)
+	caseName := ""
+	if expr.Case != nil {
+		caseName = expr.Case.Value
+	}
+	return fmt.Sprintf("func() bool { _, _isOk := %s.(%s); return _isOk }()", value, caseName)
 }
 
 func (g *Generator) generateUnaryExpr(expr *ast.UnaryExpr) string {

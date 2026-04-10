@@ -201,6 +201,31 @@ func area(s Shape) float64
 - Compiler warns if switch misses variant cases (unless `otherwise` present)
 - Cannot mix value cases (`= literal`) and variant cases in the same enum
 
+#### Single-case checks with `is`
+
+Use the `is` operator to test a single variant case without a full switch:
+
+```kukicha
+# Bool check — works in any expression position
+if s is Circle
+    return true
+
+# With binding — `c` is typed as the matched case in the consequence block
+func area(s Shape) float64
+    if s is Circle as c
+        return 3.14159 * c.radius * c.radius
+    if s is Rectangle as r
+        return r.width * r.height
+    return 0.0
+```
+
+- `EXPR is CaseName` evaluates to `bool`
+- `EXPR is CaseName as v` in an `if` condition binds `v` to the case's struct
+  in the consequence block (scoped; not visible in `else`)
+- The binding form is only valid as the **top-level** `if` condition — not
+  nested inside `and`/`or` or used in other positions
+- Left-hand side must be a variant enum value; case name must belong to that enum
+
 ### Methods
 
 ```kukicha

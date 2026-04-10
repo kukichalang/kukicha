@@ -23,6 +23,7 @@ All valid Go is valid Kukicha. Current version: **0.1.4**
 | `go func() { ... }()` | `go` + indented block | |
 | `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` | |
 | (no sum types) | `enum Shape` with `Circle` / `Point` (variant enum) | |
+| `if _, ok := v.(Circle); ok` | `if v is Circle as c` (variant case check) | |
 | (no ternary) | `if COND then EXPR else EXPR` (if-expression) | |
 
 ## Keyword Aliases (English-Friendly Forms)

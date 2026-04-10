@@ -321,6 +321,8 @@ func (g *Generator) walkExpr(expr ast.Expression, visit func(ast.Expression) boo
 	switch e := expr.(type) {
 	case *ast.BinaryExpr:
 		return g.walkExpr(e.Left, visit) || g.walkExpr(e.Right, visit)
+	case *ast.IsExpr:
+		return g.walkExpr(e.Value, visit)
 	case *ast.UnaryExpr:
 		return g.walkExpr(e.Right, visit)
 	case *ast.PipeExpr:
@@ -649,6 +651,8 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 		return false
 	case *ast.BinaryExpr:
 		return g.exprHasNonPrintfInterpolation(e.Left) || g.exprHasNonPrintfInterpolation(e.Right)
+	case *ast.IsExpr:
+		return g.exprHasNonPrintfInterpolation(e.Value)
 	case *ast.UnaryExpr:
 		return g.exprHasNonPrintfInterpolation(e.Right)
 	case *ast.CallExpr:

@@ -81,6 +81,68 @@ func TestVariantEnum_MarkerMethods(t *testing.T) {
 	}
 }
 
+func TestIsExpr_NoBinding(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func isCircle(s Shape) bool
+    return s is Circle
+`
+	output := generateSource(t, input)
+
+	// No-binding form lowers to an IIFE with a type assertion.
+	if !strings.Contains(output, ".(Circle)") {
+		t.Errorf("expected type assertion '.(Circle)', got:\n%s", output)
+	}
+	if !strings.Contains(output, "_isOk") {
+		t.Errorf("expected '_isOk' variable, got:\n%s", output)
+	}
+}
+
+func TestIsExpr_BindingInIf(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func area(s Shape) float64
+    if s is Circle as c
+        return c.radius * c.radius
+    return 0.0
+`
+	output := generateSource(t, input)
+
+	// Binding form lowers to Go's type-assertion if-init.
+	if !strings.Contains(output, "if c, _isOk := s.(Circle); _isOk") {
+		t.Errorf("expected 'if c, _isOk := s.(Circle); _isOk', got:\n%s", output)
+	}
+	// Must NOT wrap in IIFE in the if-condition position.
+	if strings.Contains(output, "func() bool") {
+		t.Errorf("expected NO IIFE wrapper for if-binding form, got:\n%s", output)
+	}
+}
+
+func TestIsExpr_NoBindingInIf(t *testing.T) {
+	// An `if X is Case` without binding — should still work, uses IIFE.
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func isCircle(s Shape) bool
+    if s is Circle
+        return true
+    return false
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, ".(Circle)") {
+		t.Errorf("expected type assertion '.(Circle)', got:\n%s", output)
+	}
+}
+
 func TestVariantEnum_UsedInTypedSwitch(t *testing.T) {
 	input := `enum Shape
     Circle

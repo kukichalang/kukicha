@@ -43,6 +43,8 @@ func (g *Generator) inferExprReturnType(expr ast.Expression) string {
 		if e.Operator == "not" || e.Operator == "!" {
 			return "bool"
 		}
+	case *ast.IsExpr:
+		return "bool"
 	case *ast.BooleanLiteral:
 		return "bool"
 	case *ast.IntegerLiteral:

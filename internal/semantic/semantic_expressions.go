@@ -31,6 +31,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 		return &TypeInfo{Kind: TypeKindBool}
 	case *ast.BinaryExpr:
 		return a.analyzeBinaryExpr(e)
+	case *ast.IsExpr:
+		return a.analyzeIsExpr(e)
 	case *ast.UnaryExpr:
 		return a.analyzeUnaryExpr(e)
 	case *ast.PipeExpr:
@@ -428,6 +430,63 @@ func isBitwiseType(t *TypeInfo) bool {
 		return false
 	}
 	return t.Kind == TypeKindInt || t.Kind == TypeKindUnknown
+}
+
+// analyzeIsExpr validates `EXPR is CaseName [as v]` — a variant enum case
+// check. The value must be a variant enum, the case must belong to that
+// enum. The optional binding variable is NOT defined here; analyzeIfStmt
+// handles binding because `as v` is only valid in an `if` condition and the
+// binding is scoped to the consequence block. An IsExpr with a binding in
+// any other position is an error.
+func (a *Analyzer) analyzeIsExpr(expr *ast.IsExpr) *TypeInfo {
+	// A binding (`as v`) is only valid as the top-level `if` condition.
+	// Disable the flag while analyzing sub-expressions so nested IsExprs can't
+	// sneak in a binding (e.g. inside `and`/`or`).
+	allowed := a.allowIsBinding
+	a.allowIsBinding = false
+	defer func() { a.allowIsBinding = allowed }()
+
+	if expr.Binding != nil && !allowed {
+		a.error(expr.Binding.Pos(), "'is' binding (`as v`) is only valid as the top-level condition of an `if` statement")
+	}
+
+	valueType := a.analyzeExpression(expr.Value)
+
+	caseName := ""
+	if expr.Case != nil {
+		caseName = expr.Case.Value
+	}
+
+	// Resolve the variant type: either the expression's type is already a
+	// variant, or it's a named type whose symbol is a variant.
+	var variantType *TypeInfo
+	if valueType != nil {
+		switch valueType.Kind {
+		case TypeKindVariant:
+			variantType = valueType
+		case TypeKindNamed:
+			if sym := a.symbolTable.Resolve(valueType.Name); sym != nil && sym.Type != nil && sym.Type.Kind == TypeKindVariant {
+				variantType = sym.Type
+			}
+		}
+	}
+
+	if variantType == nil {
+		if valueType != nil && valueType.Kind != TypeKindUnknown {
+			a.error(expr.Pos(), fmt.Sprintf("'is' requires a variant enum value, got %s", valueType))
+		}
+		return &TypeInfo{Kind: TypeKindBool}
+	}
+
+	if caseName == "" {
+		return &TypeInfo{Kind: TypeKindBool}
+	}
+
+	if _, ok := variantType.VariantCases[caseName]; !ok {
+		a.error(expr.Case.Pos(), fmt.Sprintf("'%s' is not a case of variant enum '%s'", caseName, variantType.Name))
+	}
+
+	return &TypeInfo{Kind: TypeKindBool}
 }
 
 func (a *Analyzer) analyzeUnaryExpr(expr *ast.UnaryExpr) *TypeInfo {

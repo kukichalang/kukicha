@@ -306,6 +306,22 @@ func (g *Generator) coerceReturnValue(valStr string, val ast.Expression, returnT
 	return valStr
 }
 
+// isExprBindingHeader emits the `if BINDING, _isOk := VALUE.(Case); _isOk {`
+// header for an `if VALUE is Case as v` condition. The caller is responsible
+// for the trailing newline and for emitting the consequence block.
+func (g *Generator) isExprBindingHeader(expr *ast.IsExpr) string {
+	value := g.exprToString(expr.Value)
+	caseName := ""
+	if expr.Case != nil {
+		caseName = expr.Case.Value
+	}
+	binding := "_"
+	if expr.Binding != nil {
+		binding = expr.Binding.Value
+	}
+	return fmt.Sprintf("if %s, _isOk := %s.(%s); _isOk {", binding, value, caseName)
+}
+
 func (g *Generator) generateIfStmt(stmt *ast.IfStmt) {
 	if stmt.Init != nil {
 		g.write("if ")
@@ -318,6 +334,8 @@ func (g *Generator) generateIfStmt(stmt *ast.IfStmt) {
 		g.write("; ")
 		g.write(g.exprToString(stmt.Condition))
 		g.writeLine(" {")
+	} else if isExpr, ok := stmt.Condition.(*ast.IsExpr); ok && isExpr.Binding != nil {
+		g.writeLine(g.isExprBindingHeader(isExpr))
 	} else {
 		condition := g.exprToString(stmt.Condition)
 		g.writeLine(fmt.Sprintf("if %s {", condition))
@@ -356,6 +374,9 @@ func (g *Generator) generateIfStmtContinued(stmt *ast.IfStmt) {
 		g.output.WriteString("; ")
 		g.output.WriteString(g.exprToString(stmt.Condition))
 		g.output.WriteString(" {\n")
+	} else if isExpr, ok := stmt.Condition.(*ast.IsExpr); ok && isExpr.Binding != nil {
+		g.output.WriteString(g.isExprBindingHeader(isExpr))
+		g.output.WriteString("\n")
 	} else {
 		condition := g.exprToString(stmt.Condition)
 		g.output.WriteString(fmt.Sprintf("if %s {\n", condition))

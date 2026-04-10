@@ -91,7 +91,7 @@ func doDeploy(args cli.Args)
     for i, result in results
         ns := namespaces[i]
         printResult("django/" + ns, result)
-        if isSucceeded(result)
+        if result is Succeeded
             set.AddIn(succeeded, ns)
         else
             set.AddIn(failed, ns)
@@ -130,15 +130,8 @@ func doStatus(args cli.Args)
 
 # ── Helpers ───────────────────────────────────────────────────
 
-func isSucceeded(result ApplyResult) bool
-    switch result as v
-        when Succeeded
-            return true
-        otherwise
-            return false
-
 func exitUnlessSucceeded(name string, result ApplyResult)
-    if not isSucceeded(result)
+    if not (result is Succeeded)
         os.Exit(1)
 
 func printResult(name string, result ApplyResult)

@@ -497,3 +497,45 @@ func TestParseSliceExpression(t *testing.T) {
 		t.Error("expected end index, got nil")
 	}
 }
+
+func TestParseIsExpression(t *testing.T) {
+	input := `func Test(s Shape) bool
+    return s is Circle
+`
+	program := mustParseProgram(t, input)
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	retStmt := fn.Body.Statements[0].(*ast.ReturnStmt)
+	isExpr, ok := retStmt.Values[0].(*ast.IsExpr)
+	if !ok {
+		t.Fatalf("expected IsExpr, got %T", retStmt.Values[0])
+	}
+	if isExpr.Case == nil || isExpr.Case.Value != "Circle" {
+		t.Errorf("expected case name 'Circle', got %v", isExpr.Case)
+	}
+	if isExpr.Binding != nil {
+		t.Errorf("expected no binding, got %v", isExpr.Binding)
+	}
+	if ident, ok := isExpr.Value.(*ast.Identifier); !ok || ident.Value != "s" {
+		t.Errorf("expected value identifier 's', got %v", isExpr.Value)
+	}
+}
+
+func TestParseIsExpressionWithBinding(t *testing.T) {
+	input := `func Test(s Shape)
+    if s is Circle as c
+        return
+`
+	program := mustParseProgram(t, input)
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	ifStmt := fn.Body.Statements[0].(*ast.IfStmt)
+	isExpr, ok := ifStmt.Condition.(*ast.IsExpr)
+	if !ok {
+		t.Fatalf("expected IsExpr condition, got %T", ifStmt.Condition)
+	}
+	if isExpr.Binding == nil || isExpr.Binding.Value != "c" {
+		t.Errorf("expected binding 'c', got %v", isExpr.Binding)
+	}
+	if isExpr.Case == nil || isExpr.Case.Value != "Circle" {
+		t.Errorf("expected case name 'Circle', got %v", isExpr.Case)
+	}
+}

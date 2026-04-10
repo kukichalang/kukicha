@@ -407,6 +407,8 @@ func (g *Generator) scanExprForAutoImports(expr ast.Expression) {
 	case *ast.BinaryExpr:
 		g.scanExprForAutoImports(e.Left)
 		g.scanExprForAutoImports(e.Right)
+	case *ast.IsExpr:
+		g.scanExprForAutoImports(e.Value)
 	case *ast.UnaryExpr:
 		g.scanExprForAutoImports(e.Right)
 	case *ast.PipeExpr:

@@ -31,6 +31,7 @@ type Analyzer struct {
 	inOnerr            bool              // True while analyzing an onerr handler
 	currentOnerrAlias string            // Named alias for caught error in current onerr block (e.g., "e" for "onerr as e")
 	inPipedSwitch      bool              // True while analyzing piped switch case bodies (suppresses return-count checks)
+	allowIsBinding     bool              // True while analyzing an if condition (permits `is CaseName as v`)
 
 	// Pass 2 output (consumed by codegen)
 	exprReturnCounts map[ast.Expression]int      // Inferred return counts for expressions

@@ -712,6 +712,22 @@ func (e *BinaryExpr) Pos() Position {
 }
 func (e *BinaryExpr) exprNode() {}
 
+// IsExpr represents a variant case check: `EXPR is CaseName` or
+// `EXPR is CaseName as v`. The binding form is only valid in an `if`
+// condition position; semantic analysis rejects it elsewhere.
+type IsExpr struct {
+	Token   lexer.Token // the 'is' keyword
+	Value   Expression  // the variant enum value being checked
+	Case    *Identifier // the variant case name
+	Binding *Identifier // optional binding for `as v` — nil if absent
+}
+
+func (e *IsExpr) TokenLiteral() string { return e.Token.Lexeme }
+func (e *IsExpr) Pos() Position {
+	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
+}
+func (e *IsExpr) exprNode() {}
+
 type UnaryExpr struct {
 	Token    lexer.Token // The operator token
 	Operator string

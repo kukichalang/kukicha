@@ -627,14 +627,27 @@ func (a *Analyzer) analyzeIfStmt(stmt *ast.IfStmt) {
 		a.analyzeStatement(stmt.Init)
 	}
 
-	// Analyze condition
+	// Detect `if VALUE is CaseName as v` — only the top-level IsExpr in the
+	// condition gets a binding scoped to the consequence block. Nested forms
+	// (e.g. inside `and`/`or`) are rejected by analyzeIsExpr.
+	isBinding, _ := stmt.Condition.(*ast.IsExpr)
+
+	// Permit the `as v` binding only for the direct top-level IsExpr.
+	savedAllow := a.allowIsBinding
+	if isBinding != nil {
+		a.allowIsBinding = true
+	}
 	condType := a.analyzeExpression(stmt.Condition)
+	a.allowIsBinding = savedAllow
 	if condType.Kind != TypeKindBool && condType.Kind != TypeKindUnknown {
 		a.error(stmt.Condition.Pos(), "if condition must be boolean")
 	}
 
 	// Analyze consequence
 	a.symbolTable.EnterScope()
+	if isBinding != nil && isBinding.Binding != nil {
+		a.defineIsExprBinding(isBinding)
+	}
 	a.analyzeBlock(stmt.Consequence)
 	a.symbolTable.ExitScope()
 
@@ -649,6 +662,49 @@ func (a *Analyzer) analyzeIfStmt(stmt *ast.IfStmt) {
 		}
 		a.symbolTable.ExitScope()
 	}
+}
+
+// defineIsExprBinding defines the `as v` binding for an `if EXPR is Case as v`
+// condition in the current scope. The binding's type is the variant case
+// struct so field access works naturally in the consequence block.
+func (a *Analyzer) defineIsExprBinding(expr *ast.IsExpr) {
+	if expr.Binding == nil || expr.Case == nil {
+		return
+	}
+
+	valueType := a.exprTypes[expr.Value]
+	var variantType *TypeInfo
+	if valueType != nil {
+		switch valueType.Kind {
+		case TypeKindVariant:
+			variantType = valueType
+		case TypeKindNamed:
+			if sym := a.symbolTable.Resolve(valueType.Name); sym != nil && sym.Type != nil && sym.Type.Kind == TypeKindVariant {
+				variantType = sym.Type
+			}
+		}
+	}
+
+	// Default to Unknown so downstream uses don't cascade errors when the
+	// type couldn't be resolved (analyzeIsExpr already reported the root cause).
+	bindingType := &TypeInfo{Kind: TypeKindUnknown}
+	if variantType != nil {
+		if caseType, ok := variantType.VariantCases[expr.Case.Value]; ok && caseType != nil {
+			bindingType = caseType
+		}
+	}
+
+	sym := &Symbol{
+		Name:    expr.Binding.Value,
+		Kind:    SymbolVariable,
+		Type:    bindingType,
+		Defined: expr.Binding.Pos(),
+	}
+	if err := a.symbolTable.Define(sym); err != nil {
+		a.error(expr.Binding.Pos(), err.Error())
+	}
+	// Record the binding identifier's type so codegen can look it up if needed.
+	a.recordType(expr.Binding, bindingType)
 }
 
 func (a *Analyzer) analyzeForRangeStmt(stmt *ast.ForRangeStmt) {

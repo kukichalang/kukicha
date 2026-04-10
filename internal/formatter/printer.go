@@ -1042,6 +1042,8 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		return "false"
 	case *ast.BinaryExpr:
 		return p.binaryExprToString(e)
+	case *ast.IsExpr:
+		return p.isExprToString(e)
 	case *ast.UnaryExpr:
 		return p.unaryExprToString(e)
 	case *ast.PipeExpr:
@@ -1247,6 +1249,18 @@ func (p *Printer) binaryExprToString(expr *ast.BinaryExpr) string {
 	return fmt.Sprintf("%s %s %s", left, expr.Operator, right)
 }
 
+func (p *Printer) isExprToString(expr *ast.IsExpr) string {
+	value := p.exprToString(expr.Value)
+	caseName := ""
+	if expr.Case != nil {
+		caseName = expr.Case.Value
+	}
+	if expr.Binding != nil {
+		return fmt.Sprintf("%s is %s as %s", value, caseName, expr.Binding.Value)
+	}
+	return fmt.Sprintf("%s is %s", value, caseName)
+}
+
 func (p *Printer) unaryExprToString(expr *ast.UnaryExpr) string {
 	right := p.exprToString(expr.Right)
 
@@ -1266,7 +1280,7 @@ func (p *Printer) unaryExprToString(expr *ast.UnaryExpr) string {
 // therefore needs parentheses when used as the operand of a not/! expression.
 func needsParensAfterNot(expr ast.Expression) bool {
 	switch expr.(type) {
-	case *ast.BinaryExpr, *ast.PipeExpr:
+	case *ast.BinaryExpr, *ast.PipeExpr, *ast.IsExpr:
 		return true
 	}
 	return false

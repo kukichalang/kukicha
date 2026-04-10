@@ -153,6 +153,21 @@ func (p *Parser) parseComparisonExpr() ast.Expression {
 			operator = p.advance() // consume NOT
 			operator.Lexeme = "not in"
 			p.advance() // consume IN
+		} else if p.match(lexer.TOKEN_IS) {
+			// `EXPR is CaseName [as v]` — variant enum case check
+			isTok := p.previousToken()
+			caseIdent := p.parseIdentifier()
+			var binding *ast.Identifier
+			if p.match(lexer.TOKEN_AS) {
+				binding = p.parseIdentifier()
+			}
+			left = &ast.IsExpr{
+				Token:   isTok,
+				Value:   left,
+				Case:    caseIdent,
+				Binding: binding,
+			}
+			continue
 		} else {
 			break
 		}

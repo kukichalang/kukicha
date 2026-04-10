@@ -171,6 +171,144 @@ func main()
 	}
 }
 
+func TestIsExpr_ValidNoBinding(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func isCircle(s Shape) bool
+    return s is Circle
+`
+	_, errs := analyzeSource(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected no errors for valid is-expression, got: %v", errs)
+	}
+}
+
+func TestIsExpr_ValidBindingInIf(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func area(s Shape) float64
+    if s is Circle as c
+        return c.radius * c.radius
+    return 0.0
+`
+	_, errs := analyzeSource(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected no errors for valid is-binding, got: %v", errs)
+	}
+}
+
+func TestIsExpr_UnknownCase(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func check(s Shape) bool
+    return s is Triangle
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "Triangle") && strings.Contains(e.Error(), "not a case") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected 'not a case' error for Triangle, got: %v", errs)
+	}
+}
+
+func TestIsExpr_NonVariantValue(t *testing.T) {
+	input := `func main()
+    x := 5
+    if x is Foo
+        return
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "variant enum") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected 'variant enum' error for int value, got: %v", errs)
+	}
+}
+
+func TestIsExpr_BindingOutsideIf(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func check(s Shape) bool
+    return s is Circle as c
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "binding") && strings.Contains(e.Error(), "top-level") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected 'binding top-level' error, got: %v", errs)
+	}
+}
+
+func TestIsExpr_BindingNestedInAndRejected(t *testing.T) {
+	input := `enum Result
+    Ok
+        value int
+    Err
+
+func check(r Result) bool
+    if r is Ok as v and v.value > 0
+        return true
+    return false
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "binding") && strings.Contains(e.Error(), "top-level") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected rejection of nested is-binding, got: %v", errs)
+	}
+}
+
+func TestIsExpr_BindingScopedToConsequence(t *testing.T) {
+	// The binding 'c' must be in scope in the consequence block (so c.radius works)
+	// but not in the else branch or after the if.
+	input := `enum Shape
+    Circle
+        radius float64
+    Point
+
+func check(s Shape) float64
+    if s is Circle as c
+        return c.radius
+    return 0.0
+`
+	_, errs := analyzeSource(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected binding in scope, got: %v", errs)
+	}
+}
+
 func TestVariantEnum_ExhaustivenessAllCovered(t *testing.T) {
 	input := `enum Shape
     Circle
