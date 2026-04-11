@@ -157,8 +157,14 @@ func (p *Preprocessor) isExpressionBrace(line string) bool {
 	beforeBrace := strings.TrimSuffix(line, "{")
 	beforeBrace = strings.TrimSpace(beforeBrace)
 
-	// Kukicha-style collection types: "list of <type>{" or "map of <type> to <type>{"
-	if strings.Contains(beforeBrace, "list of") || strings.Contains(beforeBrace, "map of") {
+	// A return statement can never introduce a block; `return ... {` is
+	// always a struct/map/slice literal (e.g. `return reference of foo{`).
+	if strings.HasPrefix(line, "return ") {
+		return true
+	}
+
+	// Kukicha-style collection/reference types: "list of T{", "map of K to V{", "reference of T{"
+	if strings.Contains(beforeBrace, "list of") || strings.Contains(beforeBrace, "map of") || strings.Contains(beforeBrace, "reference of") {
 		return true
 	}
 

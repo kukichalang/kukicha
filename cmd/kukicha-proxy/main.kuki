@@ -32,14 +32,14 @@ import "time"
 
 # versionRecord tracks when a module version was first observed.
 type versionRecord
-    Module    string as "module"
-    Version   string as "version"
+    Module string as "module"
+    Version string as "version"
     FirstSeen time.Time as "first_seen"
 
 # latestInfo holds the JSON shape of an /@latest response.
 type latestInfo
     Version string as "Version"
-    Time    time.Time as "Time"
+    Time time.Time as "Time"
 
 # seenStore is the interface for first-seen timestamp storage.
 interface seenStore
@@ -49,8 +49,8 @@ interface seenStore
 # --- JSON-backed store (local mode) ---
 
 type seenDB
-    mu      sync.RWMutex
-    path    string
+    mu sync.RWMutex
+    path string
     records map of string to versionRecord
 
 func newSeenDB(path string) (reference seenDB, error)
@@ -64,7 +64,7 @@ func newSeenDB(path string) (reference seenDB, error)
                 db.records[r.Module + "@" + r.Version] = r
     return db, empty
 
-func FirstSeen on db reference seenDB (module string, version string) time.Time
+func FirstSeen on db reference seenDB(module string, version string) time.Time
     db.mu.Lock()
     defer db.mu.Unlock()
 
@@ -97,13 +97,13 @@ func Shutdown on db reference seenDB error
     return empty
 
 # seedRecord sets a record directly; used only in tests.
-func seedRecord on db reference seenDB (module string, version string, t time.Time)
+func seedRecord on db reference seenDB(module string, version string, t time.Time)
     db.mu.Lock()
     defer db.mu.Unlock()
     db.records[module + "@" + version] = versionRecord{Module: module, Version: version, FirstSeen: t}
 
 # hasRecord reports whether a first-seen record exists; used only in tests.
-func hasRecord on db reference seenDB (module string, version string) bool
+func hasRecord on db reference seenDB(module string, version string) bool
     db.mu.RLock()
     defer db.mu.RUnlock()
     _, ok := db.records[module + "@" + version]
@@ -112,7 +112,7 @@ func hasRecord on db reference seenDB (module string, version string) bool
 # --- SQLite-backed store (hosted mode) ---
 
 type sqliteSeenStore
-    mu   sync.Mutex
+    mu sync.Mutex
     pool db.Pool
 
 func newSQLiteSeenStore(path string) (reference sqliteSeenStore, error)
@@ -121,9 +121,10 @@ func newSQLiteSeenStore(path string) (reference sqliteSeenStore, error)
     db.Exec(pool, "CREATE TABLE IF NOT EXISTS seen (key TEXT PRIMARY KEY, module TEXT NOT NULL, version TEXT NOT NULL, first_seen TEXT NOT NULL)") onerr
         db.Close(pool) onerr discard
         return empty, error "create table: {error}"
+
     return reference of sqliteSeenStore{pool: pool}, empty
 
-func FirstSeen on s reference sqliteSeenStore (module string, version string) time.Time
+func FirstSeen on s reference sqliteSeenStore(module string, version string) time.Time
     s.mu.Lock()
     defer s.mu.Unlock()
 
@@ -153,15 +154,15 @@ func Shutdown on s reference sqliteSeenStore error
 # patches reach users immediately.
 
 type vulnChecker
-    mu       sync.Mutex
-    cache    map of string to vulnCacheEntry
-    client   reference http.Client
-    dbURL    string
+    mu sync.Mutex
+    cache map of string to vulnCacheEntry
+    client reference http.Client
+    dbURL string
     cacheTTL time.Duration
 
 type vulnCacheEntry
     fixedVersions map of string to bool
-    fetchedAt     time.Time
+    fetchedAt time.Time
 
 # OSV API types (https://ossf.github.io/osv-schema/)
 
@@ -169,38 +170,38 @@ type osvQueryReq
     Package osvPackage as "package"
 
 type osvPackage
-    Name      string as "name"
+    Name string as "name"
     Ecosystem string as "ecosystem"
 
 type osvQueryResp
     Vulns list of osvVuln as "vulns"
 
 type osvVuln
-    ID       string             as "id"
+    ID string as "id"
     Affected list of osvAffected as "affected"
 
 type osvAffected
     Ranges list of osvRange as "ranges"
 
 type osvRange
-    Type   string           as "type"
+    Type string as "type"
     Events list of osvEvent as "events"
 
 type osvEvent
     Introduced string as "introduced"
-    Fixed      string as "fixed"
+    Fixed string as "fixed"
 
 func newVulnChecker(client reference http.Client) reference vulnChecker
     return reference of vulnChecker{
-        cache:    make(map of string to vulnCacheEntry),
-        client:   client,
-        dbURL:    "https://api.osv.dev/v1/query",
+        cache: make(map of string to vulnCacheEntry),
+        client: client,
+        dbURL: "https://api.osv.dev/v1/query",
         cacheTTL: 1 * time.Hour,
     }
 
 # IsSecurityFix reports whether the given version is listed as a fix for a
 # known vulnerability of the module.
-func IsSecurityFix on vc reference vulnChecker (module string, version string) bool
+func IsSecurityFix on vc reference vulnChecker(module string, version string) bool
     vc.mu.Lock()
     entry, ok := vc.cache[module]
     if ok and time.Since(entry.fetchedAt) < vc.cacheTTL
@@ -216,7 +217,7 @@ func IsSecurityFix on vc reference vulnChecker (module string, version string) b
 
     return fixedVersions[version]
 
-func fetchFixedVersions on vc reference vulnChecker (module string) map of string to bool
+func fetchFixedVersions on vc reference vulnChecker(module string) map of string to bool
     result := make(map of string to bool)
 
     body := json.Marshal(osvQueryReq{Package: osvPackage{Name: module, Ecosystem: "Go"}}) onerr return result
@@ -252,27 +253,27 @@ func fetchFixedVersions on vc reference vulnChecker (module string) map of strin
 var errGone = errors.New("410 Gone")
 
 type proxy
-    upstream   string
-    cooldown   time.Duration
-    db         seenStore
-    cacheDir   string
-    trusted    list of string
+    upstream string
+    cooldown time.Duration
+    db seenStore
+    cacheDir string
+    trusted list of string
     httpClient reference http.Client
-    vuln       reference vulnChecker
+    vuln reference vulnChecker
 
-func isTrusted on p reference proxy (module string) bool
+func isTrusted on p reference proxy(module string) bool
     for _, prefix in p.trusted
         if strpkg.HasPrefix(module, prefix)
             return true
     return false
 
-func isSecurityFix on p reference proxy (module string, version string) bool
+func isSecurityFix on p reference proxy(module string, version string) bool
     if p.vuln == empty
         return false
     return p.vuln.IsSecurityFix(module, version)
 
 # ServeHTTP handles GOPROXY protocol requests.
-func ServeHTTP on p reference proxy (w http.ResponseWriter, r reference http.Request)
+func ServeHTTP on p reference proxy(w http.ResponseWriter, r reference http.Request)
     if r.Method != http.MethodGet
         http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
         return
@@ -285,7 +286,11 @@ func ServeHTTP on p reference proxy (w http.ResponseWriter, r reference http.Req
     # Health check endpoint.
     if path == "_health"
         w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(map of string to any{"status": "ok", "cooldown": p.cooldown.String(), "upstream": p.upstream}) onerr discard
+        json.NewEncoder(w).Encode(map of string to any{
+            "status": "ok",
+            "cooldown": p.cooldown.String(),
+            "upstream": p.upstream,
+        }) onerr discard
         return
 
     # Sumdb proxy: forward sumdb/ requests to sum.golang.org.
@@ -324,7 +329,7 @@ func ServeHTTP on p reference proxy (w http.ResponseWriter, r reference http.Req
     else
         http.Error(w, "not found", http.StatusNotFound)
 
-func handleList on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string)
+func handleList on p reference proxy(w http.ResponseWriter, _ reference http.Request, module string)
     body, err := p.fetchUpstream(module + "/@v/list")
     if err != empty
         if errors.Is(err, errGone)
@@ -361,7 +366,7 @@ func handleList on p reference proxy (w http.ResponseWriter, _ reference http.Re
     if len(filtered) > 0
         fmt.Fprintln(w, strpkg.Join(filtered, "\n")) onerr discard
 
-func handleLatest on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string)
+func handleLatest on p reference proxy(w http.ResponseWriter, _ reference http.Request, module string)
     body, err := p.fetchUpstream(module + "/@latest")
     if err != empty
         if errors.Is(err, errGone)
@@ -397,7 +402,7 @@ func handleLatest on p reference proxy (w http.ResponseWriter, _ reference http.
     w.Header().Set("Content-Type", "application/json")
     w.Write(data) onerr discard
 
-func handleInfo on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
+func handleInfo on p reference proxy(w http.ResponseWriter, _ reference http.Request, module string, version string)
     # Always record first-seen to start the cooldown clock.
     seen := p.db.FirstSeen(module, version)
     if not p.isTrusted(module) and time.Since(seen) < p.cooldown and not p.isSecurityFix(module, version)
@@ -405,14 +410,14 @@ func handleInfo on p reference proxy (w http.ResponseWriter, _ reference http.Re
         return
     p.proxyPassthrough(w, module + "/@v/" + version + ".info", "application/json")
 
-func handleMod on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
+func handleMod on p reference proxy(w http.ResponseWriter, _ reference http.Request, module string, version string)
     seen := p.db.FirstSeen(module, version)
     if not p.isTrusted(module) and time.Since(seen) < p.cooldown and not p.isSecurityFix(module, version)
         http.Error(w, "version in cooldown", http.StatusNotFound)
         return
     p.cachedProxyPassthrough(w, module + "/@v/" + version + ".mod", "text/plain; charset=utf-8")
 
-func handleZip on p reference proxy (w http.ResponseWriter, _ reference http.Request, module string, version string)
+func handleZip on p reference proxy(w http.ResponseWriter, _ reference http.Request, module string, version string)
     seen := p.db.FirstSeen(module, version)
     if not p.isTrusted(module) and time.Since(seen) < p.cooldown and not p.isSecurityFix(module, version)
         http.Error(w, "version in cooldown", http.StatusNotFound)
@@ -421,7 +426,7 @@ func handleZip on p reference proxy (w http.ResponseWriter, _ reference http.Req
 
 # handleSumDB proxies requests to sum.golang.org, preventing module fetch
 # patterns from leaking to Google's infrastructure.
-func handleSumDB on p reference proxy (w http.ResponseWriter, _ reference http.Request, subpath string)
+func handleSumDB on p reference proxy(w http.ResponseWriter, _ reference http.Request, subpath string)
     target := "https://sum.golang.org/" + subpath
     resp, httpErr := p.httpClient.Get(target)
     if httpErr != empty
@@ -434,7 +439,7 @@ func handleSumDB on p reference proxy (w http.ResponseWriter, _ reference http.R
     w.WriteHeader(resp.StatusCode)
     io.Copy(w, resp.Body) onerr discard
 
-func proxyPassthrough on p reference proxy (w http.ResponseWriter, path string, contentType string)
+func proxyPassthrough on p reference proxy(w http.ResponseWriter, path string, contentType string)
     body, err := p.fetchUpstream(path)
     if err != empty
         if errors.Is(err, errGone)
@@ -448,7 +453,7 @@ func proxyPassthrough on p reference proxy (w http.ResponseWriter, path string, 
 
 # cachedProxyPassthrough serves from disk cache when available, falling back
 # to upstream. Suitable for immutable responses (.mod and .zip).
-func cachedProxyPassthrough on p reference proxy (w http.ResponseWriter, path string, contentType string)
+func cachedProxyPassthrough on p reference proxy(w http.ResponseWriter, path string, contentType string)
     if p.cacheDir != ""
         cachePath := filepath.Join(p.cacheDir, filepath.FromSlash(path))
         cached, cacheErr := os.ReadFile(cachePath)
@@ -482,7 +487,7 @@ func cachedProxyPassthrough on p reference proxy (w http.ResponseWriter, path st
     w.Header().Set("Content-Type", contentType)
     w.Write(data) onerr discard
 
-func fetchUpstream on p reference proxy (path string) (io.ReadCloser, error)
+func fetchUpstream on p reference proxy(path string) (io.ReadCloser, error)
     upstreamURL := p.upstream + "/" + path
     resp, httpErr := p.httpClient.Get(upstreamURL)
     if httpErr != empty
@@ -603,7 +608,15 @@ func main()
     if vulncheck
         vc = newVulnChecker(httpClient)
 
-    p := reference of proxy{upstream: up, cooldown: cooldown, db: store, cacheDir: filepath.Join(dir, "cache"), trusted: trustedPrefixes, httpClient: httpClient, vuln: vc}
+    p := reference of proxy{
+        upstream: up,
+        cooldown: cooldown,
+        db: store,
+        cacheDir: filepath.Join(dir, "cache"),
+        trusted: trustedPrefixes,
+        httpClient: httpClient,
+        vuln: vc,
+    }
 
     srv := reference of http.Server{Addr: addr, Handler: p}
 
