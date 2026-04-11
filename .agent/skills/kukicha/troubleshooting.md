@@ -108,13 +108,13 @@ switch command
 ```kukicha
 # Wrong — this is parsed as a value switch
 switch event
-    when reference a2a.TaskStatusUpdateEvent
+    when reference http.Response
         print("status")
 
 # Correct — type switch form
 switch event as e
-    when reference a2a.TaskStatusUpdateEvent
-        print("status: {e.Status.State}")
+    when reference http.Response
+        print("status: {e.Status}")
 ```
 
 ### "'when' branch after 'otherwise' will never execute"

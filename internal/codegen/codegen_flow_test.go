@@ -272,8 +272,8 @@ func Hello() string
 func TestTypeSwitchStatement(t *testing.T) {
 	input := `func Handle(event any)
     switch event as e
-        when reference a2a.TaskStatusUpdateEvent
-            print(e.Status.State)
+        when reference http.Response
+            print(e.Status)
         when string
             print(e)
         otherwise
@@ -285,7 +285,7 @@ func TestTypeSwitchStatement(t *testing.T) {
 	if !strings.Contains(output, "switch e := event.(type) {") {
 		t.Errorf("expected type switch, got: %s", output)
 	}
-	if !strings.Contains(output, "case *a2a.TaskStatusUpdateEvent:") {
+	if !strings.Contains(output, "case *http.Response:") {
 		t.Errorf("expected pointer type case, got: %s", output)
 	}
 	if !strings.Contains(output, "case string:") {

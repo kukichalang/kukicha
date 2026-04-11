@@ -1107,36 +1107,6 @@ print(result.Text)
 session := mcp.BearerConnect(ctx, "https://mcp.example.com/mcp", apiKey) onerr panic "{error}"
 ```
 
-**stdlib/a2a** — A2A protocol client (agent-to-agent communication)
-
-```kukicha
-# Discover an agent and send a message
-agent := a2a.Discover("https://agent.example.com") onerr panic "{error}"
-defer a2a.Close(agent)
-
-# One-shot ask
-reply := a2a.Ask(agent, "What's the weather?") onerr panic "{error}"
-
-# Builder pattern with retry
-task := a2a.New(agent)
-    |> a2a.Text("Summarize this document")
-    |> a2a.Context(conversationID)
-    |> a2a.Retry(3, 500)
-    |> a2a.Send() onerr panic "{error}"
-print(task.Text)
-
-# Streaming with callbacks
-task := a2a.New(agent)
-    |> a2a.Text("Generate a report")
-    |> a2a.OnText(chunk => print(chunk))
-    |> a2a.OnStatus(s => print("status: {s.State}"))
-    |> a2a.Stream() onerr panic "{error}"
-
-# List agent skills from its card
-for skill in a2a.Skills(agent)
-    print("{skill.Name}: {skill.Description}")
-```
-
 ---
 
 ### Security — Compiler-Enforced Checks
@@ -1258,7 +1228,7 @@ Assertions: `test.AssertEqual`, `test.AssertNotEqual`, `test.AssertTrue`, `test.
 
 ---
 
-**All available packages:** `a2a`, `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `sqlite`, `string`, `table`, `template`, `test`, `validate`
+**All available packages:** `cast`, `cli`, `concurrent`, `container`, `crypto`, `ctx`, `datetime`, `db`, `encoding`, `env`, `errors`, `fetch`, `files`, `game`, `git`, `html`, `http`, `input`, `iterator`, `json`, `llm`, `maps`, `mcp`, `must`, `net`, `netguard`, `obs`, `parse`, `random`, `regex`, `retry`, `sandbox`, `semver`, `shell`, `skills`, `slice`, `sort`, `sqlite`, `string`, `table`, `template`, `test`, `validate`
 
 ---
 
