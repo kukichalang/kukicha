@@ -9,32 +9,32 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:11
+//line stdlib/parse/parse_test.kuki:11
 type JsonCase struct {
 	name    string
 	payload string
 	want    string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:16
+//line stdlib/parse/parse_test.kuki:16
 func TestJson(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:17
+//line stdlib/parse/parse_test.kuki:17
 	cases := []JsonCase{JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:21
+//line stdlib/parse/parse_test.kuki:21
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:22
+//line stdlib/parse/parse_test.kuki:22
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:23
+//line stdlib/parse/parse_test.kuki:23
 			result, err := parse.Json(tc.payload)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:24
+//line stdlib/parse/parse_test.kuki:24
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:25
+//line stdlib/parse/parse_test.kuki:25
 			test.AssertEqual(t, string(result), tc.want)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:29
+//line stdlib/parse/parse_test.kuki:29
 type JsonLinesCase struct {
 	name      string
 	ndjson    string
@@ -42,30 +42,30 @@ type JsonLinesCase struct {
 	firstLine string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:35
+//line stdlib/parse/parse_test.kuki:35
 func TestJsonLines(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:36
+//line stdlib/parse/parse_test.kuki:36
 	cases := []JsonLinesCase{JsonLinesCase{name: "basic ndjson", ndjson: "{\"a\":1}\n\n {\"b\":2}\n", wantCount: 2, firstLine: "{\"a\":1}"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:45
+//line stdlib/parse/parse_test.kuki:45
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:46
+//line stdlib/parse/parse_test.kuki:46
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:47
+//line stdlib/parse/parse_test.kuki:47
 			lines, err := parse.JsonLines(tc.ndjson)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:48
+//line stdlib/parse/parse_test.kuki:48
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:49
+//line stdlib/parse/parse_test.kuki:49
 			test.AssertEqual(t, len(lines), tc.wantCount)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:50
+//line stdlib/parse/parse_test.kuki:50
 			if len(lines) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:51
+//line stdlib/parse/parse_test.kuki:51
 				test.AssertEqual(t, lines[0], tc.firstLine)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:55
+//line stdlib/parse/parse_test.kuki:55
 type CsvCase struct {
 	name           string
 	csv            string
@@ -74,80 +74,80 @@ type CsvCase struct {
 	firstRowName   string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:62
+//line stdlib/parse/parse_test.kuki:62
 func TestCsvWithHeader(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:63
+//line stdlib/parse/parse_test.kuki:63
 	cases := []CsvCase{CsvCase{name: "basic csv", csv: "name,age\nalice,30\nbob,25", wantRecords: 3, wantHeaderRows: 2, firstRowName: "alice"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:73
+//line stdlib/parse/parse_test.kuki:73
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:74
+//line stdlib/parse/parse_test.kuki:74
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:75
+//line stdlib/parse/parse_test.kuki:75
 			records, err := parse.Csv(tc.csv)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:76
+//line stdlib/parse/parse_test.kuki:76
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:77
+//line stdlib/parse/parse_test.kuki:77
 			test.AssertEqual(t, len(records), tc.wantRecords)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:79
+//line stdlib/parse/parse_test.kuki:79
 			headerRows, err2 := parse.CsvWithHeader(tc.csv)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:80
+//line stdlib/parse/parse_test.kuki:80
 			test.AssertNoError(t, err2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:81
+//line stdlib/parse/parse_test.kuki:81
 			test.AssertEqual(t, len(headerRows), tc.wantHeaderRows)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:82
+//line stdlib/parse/parse_test.kuki:82
 			if len(headerRows) > 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:83
+//line stdlib/parse/parse_test.kuki:83
 				test.AssertEqual(t, headerRows[0]["name"], tc.firstRowName)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:87
+//line stdlib/parse/parse_test.kuki:87
 type YamlPrettyCase struct {
 	name     string
 	data     map[string]any
 	contains string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:92
+//line stdlib/parse/parse_test.kuki:92
 func TestYamlPretty(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:93
+//line stdlib/parse/parse_test.kuki:93
 	cases := []YamlPrettyCase{YamlPrettyCase{name: "basic map", data: map[string]any{"user": map[string]any{"name": "sam"}}, contains: "user"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:101
+//line stdlib/parse/parse_test.kuki:101
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:102
+//line stdlib/parse/parse_test.kuki:102
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:103
+//line stdlib/parse/parse_test.kuki:103
 			pretty, err := parse.YamlPretty(tc.data)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:104
+//line stdlib/parse/parse_test.kuki:104
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:105
+//line stdlib/parse/parse_test.kuki:105
 			test.AssertTrue(t, kukistring.Contains(string(pretty), tc.contains))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:109
+//line stdlib/parse/parse_test.kuki:109
 type JsonYamlCase struct {
 	name    string
 	payload string
 	want    string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:114
+//line stdlib/parse/parse_test.kuki:114
 func TestYaml(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:115
+//line stdlib/parse/parse_test.kuki:115
 	cases := []JsonYamlCase{JsonYamlCase{name: "basic yaml", payload: "user: alice\nemail: test@example.com", want: "user: alice\nemail: test@example.com"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:123
+//line stdlib/parse/parse_test.kuki:123
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:124
+//line stdlib/parse/parse_test.kuki:124
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:125
+//line stdlib/parse/parse_test.kuki:125
 			result, err := parse.Yaml(tc.payload)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:126
+//line stdlib/parse/parse_test.kuki:126
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/parse/parse_test.kuki:127
+//line stdlib/parse/parse_test.kuki:127
 			test.AssertEqual(t, string(result), tc.want)
 		})
 	}

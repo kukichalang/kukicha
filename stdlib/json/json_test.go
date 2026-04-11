@@ -9,337 +9,337 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:11
+//line stdlib/json/json_test.kuki:11
 type Person struct {
 	Name string `json:"name"`
 	Age  int    `json:"age"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:16
+//line stdlib/json/json_test.kuki:16
 type MarshalCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:19
+//line stdlib/json/json_test.kuki:19
 func TestMarshal(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:20
+//line stdlib/json/json_test.kuki:20
 	cases := []MarshalCase{MarshalCase{name: "marshal person"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:22
+//line stdlib/json/json_test.kuki:22
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:23
+//line stdlib/json/json_test.kuki:23
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:24
+//line stdlib/json/json_test.kuki:24
 			p := Person{Name: "Alice", Age: 30}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:25
+//line stdlib/json/json_test.kuki:25
 			data, err := json.Marshal(p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:26
+//line stdlib/json/json_test.kuki:26
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:27
+//line stdlib/json/json_test.kuki:27
 			if len(data) == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:28
+//line stdlib/json/json_test.kuki:28
 				t.Error("Expected non-empty JSON bytes")
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:30
+//line stdlib/json/json_test.kuki:30
 			data2, err2 := json.Marshal(p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:31
+//line stdlib/json/json_test.kuki:31
 			test.AssertNoError(t, err2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:32
+//line stdlib/json/json_test.kuki:32
 			test.AssertEqual(t, len(data), len(data2))
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:36
+//line stdlib/json/json_test.kuki:36
 type UnmarshalCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:39
+//line stdlib/json/json_test.kuki:39
 func TestUnmarshal(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:40
+//line stdlib/json/json_test.kuki:40
 	cases := []UnmarshalCase{UnmarshalCase{name: "unmarshal person"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:42
+//line stdlib/json/json_test.kuki:42
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:43
+//line stdlib/json/json_test.kuki:43
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:44
+//line stdlib/json/json_test.kuki:44
 			p := Person{Name: "Bob", Age: 25}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:45
+//line stdlib/json/json_test.kuki:45
 			data, marshalErr := json.Marshal(p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:46
+//line stdlib/json/json_test.kuki:46
 			test.AssertNoError(t, marshalErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:48
+//line stdlib/json/json_test.kuki:48
 			result := *new(Person)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:49
+//line stdlib/json/json_test.kuki:49
 			unmarshalErr := json.Unmarshal(data, &result)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:50
+//line stdlib/json/json_test.kuki:50
 			test.AssertNoError(t, unmarshalErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:51
+//line stdlib/json/json_test.kuki:51
 			test.AssertEqual(t, result.Name, "Bob")
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:52
+//line stdlib/json/json_test.kuki:52
 			test.AssertEqual(t, result.Age, 25)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:56
+//line stdlib/json/json_test.kuki:56
 type RoundTripCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:59
+//line stdlib/json/json_test.kuki:59
 func TestMarshalUnmarshalRoundTrip(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:60
+//line stdlib/json/json_test.kuki:60
 	cases := []RoundTripCase{RoundTripCase{name: "round trip"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:62
+//line stdlib/json/json_test.kuki:62
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:63
+//line stdlib/json/json_test.kuki:63
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:64
+//line stdlib/json/json_test.kuki:64
 			original := Person{Name: "Charlie", Age: 42}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:65
+//line stdlib/json/json_test.kuki:65
 			data, err := json.Marshal(original)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:66
+//line stdlib/json/json_test.kuki:66
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:68
+//line stdlib/json/json_test.kuki:68
 			restored := *new(Person)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:69
+//line stdlib/json/json_test.kuki:69
 			err2 := json.Unmarshal(data, &restored)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:70
+//line stdlib/json/json_test.kuki:70
 			test.AssertNoError(t, err2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:72
+//line stdlib/json/json_test.kuki:72
 			test.AssertEqual(t, restored.Name, original.Name)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:73
+//line stdlib/json/json_test.kuki:73
 			test.AssertEqual(t, restored.Age, original.Age)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:77
+//line stdlib/json/json_test.kuki:77
 type MarshalPrettyCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:80
+//line stdlib/json/json_test.kuki:80
 func TestMarshalPretty(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:81
+//line stdlib/json/json_test.kuki:81
 	cases := []MarshalPrettyCase{MarshalPrettyCase{name: "pretty print"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:83
+//line stdlib/json/json_test.kuki:83
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:84
+//line stdlib/json/json_test.kuki:84
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:85
+//line stdlib/json/json_test.kuki:85
 			p := Person{Name: "Dan", Age: 28}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:86
+//line stdlib/json/json_test.kuki:86
 			compact, err := json.Marshal(p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:87
+//line stdlib/json/json_test.kuki:87
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:89
+//line stdlib/json/json_test.kuki:89
 			pretty, err2 := json.MarshalPretty(p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:90
+//line stdlib/json/json_test.kuki:90
 			test.AssertNoError(t, err2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:92
+//line stdlib/json/json_test.kuki:92
 			if len(pretty) == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:93
+//line stdlib/json/json_test.kuki:93
 				t.Error("Expected non-empty pretty JSON bytes")
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:95
+//line stdlib/json/json_test.kuki:95
 			if len(pretty) <= len(compact) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:96
+//line stdlib/json/json_test.kuki:96
 				t.Errorf("Expected pretty JSON (len=%v) to be longer than compact (len=%v)", len(pretty), len(compact))
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:100
+//line stdlib/json/json_test.kuki:100
 type MarshalWriteCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:103
+//line stdlib/json/json_test.kuki:103
 func TestMarshalWrite(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:104
+//line stdlib/json/json_test.kuki:104
 	cases := []MarshalWriteCase{MarshalWriteCase{name: "write to buffer"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:106
+//line stdlib/json/json_test.kuki:106
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:107
+//line stdlib/json/json_test.kuki:107
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:108
+//line stdlib/json/json_test.kuki:108
 			p := Person{Name: "Eve", Age: 22}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:109
+//line stdlib/json/json_test.kuki:109
 			buf := bytes.Buffer{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:110
+//line stdlib/json/json_test.kuki:110
 			err := json.MarshalWrite(&buf, p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:111
+//line stdlib/json/json_test.kuki:111
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:112
+//line stdlib/json/json_test.kuki:112
 			if buf.Len() == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:113
+//line stdlib/json/json_test.kuki:113
 				t.Error("Expected non-empty buffer after MarshalWrite")
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:117
+//line stdlib/json/json_test.kuki:117
 type UnmarshalReadCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:120
+//line stdlib/json/json_test.kuki:120
 func TestUnmarshalRead(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:121
+//line stdlib/json/json_test.kuki:121
 	cases := []UnmarshalReadCase{UnmarshalReadCase{name: "read from buffer"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:123
+//line stdlib/json/json_test.kuki:123
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:124
+//line stdlib/json/json_test.kuki:124
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:125
+//line stdlib/json/json_test.kuki:125
 			p := Person{Name: "Frank", Age: 35}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:126
+//line stdlib/json/json_test.kuki:126
 			buf := bytes.Buffer{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:127
+//line stdlib/json/json_test.kuki:127
 			writeErr := json.MarshalWrite(&buf, p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:128
+//line stdlib/json/json_test.kuki:128
 			test.AssertNoError(t, writeErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:130
+//line stdlib/json/json_test.kuki:130
 			result := *new(Person)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:131
+//line stdlib/json/json_test.kuki:131
 			readErr := json.UnmarshalRead(&buf, &result)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:132
+//line stdlib/json/json_test.kuki:132
 			test.AssertNoError(t, readErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:133
+//line stdlib/json/json_test.kuki:133
 			test.AssertEqual(t, result.Name, "Frank")
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:134
+//line stdlib/json/json_test.kuki:134
 			test.AssertEqual(t, result.Age, 35)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:138
+//line stdlib/json/json_test.kuki:138
 type EncodeCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:141
+//line stdlib/json/json_test.kuki:141
 func TestEncode(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:142
+//line stdlib/json/json_test.kuki:142
 	cases := []EncodeCase{EncodeCase{name: "encode to buffer"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:144
+//line stdlib/json/json_test.kuki:144
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:145
+//line stdlib/json/json_test.kuki:145
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:146
+//line stdlib/json/json_test.kuki:146
 			p := Person{Name: "Grace", Age: 29}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:147
+//line stdlib/json/json_test.kuki:147
 			buf := bytes.Buffer{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:148
+//line stdlib/json/json_test.kuki:148
 			enc := json.NewEncoder(&buf)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:149
+//line stdlib/json/json_test.kuki:149
 			err := json.Encode(enc, p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:150
+//line stdlib/json/json_test.kuki:150
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:151
+//line stdlib/json/json_test.kuki:151
 			if buf.Len() == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:152
+//line stdlib/json/json_test.kuki:152
 				t.Error("Expected non-empty buffer after Encode")
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:156
+//line stdlib/json/json_test.kuki:156
 type DecodeCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:159
+//line stdlib/json/json_test.kuki:159
 func TestDecode(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:160
+//line stdlib/json/json_test.kuki:160
 	cases := []DecodeCase{DecodeCase{name: "decode from buffer"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:162
+//line stdlib/json/json_test.kuki:162
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:163
+//line stdlib/json/json_test.kuki:163
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:164
+//line stdlib/json/json_test.kuki:164
 			p := Person{Name: "Hank", Age: 40}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:165
+//line stdlib/json/json_test.kuki:165
 			buf := bytes.Buffer{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:166
+//line stdlib/json/json_test.kuki:166
 			enc := json.NewEncoder(&buf)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:167
+//line stdlib/json/json_test.kuki:167
 			encErr := json.Encode(enc, p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:168
+//line stdlib/json/json_test.kuki:168
 			test.AssertNoError(t, encErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:170
+//line stdlib/json/json_test.kuki:170
 			result := *new(Person)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:171
+//line stdlib/json/json_test.kuki:171
 			dec := json.NewDecoder(&buf)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:172
+//line stdlib/json/json_test.kuki:172
 			decErr := json.Decode(dec, &result)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:173
+//line stdlib/json/json_test.kuki:173
 			test.AssertNoError(t, decErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:174
+//line stdlib/json/json_test.kuki:174
 			test.AssertEqual(t, result.Name, "Hank")
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:175
+//line stdlib/json/json_test.kuki:175
 			test.AssertEqual(t, result.Age, 40)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:179
+//line stdlib/json/json_test.kuki:179
 type WithIndentCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:182
+//line stdlib/json/json_test.kuki:182
 func TestWithIndent(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:183
+//line stdlib/json/json_test.kuki:183
 	cases := []WithIndentCase{WithIndentCase{name: "indent encoding"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:185
+//line stdlib/json/json_test.kuki:185
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:186
+//line stdlib/json/json_test.kuki:186
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:187
+//line stdlib/json/json_test.kuki:187
 			p := Person{Name: "Iris", Age: 33}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:188
+//line stdlib/json/json_test.kuki:188
 			buf := bytes.Buffer{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:189
+//line stdlib/json/json_test.kuki:189
 			enc := json.WithIndent(json.NewEncoder(&buf), "  ")
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:190
+//line stdlib/json/json_test.kuki:190
 			err := json.Encode(enc, p)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:191
+//line stdlib/json/json_test.kuki:191
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:192
+//line stdlib/json/json_test.kuki:192
 			if buf.Len() == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:193
+//line stdlib/json/json_test.kuki:193
 				t.Error("Expected non-empty buffer after Encode with indent")
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:197
+//line stdlib/json/json_test.kuki:197
 type UnmarshalInvalidCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:200
+//line stdlib/json/json_test.kuki:200
 func TestUnmarshalInvalidJSON(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:201
+//line stdlib/json/json_test.kuki:201
 	cases := []UnmarshalInvalidCase{UnmarshalInvalidCase{name: "invalid json"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:203
+//line stdlib/json/json_test.kuki:203
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:204
+//line stdlib/json/json_test.kuki:204
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:205
+//line stdlib/json/json_test.kuki:205
 			invalid := []byte("not valid json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:206
+//line stdlib/json/json_test.kuki:206
 			result := *new(Person)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:207
+//line stdlib/json/json_test.kuki:207
 			err := json.Unmarshal(invalid, &result)
-//line /var/home/tluker/repos/go/kukicha/stdlib/json/json_test.kuki:208
+//line stdlib/json/json_test.kuki:208
 			test.AssertError(t, err)
 		})
 	}

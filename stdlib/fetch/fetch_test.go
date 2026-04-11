@@ -11,189 +11,189 @@ import (
 	"testing"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:12
+//line stdlib/fetch/fetch_test.kuki:12
 type TestData struct {
 	Message string `json:"message"`
 	Count   int    `json:"count"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:16
+//line stdlib/fetch/fetch_test.kuki:16
 type PostData struct {
 	Name  string `json:"name"`
 	Value int    `json:"value"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:21
+//line stdlib/fetch/fetch_test.kuki:21
 type GetCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:24
+//line stdlib/fetch/fetch_test.kuki:24
 func TestGet(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:25
+//line stdlib/fetch/fetch_test.kuki:25
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:26
+//line stdlib/fetch/fetch_test.kuki:26
 		w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:27
+//line stdlib/fetch/fetch_test.kuki:27
 		w.Write([]byte("Hello, World!"))
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:30
+//line stdlib/fetch/fetch_test.kuki:30
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:32
+//line stdlib/fetch/fetch_test.kuki:32
 	cases := []GetCase{GetCase{name: "basic get"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:34
+//line stdlib/fetch/fetch_test.kuki:34
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:35
+//line stdlib/fetch/fetch_test.kuki:35
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:36
+//line stdlib/fetch/fetch_test.kuki:36
 			resp, err := fetch.Get(server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:37
+//line stdlib/fetch/fetch_test.kuki:37
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:38
+//line stdlib/fetch/fetch_test.kuki:38
 			test.AssertEqual(t, resp.StatusCode, http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:39
+//line stdlib/fetch/fetch_test.kuki:39
 			resp.Body.Close()
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:43
+//line stdlib/fetch/fetch_test.kuki:43
 type JsonCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:46
+//line stdlib/fetch/fetch_test.kuki:46
 func TestJson(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:47
+//line stdlib/fetch/fetch_test.kuki:47
 	testData := TestData{Message: "test", Count: 42}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:48
+//line stdlib/fetch/fetch_test.kuki:48
 	jsonBytes, _ := json.Marshal(testData)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:50
+//line stdlib/fetch/fetch_test.kuki:50
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:51
+//line stdlib/fetch/fetch_test.kuki:51
 		w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:52
+//line stdlib/fetch/fetch_test.kuki:52
 		w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:53
+//line stdlib/fetch/fetch_test.kuki:53
 		w.Write(jsonBytes)
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:56
+//line stdlib/fetch/fetch_test.kuki:56
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:58
+//line stdlib/fetch/fetch_test.kuki:58
 	cases := []JsonCase{JsonCase{name: "parse object"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:60
+//line stdlib/fetch/fetch_test.kuki:60
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:61
+//line stdlib/fetch/fetch_test.kuki:61
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:62
+//line stdlib/fetch/fetch_test.kuki:62
 			resp, err := fetch.Get(server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:63
+//line stdlib/fetch/fetch_test.kuki:63
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:64
+//line stdlib/fetch/fetch_test.kuki:64
 			data, jsonErr := fetch.Json(resp, *new(TestData))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:65
+//line stdlib/fetch/fetch_test.kuki:65
 			test.AssertNoError(t, jsonErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:66
+//line stdlib/fetch/fetch_test.kuki:66
 			test.AssertEqual(t, data.Message, "test")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:67
+//line stdlib/fetch/fetch_test.kuki:67
 			test.AssertEqual(t, data.Count, 42)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:71
+//line stdlib/fetch/fetch_test.kuki:71
 type JsonArrayCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:74
+//line stdlib/fetch/fetch_test.kuki:74
 func TestJsonArray(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:75
+//line stdlib/fetch/fetch_test.kuki:75
 	jsonBytes := []byte(`[{"message":"a","count":1},{"message":"b","count":2}]`)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:76
+//line stdlib/fetch/fetch_test.kuki:76
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:77
+//line stdlib/fetch/fetch_test.kuki:77
 		w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:78
+//line stdlib/fetch/fetch_test.kuki:78
 		w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:79
+//line stdlib/fetch/fetch_test.kuki:79
 		w.Write(jsonBytes)
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:82
+//line stdlib/fetch/fetch_test.kuki:82
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:84
+//line stdlib/fetch/fetch_test.kuki:84
 	cases := []JsonArrayCase{JsonArrayCase{name: "parse array"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:86
+//line stdlib/fetch/fetch_test.kuki:86
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:87
+//line stdlib/fetch/fetch_test.kuki:87
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:88
+//line stdlib/fetch/fetch_test.kuki:88
 			resp, err := fetch.Get(server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:89
+//line stdlib/fetch/fetch_test.kuki:89
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:90
+//line stdlib/fetch/fetch_test.kuki:90
 			data, jsonErr := fetch.Json(resp, []TestData{})
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:91
+//line stdlib/fetch/fetch_test.kuki:91
 			test.AssertNoError(t, jsonErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:92
+//line stdlib/fetch/fetch_test.kuki:92
 			test.AssertEqual(t, len(data), 2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:93
+//line stdlib/fetch/fetch_test.kuki:93
 			test.AssertEqual(t, data[0].Message, "a")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:94
+//line stdlib/fetch/fetch_test.kuki:94
 			test.AssertEqual(t, data[1].Count, 2)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:98
+//line stdlib/fetch/fetch_test.kuki:98
 type DecodeCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:101
+//line stdlib/fetch/fetch_test.kuki:101
 func TestDecode(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:102
+//line stdlib/fetch/fetch_test.kuki:102
 	testData := []TestData{TestData{Message: "typed", Count: 7}, TestData{Message: "decode", Count: 9}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:104
+//line stdlib/fetch/fetch_test.kuki:104
 	jsonBytes, _ := json.Marshal(testData)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:105
+//line stdlib/fetch/fetch_test.kuki:105
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:106
+//line stdlib/fetch/fetch_test.kuki:106
 		w.Header().Set("Content-Type", "application/json")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:107
+//line stdlib/fetch/fetch_test.kuki:107
 		w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:108
+//line stdlib/fetch/fetch_test.kuki:108
 		w.Write(jsonBytes)
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:111
+//line stdlib/fetch/fetch_test.kuki:111
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:113
+//line stdlib/fetch/fetch_test.kuki:113
 	cases := []DecodeCase{DecodeCase{name: "decode into reference"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:115
+//line stdlib/fetch/fetch_test.kuki:115
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:116
+//line stdlib/fetch/fetch_test.kuki:116
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:117
+//line stdlib/fetch/fetch_test.kuki:117
 			resp, err := fetch.Get(server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:118
+//line stdlib/fetch/fetch_test.kuki:118
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:119
+//line stdlib/fetch/fetch_test.kuki:119
 			decoded := []TestData{}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:120
+//line stdlib/fetch/fetch_test.kuki:120
 			decodeErr := fetch.Decode(resp, &decoded)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:121
+//line stdlib/fetch/fetch_test.kuki:121
 			test.AssertNoError(t, decodeErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:122
+//line stdlib/fetch/fetch_test.kuki:122
 			test.AssertEqual(t, len(decoded), 2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:123
+//line stdlib/fetch/fetch_test.kuki:123
 			test.AssertEqual(t, decoded[0].Message, "typed")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:124
+//line stdlib/fetch/fetch_test.kuki:124
 			test.AssertEqual(t, decoded[1].Count, 9)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:128
+//line stdlib/fetch/fetch_test.kuki:128
 type URLTemplateCase struct {
 	name    string
 	tmpl    string
@@ -202,33 +202,33 @@ type URLTemplateCase struct {
 	wantErr bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:135
+//line stdlib/fetch/fetch_test.kuki:135
 func TestURLTemplate(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:136
+//line stdlib/fetch/fetch_test.kuki:136
 	tmpl := "https://api.example.com/users/{username}/repos/{repo}"
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:138
+//line stdlib/fetch/fetch_test.kuki:138
 	cases := []URLTemplateCase{URLTemplateCase{name: "success with encoding", tmpl: tmpl, args: map[string]string{"username": "acme/dev team", "repo": "hello world"}, want: "https://api.example.com/users/acme%2Fdev%20team/repos/hello%20world", wantErr: false}, URLTemplateCase{name: "missing placeholder", tmpl: tmpl, args: map[string]string{"username": "golang"}, want: "", wantErr: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:155
+//line stdlib/fetch/fetch_test.kuki:155
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:156
+//line stdlib/fetch/fetch_test.kuki:156
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:157
+//line stdlib/fetch/fetch_test.kuki:157
 			builtURL, err := fetch.URLTemplate(tc.tmpl, tc.args)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:158
+//line stdlib/fetch/fetch_test.kuki:158
 			if tc.wantErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:159
+//line stdlib/fetch/fetch_test.kuki:159
 				test.AssertError(t, err)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:161
+//line stdlib/fetch/fetch_test.kuki:161
 				test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:162
+//line stdlib/fetch/fetch_test.kuki:162
 				test.AssertEqual(t, builtURL, tc.want)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:166
+//line stdlib/fetch/fetch_test.kuki:166
 type URLWithQueryCase struct {
 	name  string
 	url   string
@@ -237,345 +237,345 @@ type URLWithQueryCase struct {
 	want2 string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:173
+//line stdlib/fetch/fetch_test.kuki:173
 func TestURLWithQuery(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:174
+//line stdlib/fetch/fetch_test.kuki:174
 	cases := []URLWithQueryCase{URLWithQueryCase{name: "encode multiple params", url: "https://api.example.com/search", query: map[string]string{"q": "go lang", "sort": "stars desc"}, want1: "https://api.example.com/search?q=go+lang&sort=stars+desc", want2: "https://api.example.com/search?sort=stars+desc&q=go+lang"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:184
+//line stdlib/fetch/fetch_test.kuki:184
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:185
+//line stdlib/fetch/fetch_test.kuki:185
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:186
+//line stdlib/fetch/fetch_test.kuki:186
 			builtURL, err := fetch.URLWithQuery(tc.url, tc.query)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:187
+//line stdlib/fetch/fetch_test.kuki:187
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:188
+//line stdlib/fetch/fetch_test.kuki:188
 			if (builtURL != tc.want1) && (builtURL != tc.want2) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:189
+//line stdlib/fetch/fetch_test.kuki:189
 				t.Errorf("Unexpected query URL: %v", builtURL)
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:193
+//line stdlib/fetch/fetch_test.kuki:193
 type TextCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:196
+//line stdlib/fetch/fetch_test.kuki:196
 func TestText(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:197
+//line stdlib/fetch/fetch_test.kuki:197
 	expectedText := "Hello, Kukicha!"
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:198
+//line stdlib/fetch/fetch_test.kuki:198
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:199
+//line stdlib/fetch/fetch_test.kuki:199
 		w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:200
+//line stdlib/fetch/fetch_test.kuki:200
 		w.Write([]byte(expectedText))
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:203
+//line stdlib/fetch/fetch_test.kuki:203
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:205
+//line stdlib/fetch/fetch_test.kuki:205
 	cases := []TextCase{TextCase{name: "read as text"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:207
+//line stdlib/fetch/fetch_test.kuki:207
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:208
+//line stdlib/fetch/fetch_test.kuki:208
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:209
+//line stdlib/fetch/fetch_test.kuki:209
 			resp, err := fetch.Get(server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:210
+//line stdlib/fetch/fetch_test.kuki:210
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:211
+//line stdlib/fetch/fetch_test.kuki:211
 			text, textErr := fetch.Text(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:212
+//line stdlib/fetch/fetch_test.kuki:212
 			test.AssertNoError(t, textErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:213
+//line stdlib/fetch/fetch_test.kuki:213
 			test.AssertEqual(t, text, expectedText)
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:217
+//line stdlib/fetch/fetch_test.kuki:217
 type PostCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:220
+//line stdlib/fetch/fetch_test.kuki:220
 func TestPost(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:221
+//line stdlib/fetch/fetch_test.kuki:221
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:222
+//line stdlib/fetch/fetch_test.kuki:222
 		test.AssertEqual(t, r.Method, "POST")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:223
+//line stdlib/fetch/fetch_test.kuki:223
 		w.WriteHeader(http.StatusCreated)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:224
+//line stdlib/fetch/fetch_test.kuki:224
 		w.Write([]byte("created"))
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:227
+//line stdlib/fetch/fetch_test.kuki:227
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:229
+//line stdlib/fetch/fetch_test.kuki:229
 	cases := []PostCase{PostCase{name: "post object"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:231
+//line stdlib/fetch/fetch_test.kuki:231
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:232
+//line stdlib/fetch/fetch_test.kuki:232
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:233
+//line stdlib/fetch/fetch_test.kuki:233
 			postData := PostData{Name: "test", Value: 123}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:234
+//line stdlib/fetch/fetch_test.kuki:234
 			resp, err := fetch.Post(postData, server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:235
+//line stdlib/fetch/fetch_test.kuki:235
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:236
+//line stdlib/fetch/fetch_test.kuki:236
 			test.AssertEqual(t, resp.StatusCode, http.StatusCreated)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:237
+//line stdlib/fetch/fetch_test.kuki:237
 			resp.Body.Close()
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:241
+//line stdlib/fetch/fetch_test.kuki:241
 type CheckStatusCase struct {
 	name    string
 	code    int
 	wantErr bool
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:246
+//line stdlib/fetch/fetch_test.kuki:246
 func TestCheckStatus(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:247
+//line stdlib/fetch/fetch_test.kuki:247
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:248
+//line stdlib/fetch/fetch_test.kuki:248
 		if r.URL.Path == "/ok" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:249
+//line stdlib/fetch/fetch_test.kuki:249
 			w.WriteHeader(http.StatusOK)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:251
+//line stdlib/fetch/fetch_test.kuki:251
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:254
+//line stdlib/fetch/fetch_test.kuki:254
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:256
+//line stdlib/fetch/fetch_test.kuki:256
 	cases := []CheckStatusCase{CheckStatusCase{name: "success status", code: 200, wantErr: false}, CheckStatusCase{name: "error status", code: 404, wantErr: true}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:261
+//line stdlib/fetch/fetch_test.kuki:261
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:262
+//line stdlib/fetch/fetch_test.kuki:262
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:263
+//line stdlib/fetch/fetch_test.kuki:263
 			path := "/ok"
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:264
+//line stdlib/fetch/fetch_test.kuki:264
 			if tc.wantErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:265
+//line stdlib/fetch/fetch_test.kuki:265
 				path = "/notfound"
 			}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:266
+//line stdlib/fetch/fetch_test.kuki:266
 			resp, err := fetch.Get((server.URL + path))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:267
+//line stdlib/fetch/fetch_test.kuki:267
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:269
+//line stdlib/fetch/fetch_test.kuki:269
 			checkedResp, checkErr := fetch.CheckStatus(resp)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:270
+//line stdlib/fetch/fetch_test.kuki:270
 			if tc.wantErr {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:271
+//line stdlib/fetch/fetch_test.kuki:271
 				test.AssertError(t, checkErr)
 			} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:273
+//line stdlib/fetch/fetch_test.kuki:273
 				test.AssertNoError(t, checkErr)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:274
+//line stdlib/fetch/fetch_test.kuki:274
 				if checkedResp == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:275
+//line stdlib/fetch/fetch_test.kuki:275
 					t.Error("Expected non-nil response")
 				}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:276
+//line stdlib/fetch/fetch_test.kuki:276
 				checkedResp.Body.Close()
 			}
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:280
+//line stdlib/fetch/fetch_test.kuki:280
 type RequestBuilderCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:283
+//line stdlib/fetch/fetch_test.kuki:283
 func TestRequestBuilder(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:284
+//line stdlib/fetch/fetch_test.kuki:284
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:285
+//line stdlib/fetch/fetch_test.kuki:285
 		test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer test-token")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:286
+//line stdlib/fetch/fetch_test.kuki:286
 		w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:287
+//line stdlib/fetch/fetch_test.kuki:287
 		w.Write([]byte("authorized"))
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:290
+//line stdlib/fetch/fetch_test.kuki:290
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:292
+//line stdlib/fetch/fetch_test.kuki:292
 	cases := []RequestBuilderCase{RequestBuilderCase{name: "builder properties"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:294
+//line stdlib/fetch/fetch_test.kuki:294
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:295
+//line stdlib/fetch/fetch_test.kuki:295
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:296
+//line stdlib/fetch/fetch_test.kuki:296
 			req := fetch.Header(fetch.New(server.URL), "Authorization", "Bearer test-token")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:297
+//line stdlib/fetch/fetch_test.kuki:297
 			resp, err := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:298
+//line stdlib/fetch/fetch_test.kuki:298
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:299
+//line stdlib/fetch/fetch_test.kuki:299
 			test.AssertEqual(t, resp.StatusCode, http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:300
+//line stdlib/fetch/fetch_test.kuki:300
 			resp.Body.Close()
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:304
+//line stdlib/fetch/fetch_test.kuki:304
 type AuthHelpersCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:307
+//line stdlib/fetch/fetch_test.kuki:307
 func TestAuthHelpers(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:308
+//line stdlib/fetch/fetch_test.kuki:308
 	cases := []AuthHelpersCase{AuthHelpersCase{name: "auth headers"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:310
+//line stdlib/fetch/fetch_test.kuki:310
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:311
+//line stdlib/fetch/fetch_test.kuki:311
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:312
+//line stdlib/fetch/fetch_test.kuki:312
 			serverBearer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:313
+//line stdlib/fetch/fetch_test.kuki:313
 				test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer my-token")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:314
+//line stdlib/fetch/fetch_test.kuki:314
 				w.WriteHeader(http.StatusOK)
 			}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:317
+//line stdlib/fetch/fetch_test.kuki:317
 			defer serverBearer.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:319
+//line stdlib/fetch/fetch_test.kuki:319
 			reqBearer := fetch.BearerAuth(fetch.New(serverBearer.URL), "my-token")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:320
+//line stdlib/fetch/fetch_test.kuki:320
 			respBearer, errBearer := fetch.Do(reqBearer)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:321
+//line stdlib/fetch/fetch_test.kuki:321
 			test.AssertNoError(t, errBearer)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:322
+//line stdlib/fetch/fetch_test.kuki:322
 			respBearer.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:324
+//line stdlib/fetch/fetch_test.kuki:324
 			serverBasic := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:325
+//line stdlib/fetch/fetch_test.kuki:325
 				test.AssertEqual(t, r.Header.Get("Authorization"), "Basic dXNlcjpwYXNz")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:326
+//line stdlib/fetch/fetch_test.kuki:326
 				w.WriteHeader(http.StatusOK)
 			}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:329
+//line stdlib/fetch/fetch_test.kuki:329
 			defer serverBasic.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:331
+//line stdlib/fetch/fetch_test.kuki:331
 			reqBasic := fetch.BasicAuth(fetch.New(serverBasic.URL), "user", "pass")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:332
+//line stdlib/fetch/fetch_test.kuki:332
 			respBasic, errBasic := fetch.Do(reqBasic)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:333
+//line stdlib/fetch/fetch_test.kuki:333
 			test.AssertNoError(t, errBasic)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:334
+//line stdlib/fetch/fetch_test.kuki:334
 			respBasic.Body.Close()
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:338
+//line stdlib/fetch/fetch_test.kuki:338
 type FormDataCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:341
+//line stdlib/fetch/fetch_test.kuki:341
 func TestFormData(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:342
+//line stdlib/fetch/fetch_test.kuki:342
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:343
+//line stdlib/fetch/fetch_test.kuki:343
 		test.AssertEqual(t, r.Header.Get("Content-Type"), "application/x-www-form-urlencoded")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:344
+//line stdlib/fetch/fetch_test.kuki:344
 		r.ParseForm()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:345
+//line stdlib/fetch/fetch_test.kuki:345
 		test.AssertEqual(t, r.Form.Get("key"), "value")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:346
+//line stdlib/fetch/fetch_test.kuki:346
 		w.WriteHeader(http.StatusOK)
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:349
+//line stdlib/fetch/fetch_test.kuki:349
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:351
+//line stdlib/fetch/fetch_test.kuki:351
 	cases := []FormDataCase{FormDataCase{name: "post form data"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:353
+//line stdlib/fetch/fetch_test.kuki:353
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:354
+//line stdlib/fetch/fetch_test.kuki:354
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:355
+//line stdlib/fetch/fetch_test.kuki:355
 			data := map[string]string{"key": "value"}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:356
+//line stdlib/fetch/fetch_test.kuki:356
 			req := fetch.Method(fetch.FormData(fetch.New(server.URL), data), "POST")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:357
+//line stdlib/fetch/fetch_test.kuki:357
 			resp, err := fetch.Do(req)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:358
+//line stdlib/fetch/fetch_test.kuki:358
 			test.AssertNoError(t, err)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:359
+//line stdlib/fetch/fetch_test.kuki:359
 			resp.Body.Close()
 		})
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:363
+//line stdlib/fetch/fetch_test.kuki:363
 type SessionCase struct {
 	name string
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:366
+//line stdlib/fetch/fetch_test.kuki:366
 func TestSession(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:367
+//line stdlib/fetch/fetch_test.kuki:367
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:368
+//line stdlib/fetch/fetch_test.kuki:368
 		cookie, err := r.Cookie("session_id")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:369
+//line stdlib/fetch/fetch_test.kuki:369
 		if err == nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:370
+//line stdlib/fetch/fetch_test.kuki:370
 			test.AssertEqual(t, cookie.Value, "12345")
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:371
+//line stdlib/fetch/fetch_test.kuki:371
 			w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:372
+//line stdlib/fetch/fetch_test.kuki:372
 			w.Write([]byte("logged in"))
 		} else {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:374
+//line stdlib/fetch/fetch_test.kuki:374
 			http.SetCookie(w, &http.Cookie{Name: "session_id", Value: "12345"})
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:375
+//line stdlib/fetch/fetch_test.kuki:375
 			w.WriteHeader(http.StatusOK)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:376
+//line stdlib/fetch/fetch_test.kuki:376
 			w.Write([]byte("cookie set"))
 		}
 	}))
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:379
+//line stdlib/fetch/fetch_test.kuki:379
 	defer server.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:381
+//line stdlib/fetch/fetch_test.kuki:381
 	cases := []SessionCase{SessionCase{name: "persist cookies"}}
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:383
+//line stdlib/fetch/fetch_test.kuki:383
 	for _, tc := range cases {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:384
+//line stdlib/fetch/fetch_test.kuki:384
 		t.Run(tc.name, func(t *testing.T) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:385
+//line stdlib/fetch/fetch_test.kuki:385
 			session := fetch.NewSession()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:386
+//line stdlib/fetch/fetch_test.kuki:386
 			resp1, err1 := fetch.SessionGet(session, server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:387
+//line stdlib/fetch/fetch_test.kuki:387
 			test.AssertNoError(t, err1)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:388
+//line stdlib/fetch/fetch_test.kuki:388
 			resp1.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:390
+//line stdlib/fetch/fetch_test.kuki:390
 			resp2, err2 := fetch.SessionGet(session, server.URL)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:391
+//line stdlib/fetch/fetch_test.kuki:391
 			test.AssertNoError(t, err2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:392
+//line stdlib/fetch/fetch_test.kuki:392
 			text, errText := fetch.Text(resp2)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:393
+//line stdlib/fetch/fetch_test.kuki:393
 			test.AssertNoError(t, errText)
-//line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:394
+//line stdlib/fetch/fetch_test.kuki:394
 			test.AssertEqual(t, text, "logged in")
 		})
 	}

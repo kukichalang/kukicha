@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"github.com/kukichalang/kukicha/internal/semantic"
 
@@ -72,6 +73,7 @@ type Generator struct {
 	enumTypes            map[string]bool          // Enum type names for Status.OK → StatusOK rewriting
 	variantCaseTypes     map[string]string        // Variant case name → parent enum name (e.g. "Circle" → "Shape")
 	stripLineDirectives  bool                     // When true, omit //line directives from generated output
+	projectDir           string                   // Root project directory for making //line paths relative
 }
 
 // New creates a new code generator
@@ -137,6 +139,7 @@ func (g *Generator) childGenerator(extraIndent int) *Generator {
 		reservedNames:       g.reservedNames,
 		enumTypes:           g.enumTypes,
 		stripLineDirectives: g.stripLineDirectives,
+		projectDir:          g.projectDir,
 	}
 }
 
@@ -153,6 +156,11 @@ func (g *Generator) SetSourceFile(path string) {
 	// Enable special transpilation for stdlib/iterator files
 	g.isStdlibIter = strings.Contains(path, "stdlib/iterator/") || strings.Contains(path, "stdlib\\iterator\\")
 	// Note: stdlib/slice uses a different approach - type parameters are detected per-function
+}
+
+// SetProjectDir sets the absolute path to the project root, used to emit relative paths in //line directives
+func (g *Generator) SetProjectDir(dir string) {
+	g.projectDir = dir
 }
 
 // isWasmOnlyPackage returns true if the source file belongs to a WASM-only external stdlib package,
@@ -325,7 +333,14 @@ func (g *Generator) indentStr() string {
 // the .kuki file instead of the generated .go file.
 func (g *Generator) emitLineDirective(pos ast.Position) {
 	if !g.stripLineDirectives && pos.Line > 0 && pos.File != "" {
-		fmt.Fprintf(&g.output, "//line %s:%d\n", pos.File, pos.Line)
+		file := pos.File
+		if g.projectDir != "" {
+			if relFile, err := filepath.Rel(g.projectDir, file); err == nil {
+				// Use forward slashes for cross-platform deterministic output
+				file = filepath.ToSlash(relFile)
+			}
+		}
+		fmt.Fprintf(&g.output, "//line %s:%d\n", file, pos.Line)
 	}
 }
 

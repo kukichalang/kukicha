@@ -93,6 +93,7 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 	// Generate Go code
 	gen := codegen.New(program)
 	gen.SetSourceFile(absFile)
+	gen.SetProjectDir(projectDir)
 	gen.SetAnalysisResult(result)
 	if program.Target == "mcp" {
 		gen.SetMCPTarget(true)

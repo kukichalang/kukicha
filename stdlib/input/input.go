@@ -11,102 +11,102 @@ import (
 	"strconv"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:15
+//line stdlib/input/input.kuki:15
 func ReadLine(prompt string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:16
+//line stdlib/input/input.kuki:16
 	if prompt != "" {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:17
+//line stdlib/input/input.kuki:17
 		fmt.Print(prompt)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:19
+//line stdlib/input/input.kuki:19
 	reader := bufio.NewReader(os.Stdin)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20
+//line stdlib/input/input.kuki:20
 	text, err_1 := reader.ReadString('\n')
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20
+//line stdlib/input/input.kuki:20
 	if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:20
+//line stdlib/input/input.kuki:20
 		return "", err_1
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:21
+//line stdlib/input/input.kuki:21
 	return kukistring.TrimSpace(text), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:26
+//line stdlib/input/input.kuki:26
 func Prompt(prompt string) string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:27
+//line stdlib/input/input.kuki:27
 	result, err_2 := ReadLine(prompt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:27
+//line stdlib/input/input.kuki:27
 	if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:27
+//line stdlib/input/input.kuki:27
 		panic(fmt.Sprintf("%v", err_2))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:28
+//line stdlib/input/input.kuki:28
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:33
+//line stdlib/input/input.kuki:33
 func Confirm(prompt string) (bool, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:34
+//line stdlib/input/input.kuki:34
 	answer, err_3 := ReadLine(fmt.Sprintf("%v [y/N]: ", prompt))
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:34
+//line stdlib/input/input.kuki:34
 	if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:34
+//line stdlib/input/input.kuki:34
 		err_3 = fmt.Errorf("confirm prompt: %w", err_3)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:34
+//line stdlib/input/input.kuki:34
 		return false, err_3
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:35
+//line stdlib/input/input.kuki:35
 	lower := kukistring.ToLower(kukistring.TrimSpace(answer))
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:36
+//line stdlib/input/input.kuki:36
 	return ((lower == "y") || (lower == "yes")), nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:44
+//line stdlib/input/input.kuki:44
 func Choose(prompt string, options []string) (int, error) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:45
+//line stdlib/input/input.kuki:45
 	if len(options) == 0 {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:46
+//line stdlib/input/input.kuki:46
 		return -1, errors.New("no options provided")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:48
+//line stdlib/input/input.kuki:48
 	fmt.Println(prompt)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:49
+//line stdlib/input/input.kuki:49
 	fmt.Println("")
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:50
+//line stdlib/input/input.kuki:50
 	for i, opt := range options {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:51
+//line stdlib/input/input.kuki:51
 		fmt.Printf("  %d) %s\n", (i + 1), opt)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:52
+//line stdlib/input/input.kuki:52
 	fmt.Println("")
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:54
+//line stdlib/input/input.kuki:54
 	raw, err_4 := ReadLine("Enter number (or q to quit): ")
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:54
+//line stdlib/input/input.kuki:54
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:54
+//line stdlib/input/input.kuki:54
 		err_4 = fmt.Errorf("choose prompt: %w", err_4)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:54
+//line stdlib/input/input.kuki:54
 		return 0, err_4
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:55
+//line stdlib/input/input.kuki:55
 	trimmed := kukistring.TrimSpace(raw)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:57
+//line stdlib/input/input.kuki:57
 	if ((trimmed == "") || (trimmed == "q")) || (trimmed == "Q") {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:58
+//line stdlib/input/input.kuki:58
 		return -1, errors.New("cancelled")
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:60
+//line stdlib/input/input.kuki:60
 	val, err_5 := strconv.Atoi(trimmed)
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:60
+//line stdlib/input/input.kuki:60
 	if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:60
+//line stdlib/input/input.kuki:60
 		return -1, fmt.Errorf("invalid selection: %v", trimmed)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:61
+//line stdlib/input/input.kuki:61
 	if (val < 1) || (val > len(options)) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:62
+//line stdlib/input/input.kuki:62
 		return -1, fmt.Errorf("selection out of range: %v", val)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/input/input.kuki:64
+//line stdlib/input/input.kuki:64
 	return (val - 1), nil
 }

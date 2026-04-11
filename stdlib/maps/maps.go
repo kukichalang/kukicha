@@ -9,136 +9,136 @@ import (
 	"sort"
 )
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:13
+//line stdlib/maps/maps.kuki:13
 func Keys(m map[any]any) []any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:14
+//line stdlib/maps/maps.kuki:14
 	keys := make([]any, 0, len(m))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:15
+//line stdlib/maps/maps.kuki:15
 	for k := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:16
+//line stdlib/maps/maps.kuki:16
 		keys = append(keys, k)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:17
+//line stdlib/maps/maps.kuki:17
 	return keys
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:21
+//line stdlib/maps/maps.kuki:21
 func Values(m map[any]any) []any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:22
+//line stdlib/maps/maps.kuki:22
 	values := make([]any, 0, len(m))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:23
+//line stdlib/maps/maps.kuki:23
 	for _, v := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:24
+//line stdlib/maps/maps.kuki:24
 		values = append(values, v)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:25
+//line stdlib/maps/maps.kuki:25
 	return values
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:28
+//line stdlib/maps/maps.kuki:28
 func Contains(m map[any]any, key any) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:29
+//line stdlib/maps/maps.kuki:29
 	_, ok := m[key]
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:30
+//line stdlib/maps/maps.kuki:30
 	return ok
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:33
+//line stdlib/maps/maps.kuki:33
 func Has(m map[any]any, key any) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:34
+//line stdlib/maps/maps.kuki:34
 	_, ok := m[key]
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:35
+//line stdlib/maps/maps.kuki:35
 	return ok
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:39
+//line stdlib/maps/maps.kuki:39
 func Merge(base map[any]any, overlay map[any]any) map[any]any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:40
+//line stdlib/maps/maps.kuki:40
 	result := make(map[any]any, (len(base) + len(overlay)))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:41
+//line stdlib/maps/maps.kuki:41
 	gomaps.Copy(result, base)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:42
+//line stdlib/maps/maps.kuki:42
 	gomaps.Copy(result, overlay)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:43
+//line stdlib/maps/maps.kuki:43
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:49
+//line stdlib/maps/maps.kuki:49
 func SortedKeys(m map[any]any) []string {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:50
+//line stdlib/maps/maps.kuki:50
 	keys := make([]string, 0, len(m))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:51
+//line stdlib/maps/maps.kuki:51
 	for k := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:52
+//line stdlib/maps/maps.kuki:52
 		keys = append(keys, fmt.Sprint(k))
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:53
+//line stdlib/maps/maps.kuki:53
 	sort.Strings(keys)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:54
+//line stdlib/maps/maps.kuki:54
 	return keys
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:59
+//line stdlib/maps/maps.kuki:59
 func Filter(m map[any]any, predicate func(any, any) bool) map[any]any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:60
+//line stdlib/maps/maps.kuki:60
 	result := make(map[any]any)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:61
+//line stdlib/maps/maps.kuki:61
 	for k, v := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:62
+//line stdlib/maps/maps.kuki:62
 		if predicate(k, v) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:63
+//line stdlib/maps/maps.kuki:63
 			result[k] = v
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:64
+//line stdlib/maps/maps.kuki:64
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:68
+//line stdlib/maps/maps.kuki:68
 func MapValues(m map[any]any, fn func(any) any) map[any]any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:69
+//line stdlib/maps/maps.kuki:69
 	out := make(map[any]any, len(m))
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:70
+//line stdlib/maps/maps.kuki:70
 	for k, v := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:71
+//line stdlib/maps/maps.kuki:71
 		out[k] = fn(v)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:72
+//line stdlib/maps/maps.kuki:72
 	return out
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:77
+//line stdlib/maps/maps.kuki:77
 func Pick(m map[any]any, keys []any) map[any]any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:78
+//line stdlib/maps/maps.kuki:78
 	result := make(map[any]any)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:79
+//line stdlib/maps/maps.kuki:79
 	for _, key := range keys {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:80
+//line stdlib/maps/maps.kuki:80
 		v, ok := m[key]
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:81
+//line stdlib/maps/maps.kuki:81
 		if ok {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:82
+//line stdlib/maps/maps.kuki:82
 			result[key] = v
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:83
+//line stdlib/maps/maps.kuki:83
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:87
+//line stdlib/maps/maps.kuki:87
 func Omit(m map[any]any, keys []any) map[any]any {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:88
+//line stdlib/maps/maps.kuki:88
 	excluded := set.From(keys)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:89
+//line stdlib/maps/maps.kuki:89
 	result := make(map[any]any)
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:90
+//line stdlib/maps/maps.kuki:90
 	for k, v := range m {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:91
+//line stdlib/maps/maps.kuki:91
 		if !set.Contains(excluded, k) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:92
+//line stdlib/maps/maps.kuki:92
 			result[k] = v
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/maps/maps.kuki:93
+//line stdlib/maps/maps.kuki:93
 	return result
 }

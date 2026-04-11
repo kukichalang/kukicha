@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ir"
@@ -22,7 +23,14 @@ func (g *Generator) emitIRPos(pos ir.SourcePos) {
 		return
 	}
 	if pos.Line > 0 && pos.File != "" {
-		fmt.Fprintf(&g.output, "//line %s:%d\n", pos.File, pos.Line)
+		file := pos.File
+		if g.projectDir != "" {
+			if relFile, err := filepath.Rel(g.projectDir, file); err == nil {
+				// Use forward slashes for cross-platform deterministic output
+				file = filepath.ToSlash(relFile)
+			}
+		}
+		fmt.Fprintf(&g.output, "//line %s:%d\n", file, pos.Line)
 	}
 }
 
