@@ -5,7 +5,7 @@ petiole game
 
 import "image/color"
 import "math"
-import "math/rand"
+import "stdlib/random"
 import "strings"
 import "github.com/hajimehoshi/ebiten/v2"
 import "github.com/hajimehoshi/ebiten/v2/vector"
@@ -233,13 +233,11 @@ func MakeColor(r int, g int, b int, a int) Color
 
 # Random returns a random integer between min (inclusive) and max (exclusive)
 func Random(min int, max int) int
-    if min >= max
-        return min
-    return min + rand.Intn(max - min)
+    return random.Int(min, max)
 
-# RandomFloat returns a random float64 between min and max
+# RandomFloat returns a random float64 between min (inclusive) and max (exclusive)
 func RandomFloat(min float64, max float64) float64
-    return min + rand.Float64() * (max - min)
+    return random.Float(min, max)
 
 # FrameCount returns the number of frames since the game started
 func FrameCount() int64

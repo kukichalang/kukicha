@@ -1028,6 +1028,8 @@ name  |> validate.NotEmpty()       onerr return
 
 ```kukicha
 token := random.String(32)
+dice  := random.Int(1, 7)        # [1, 7) — a d6 roll
+angle := random.Float(0.0, 360.0)
 ```
 
 **stdlib/errors** (import as `errs`) — Error wrapping

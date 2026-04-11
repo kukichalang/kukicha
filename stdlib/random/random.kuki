@@ -15,3 +15,17 @@ func String(length int) string
 # Alphanumeric is an alias for String
 func Alphanumeric(length int) string
     return String(length)
+
+# Int returns a pseudo-random int in the half-open range [min, max).
+# Returns min if min >= max.
+func Int(min int, max int) int
+    if min >= max
+        return min
+    return min + rand.Intn(max - min)
+
+# Float returns a pseudo-random float64 in the half-open range [min, max).
+# Returns min if min >= max.
+func Float(min float64, max float64) float64
+    if min >= max
+        return min
+    return min + rand.Float64() * (max - min)

@@ -36,3 +36,39 @@ func TestRandomStringLength(t *testing.T) {
 		})
 	}
 }
+
+//line stdlib/random/random_test.kuki:29
+func TestRandomInt(t *testing.T) {
+//line stdlib/random/random_test.kuki:30
+	for range 100 {
+//line stdlib/random/random_test.kuki:31
+		v := random.Int(5, 10)
+//line stdlib/random/random_test.kuki:32
+		if (v < 5) || (v >= 10) {
+//line stdlib/random/random_test.kuki:33
+			t.Errorf("random.Int(5, 10) = %d, out of range", v)
+		}
+	}
+//line stdlib/random/random_test.kuki:36
+	test.AssertEqual(t, random.Int(7, 7), 7)
+//line stdlib/random/random_test.kuki:39
+	test.AssertEqual(t, random.Int(10, 5), 10)
+}
+
+//line stdlib/random/random_test.kuki:42
+func TestRandomFloat(t *testing.T) {
+//line stdlib/random/random_test.kuki:43
+	for range 100 {
+//line stdlib/random/random_test.kuki:44
+		v := random.Float(1.0, 2.0)
+//line stdlib/random/random_test.kuki:45
+		if (v < 1.0) || (v >= 2.0) {
+//line stdlib/random/random_test.kuki:46
+			t.Errorf("random.Float(1.0, 2.0) = %f, out of range", v)
+		}
+	}
+//line stdlib/random/random_test.kuki:49
+	test.AssertEqual(t, random.Float(3.5, 3.5), 3.5)
+//line stdlib/random/random_test.kuki:52
+	test.AssertEqual(t, random.Float(2.0, 1.0), 2.0)
+}

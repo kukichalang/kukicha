@@ -601,6 +601,8 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"parse.Yaml":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindInt}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data"}},
 	"parse.YamlPretty":                {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindInt}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"value"}},
 	"random.Alphanumeric":             {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"length"}},
+	"random.Float":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindFloat}}, ParamNames: []string{"min", "max"}},
+	"random.Int":                      {Count: 1, Types: []goStdlibType{{Kind: TypeKindInt}}, ParamNames: []string{"min", "max"}},
 	"random.String":                   {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"length"}},
 	"regex.Compile":                   {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "regex.Pattern"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pattern"}},
 	"regex.Find":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindString}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pattern", "text"}},

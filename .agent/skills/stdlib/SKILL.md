@@ -41,7 +41,7 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/netguard` | Network restriction & SSRF protection | NewSSRFGuard, NewAllow, NewBlock, Check, DialContext, HTTPTransport, HTTPClient |
 | `stdlib/obs` | Structured observability helpers | New, Component, WithCorrelation, NewCorrelationID, Debug, Info, Warn, Error, Log, Start, Stop, Fail |
 | `stdlib/parse` | Data format parsing | Json, JsonLines, JsonPretty, Csv, CsvWithHeader, Yaml, YamlPretty |
-| `stdlib/random` | Random string generation | String, Alphanumeric |
+| `stdlib/random` | Random string and numeric generation | String, Alphanumeric, Int, Float |
 | `stdlib/regex` | Regular expression matching and replacement | Match, Find, FindAll, FindGroups, FindAllGroups, Replace, ReplaceFunc, Split, IsValid, Compile, MustCompile + compiled variants |
 | `stdlib/retry` | Retry with backoff | New, Attempts, Delay, Linear, Sleep |
 | `stdlib/sandbox` | os.Root filesystem sandboxing | New, Close, Read, ReadString, Write, WriteString, Append, AppendString, MkDir, MkDirAll, List, Exists, IsDir, IsFile, Stat, Delete, DeleteAll, Rename, Path, FS |

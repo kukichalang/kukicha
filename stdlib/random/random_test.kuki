@@ -24,3 +24,29 @@ func TestRandomStringLength(t reference testing.T)
             alpha := random.Alphanumeric(5)
             test.AssertEqual(t, len(alpha), 5)
         )
+
+# --- TestRandomInt ---
+func TestRandomInt(t reference testing.T)
+    for _ from 0 to 100
+        v := random.Int(5, 10)
+        if v < 5 or v >= 10
+            t.Errorf("random.Int(5, 10) = %d, out of range", v)
+
+    # min == max collapses to min
+    test.AssertEqual(t, random.Int(7, 7), 7)
+
+    # min > max collapses to min
+    test.AssertEqual(t, random.Int(10, 5), 10)
+
+# --- TestRandomFloat ---
+func TestRandomFloat(t reference testing.T)
+    for _ from 0 to 100
+        v := random.Float(1.0, 2.0)
+        if v < 1.0 or v >= 2.0
+            t.Errorf("random.Float(1.0, 2.0) = %f, out of range", v)
+
+    # min == max collapses to min
+    test.AssertEqual(t, random.Float(3.5, 3.5), 3.5)
+
+    # min > max collapses to min
+    test.AssertEqual(t, random.Float(2.0, 1.0), 2.0)

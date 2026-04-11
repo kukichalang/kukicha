@@ -24,3 +24,25 @@ func Alphanumeric(length int) string {
 //line stdlib/random/random.kuki:17
 	return String(length)
 }
+
+//line stdlib/random/random.kuki:21
+func Int(min int, max int) int {
+//line stdlib/random/random.kuki:22
+	if min >= max {
+//line stdlib/random/random.kuki:23
+		return min
+	}
+//line stdlib/random/random.kuki:24
+	return (min + rand.Intn((max - min)))
+}
+
+//line stdlib/random/random.kuki:28
+func Float(min float64, max float64) float64 {
+//line stdlib/random/random.kuki:29
+	if min >= max {
+//line stdlib/random/random.kuki:30
+		return min
+	}
+//line stdlib/random/random.kuki:31
+	return (min + (rand.Float64() * (max - min)))
+}
