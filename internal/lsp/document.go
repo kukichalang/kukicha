@@ -129,6 +129,7 @@ func (doc *Document) analyze() {
 		analyzer := semantic.New(program)
 		semanticErrors := analyzer.Analyze()
 		doc.Errors = append(doc.Errors, semanticErrors...)
+		doc.SymbolTable = analyzer.SymbolTable()
 	}
 }
 

@@ -87,6 +87,27 @@ func (s *Server) getCompletions(doc *Document, pos lsp.Position) []lsp.Completio
 		})
 	}
 
+	// Add struct field completions when inside an untyped composite literal
+	if doc.Program != nil {
+		ucl := findUntypedLiteralAtPosition(doc.Program, pos)
+		if ucl != nil && ucl.IsKeyed {
+			fields := structFieldsForLiteral(ucl, doc)
+			if fields != nil {
+				used := usedFieldNames(ucl)
+				for name, typeStr := range fields {
+					if used[name] {
+						continue
+					}
+					items = append(items, lsp.CompletionItem{
+						Label:  name,
+						Kind:   lsp.CIKField,
+						Detail: typeStr,
+					})
+				}
+			}
+		}
+	}
+
 	// Add declarations from the current document
 	if doc.Program != nil {
 		for _, decl := range doc.Program.Declarations {

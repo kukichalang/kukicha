@@ -135,6 +135,11 @@ func (a *Analyzer) warn(pos ast.Position, message string) {
 	a.warnings = append(a.warnings, w)
 }
 
+// SymbolTable returns the analyzer's symbol table (read-only after Analyze).
+func (a *Analyzer) SymbolTable() *SymbolTable {
+	return a.symbolTable
+}
+
 // AnalysisResult bundles all outputs from semantic analysis.
 type AnalysisResult struct {
 	Errors           []error

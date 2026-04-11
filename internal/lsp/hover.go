@@ -104,6 +104,25 @@ func (s *Server) getHoverContent(doc *Document, word string, pos lsp.Position) s
 		return result
 	}
 
+	// Check if the word is a field key inside an untyped composite literal
+	ucl := findUntypedLiteralAtPosition(doc.Program, pos)
+	if ucl != nil && ucl.IsKeyed {
+		fields := structFieldsForLiteral(ucl, doc)
+		if fields != nil {
+			if typeStr, ok := fields[word]; ok {
+				// Get the resolved type name for context
+				typeName := ""
+				if nt, ok := ucl.ResolvedType.(*ast.NamedType); ok {
+					typeName = nt.Name
+				}
+				if typeName != "" {
+					return fmt.Sprintf("%s %s (field of %s)", word, typeStr, typeName)
+				}
+				return fmt.Sprintf("%s %s (field)", word, typeStr)
+			}
+		}
+	}
+
 	return ""
 }
 
