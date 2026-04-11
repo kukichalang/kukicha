@@ -681,10 +681,27 @@ func (a *Analyzer) analyzeFieldAccessExpr(expr *ast.FieldAccessExpr, pipedArg *T
 			a.recordReturnCount(expr, 1)
 			return fieldType
 		}
+		// Primitive scalar types (int, float, string, bool, nil) have no fields,
+		// so an unresolved access is always an error. Other kinds (Unknown,
+		// Named, package vars, etc.) fall through silently because field
+		// resolution is incomplete for those paths today.
+		if isPrimitiveScalar(objType.Kind) {
+			a.error(expr.Field.Pos(), fmt.Sprintf("type %s has no field %s", objType.Kind, expr.Field.Value))
+		}
 	}
 
 	a.recordReturnCount(expr, 1)
 	return &TypeInfo{Kind: TypeKindUnknown}
+}
+
+// isPrimitiveScalar reports whether the type kind is a built-in scalar that
+// cannot have fields (as opposed to named types, structs, etc.).
+func isPrimitiveScalar(k TypeKind) bool {
+	switch k {
+	case TypeKindInt, TypeKindFloat, TypeKindString, TypeKindBool, TypeKindNil:
+		return true
+	}
+	return false
 }
 
 // checkDeprecated emits a warning if the called function is marked # kuki:deprecated.

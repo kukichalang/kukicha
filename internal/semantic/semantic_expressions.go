@@ -424,6 +424,14 @@ func (a *Analyzer) analyzeBinaryExpr(expr *ast.BinaryExpr) *TypeInfo {
 		}
 		return &TypeInfo{Kind: TypeKindInt}
 
+	case "in", "not in":
+		// The parser accepts `x in coll` as a binary expression, but codegen
+		// has no lowering for it, which would produce invalid Go. Until this
+		// feature is implemented, reject it with a clear error so users know
+		// to use `slices.Contains` / `maps.Contains` instead.
+		a.error(expr.Pos(), fmt.Sprintf("'%s' is not supported as an expression operator; use slices.Contains or maps.Contains", expr.Operator))
+		return &TypeInfo{Kind: TypeKindBool}
+
 	default:
 		return &TypeInfo{Kind: TypeKindUnknown}
 	}

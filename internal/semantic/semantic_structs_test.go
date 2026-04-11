@@ -196,6 +196,66 @@ func main()
 	}
 }
 
+func TestInOperatorRejected(t *testing.T) {
+	// Regression for a fuzz finding: the parser accepts `x in y` and
+	// `x not in y` as binary expressions, but codegen has no lowering and
+	// would emit `(x in y)` verbatim, which is invalid Go. Until membership
+	// testing is actually implemented, the semantic pass must reject it.
+	cases := []struct {
+		name  string
+		input string
+	}{
+		{"in", "func main()\n    if 1 in 2\n        print(\"yes\")\n"},
+		{"not in", "func main()\n    if 1 not in 2\n        print(\"yes\")\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := analyzeSourceResult(t, tc.input)
+			found := false
+			for _, e := range result.Errors {
+				if strings.Contains(e.Error(), "not supported as an expression operator") {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("expected rejection error, got: %v", result.Errors)
+			}
+		})
+	}
+}
+
+func TestFieldAccessOnScalarRejected(t *testing.T) {
+	// Regression for a fuzz finding: the lexer emits `0.Foo` as INTEGER DOT IDENT,
+	// so the parser builds FieldAccessExpr{Object: 0, Field: Foo}. Semantic
+	// analysis must reject field access on primitive scalars before codegen
+	// emits `0.Foo` verbatim as invalid Go.
+	cases := []struct {
+		name  string
+		input string
+	}{
+		{"int literal", "func main()\n    x := 0.Foo\n    _ = x\n"},
+		{"float literal", "func main()\n    x := 1.5.Foo\n    _ = x\n"},
+		{"string literal", "func main()\n    x := \"hi\".Foo\n    _ = x\n"},
+		{"bool literal", "func main()\n    x := true.Foo\n    _ = x\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := analyzeSourceResult(t, tc.input)
+			found := false
+			for _, e := range result.Errors {
+				if strings.Contains(e.Error(), "has no field Foo") {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("expected 'has no field' error, got: %v", result.Errors)
+			}
+		})
+	}
+}
+
 func TestMethodWithMultipleReturns(t *testing.T) {
 	input := `type Parser
     input string
