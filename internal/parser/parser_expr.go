@@ -72,8 +72,23 @@ func (p *Parser) parseOrExpr() ast.Expression {
 func (p *Parser) parsePipeExpr() ast.Expression {
 	left := p.parseAndExpr()
 
+	// Track whether any step in this chain crosses a line in source. Once
+	// we see a multiline step, all subsequent PipeExpr nodes inherit the
+	// flag so the formatter renders the whole chain multiline regardless
+	// of which direction it traverses the tree.
+	wasMultiline := false
+
 	for p.match(lexer.TOKEN_PIPE) {
 		operator := p.previousToken()
+
+		// Compare the '|>' token's line to the line of the token immediately
+		// before it (the last token of the left expression). The lexer's
+		// mergeLineContinuations pass strips NEWLINE/INDENT tokens around
+		// pipes, but the surviving tokens keep their original source line,
+		// so a line jump here means the user authored the chain multiline.
+		if p.pos >= 2 && p.tokens[p.pos-2].Line < operator.Line {
+			wasMultiline = true
+		}
 
 		// Check for piped switch: expr |> switch
 		if p.check(lexer.TOKEN_SWITCH) {
@@ -95,9 +110,10 @@ func (p *Parser) parsePipeExpr() ast.Expression {
 
 		right := p.parseAndExpr()
 		left = &ast.PipeExpr{
-			Token: operator,
-			Left:  left,
-			Right: right,
+			Token:        operator,
+			Left:         left,
+			Right:        right,
+			WasMultiline: wasMultiline,
 		}
 	}
 
@@ -340,7 +356,7 @@ func (p *Parser) parsePostfixExpr() ast.Expression {
 				// expr should be the package identifier
 				if ident, ok := expr.(*ast.Identifier); ok {
 					qualifiedName := ident.Value + "." + method.Value
-					p.advance() // consume '{'
+					openBrace := p.advance() // consume '{'
 
 					// Parse struct literal fields
 					fields := []*ast.FieldValue{}
@@ -362,7 +378,7 @@ func (p *Parser) parsePostfixExpr() ast.Expression {
 							break
 						}
 					}
-					p.consume(lexer.TOKEN_RBRACE, "expected '}' after struct literal")
+					closeBrace, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after struct literal")
 
 					expr = &ast.StructLiteralExpr{
 						Token: ident.Token,
@@ -370,7 +386,8 @@ func (p *Parser) parsePostfixExpr() ast.Expression {
 							Token: ident.Token,
 							Name:  qualifiedName,
 						},
-						Fields: fields,
+						Fields:       fields,
+						WasMultiline: closeBrace.Line > openBrace.Line,
 					}
 				} else {
 					// Not a simple package.Type, treat as field access
@@ -778,6 +795,7 @@ func (p *Parser) parseIdentifierOrStructLiteral() ast.Expression {
 		}
 
 		fields = []*ast.FieldValue{}
+		wasMultiline := false
 
 		if isBraced {
 			if !p.check(lexer.TOKEN_RBRACE) {
@@ -799,9 +817,13 @@ func (p *Parser) parseIdentifierOrStructLiteral() ast.Expression {
 					break
 				}
 			}
-			p.consume(lexer.TOKEN_RBRACE, "expected '}' after struct literal")
+			closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after struct literal")
+			if closeTok.Line > ident.Token.Line {
+				wasMultiline = true
+			}
 		} else {
-			// Indented
+			// Indented — the very use of NEWLINE+INDENT proves the source was multiline.
+			wasMultiline = true
 			for !p.check(lexer.TOKEN_DEDENT) && !p.isAtEnd() {
 				p.skipNewlines()
 				if p.check(lexer.TOKEN_DEDENT) {
@@ -822,9 +844,10 @@ func (p *Parser) parseIdentifierOrStructLiteral() ast.Expression {
 		}
 
 		return &ast.StructLiteralExpr{
-			Token:  ident.Token,
-			Type:   typ,
-			Fields: fields,
+			Token:        ident.Token,
+			Type:         typ,
+			Fields:       fields,
+			WasMultiline: wasMultiline,
 		}
 	}
 
@@ -932,11 +955,12 @@ func (p *Parser) parseListLiteral() *ast.ListLiteralExpr {
 		}
 	}
 
-	p.consume(lexer.TOKEN_RBRACKET, "expected ']' after list elements")
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACKET, "expected ']' after list elements")
 
 	return &ast.ListLiteralExpr{
-		Token:    token,
-		Elements: elements,
+		Token:        token,
+		Elements:     elements,
+		WasMultiline: closeTok.Line > token.Line,
 	}
 }
 
@@ -973,12 +997,13 @@ func (p *Parser) parseTypedListLiteral() ast.Expression {
 		}
 	}
 
-	p.consume(lexer.TOKEN_RBRACE, "expected '}' after list elements")
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after list elements")
 
 	return &ast.ListLiteralExpr{
-		Token:    token,
-		Type:     elementType,
-		Elements: elements,
+		Token:        token,
+		Type:         elementType,
+		Elements:     elements,
+		WasMultiline: closeTok.Line > token.Line,
 	}
 }
 
@@ -1009,12 +1034,13 @@ func (p *Parser) parseBracketListExpr() ast.Expression {
 			}
 		}
 	}
-	p.consume(lexer.TOKEN_RBRACE, "expected '}' after list elements")
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after list elements")
 
 	return &ast.ListLiteralExpr{
-		Token:    token,
-		Type:     elementType,
-		Elements: elements,
+		Token:        token,
+		Type:         elementType,
+		Elements:     elements,
+		WasMultiline: closeTok.Line > token.Line,
 	}
 }
 
@@ -1051,13 +1077,14 @@ func (p *Parser) parseBracketMapExpr() ast.Expression {
 			break
 		}
 	}
-	p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
 
 	return &ast.MapLiteralExpr{
-		Token:   token,
-		KeyType: keyType,
-		ValType: valType,
-		Pairs:   pairs,
+		Token:        token,
+		KeyType:      keyType,
+		ValType:      valType,
+		Pairs:        pairs,
+		WasMultiline: closeTok.Line > token.Line,
 	}
 }
 
@@ -1082,12 +1109,13 @@ func (p *Parser) parseUntypedMapLiteral() ast.Expression {
 			break
 		}
 	}
-	p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
 
 	return &ast.MapLiteralExpr{
 		Token: token,
 		// KeyType and ValType are nil — codegen defaults to map[any]any
-		Pairs: pairs,
+		Pairs:        pairs,
+		WasMultiline: closeTok.Line > token.Line,
 	}
 }
 
@@ -1333,13 +1361,14 @@ func (p *Parser) parseMapLiteral() ast.Expression {
 		}
 	}
 
-	p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
 
 	return &ast.MapLiteralExpr{
-		Token:   token,
-		KeyType: keyType,
-		ValType: valType,
-		Pairs:   pairs,
+		Token:        token,
+		KeyType:      keyType,
+		ValType:      valType,
+		Pairs:        pairs,
+		WasMultiline: closeTok.Line > token.Line,
 	}
 }
 

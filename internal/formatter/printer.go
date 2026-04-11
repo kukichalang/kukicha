@@ -1293,9 +1293,27 @@ func needsParensAfterNot(expr ast.Expression) bool {
 
 // pipeExprToString formats a pipe chain expression.
 // Short chains stay on one line; long chains are broken across lines
-// with each |> stage on its own indented line.
+// with each |> stage on its own indented line. Chains the user authored
+// across multiple lines in source are preserved as multiline even if
+// they would fit on a single line.
 func (p *Printer) pipeExprToString(expr *ast.PipeExpr) string {
 	stages := flattenPipeChain(expr)
+
+	// A chain is user-authored multiline if any PipeExpr node in the chain
+	// carries WasMultiline. flattenPipeChain walks down the Left spine, so
+	// we check every PipeExpr we encounter on that walk.
+	wasAuthoredMultiline := false
+	for cur := ast.Expression(expr); ; {
+		pe, ok := cur.(*ast.PipeExpr)
+		if !ok {
+			break
+		}
+		if pe.WasMultiline {
+			wasAuthoredMultiline = true
+			break
+		}
+		cur = pe.Left
+	}
 
 	formatted := make([]string, len(stages))
 	hasMultilineStage := false
@@ -1315,10 +1333,13 @@ func (p *Printer) pipeExprToString(expr *ast.PipeExpr) string {
 		return singleLine
 	}
 
-	// Keep on one line if it fits within the target width.
-	lineWidth := len(p.indent()) + len(singleLine)
-	if lineWidth <= maxLineWidth {
-		return singleLine
+	// Keep on one line only if the user didn't author it multiline AND it
+	// fits within the target width.
+	if !wasAuthoredMultiline {
+		lineWidth := len(p.indent()) + len(singleLine)
+		if lineWidth <= maxLineWidth {
+			return singleLine
+		}
 	}
 
 	// Multi-line: first stage on current line, subsequent stages each on
@@ -1454,7 +1475,7 @@ func (p *Printer) structLiteralToString(expr *ast.StructLiteralExpr) string {
 	}
 
 	singleLine := fmt.Sprintf("%s{%s}", typeName, strings.Join(fields, ", "))
-	if len(p.indent())+len(singleLine) <= maxLineWidth {
+	if !expr.WasMultiline && len(p.indent())+len(singleLine) <= maxLineWidth {
 		return singleLine
 	}
 
@@ -1478,14 +1499,14 @@ func (p *Printer) listLiteralToString(expr *ast.ListLiteralExpr) string {
 	if expr.Type != nil {
 		elemType := p.typeAnnotationToString(expr.Type)
 		singleLine := fmt.Sprintf("list of %s{%s}", elemType, strings.Join(elements, ", "))
-		if len(p.indent())+len(singleLine) <= maxLineWidth {
+		if !expr.WasMultiline && len(p.indent())+len(singleLine) <= maxLineWidth {
 			return singleLine
 		}
 		return p.multilineBraced("list of "+elemType, elements)
 	}
 
 	singleLine := fmt.Sprintf("[%s]", strings.Join(elements, ", "))
-	if len(p.indent())+len(singleLine) <= maxLineWidth {
+	if !expr.WasMultiline && len(p.indent())+len(singleLine) <= maxLineWidth {
 		return singleLine
 	}
 	return p.multilineBracketed(elements)
@@ -1508,7 +1529,7 @@ func (p *Printer) mapLiteralToString(expr *ast.MapLiteralExpr) string {
 
 	prefix := fmt.Sprintf("map of %s to %s", keyType, valType)
 	singleLine := fmt.Sprintf("%s{%s}", prefix, strings.Join(pairs, ", "))
-	if len(p.indent())+len(singleLine) <= maxLineWidth {
+	if !expr.WasMultiline && len(p.indent())+len(singleLine) <= maxLineWidth {
 		return singleLine
 	}
 

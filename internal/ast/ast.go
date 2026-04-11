@@ -742,9 +742,10 @@ func (e *UnaryExpr) Pos() Position {
 func (e *UnaryExpr) exprNode() {}
 
 type PipeExpr struct {
-	Token lexer.Token // The '|>' token
-	Left  Expression
-	Right Expression // Must be a function call
+	Token        lexer.Token // The '|>' token
+	Left         Expression
+	Right        Expression // Must be a function call
+	WasMultiline bool        // true if this '|>' or any earlier step in the chain crossed a line in source
 }
 
 func (e *PipeExpr) TokenLiteral() string { return e.Token.Lexeme }
@@ -834,9 +835,10 @@ func (e *SliceExpr) Pos() Position {
 func (e *SliceExpr) exprNode() {}
 
 type StructLiteralExpr struct {
-	Token  lexer.Token // The type identifier
-	Type   TypeAnnotation
-	Fields []*FieldValue
+	Token        lexer.Token // The type identifier
+	Type         TypeAnnotation
+	Fields       []*FieldValue
+	WasMultiline bool // true if the source spread this literal across multiple lines
 }
 
 func (e *StructLiteralExpr) TokenLiteral() string { return e.Token.Lexeme }
@@ -851,9 +853,10 @@ type FieldValue struct {
 }
 
 type ListLiteralExpr struct {
-	Token    lexer.Token // The '[' token or 'list' keyword
-	Type     TypeAnnotation
-	Elements []Expression
+	Token        lexer.Token // The '[' token or 'list' keyword
+	Type         TypeAnnotation
+	Elements     []Expression
+	WasMultiline bool // true if the source spread this literal across multiple lines
 }
 
 func (e *ListLiteralExpr) TokenLiteral() string { return e.Token.Lexeme }
@@ -863,10 +866,11 @@ func (e *ListLiteralExpr) Pos() Position {
 func (e *ListLiteralExpr) exprNode() {}
 
 type MapLiteralExpr struct {
-	Token   lexer.Token // The '{' token or 'map' keyword
-	KeyType TypeAnnotation
-	ValType TypeAnnotation
-	Pairs   []*KeyValuePair
+	Token        lexer.Token // The '{' token or 'map' keyword
+	KeyType      TypeAnnotation
+	ValType      TypeAnnotation
+	Pairs        []*KeyValuePair
+	WasMultiline bool // true if the source spread this literal across multiple lines
 }
 
 func (e *MapLiteralExpr) TokenLiteral() string { return e.Token.Lexeme }

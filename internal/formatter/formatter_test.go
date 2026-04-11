@@ -316,3 +316,90 @@ func main()
 `
 	assertFormatted(t, source, expected)
 }
+
+func TestFormatShortMultilinePipePreserved(t *testing.T) {
+	// A short pipe chain the user wrote across multiple lines in source
+	// should be kept multiline even though it would fit on a single line.
+	// This protects deliberately-laid-out demo/docstring code.
+	source := `func Double(x int) int
+    return x
+        |> Double()
+        |> Double()
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatShortMultilineStructLiteralPreserved(t *testing.T) {
+	// A struct literal the user wrote across multiple lines in source
+	// should stay multiline even if it would fit on a single line.
+	source := `type Point
+    X int
+    Y int
+
+func main()
+    p := Point{
+        X: 1,
+        Y: 2,
+    }
+    _ = p
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatShortSingleLineStructLiteralStays(t *testing.T) {
+	// A short struct literal written on one line should remain collapsed.
+	source := `type Point
+    X int
+    Y int
+
+func main()
+    p := Point{X: 1, Y: 2}
+    _ = p
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatShortMultilineListLiteralPreserved(t *testing.T) {
+	// A list literal the user wrote across multiple lines should stay
+	// multiline even if it would fit on a single line.
+	source := `func main()
+    xs := list of int{
+        1,
+        2,
+        3,
+    }
+    _ = xs
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatShortSingleLineListLiteralStays(t *testing.T) {
+	// A short list literal on one line should stay on one line.
+	source := `func main()
+    xs := list of int{1, 2, 3}
+    _ = xs
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatShortMultilineMapLiteralPreserved(t *testing.T) {
+	// A map literal the user wrote across multiple lines should stay
+	// multiline even if it would fit on a single line.
+	source := `func main()
+    m := map of string to int{
+        "a": 1,
+        "b": 2,
+    }
+    _ = m
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatShortSingleLineMapLiteralStays(t *testing.T) {
+	// A short map literal on one line should stay on one line.
+	source := `func main()
+    m := map of string to int{"a": 1, "b": 2}
+    _ = m
+`
+	assertFormatted(t, source, source)
+}
