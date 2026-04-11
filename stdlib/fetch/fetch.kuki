@@ -13,18 +13,18 @@
 
 petiole fetch
 
+import "bytes"
+import "encoding/base64"
+import "io"
 import "net/http"
 import "net/http/cookiejar"
 import "net/url"
-import "encoding/base64"
-import "time"
-import "io"
-import "bytes"
 import "stdlib/json"
-import "stdlib/string"
+import "stdlib/netguard"
 import "stdlib/retry"
 import "stdlib/sandbox"
-import "stdlib/netguard"
+import "stdlib/string"
+import "time"
 
 # limitReadCloser wraps an io.Reader with a separate io.Closer so that
 # io.LimitReader can cap reads while still delegating Close to the original body

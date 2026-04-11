@@ -2,9 +2,9 @@
 
 petiole sandbox_test
 
+import "os"
 import "stdlib/sandbox"
 import "stdlib/test"
-import "os"
 import "testing"
 
 # --- TestSandboxFileOperations ---

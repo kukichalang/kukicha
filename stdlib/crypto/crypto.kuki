@@ -9,9 +9,9 @@
 
 petiole crypto
 
-import "crypto/sha256"
 import "crypto/hmac"
 import "crypto/rand"
+import "crypto/sha256"
 import "encoding/hex"
 import "fmt"
 

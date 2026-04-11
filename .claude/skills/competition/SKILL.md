@@ -260,7 +260,6 @@ Priority-ordered suggestions for Kukicha backlog consideration:
 4. **Unified stdlib registry for CLI + LSP** (gala v0.29.5) — LSP should use same `stdlib_registry_gen.go` as `kukicha check`.
 5. **`kukicha run --watch`** (dingo v0.9.0) — hot-rebuild for dev loop; maps to `cmd/kukicha/` watch subcommand.
 6. **CRLF in lexer** (soppo v0.10.1) — small robustness fix for Windows users; `internal/lexer/`.
-7. **Grouped import formatting** (soppo v0.10.1) — `kukicha fmt` could group stdlib / third-party / local imports.
-8. **Variant enum branch completion** (gala v0.29.1) — LSP completes missing cases when cursor is inside `switch` on enum.
-9. **Inlay hints (LSP 3.17)** (gala v0.27.0) — show inferred types inline; particularly useful for pipe chains.
-10. **`TransformForLSP` lightweight analysis pass** (gala v0.29.0) — decouple type-check from codegen for faster LSP response.
+7. **Variant enum branch completion** (gala v0.29.1) — LSP completes missing cases when cursor is inside `switch` on enum.
+8. **Inlay hints (LSP 3.17)** (gala v0.27.0) — show inferred types inline; particularly useful for pipe chains.
+9. **`TransformForLSP` lightweight analysis pass** (gala v0.29.0) — decouple type-check from codegen for faster LSP response.

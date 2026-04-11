@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ast"
@@ -113,13 +114,8 @@ func (p *PrinterWithComments) Print(program *ast.Program) string {
 		p.writeLine("")
 	}
 
-	// Print imports with comments
-	for _, imp := range program.Imports {
-		p.printLeadingComments(imp)
-		p.printImport(imp)
-		p.printTrailingComment(imp)
-	}
-
+	// Print imports grouped into buckets (stdlib | third-party), sorted within each.
+	p.printImportsWithComments(program.Imports)
 	if len(program.Imports) > 0 {
 		p.writeLine("")
 	}
@@ -134,6 +130,41 @@ func (p *PrinterWithComments) Print(program *ast.Program) string {
 	}
 
 	return p.output.String()
+}
+
+// printImportsWithComments emits imports bucketed by kind (stdlib vs third-party),
+// sorted alphabetically within each bucket, with a blank line between non-empty
+// buckets. Leading/trailing comments on each import travel with the import node.
+func (p *PrinterWithComments) printImportsWithComments(imports []*ast.ImportDecl) {
+	if len(imports) == 0 {
+		return
+	}
+	const numBuckets = 2
+	buckets := make([][]*ast.ImportDecl, numBuckets)
+	for _, imp := range imports {
+		b := importBucket(imp.Path.Value)
+		buckets[b] = append(buckets[b], imp)
+	}
+	for _, bucket := range buckets {
+		sort.SliceStable(bucket, func(i, j int) bool {
+			return bucket[i].Path.Value < bucket[j].Path.Value
+		})
+	}
+	first := true
+	for _, bucket := range buckets {
+		if len(bucket) == 0 {
+			continue
+		}
+		if !first {
+			p.writeLine("")
+		}
+		first = false
+		for _, imp := range bucket {
+			p.printLeadingComments(imp)
+			p.printImport(imp)
+			p.printTrailingComment(imp)
+		}
+	}
 }
 
 func (p *PrinterWithComments) printLeadingComments(node ast.Node) {

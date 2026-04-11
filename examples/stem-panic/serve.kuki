@@ -1,8 +1,8 @@
+import "fmt"
+import "mime"
 # serve.kuki — a tiny web server to run Stem Panic in the browser
 
 import "net/http"
-import "mime"
-import "fmt"
 
 func main()
     mime.AddExtensionType(".wasm", "application/wasm") onerr panic "{error}"

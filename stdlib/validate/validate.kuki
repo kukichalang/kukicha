@@ -4,12 +4,12 @@
 
 petiole validate
 
+import "net/url"
 import "regexp"
+import "stdlib/cast"
 import "stdlib/slice"
 import "stdlib/string"
 import "unicode"
-import "net/url"
-import "stdlib/cast"
 
 # String Validation Functions
 

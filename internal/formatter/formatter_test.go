@@ -403,3 +403,81 @@ func TestFormatShortSingleLineMapLiteralStays(t *testing.T) {
 `
 	assertFormatted(t, source, source)
 }
+
+func TestFormatImportGroupingStdlibAndThirdParty(t *testing.T) {
+	// Imports from Go stdlib, Kukicha stdlib, and third-party should be
+	// grouped with a blank line between groups, sorted alphabetically within
+	// each group. Go stdlib and Kukicha stdlib share a single group.
+	source := `import "github.com/foo/bar"
+import "fmt"
+import "stdlib/slice"
+import "os"
+import "stdlib/json"
+
+func main()
+    _ = 1
+`
+	expected := `import "fmt"
+import "os"
+import "stdlib/json"
+import "stdlib/slice"
+
+import "github.com/foo/bar"
+
+func main()
+    _ = 1
+`
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatImportGroupingStdlibOnly(t *testing.T) {
+	// Single-group imports should be sorted but not separated.
+	source := `import "stdlib/slice"
+import "fmt"
+import "os"
+
+func main()
+    _ = 1
+`
+	expected := `import "fmt"
+import "os"
+import "stdlib/slice"
+
+func main()
+    _ = 1
+`
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatImportGroupingPreservesAliases(t *testing.T) {
+	// Aliases must survive regrouping and sorting.
+	source := `import "github.com/foo/bar" as baz
+import "stdlib/string" as strpkg
+import "context"
+
+func main()
+    _ = 1
+`
+	expected := `import "context"
+import "stdlib/string" as strpkg
+
+import "github.com/foo/bar" as baz
+
+func main()
+    _ = 1
+`
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatImportGroupingIdempotent(t *testing.T) {
+	// Already-grouped input must format to itself (round-trip handled by assertFormatted).
+	source := `import "fmt"
+import "stdlib/slice"
+
+import "github.com/foo/bar"
+
+func main()
+    _ = 1
+`
+	assertFormatted(t, source, source)
+}

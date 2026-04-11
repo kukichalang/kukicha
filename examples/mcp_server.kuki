@@ -1,7 +1,7 @@
+import "stdlib/cast"
 # target: mcp
 
 import "stdlib/mcp"
-import "stdlib/cast"
 
 # A tool that adds two numbers, demonstrating smart type conversion
 # Using 'any' return type to match mcp.ToolHandler: func(map of string to any) (any, error)

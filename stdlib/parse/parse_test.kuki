@@ -3,8 +3,8 @@
 petiole parse_test
 
 import "stdlib/parse"
-import "stdlib/test"
 import "stdlib/string" as kukistring
+import "stdlib/test"
 import "testing"
 
 # --- TestJson ---

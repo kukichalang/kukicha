@@ -7,9 +7,9 @@
 
 petiole must
 
-import "stdlib/env"
-import "stdlib/cast"
 import "fmt"
+import "stdlib/cast"
+import "stdlib/env"
 
 func Do(value any, err error) any
     if err != empty

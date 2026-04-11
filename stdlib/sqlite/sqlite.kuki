@@ -18,10 +18,11 @@ import "context"
 import "database/sql"
 import "fmt"
 import "stdlib/db"
-import "github.com/ncruces/go-sqlite3" as sqlite3
-import "github.com/ncruces/go-sqlite3/driver" as _
 import "strings" as strpkg
 import "unicode"
+
+import "github.com/ncruces/go-sqlite3" as sqlite3
+import "github.com/ncruces/go-sqlite3/driver" as _
 
 # ============================================================================
 # Connection

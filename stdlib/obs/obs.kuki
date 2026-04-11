@@ -5,9 +5,9 @@ petiole obs
 
 import "fmt"
 import "maps"
-import "time"
 import "stdlib/json"
 import "stdlib/random"
+import "time"
 
 # Logger holds default fields for structured log events.
 type Logger

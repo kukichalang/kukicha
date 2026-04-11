@@ -9,10 +9,10 @@
 
 petiole html
 
+import "bytes"
 import "html"
 import "io"
 import "net/http"
-import "bytes"
 
 # Fragment holds trusted HTML content that is safe to render.
 # Create via Render(), compose via Embed(), escape user input via Escape().

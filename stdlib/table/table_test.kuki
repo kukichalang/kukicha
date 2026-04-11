@@ -2,9 +2,9 @@
 
 petiole table_test
 
+import "stdlib/string"
 import "stdlib/table"
 import "stdlib/test"
-import "stdlib/string"
 import "testing"
 
 # --- TestNew ---

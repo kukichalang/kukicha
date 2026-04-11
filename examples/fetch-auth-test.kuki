@@ -1,6 +1,6 @@
-import "time"
 import "net/http"
 import "stdlib/fetch"
+import "time"
 
 # Start a local server to test against
 func startServer()

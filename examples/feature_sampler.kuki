@@ -1,7 +1,7 @@
 import "fmt"
-import "stdlib/slice"
-import "stdlib/set"
 import "stdlib/maps"
+import "stdlib/set"
+import "stdlib/slice"
 
 func Do(f func(string))
     f("hello")

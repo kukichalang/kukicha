@@ -2,10 +2,11 @@
 
 petiole parse
 
-import "stdlib/json"
-import "stdlib/string"
 import "bytes"
 import "encoding/csv"
+import "stdlib/json"
+import "stdlib/string"
+
 import "gopkg.in/yaml.v3"
 
 # Json parses a JSON string into a value

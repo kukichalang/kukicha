@@ -1,3 +1,4 @@
+import "fmt"
 # Example: LLM Chat Client
 # Demonstrates usage of the stdlib/llm package with all three API formats:
 #   - Chat Completions API (OpenAI-compatible)
@@ -11,7 +12,6 @@
 # Or with any-llm-gateway:
 #   export LLM_API_KEY="your-gateway-key"
 import "stdlib/llm"
-import "fmt"
 
 func printChunk(chunk string)
     fmt.Print(chunk)

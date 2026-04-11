@@ -4,8 +4,8 @@ petiole datetime_test
 
 import "stdlib/datetime"
 import "stdlib/test"
-import "time"
 import "testing"
+import "time"
 
 # --- TestNowAndToday ---
 func TestNowAndToday(t reference testing.T)

@@ -2,6 +2,7 @@
 # Demonstrates using DuckDB's in-memory analytical engine with Kukicha
 
 import "stdlib/db"
+
 import "github.com/marcboeker/go-duckdb" as _
 
 type ProductRevenue

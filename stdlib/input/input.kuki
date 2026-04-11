@@ -6,8 +6,8 @@ petiole input
 import "bufio"
 import "fmt"
 import "os"
-import "strconv"
 import "stdlib/string"
+import "strconv"
 
 # ReadLine reads a line from standard input
 # It optionally prints a prompt if provided

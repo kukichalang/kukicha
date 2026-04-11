@@ -2,8 +2,8 @@
 
 petiole slice
 
-import "slices"
 import "fmt"
+import "slices"
 import "sort"
 
 # First returns a slice of the first n elements

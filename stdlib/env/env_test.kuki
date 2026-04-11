@@ -2,10 +2,10 @@
 
 petiole env_test
 
+import "os"
 import "stdlib/env"
 import "stdlib/test"
 import "testing"
-import "os"
 
 # Setup test environment variables
 func setupTestEnv()

@@ -4,8 +4,8 @@ petiole shell_test
 
 import "stdlib/shell"
 import "stdlib/slice"
-import "stdlib/test"
 import "stdlib/string"
+import "stdlib/test"
 import "testing"
 
 # --- TestExecute ---

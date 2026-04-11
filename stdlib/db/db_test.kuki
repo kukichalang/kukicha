@@ -6,6 +6,7 @@ petiole db_test
 import "stdlib/db"
 import "stdlib/test"
 import "testing"
+
 import "github.com/ncruces/go-sqlite3/driver" as _
 
 type User

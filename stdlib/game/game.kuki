@@ -7,10 +7,11 @@ import "image/color"
 import "math"
 import "stdlib/random"
 import "strings"
+
 import "github.com/hajimehoshi/ebiten/v2"
-import "github.com/hajimehoshi/ebiten/v2/vector"
-import "github.com/hajimehoshi/ebiten/v2/inpututil"
 import "github.com/hajimehoshi/ebiten/v2/ebitenutil"
+import "github.com/hajimehoshi/ebiten/v2/inpututil"
+import "github.com/hajimehoshi/ebiten/v2/vector"
 
 # ── Types ──
 

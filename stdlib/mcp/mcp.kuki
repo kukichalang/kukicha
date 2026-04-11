@@ -7,6 +7,7 @@ import "net/http"
 import "stdlib/ctx" as ctxpkg
 import "stdlib/json"
 import "stdlib/string" as strpkg
+
 import "github.com/modelcontextprotocol/go-sdk/mcp"
 
 # ToolHandler is a callback for handling MCP tool invocations.

@@ -2,10 +2,10 @@
 
 petiole skills_test
 
-import "stdlib/skills"
-import "stdlib/test"
 import "os"
 import "path/filepath"
+import "stdlib/skills"
+import "stdlib/test"
 import "testing"
 
 # --- TestDiscoverMissing ---

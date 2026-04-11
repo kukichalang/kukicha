@@ -117,11 +117,11 @@
 
 petiole llm
 
+import "bufio"
+import "stdlib/env"
 import "stdlib/fetch"
 import "stdlib/json"
-import "stdlib/env"
 import "stdlib/string"
-import "bufio"
 
 # Message represents a single message in a chat conversation
 type Message

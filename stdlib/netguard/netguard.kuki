@@ -21,9 +21,9 @@ petiole netguard
 import "context"
 import "net"
 import "net/http"
-import "syscall"
 import "stdlib/datetime"
 import "stdlib/net" as netutil
+import "syscall"
 
 type Guard
     networks list of reference net.IPNet

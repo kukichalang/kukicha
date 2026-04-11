@@ -9,11 +9,11 @@
 
 petiole semver
 
+import "fmt"
 import "stdlib/cast"
-import "stdlib/string"
 import "stdlib/slice"
 import "stdlib/sort"
-import "fmt"
+import "stdlib/string"
 
 # Version represents a parsed semver tag
 type Version

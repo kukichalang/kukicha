@@ -2,9 +2,10 @@
 
 petiole string
 
+import "strings"
+
 import "golang.org/x/text/cases"
 import "golang.org/x/text/language"
-import "strings"
 
 # Case Conversion Functions
 

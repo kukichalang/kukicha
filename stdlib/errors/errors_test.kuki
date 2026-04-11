@@ -2,8 +2,8 @@
 
 petiole errors_test
 
-import "stdlib/errors"
 import "errors" as goerrors
+import "stdlib/errors"
 import "stdlib/test"
 import "testing"
 

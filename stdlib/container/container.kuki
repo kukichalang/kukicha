@@ -22,20 +22,21 @@ petiole container
 import "archive/tar"
 import "bufio"
 import "bytes"
+import "encoding/base64"
 import "fmt"
 import "io"
 import "os"
 import "path/filepath"
-import "time"
 import "stdlib/ctx" as ctxpkg
 import "stdlib/json"
 import "stdlib/string"
-import "encoding/base64"
-import "github.com/docker/docker/client"
+import "time"
+
 import "github.com/docker/docker/api/types" as dockertypes
 import "github.com/docker/docker/api/types/container" as dockercontainer
-import "github.com/docker/docker/api/types/image" as dockerimage
 import "github.com/docker/docker/api/types/events" as dockerevents
+import "github.com/docker/docker/api/types/image" as dockerimage
+import "github.com/docker/docker/client"
 import "github.com/docker/docker/pkg/stdcopy"
 
 # Engine wraps a Docker/Podman client connection

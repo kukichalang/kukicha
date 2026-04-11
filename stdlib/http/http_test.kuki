@@ -2,12 +2,12 @@
 
 petiole http_test
 
-import "stdlib/http" as httphelper
-import "stdlib/string"
-import "testing"
 import "net/http"
 import "net/http/httptest"
 import "net/url"
+import "stdlib/http" as httphelper
+import "stdlib/string"
+import "testing"
 
 # Test JSON/Text helpers set the right headers, status, and body
 func TestResponseHelpers(t reference testing.T)

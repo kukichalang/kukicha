@@ -2,8 +2,8 @@
 
 petiole must_test
 
-import "stdlib/must"
 import "os"
+import "stdlib/must"
 import "stdlib/string"
 import "stdlib/test"
 import "testing"

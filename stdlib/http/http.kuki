@@ -3,16 +3,16 @@
 
 petiole http
 
+import "html"
+import "io"
 import "net/http"
+import "net/url"
+import "stdlib/cast"
+import "stdlib/fetch"
 import "stdlib/json"
 import "stdlib/slice"
 import "stdlib/string"
-import "stdlib/fetch"
 import "stdlib/validate"
-import "io"
-import "stdlib/cast"
-import "html"
-import "net/url"
 
 # HTTP Status Codes
 const StatusOK = 200

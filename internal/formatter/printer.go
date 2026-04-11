@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ast"
@@ -42,11 +43,8 @@ func (p *Printer) Print(program *ast.Program) string {
 		p.writeLine("")
 	}
 
-	// Print imports
-	for _, imp := range program.Imports {
-		p.printImport(imp)
-	}
-
+	// Print imports grouped into buckets (stdlib | third-party), sorted within each.
+	p.printImports(program.Imports)
 	if len(program.Imports) > 0 {
 		p.writeLine("")
 	}
@@ -67,6 +65,52 @@ func (p *Printer) printImport(imp *ast.ImportDecl) {
 		p.writeLine(fmt.Sprintf("import \"%s\" as %s", imp.Path.Value, imp.Alias.Value))
 	} else {
 		p.writeLine(fmt.Sprintf("import \"%s\"", imp.Path.Value))
+	}
+}
+
+// importBucket classifies an import path into a group for formatting:
+// 0 = Go stdlib + Kukicha stdlib (first segment has no dot)
+// 1 = third-party (first segment contains a dot, e.g. "github.com/...")
+func importBucket(path string) int {
+	first := path
+	if i := strings.IndexByte(path, '/'); i >= 0 {
+		first = path[:i]
+	}
+	if strings.Contains(first, ".") {
+		return 1
+	}
+	return 0
+}
+
+// printImports emits imports bucketed by kind, sorted alphabetically within each
+// bucket, with a blank line between non-empty buckets.
+func (p *Printer) printImports(imports []*ast.ImportDecl) {
+	if len(imports) == 0 {
+		return
+	}
+	const numBuckets = 2
+	buckets := make([][]*ast.ImportDecl, numBuckets)
+	for _, imp := range imports {
+		b := importBucket(imp.Path.Value)
+		buckets[b] = append(buckets[b], imp)
+	}
+	for _, bucket := range buckets {
+		sort.SliceStable(bucket, func(i, j int) bool {
+			return bucket[i].Path.Value < bucket[j].Path.Value
+		})
+	}
+	first := true
+	for _, bucket := range buckets {
+		if len(bucket) == 0 {
+			continue
+		}
+		if !first {
+			p.writeLine("")
+		}
+		first = false
+		for _, imp := range bucket {
+			p.printImport(imp)
+		}
 	}
 }
 

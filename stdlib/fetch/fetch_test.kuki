@@ -2,12 +2,12 @@
 
 petiole fetch_test
 
-import "testing"
-import "stdlib/test"
-import "stdlib/fetch"
+import "encoding/json"
 import "net/http"
 import "net/http/httptest"
-import "encoding/json"
+import "stdlib/fetch"
+import "stdlib/test"
+import "testing"
 
 type TestData
     Message string as "message"

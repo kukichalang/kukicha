@@ -2,9 +2,9 @@
 
 petiole template
 
-import "text/template"
-import "html/template" as htmltmpl
 import "bytes"
+import "html/template" as htmltmpl
+import "text/template"
 
 # TemplateData holds template content and data for rendering
 type TemplateData

@@ -2,11 +2,11 @@
 
 petiole shell
 
-import "os/exec"
-import "os"
-import "stdlib/string"
-import "stdlib/ctx" as ctxpkg
 import "bytes"
+import "os"
+import "os/exec"
+import "stdlib/ctx" as ctxpkg
+import "stdlib/string"
 
 # Command represents a command builder for shell execution
 type Command

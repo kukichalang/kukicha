@@ -2,8 +2,8 @@
 
 petiole files
 
-import "os"
 import "io"
+import "os"
 import "path/filepath"
 import "stdlib/json"
 import "time"

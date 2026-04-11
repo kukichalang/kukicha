@@ -8,196 +8,196 @@ import (
 	"strings"
 )
 
-//line stdlib/string/string.kuki:12
-func ToUpper(s string) string {
 //line stdlib/string/string.kuki:13
+func ToUpper(s string) string {
+//line stdlib/string/string.kuki:14
 	return strings.ToUpper(s)
 }
 
-//line stdlib/string/string.kuki:16
-func ToLower(s string) string {
 //line stdlib/string/string.kuki:17
+func ToLower(s string) string {
+//line stdlib/string/string.kuki:18
 	return strings.ToLower(s)
 }
 
-//line stdlib/string/string.kuki:21
-func Title(s string) string {
 //line stdlib/string/string.kuki:22
+func Title(s string) string {
+//line stdlib/string/string.kuki:23
 	return cases.Title(language.Und).String(s)
 }
 
-//line stdlib/string/string.kuki:28
-func Trim(s string, cutset string) string {
 //line stdlib/string/string.kuki:29
+func Trim(s string, cutset string) string {
+//line stdlib/string/string.kuki:30
 	return strings.Trim(s, cutset)
 }
 
-//line stdlib/string/string.kuki:32
-func TrimSpace(s string) string {
 //line stdlib/string/string.kuki:33
+func TrimSpace(s string) string {
+//line stdlib/string/string.kuki:34
 	return strings.TrimSpace(s)
 }
 
-//line stdlib/string/string.kuki:37
-func TrimPrefix(s string, prefix string) string {
 //line stdlib/string/string.kuki:38
+func TrimPrefix(s string, prefix string) string {
+//line stdlib/string/string.kuki:39
 	return strings.TrimPrefix(s, prefix)
 }
 
-//line stdlib/string/string.kuki:42
-func TrimSuffix(s string, suffix string) string {
 //line stdlib/string/string.kuki:43
+func TrimSuffix(s string, suffix string) string {
+//line stdlib/string/string.kuki:44
 	return strings.TrimSuffix(s, suffix)
 }
 
-//line stdlib/string/string.kuki:46
-func TrimLeft(s string, cutset string) string {
 //line stdlib/string/string.kuki:47
+func TrimLeft(s string, cutset string) string {
+//line stdlib/string/string.kuki:48
 	return strings.TrimLeft(s, cutset)
 }
 
-//line stdlib/string/string.kuki:50
-func TrimRight(s string, cutset string) string {
 //line stdlib/string/string.kuki:51
+func TrimRight(s string, cutset string) string {
+//line stdlib/string/string.kuki:52
 	return strings.TrimRight(s, cutset)
 }
 
-//line stdlib/string/string.kuki:56
-func Split(s string, sep string) []string {
 //line stdlib/string/string.kuki:57
+func Split(s string, sep string) []string {
+//line stdlib/string/string.kuki:58
 	return strings.Split(s, sep)
 }
 
-//line stdlib/string/string.kuki:63
-func SplitN(s string, sep string, n int) []string {
 //line stdlib/string/string.kuki:64
+func SplitN(s string, sep string, n int) []string {
+//line stdlib/string/string.kuki:65
 	return strings.SplitN(s, sep, n)
 }
 
-//line stdlib/string/string.kuki:67
-func Join(parts []string, sep string) string {
 //line stdlib/string/string.kuki:68
+func Join(parts []string, sep string) string {
+//line stdlib/string/string.kuki:69
 	return strings.Join(parts, sep)
 }
 
-//line stdlib/string/string.kuki:71
-func Fields(s string) []string {
 //line stdlib/string/string.kuki:72
+func Fields(s string) []string {
+//line stdlib/string/string.kuki:73
 	return strings.Fields(s)
 }
 
-//line stdlib/string/string.kuki:77
-func Contains(s string, substr string) bool {
 //line stdlib/string/string.kuki:78
+func Contains(s string, substr string) bool {
+//line stdlib/string/string.kuki:79
 	return strings.Contains(s, substr)
 }
 
-//line stdlib/string/string.kuki:81
-func HasPrefix(s string, prefix string) bool {
 //line stdlib/string/string.kuki:82
+func HasPrefix(s string, prefix string) bool {
+//line stdlib/string/string.kuki:83
 	return strings.HasPrefix(s, prefix)
 }
 
-//line stdlib/string/string.kuki:85
-func HasSuffix(s string, suffix string) bool {
 //line stdlib/string/string.kuki:86
+func HasSuffix(s string, suffix string) bool {
+//line stdlib/string/string.kuki:87
 	return strings.HasSuffix(s, suffix)
 }
 
-//line stdlib/string/string.kuki:90
-func Index(s string, substr string) int {
 //line stdlib/string/string.kuki:91
+func Index(s string, substr string) int {
+//line stdlib/string/string.kuki:92
 	return strings.Index(s, substr)
 }
 
-//line stdlib/string/string.kuki:95
-func LastIndex(s string, substr string) int {
 //line stdlib/string/string.kuki:96
+func LastIndex(s string, substr string) int {
+//line stdlib/string/string.kuki:97
 	return strings.LastIndex(s, substr)
 }
 
-//line stdlib/string/string.kuki:99
-func Count(s string, substr string) int {
 //line stdlib/string/string.kuki:100
+func Count(s string, substr string) int {
+//line stdlib/string/string.kuki:101
 	return strings.Count(s, substr)
 }
 
-//line stdlib/string/string.kuki:106
-func Replace(s string, old string, new string, n int) string {
 //line stdlib/string/string.kuki:107
+func Replace(s string, old string, new string, n int) string {
+//line stdlib/string/string.kuki:108
 	return strings.Replace(s, old, new, n)
 }
 
-//line stdlib/string/string.kuki:110
-func ReplaceAll(s string, old string, new string) string {
 //line stdlib/string/string.kuki:111
+func ReplaceAll(s string, old string, new string) string {
+//line stdlib/string/string.kuki:112
 	return strings.ReplaceAll(s, old, new)
 }
 
-//line stdlib/string/string.kuki:116
-func Repeat(s string, count int) string {
 //line stdlib/string/string.kuki:117
+func Repeat(s string, count int) string {
+//line stdlib/string/string.kuki:118
 	return strings.Repeat(s, count)
 }
 
-//line stdlib/string/string.kuki:121
-func PadRight(s string, width int, padChar string) string {
 //line stdlib/string/string.kuki:122
-	length := len(s)
+func PadRight(s string, width int, padChar string) string {
 //line stdlib/string/string.kuki:123
-	if length >= width {
+	length := len(s)
 //line stdlib/string/string.kuki:124
+	if length >= width {
+//line stdlib/string/string.kuki:125
 		return s
 	}
-//line stdlib/string/string.kuki:125
+//line stdlib/string/string.kuki:126
 	return (s + strings.Repeat(padChar, (width-length)))
 }
 
-//line stdlib/string/string.kuki:129
-func PadLeft(s string, width int, padChar string) string {
 //line stdlib/string/string.kuki:130
-	length := len(s)
+func PadLeft(s string, width int, padChar string) string {
 //line stdlib/string/string.kuki:131
-	if length >= width {
+	length := len(s)
 //line stdlib/string/string.kuki:132
+	if length >= width {
+//line stdlib/string/string.kuki:133
 		return s
 	}
-//line stdlib/string/string.kuki:133
+//line stdlib/string/string.kuki:134
 	return (strings.Repeat(padChar, (width-length)) + s)
 }
 
-//line stdlib/string/string.kuki:150
-func EqualFold(s string, t string) bool {
 //line stdlib/string/string.kuki:151
+func EqualFold(s string, t string) bool {
+//line stdlib/string/string.kuki:152
 	return strings.EqualFold(s, t)
 }
 
-//line stdlib/string/string.kuki:156
-func Len(s string) int {
 //line stdlib/string/string.kuki:157
+func Len(s string) int {
+//line stdlib/string/string.kuki:158
 	return len(s)
 }
 
-//line stdlib/string/string.kuki:160
-func IsEmpty(s string) bool {
 //line stdlib/string/string.kuki:161
+func IsEmpty(s string) bool {
+//line stdlib/string/string.kuki:162
 	return (len(s) == 0)
 }
 
-//line stdlib/string/string.kuki:164
-func IsBlank(s string) bool {
 //line stdlib/string/string.kuki:165
+func IsBlank(s string) bool {
+//line stdlib/string/string.kuki:166
 	return (len(strings.TrimSpace(s)) == 0)
 }
 
-//line stdlib/string/string.kuki:168
-func Lines(s string) []string {
 //line stdlib/string/string.kuki:169
+func Lines(s string) []string {
+//line stdlib/string/string.kuki:170
 	return strings.Split(s, "\n")
 }
 
-//line stdlib/string/string.kuki:173
-func Concat(parts []string) string {
 //line stdlib/string/string.kuki:174
+func Concat(parts []string) string {
+//line stdlib/string/string.kuki:175
 	return strings.Join(parts, "")
 }

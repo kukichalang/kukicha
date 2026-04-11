@@ -2,8 +2,8 @@
 
 petiole cast_test
 
-import "stdlib/cast"
 import "encoding/json"
+import "stdlib/cast"
 import "testing"
 
 # Test Atoi and ParseFloat wrappers

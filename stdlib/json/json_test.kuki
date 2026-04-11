@@ -2,9 +2,9 @@
 
 petiole json_test
 
+import "bytes"
 import "stdlib/json"
 import "stdlib/test"
-import "bytes"
 import "testing"
 
 # Simple struct used across tests

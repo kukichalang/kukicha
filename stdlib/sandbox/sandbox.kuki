@@ -12,9 +12,9 @@
 
 petiole sandbox
 
-import "os"
 import "fmt"
 import "io/fs"
+import "os"
 import "stdlib/json"
 
 # Root wraps an os.Root to provide sandboxed file operations.

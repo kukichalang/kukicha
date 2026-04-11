@@ -2,11 +2,11 @@
 
 petiole files_test
 
-import "testing"
-import "stdlib/test"
-import "stdlib/files"
 import "os"
 import "path/filepath"
+import "stdlib/files"
+import "stdlib/test"
+import "testing"
 import "time"
 
 type TestData

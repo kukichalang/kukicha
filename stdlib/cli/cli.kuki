@@ -2,10 +2,10 @@
 
 petiole cli
 
-import "os"
 import "fmt"
-import "stdlib/string"
+import "os"
 import "stdlib/cast"
+import "stdlib/string"
 
 # ArgDef represents an argument definition
 type ArgDef
