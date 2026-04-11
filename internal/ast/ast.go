@@ -884,6 +884,28 @@ type KeyValuePair struct {
 	Value Expression
 }
 
+// UntypedCompositeLiteral represents a composite literal without an explicit
+// type: {key: val, ...} (keyed) or {elem1, elem2, ...} (positional).
+// The semantic phase resolves the intended type from context and sets ResolvedType.
+type UntypedCompositeLiteral struct {
+	Token        lexer.Token // The '{' token
+	IsKeyed      bool        // true if entries use key: value syntax
+	Entries      []*UntypedEntry
+	WasMultiline bool
+	ResolvedType TypeAnnotation // set by semantic analysis; nil until resolved
+}
+
+func (e *UntypedCompositeLiteral) TokenLiteral() string { return e.Token.Lexeme }
+func (e *UntypedCompositeLiteral) Pos() Position {
+	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
+}
+func (e *UntypedCompositeLiteral) exprNode() {}
+
+type UntypedEntry struct {
+	Key   Expression // nil for positional entries
+	Value Expression
+}
+
 type ReceiveExpr struct {
 	Token   lexer.Token // The 'receive' token
 	Channel Expression

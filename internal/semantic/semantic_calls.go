@@ -271,6 +271,23 @@ func (a *Analyzer) analyzeCallExpr(expr *ast.CallExpr, pipedArg *TypeInfo) []*Ty
 	if pipedArg != nil && !hasPlaceholder {
 		providedArgTypes = append(providedArgTypes, pipedArg)
 	}
+
+	// Resolve untyped composite literals from function parameter types.
+	if funcType.Kind == TypeKindFunction && funcType.Params != nil {
+		offset := 0
+		if pipedArg != nil && !hasPlaceholder {
+			offset = 1
+		}
+		for i, arg := range expr.Arguments {
+			paramIdx := i + offset
+			if paramIdx < len(funcType.Params) {
+				if typeAnn := typeInfoToTypeAnnotation(funcType.Params[paramIdx]); typeAnn != nil {
+					a.resolveUntypedLiteral(arg, typeAnn)
+				}
+			}
+		}
+	}
+
 	lambdaIndices := make(map[int]bool)
 	for i, arg := range expr.Arguments {
 		if hasPlaceholder && pipedArg != nil {

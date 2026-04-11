@@ -111,6 +111,8 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return g.generateListLiteral(e)
 	case *ast.MapLiteralExpr:
 		return g.generateMapLiteral(e)
+	case *ast.UntypedCompositeLiteral:
+		return g.generateUntypedCompositeLiteral(e)
 	case *ast.ReceiveExpr:
 		channel := g.exprToString(e.Channel)
 		return fmt.Sprintf("<-%s", channel)
@@ -1180,6 +1182,105 @@ func (g *Generator) generateMapLiteral(expr *ast.MapLiteralExpr) string {
 	}
 
 	return fmt.Sprintf("map[%s]%s{%s}", keyType, valType, strings.Join(pairs, ", "))
+}
+
+func (g *Generator) generateUntypedCompositeLiteral(expr *ast.UntypedCompositeLiteral) string {
+	if expr.ResolvedType != nil {
+		return g.generateResolvedCompositeLiteral(expr)
+	}
+	// Fallback: no resolved type — emit with defaults.
+	if len(expr.Entries) == 0 {
+		// Empty {} defaults to map for backwards compatibility.
+		return "map[any]any{}"
+	}
+	if expr.IsKeyed {
+		pairs := make([]string, len(expr.Entries))
+		for i, entry := range expr.Entries {
+			pairs[i] = fmt.Sprintf("%s: %s", g.exprToString(entry.Key), g.exprToString(entry.Value))
+		}
+		return fmt.Sprintf("map[any]any{%s}", strings.Join(pairs, ", "))
+	}
+	elems := make([]string, len(expr.Entries))
+	for i, entry := range expr.Entries {
+		elems[i] = g.exprToString(entry.Value)
+	}
+	return fmt.Sprintf("[]any{%s}", strings.Join(elems, ", "))
+}
+
+func (g *Generator) generateResolvedCompositeLiteral(expr *ast.UntypedCompositeLiteral) string {
+	typeName := g.generateTypeAnnotation(expr.ResolvedType)
+
+	switch rt := expr.ResolvedType.(type) {
+	case *ast.NamedType:
+		// Struct literal
+		if len(expr.Entries) == 0 {
+			return fmt.Sprintf("%s{}", typeName)
+		}
+		fields := make([]string, len(expr.Entries))
+		for i, entry := range expr.Entries {
+			key := ""
+			if ident, ok := entry.Key.(*ast.Identifier); ok {
+				key = ident.Value
+			} else {
+				key = g.exprToString(entry.Key)
+			}
+			fields[i] = fmt.Sprintf("%s: %s", key, g.exprToString(entry.Value))
+		}
+		return fmt.Sprintf("%s{%s}", typeName, strings.Join(fields, ", "))
+
+	case *ast.ListType:
+		// Slice literal: []T{...} — typeName is already "[]T", use it directly.
+		if len(expr.Entries) == 0 {
+			return fmt.Sprintf("%s{}", typeName)
+		}
+		elems := make([]string, len(expr.Entries))
+		for i, entry := range expr.Entries {
+			elems[i] = g.exprToString(entry.Value)
+		}
+		return fmt.Sprintf("%s{%s}", typeName, strings.Join(elems, ", "))
+
+	case *ast.PrimitiveType:
+		// Primitive slice: []T{...}
+		if len(expr.Entries) == 0 {
+			return fmt.Sprintf("[]%s{}", typeName)
+		}
+		elems := make([]string, len(expr.Entries))
+		for i, entry := range expr.Entries {
+			elems[i] = g.exprToString(entry.Value)
+		}
+		return fmt.Sprintf("[]%s{%s}", typeName, strings.Join(elems, ", "))
+
+	case *ast.MapType:
+		// Map literal: map[K]V{...}
+		keyType := g.generateTypeAnnotation(rt.KeyType)
+		valType := g.generateTypeAnnotation(rt.ValueType)
+		if len(expr.Entries) == 0 {
+			return fmt.Sprintf("map[%s]%s{}", keyType, valType)
+		}
+		pairs := make([]string, len(expr.Entries))
+		for i, entry := range expr.Entries {
+			pairs[i] = fmt.Sprintf("%s: %s", g.exprToString(entry.Key), g.exprToString(entry.Value))
+		}
+		return fmt.Sprintf("map[%s]%s{%s}", keyType, valType, strings.Join(pairs, ", "))
+
+	default:
+		// Unknown resolved type — emit with type prefix
+		if len(expr.Entries) == 0 {
+			return fmt.Sprintf("%s{}", typeName)
+		}
+		if expr.IsKeyed {
+			pairs := make([]string, len(expr.Entries))
+			for i, entry := range expr.Entries {
+				pairs[i] = fmt.Sprintf("%s: %s", g.exprToString(entry.Key), g.exprToString(entry.Value))
+			}
+			return fmt.Sprintf("%s{%s}", typeName, strings.Join(pairs, ", "))
+		}
+		elems := make([]string, len(expr.Entries))
+		for i, entry := range expr.Entries {
+			elems[i] = g.exprToString(entry.Value)
+		}
+		return fmt.Sprintf("%s{%s}", typeName, strings.Join(elems, ", "))
+	}
 }
 
 func (g *Generator) generateMakeExpr(expr *ast.MakeExpr) string {

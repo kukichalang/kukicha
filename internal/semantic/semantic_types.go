@@ -140,6 +140,50 @@ func (a *Analyzer) typeAnnotationToTypeInfo(typeAnn ast.TypeAnnotation) *TypeInf
 	}
 }
 
+// typeInfoToTypeAnnotation converts a TypeInfo back to an AST TypeAnnotation.
+// Used by the expected-type threading for untyped composite literals. Returns
+// nil if the conversion is not possible (unknown, function, etc.).
+func typeInfoToTypeAnnotation(t *TypeInfo) ast.TypeAnnotation {
+	if t == nil {
+		return nil
+	}
+	switch t.Kind {
+	case TypeKindNamed, TypeKindStruct:
+		return &ast.NamedType{Name: t.Name}
+	case TypeKindList:
+		elem := typeInfoToTypeAnnotation(t.ElementType)
+		if elem == nil {
+			return nil
+		}
+		return &ast.ListType{ElementType: elem}
+	case TypeKindMap:
+		key := typeInfoToTypeAnnotation(t.KeyType)
+		val := typeInfoToTypeAnnotation(t.ValueType)
+		if key == nil || val == nil {
+			return nil
+		}
+		return &ast.MapType{KeyType: key, ValueType: val}
+	case TypeKindReference:
+		elem := typeInfoToTypeAnnotation(t.ElementType)
+		if elem == nil {
+			return nil
+		}
+		return &ast.ReferenceType{ElementType: elem}
+	case TypeKindChannel:
+		elem := typeInfoToTypeAnnotation(t.ElementType)
+		if elem == nil {
+			return nil
+		}
+		return &ast.ChannelType{ElementType: elem}
+	default:
+		// Primitives — check for a valid name
+		if t.Name != "" {
+			return &ast.PrimitiveType{Name: t.Name}
+		}
+		return nil
+	}
+}
+
 // isReferenceType checks if a type can be nil
 func (a *Analyzer) isReferenceType(t *TypeInfo) bool {
 	return a.isReferenceTypeWithVisited(t, nil)

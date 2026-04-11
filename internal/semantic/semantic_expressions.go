@@ -98,6 +98,10 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 		}
 
 		return structType
+	case *ast.MapLiteralExpr:
+		return a.analyzeMapLiteral(e)
+	case *ast.UntypedCompositeLiteral:
+		return a.analyzeUntypedCompositeLiteral(e)
 	case *ast.MakeExpr:
 		return a.typeAnnotationToTypeInfo(e.Type)
 	case *ast.ReceiveExpr:
@@ -709,6 +713,7 @@ func (a *Analyzer) analyzeListLiteral(expr *ast.ListLiteralExpr) *TypeInfo {
 	if expr.Type != nil {
 		elemType = a.typeAnnotationToTypeInfo(expr.Type)
 		for _, elem := range expr.Elements {
+			a.resolveUntypedLiteral(elem, expr.Type)
 			a.analyzeExpression(elem)
 		}
 	} else if len(expr.Elements) > 0 {
@@ -729,5 +734,159 @@ func (a *Analyzer) analyzeListLiteral(expr *ast.ListLiteralExpr) *TypeInfo {
 	return &TypeInfo{
 		Kind:        TypeKindList,
 		ElementType: elemType,
+	}
+}
+
+func (a *Analyzer) analyzeMapLiteral(expr *ast.MapLiteralExpr) *TypeInfo {
+	var keyType, valType *TypeInfo
+
+	if expr.KeyType != nil {
+		keyType = a.typeAnnotationToTypeInfo(expr.KeyType)
+	}
+	if expr.ValType != nil {
+		valType = a.typeAnnotationToTypeInfo(expr.ValType)
+	}
+
+	for _, pair := range expr.Pairs {
+		kt := a.analyzeExpression(pair.Key)
+		vt := a.analyzeExpression(pair.Value)
+
+		if keyType == nil && kt.Kind != TypeKindUnknown {
+			keyType = kt
+		} else if keyType != nil && !a.typesCompatible(keyType, kt) {
+			a.error(expr.Pos(), fmt.Sprintf("map key: incompatible type %s, expected %s", kt, keyType))
+		}
+
+		if valType == nil && vt.Kind != TypeKindUnknown {
+			valType = vt
+		} else if valType != nil && !a.typesCompatible(valType, vt) {
+			a.error(expr.Pos(), fmt.Sprintf("map value: incompatible type %s, expected %s", vt, valType))
+		}
+	}
+
+	if keyType == nil {
+		keyType = &TypeInfo{Kind: TypeKindUnknown}
+	}
+	if valType == nil {
+		valType = &TypeInfo{Kind: TypeKindUnknown}
+	}
+
+	return &TypeInfo{
+		Kind:        TypeKindMap,
+		KeyType:     keyType,
+		ElementType: valType,
+	}
+}
+
+func (a *Analyzer) analyzeUntypedCompositeLiteral(expr *ast.UntypedCompositeLiteral) *TypeInfo {
+	// If the semantic phase has already resolved the type (via expected-type
+	// threading in var decl, return, call arg, etc.), use it.
+	if expr.ResolvedType != nil {
+		resolved := a.typeAnnotationToTypeInfo(expr.ResolvedType)
+		a.validateUntypedLiteralAgainstType(expr, resolved)
+		return resolved
+	}
+
+	// No resolved type — infer bottom-up from entries.
+	if len(expr.Entries) == 0 {
+		return &TypeInfo{Kind: TypeKindUnknown}
+	}
+
+	if expr.IsKeyed {
+		// Keyed: infer as map from first pair
+		var keyType, valType *TypeInfo
+		for _, entry := range expr.Entries {
+			kt := a.analyzeExpression(entry.Key)
+			vt := a.analyzeExpression(entry.Value)
+			if keyType == nil && kt.Kind != TypeKindUnknown {
+				keyType = kt
+			}
+			if valType == nil && vt.Kind != TypeKindUnknown {
+				valType = vt
+			}
+		}
+		if keyType == nil {
+			keyType = &TypeInfo{Kind: TypeKindUnknown}
+		}
+		if valType == nil {
+			valType = &TypeInfo{Kind: TypeKindUnknown}
+		}
+		return &TypeInfo{Kind: TypeKindMap, KeyType: keyType, ValueType: valType}
+	}
+
+	// Positional: infer as slice from first element
+	elemType := a.analyzeExpression(expr.Entries[0].Value)
+	for i, entry := range expr.Entries[1:] {
+		et := a.analyzeExpression(entry.Value)
+		if !a.typesCompatible(elemType, et) {
+			a.error(expr.Pos(), fmt.Sprintf("untyped literal element %d: incompatible type %s, expected %s", i+2, et, elemType))
+		}
+	}
+	return &TypeInfo{Kind: TypeKindList, ElementType: elemType}
+}
+
+// resolveUntypedLiteral sets ResolvedType on an UntypedCompositeLiteral when
+// the expected type is known from context (var decl, return, call arg, etc.).
+// This must be called BEFORE analyzeExpression so the analyze pass sees the
+// resolved type and validates entries against it.
+func (a *Analyzer) resolveUntypedLiteral(expr ast.Expression, expectedType ast.TypeAnnotation) {
+	ucl, ok := expr.(*ast.UntypedCompositeLiteral)
+	if !ok || ucl.ResolvedType != nil {
+		return
+	}
+	ucl.ResolvedType = expectedType
+
+	// Recursively resolve nested untyped literals inside list elements.
+	if listType, ok := expectedType.(*ast.ListType); ok {
+		for _, entry := range ucl.Entries {
+			a.resolveUntypedLiteral(entry.Value, listType.ElementType)
+		}
+	}
+
+	// Recursively resolve nested untyped literals inside map values.
+	if mapType, ok := expectedType.(*ast.MapType); ok {
+		for _, entry := range ucl.Entries {
+			a.resolveUntypedLiteral(entry.Value, mapType.ValueType)
+		}
+	}
+}
+
+// validateUntypedLiteralAgainstType checks that the entries in an untyped
+// composite literal are compatible with the resolved type.
+func (a *Analyzer) validateUntypedLiteralAgainstType(expr *ast.UntypedCompositeLiteral, resolved *TypeInfo) {
+	switch resolved.Kind {
+	case TypeKindNamed:
+		// Struct — validate field names and value types
+		var structFields map[string]*TypeInfo
+		if sym := a.symbolTable.Resolve(resolved.Name); sym != nil && sym.Type != nil {
+			structFields = sym.Type.Fields
+		}
+		if structFields == nil {
+			return
+		}
+		for _, entry := range expr.Entries {
+			if ident, ok := entry.Key.(*ast.Identifier); ok {
+				fieldType, exists := structFields[ident.Value]
+				if !exists {
+					a.error(entry.Key.Pos(), fmt.Sprintf("unknown field '%s' on struct '%s'", ident.Value, resolved.Name))
+				} else {
+					valType := a.analyzeExpression(entry.Value)
+					if !a.typesCompatible(fieldType, valType) {
+						a.error(entry.Key.Pos(), fmt.Sprintf("cannot use %s as %s in field '%s' of struct '%s'", valType, fieldType, ident.Value, resolved.Name))
+					}
+				}
+			}
+		}
+
+	case TypeKindMap:
+		for _, entry := range expr.Entries {
+			a.analyzeExpression(entry.Key)
+			a.analyzeExpression(entry.Value)
+		}
+
+	case TypeKindList:
+		for _, entry := range expr.Entries {
+			a.analyzeExpression(entry.Value)
+		}
 	}
 }

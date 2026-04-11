@@ -461,6 +461,13 @@ func (g *Generator) scanExprForAutoImports(expr ast.Expression) {
 			g.scanExprForAutoImports(p.Key)
 			g.scanExprForAutoImports(p.Value)
 		}
+	case *ast.UntypedCompositeLiteral:
+		for _, entry := range e.Entries {
+			if entry.Key != nil {
+				g.scanExprForAutoImports(entry.Key)
+			}
+			g.scanExprForAutoImports(entry.Value)
+		}
 	case *ast.ErrorExpr:
 		g.scanExprForAutoImports(e.Message)
 	case *ast.PanicExpr:

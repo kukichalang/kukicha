@@ -238,18 +238,15 @@ func TestUntypedMapLiteral(t *testing.T) {
 	prog := mustParseProgram(t, "func main()\n    x := {\"a\": 1, \"b\": 2}\n")
 	fn := prog.Declarations[0].(*ast.FunctionDecl)
 	decl := fn.Body.Statements[0].(*ast.VarDeclStmt)
-	lit, ok := decl.Values[0].(*ast.MapLiteralExpr)
+	lit, ok := decl.Values[0].(*ast.UntypedCompositeLiteral)
 	if !ok {
-		t.Fatalf("expected MapLiteralExpr, got %T", decl.Values[0])
+		t.Fatalf("expected UntypedCompositeLiteral, got %T", decl.Values[0])
 	}
-	if lit.KeyType != nil {
-		t.Error("expected nil KeyType for untyped map literal")
+	if !lit.IsKeyed {
+		t.Error("expected IsKeyed=true for {key: val} literal")
 	}
-	if lit.ValType != nil {
-		t.Error("expected nil ValType for untyped map literal")
-	}
-	if len(lit.Pairs) != 2 {
-		t.Errorf("expected 2 pairs, got %d", len(lit.Pairs))
+	if len(lit.Entries) != 2 {
+		t.Errorf("expected 2 entries, got %d", len(lit.Entries))
 	}
 }
 
@@ -257,11 +254,55 @@ func TestUntypedMapLiteralEmpty(t *testing.T) {
 	prog := mustParseProgram(t, "func main()\n    x := {}\n")
 	fn := prog.Declarations[0].(*ast.FunctionDecl)
 	decl := fn.Body.Statements[0].(*ast.VarDeclStmt)
-	lit, ok := decl.Values[0].(*ast.MapLiteralExpr)
+	lit, ok := decl.Values[0].(*ast.UntypedCompositeLiteral)
 	if !ok {
-		t.Fatalf("expected MapLiteralExpr, got %T", decl.Values[0])
+		t.Fatalf("expected UntypedCompositeLiteral, got %T", decl.Values[0])
 	}
-	if len(lit.Pairs) != 0 {
-		t.Errorf("expected 0 pairs, got %d", len(lit.Pairs))
+	if len(lit.Entries) != 0 {
+		t.Errorf("expected 0 entries, got %d", len(lit.Entries))
+	}
+}
+
+func TestUntypedPositionalLiteral(t *testing.T) {
+	prog := mustParseProgram(t, "func main()\n    x := {1, 2, 3}\n")
+	fn := prog.Declarations[0].(*ast.FunctionDecl)
+	decl := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	lit, ok := decl.Values[0].(*ast.UntypedCompositeLiteral)
+	if !ok {
+		t.Fatalf("expected UntypedCompositeLiteral, got %T", decl.Values[0])
+	}
+	if lit.IsKeyed {
+		t.Error("expected IsKeyed=false for positional literal")
+	}
+	if len(lit.Entries) != 3 {
+		t.Errorf("expected 3 entries, got %d", len(lit.Entries))
+	}
+	for _, entry := range lit.Entries {
+		if entry.Key != nil {
+			t.Error("positional entries should have nil Key")
+		}
+	}
+}
+
+func TestUntypedNestedLiteral(t *testing.T) {
+	prog := mustParseProgram(t, "func main()\n    x := {\"a\": {1, 2}}\n")
+	fn := prog.Declarations[0].(*ast.FunctionDecl)
+	decl := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	lit, ok := decl.Values[0].(*ast.UntypedCompositeLiteral)
+	if !ok {
+		t.Fatalf("expected outer UntypedCompositeLiteral, got %T", decl.Values[0])
+	}
+	if len(lit.Entries) != 1 {
+		t.Fatalf("expected 1 outer entry, got %d", len(lit.Entries))
+	}
+	inner, ok := lit.Entries[0].Value.(*ast.UntypedCompositeLiteral)
+	if !ok {
+		t.Fatalf("expected inner UntypedCompositeLiteral, got %T", lit.Entries[0].Value)
+	}
+	if inner.IsKeyed {
+		t.Error("inner literal should be positional")
+	}
+	if len(inner.Entries) != 2 {
+		t.Errorf("expected 2 inner entries, got %d", len(inner.Entries))
 	}
 }

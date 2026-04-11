@@ -114,6 +114,115 @@ func TestUntypedMapLiteralEmptyCodegen(t *testing.T) {
 	}
 }
 
+// --- Untyped composite literal resolved codegen ---
+
+func TestUntypedLiteralVarDeclStructCodegen(t *testing.T) {
+	input := `type Config
+    host string
+    port int
+
+func makeConfig() Config
+    return {host: "localhost", port: 8080}
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, `Config{host: "localhost", port: 8080}`) {
+		t.Errorf("expected resolved struct literal, got: %s", output)
+	}
+}
+
+func TestUntypedLiteralReturnStructCodegen(t *testing.T) {
+	input := `type Point
+    x int
+    y int
+
+func origin() Point
+    return {x: 0, y: 0}
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, "return Point{x: 0, y: 0}") {
+		t.Errorf("expected resolved struct return, got: %s", output)
+	}
+}
+
+func TestUntypedLiteralReturnMapCodegen(t *testing.T) {
+	input := `func headers() map of string to string
+    return {"Content-Type": "text/html"}
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, `return map[string]string{"Content-Type": "text/html"}`) {
+		t.Errorf("expected resolved map return, got: %s", output)
+	}
+}
+
+func TestUntypedLiteralReturnSliceCodegen(t *testing.T) {
+	input := `func nums() list of int
+    return {1, 2, 3}
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, "return []int{1, 2, 3}") {
+		t.Errorf("expected resolved slice return, got: %s", output)
+	}
+}
+
+func TestUntypedLiteralCallArgCodegen(t *testing.T) {
+	input := `type Point
+    x int
+    y int
+
+func draw(p Point)
+    print(p)
+
+func main()
+    draw({x: 1, y: 2})
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, "draw(Point{x: 1, y: 2})") {
+		t.Errorf("expected resolved struct arg, got: %s", output)
+	}
+}
+
+func TestUntypedPositionalCodegen(t *testing.T) {
+	input := `func main()
+    x := {1, 2, 3}
+`
+	output := generateSource(t, input)
+	if !strings.Contains(output, "[]any{1, 2, 3}") {
+		t.Errorf("expected positional fallback, got: %s", output)
+	}
+}
+
+func TestUntypedLiteralAssignCodegen(t *testing.T) {
+	input := `type Config
+    host string
+    port int
+
+func main()
+    c := Config{host: "", port: 0}
+    c = {host: "prod", port: 443}
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, `Config{host: "prod", port: 443}`) {
+		t.Errorf("expected resolved struct assignment, got: %s", output)
+	}
+}
+
+func TestUntypedLiteralInTypedListCodegen(t *testing.T) {
+	input := `type Point
+    x int
+    y int
+
+func main()
+    points := list of Point{{x: 1, y: 2}, {x: 3, y: 4}}
+`
+	output := generateAnalyzedSource(t, input)
+	if !strings.Contains(output, "Point{x: 1, y: 2}") {
+		t.Errorf("expected resolved struct in list, got: %s", output)
+	}
+	if !strings.Contains(output, "Point{x: 3, y: 4}") {
+		t.Errorf("expected resolved struct in list (2nd), got: %s", output)
+	}
+}
+
 func TestMixedBracketAndEnglishCodegen(t *testing.T) {
 	input := `func f(a list of string, b []int) map[string]bool
     x := a

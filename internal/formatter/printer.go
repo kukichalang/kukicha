@@ -563,6 +563,23 @@ func maxExprLine(expr ast.Expression) int {
 		if line > openLine {
 			line++
 		}
+	case *ast.UntypedCompositeLiteral:
+		openLine := line
+		for _, entry := range e.Entries {
+			if entry.Key != nil {
+				if kl := maxExprLine(entry.Key); kl > line {
+					line = kl
+				}
+			}
+			if entry.Value != nil {
+				if vl := maxExprLine(entry.Value); vl > line {
+					line = vl
+				}
+			}
+		}
+		if line > openLine {
+			line++
+		}
 	}
 	return line
 }
@@ -1111,6 +1128,8 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 		return p.listLiteralToString(e)
 	case *ast.MapLiteralExpr:
 		return p.mapLiteralToString(e)
+	case *ast.UntypedCompositeLiteral:
+		return p.untypedCompositeLiteralToString(e)
 	case *ast.ReceiveExpr:
 		channel := p.exprToString(e.Channel)
 		return fmt.Sprintf("receive from %s", channel)
@@ -1578,6 +1597,28 @@ func (p *Printer) mapLiteralToString(expr *ast.MapLiteralExpr) string {
 	}
 
 	return p.multilineBraced(prefix, pairs)
+}
+
+func (p *Printer) untypedCompositeLiteralToString(expr *ast.UntypedCompositeLiteral) string {
+	if len(expr.Entries) == 0 {
+		return "{}"
+	}
+
+	entries := make([]string, len(expr.Entries))
+	for i, entry := range expr.Entries {
+		if expr.IsKeyed {
+			entries[i] = fmt.Sprintf("%s: %s", p.exprToString(entry.Key), p.exprToString(entry.Value))
+		} else {
+			entries[i] = p.exprToString(entry.Value)
+		}
+	}
+
+	singleLine := fmt.Sprintf("{%s}", strings.Join(entries, ", "))
+	if !expr.WasMultiline && len(p.indent())+len(singleLine) <= maxLineWidth {
+		return singleLine
+	}
+
+	return p.multilineBraced("", entries)
 }
 
 // multilineBraced formats entries as a multiline brace-delimited literal:

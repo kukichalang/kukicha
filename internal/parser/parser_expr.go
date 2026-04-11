@@ -553,8 +553,8 @@ func (p *Parser) parsePrimaryExpr() ast.Expression {
 	case lexer.TOKEN_FUNC:
 		return p.parseFunctionLiteral()
 	case lexer.TOKEN_LBRACE:
-		// {key: val, ...} — untyped map literal (type inferred from context)
-		return p.parseUntypedMapLiteral()
+		// {key: val, ...} or {elem, ...} — untyped composite literal (type inferred from context)
+		return p.parseUntypedCompositeLiteral()
 	case lexer.TOKEN_DOT:
 		return p.parseShorthandMethodCall()
 	case lexer.TOKEN_RETURN:
@@ -1088,33 +1088,51 @@ func (p *Parser) parseBracketMapExpr() ast.Expression {
 	}
 }
 
-// parseUntypedMapLiteral parses {key: val, ...} — a map literal without explicit types.
-// Types default to map[any]any in codegen (or are inferred from context by the semantic analyzer).
-func (p *Parser) parseUntypedMapLiteral() ast.Expression {
+// parseUntypedCompositeLiteral parses {key: val, ...} (keyed) or {elem, ...}
+// (positional) — a composite literal without an explicit type. The semantic
+// analyzer resolves the intended type from context.
+func (p *Parser) parseUntypedCompositeLiteral() ast.Expression {
 	token := p.advance() // consume '{'
 
-	pairs := []*ast.KeyValuePair{}
+	entries := []*ast.UntypedEntry{}
+	isKeyed := false
+
 	if !p.check(lexer.TOKEN_RBRACE) {
-		for {
-			key := p.parseExpression()
-			p.consume(lexer.TOKEN_COLON, "expected ':' after map key")
+		// Parse the first element to determine keyed vs positional.
+		first := p.parseExpression()
+		if p.check(lexer.TOKEN_COLON) {
+			// Keyed: {key: val, ...}
+			isKeyed = true
+			p.advance() // consume ':'
 			val := p.parseExpression()
-			pairs = append(pairs, &ast.KeyValuePair{Key: key, Value: val})
-			if p.match(lexer.TOKEN_COMMA) {
-				if p.check(lexer.TOKEN_RBRACE) {
-					break
-				}
-				continue
+			entries = append(entries, &ast.UntypedEntry{Key: first, Value: val})
+		} else {
+			// Positional: {elem, ...}
+			entries = append(entries, &ast.UntypedEntry{Value: first})
+		}
+
+		// Parse remaining entries using the same form.
+		for p.match(lexer.TOKEN_COMMA) {
+			if p.check(lexer.TOKEN_RBRACE) {
+				break
 			}
-			break
+			elem := p.parseExpression()
+			if isKeyed {
+				p.consume(lexer.TOKEN_COLON, "expected ':' after key in composite literal")
+				val := p.parseExpression()
+				entries = append(entries, &ast.UntypedEntry{Key: elem, Value: val})
+			} else {
+				entries = append(entries, &ast.UntypedEntry{Value: elem})
+			}
 		}
 	}
-	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after map literal")
 
-	return &ast.MapLiteralExpr{
-		Token: token,
-		// KeyType and ValType are nil — codegen defaults to map[any]any
-		Pairs:        pairs,
+	closeTok, _ := p.consume(lexer.TOKEN_RBRACE, "expected '}' after composite literal")
+
+	return &ast.UntypedCompositeLiteral{
+		Token:        token,
+		IsKeyed:      isKeyed,
+		Entries:      entries,
 		WasMultiline: closeTok.Line > token.Line,
 	}
 }

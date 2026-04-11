@@ -363,6 +363,13 @@ func typeCaseName(t ast.TypeAnnotation) string {
 }
 
 func (a *Analyzer) analyzeVarDeclStmt(stmt *ast.VarDeclStmt) {
+	// Resolve untyped composite literals before analyzing values.
+	if stmt.Type != nil {
+		for _, val := range stmt.Values {
+			a.resolveUntypedLiteral(val, stmt.Type)
+		}
+	}
+
 	// Analyze all value expressions
 	valueTypes := make([]*TypeInfo, len(stmt.Values))
 	for i, val := range stmt.Values {
@@ -476,6 +483,15 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt) {
 		targetTypes[i] = a.analyzeExpression(target)
 	}
 
+	// Resolve untyped composite literals from target types.
+	if len(stmt.Values) == len(stmt.Targets) {
+		for i, val := range stmt.Values {
+			if typeAnn := typeInfoToTypeAnnotation(targetTypes[i]); typeAnn != nil {
+				a.resolveUntypedLiteral(val, typeAnn)
+			}
+		}
+	}
+
 	valueTypes := make([]*TypeInfo, len(stmt.Values))
 	for i, val := range stmt.Values {
 		valueTypes[i] = a.analyzeExpression(val)
@@ -568,6 +584,13 @@ func (a *Analyzer) analyzeReturnStmt(stmt *ast.ReturnStmt) {
 			a.analyzeExpression(v)
 		}
 		return
+	}
+
+	// Resolve untyped composite literals from return types.
+	if len(stmt.Values) == len(a.currentFunc.Returns) {
+		for i, val := range stmt.Values {
+			a.resolveUntypedLiteral(val, a.currentFunc.Returns[i])
+		}
 	}
 
 	// Special handling for multi-value return from single expression (e.g., pipe expression)

@@ -419,6 +419,15 @@ func (g *Generator) walkExpr(expr ast.Expression, visit func(ast.Expression) boo
 				return true
 			}
 		}
+	case *ast.UntypedCompositeLiteral:
+		for _, entry := range e.Entries {
+			if entry.Key != nil && g.walkExpr(entry.Key, visit) {
+				return true
+			}
+			if g.walkExpr(entry.Value, visit) {
+				return true
+			}
+		}
 	case *ast.FunctionLiteral:
 		if e.Body != nil && g.walkBlock(e.Body, visit) {
 			return true
@@ -744,6 +753,15 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 	case *ast.MapLiteralExpr:
 		for _, pair := range e.Pairs {
 			if g.exprHasNonPrintfInterpolation(pair.Key) || g.exprHasNonPrintfInterpolation(pair.Value) {
+				return true
+			}
+		}
+	case *ast.UntypedCompositeLiteral:
+		for _, entry := range e.Entries {
+			if entry.Key != nil && g.exprHasNonPrintfInterpolation(entry.Key) {
+				return true
+			}
+			if g.exprHasNonPrintfInterpolation(entry.Value) {
 				return true
 			}
 		}

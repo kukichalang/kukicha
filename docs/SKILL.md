@@ -371,6 +371,40 @@ config := map of string to int{"port": 8080}
 last   := items[-1]    # negative indexing
 ```
 
+### Untyped Composite Literals
+
+When the expected type is known from context, composite literal types can be omitted:
+
+```kukicha
+type Config
+    host string
+    port int
+
+func makeConfig() Config
+    return {host: "localhost", port: 8080}    # type inferred from return type
+
+func applyConfig(c Config)
+    print("{c.host}:{c.port}")
+
+func main()
+    applyConfig({host: "prod", port: 443})    # type inferred from parameter
+
+    configs := list of Config{
+        {host: "a", port: 1},                 # type inferred from list element type
+        {host: "b", port: 2},
+    }
+```
+
+Supported inference contexts:
+- **Return statements** — type from function return signature
+- **Function arguments** — type from parameter signature
+- **Assignments** — type from left-hand side variable
+- **Typed list elements** — type from `list of T`
+
+Keyed `{key: val}` resolves to struct or map depending on the expected type.
+Positional `{1, 2, 3}` resolves to a slice.
+Empty `{}` without context defaults to `map[any]any{}`.
+
 ### Variadic Arguments (`many`)
 
 ```kukicha
