@@ -101,13 +101,13 @@ func listReposWhereICommitted(org string) (list of string, error)
 func buildEntry(repo string, bump string, initialTag string) RepoEntry
     current := highestSemverTag(repo) onerr
         cli.Warn("{error}")
-        return RepoEntry{}
+        return {}
 
     next := nextTag(current, bump, initialTag) onerr
         cli.Warn("{error}")
-        return RepoEntry{}
+        return {}
 
-    return RepoEntry{name: repo, current: current, next: next}
+    return {name: repo, current: current, next: next}
 
 func doList(args cli.Args, initialTag string)
     org := cli.GetString(args, "org")

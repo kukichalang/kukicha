@@ -52,7 +52,7 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
 
     # Plan: human output streams to terminal, structured log goes to file
     shell.Run("tofu", "-chdir=" + stack.path, "plan", "-var-file=" + varsFile, "-out=" + planFile, "-json-into=" + jsonLog, "-input=false") onerr
-        return Failed{reason: "{error}", step: "plan"}
+        return {reason: "{error}", step: "plan"}
 
     # Guard: flag destructive changes for human review
     if not autoApprove
@@ -60,7 +60,7 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
         hasDeletes := logContent |> string.Contains(`"delete"`)
         hasReplaces := logContent |> string.Contains(`"replace"`)
         if hasDeletes or hasReplaces
-            return NeedsApproval{
+            return {
                 summary: "Plan contains destructive changes — review output above",
                 planFile: planFile,
             }
@@ -68,6 +68,6 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
     # Apply: same dual-output pattern
     applyLog := "/tmp/kukicha-{label}-apply.json"
     shell.Run("tofu", "-chdir=" + stack.path, "apply", "-auto-approve", planFile, "-json-into=" + applyLog, "-input=false") onerr
-        return Failed{reason: "{error}", step: "apply"}
+        return {reason: "{error}", step: "apply"}
 
-    return Succeeded{outputs: make(map of string to string), elapsed: time.Since(start)}
+    return {outputs: make(map of string to string), elapsed: time.Since(start)}

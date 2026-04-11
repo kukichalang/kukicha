@@ -30,13 +30,13 @@ enum ApplyResult
 # ── Stacks in dependency order ────────────────────────────────
 
 func gkeStack() Stack
-    return Stack{name: "gke", path: "stacks/gke", dependsOn: empty list of string}
+    return {name: "gke", path: "stacks/gke", dependsOn: empty list of string}
 
 func namespacesStack() Stack
-    return Stack{name: "namespaces", path: "stacks/namespaces", dependsOn: list of string{"gke"}}
+    return {name: "namespaces", path: "stacks/namespaces", dependsOn: list of string{"gke"}}
 
 func djangoStack() Stack
-    return Stack{name: "django", path: "stacks/django", dependsOn: list of string{"namespaces"}}
+    return {name: "django", path: "stacks/django", dependsOn: list of string{"namespaces"}}
 
 func allStacks() list of Stack
     return list of Stack{gkeStack(), namespacesStack(), djangoStack()}
