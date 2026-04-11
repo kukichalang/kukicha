@@ -65,8 +65,8 @@ Build: `make install-lsp` or `go build -o ./kukicha-lsp ./cmd/kukicha-lsp`
 
 | Method | Handler file | Description |
 |--------|-------------|-------------|
-| `textDocument/hover` | `hover.go` | Signatures, types, docstrings for functions, types, interfaces, enums, constants, locals, builtins |
-| `textDocument/completion` | `completion.go` | Keywords, builtins, primitive types, declarations, enum members. Triggers: `.`, `:` |
+| `textDocument/hover` | `hover.go` | Signatures, types, docstrings for functions, types, interfaces, enums, constants, locals, builtins, untyped literal field keys |
+| `textDocument/completion` | `completion.go` | Keywords, builtins, primitive types, declarations, enum members, struct fields inside untyped literals. Triggers: `.`, `:` |
 | `textDocument/definition` | `definition.go` | Go-to-definition for functions, types, fields, interfaces, enums, constants |
 | `textDocument/documentSymbol` | `completion.go` | Document outline with hierarchy |
 | `textDocument/formatting` | `format.go` | Calls `formatter.Format()`, returns full-document text edit |
@@ -78,14 +78,16 @@ Build: `make install-lsp` or `go build -o ./kukicha-lsp ./cmd/kukicha-lsp`
 | File | Role |
 |------|------|
 | `server.go` | JSONRPC2 handler dispatch, initialize capabilities, debounce timers |
-| `document.go` | `DocumentStore` (thread-safe cache of open docs), per-doc analysis (lexer → parser → semantic) |
+| `document.go` | `DocumentStore` (thread-safe cache of open docs), per-doc analysis (lexer → parser → semantic), stores `SymbolTable` for expression-level queries |
 | `builtins.go` | Single source of truth for builtin function metadata (used by hover + completion) |
+| `ast_walk.go` | AST walker to find `UntypedCompositeLiteral` at cursor position; struct field helpers for hover + completion |
 
 **Architecture notes:**
 - Full document sync (`textDocumentSync: Full`) — entire content sent on each change
 - `didChange` uses 150ms debounce per URI (`time.AfterFunc`) to avoid running the full pipeline on every keystroke
 - Analysis runs outside the document store lock to avoid blocking concurrent reads
 - Timers cleaned up on `didClose`
+- Untyped composite literal support uses `ast_walk.go` to locate the literal at the cursor, then resolves the target struct type via `Document.SymbolTable` (exported from `semantic.Analyzer`)
 - Currently single-file only — no cross-file symbol resolution (planned: see `docs/plans/LSP-FORMATTER.md`)
 
 ### `cmd/kukicha-blend/` — Go → Kukicha Converter
