@@ -1,6 +1,6 @@
 module github.com/kukichalang/kukicha
 
-go 1.26.1
+go 1.26.2
 
 require (
 	github.com/docker/docker v27.5.1+incompatible
