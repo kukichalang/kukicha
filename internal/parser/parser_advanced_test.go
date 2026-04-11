@@ -268,10 +268,10 @@ func TestParseThreeValueAssignment(t *testing.T) {
 func TestParseTypeSwitchStatement(t *testing.T) {
 	input := `func Handle(event any)
     switch event as e
-        when reference a2a.TaskStatusUpdateEvent
-            print(e.Status.State)
-        when reference a2a.Task
-            result := taskFromA2A(e)
+        when reference http.Response
+            print(e.Status)
+        when reference net.IPNet
+            result := ipNetHandler(e)
         when string
             print(e)
         otherwise
@@ -305,7 +305,7 @@ func TestParseTypeSwitchStatement(t *testing.T) {
 		t.Fatalf("expected 3 type cases, got %d", len(tsStmt.Cases))
 	}
 
-	// First case: reference a2a.TaskStatusUpdateEvent
+	// First case: reference http.Response
 	refType, ok := tsStmt.Cases[0].Type.(*ast.ReferenceType)
 	if !ok {
 		t.Fatalf("expected ReferenceType for case 0, got %T", tsStmt.Cases[0].Type)
@@ -314,8 +314,8 @@ func TestParseTypeSwitchStatement(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected NamedType inside ReferenceType, got %T", refType.ElementType)
 	}
-	if named.Name != "a2a.TaskStatusUpdateEvent" {
-		t.Errorf("expected type 'a2a.TaskStatusUpdateEvent', got %s", named.Name)
+	if named.Name != "http.Response" {
+		t.Errorf("expected type 'http.Response', got %s", named.Name)
 	}
 
 	// Third case: plain type (string)

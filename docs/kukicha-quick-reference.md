@@ -205,8 +205,8 @@ switch
 
 # Type switch
 switch event as e
-    when reference a2a.TaskStatusUpdateEvent
-        print(e.Status.State)
+    when reference http.Response
+        print(e.Status)
     when string
         print(e)
     otherwise

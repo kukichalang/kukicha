@@ -1113,7 +1113,7 @@ Core categories:
 | HTTP | `fetch`, `http`, `validate`, `netguard` |
 | Files | `files`, `encoding`, `template` |
 | DB | `pg` (PostgreSQL), `kube` (Kubernetes), `container` (Docker) |
-| AI/LLM | `llm`, `mcp`, `a2a` |
+| AI/LLM | `llm`, `mcp` |
 | Ops | `env`, `must`, `retry`, `ctx`, `concurrent`, `shell` |
 
 <!-- end_slide -->
@@ -1830,7 +1830,7 @@ function main()
 - **Error handling**: `onerr` inline — replaces try/except and tryCatch
 - **Pipes**: left-to-right data flow with `|>` — R's native operator
 - **Typed JSON**: `fetch.Json(list of T)` — no dict unpacking, no runtime KeyError
-- **Stdlib**: 42+ packages — HTTP, DB, LLM, Kubernetes, MCP, a2a, iterator
+- **Stdlib**: 42+ packages — HTTP, DB, LLM, Kubernetes, MCP, iterator
 - **Security**: compile-time injection and traversal checks
 - **Concurrency**: real parallelism — no GIL, no single-threaded limitation
 - **Deploy**: one binary, no runtime, ships anywhere

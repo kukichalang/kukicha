@@ -793,7 +793,7 @@ function RecoveryMiddleware(next http.Handler) http.Handler
 > ```kukicha
 > type Middleware func(http.Handler) http.Handler
 > ```
-> This lets you build middleware chains where each piece has a clear, named type. You'll also see this pattern in the `stdlib/a2a` and `stdlib/mcp` packages, where callback types like `type TextHandler func(string)` and `type ToolHandler func(map of string to any) (any, error)` name the expected function signatures.
+> This lets you build middleware chains where each piece has a clear, named type. You'll also see this pattern in the `stdlib/mcp` package, where callback types like `type ToolHandler func(map of string to any) (any, error)` name the expected function signatures.
 
 ---
 
