@@ -239,7 +239,7 @@ func ListTools on s reference ClientSession(ctx context.Context) (list of Client
 # CallTool calls a specific tool by name with arguments.
 # Use the Content field of the result for typed access to response items.
 func CallTool on s reference ClientSession(ctx context.Context, params reference mcp.CallToolParams) (CallToolResult, error)
-    result := s.inner.CallTool(ctx, params) onerr return CallToolResult{}, error "MCP CallTool \"{params.Name}\" failed: {error}"
+    result := s.inner.CallTool(ctx, params) onerr return {}, error "MCP CallTool \"{params.Name}\" failed: {error}"
     content := make(list of any, len(result.Content))
     for i, c in result.Content
         content[i] = c

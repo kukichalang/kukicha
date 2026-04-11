@@ -230,6 +230,72 @@ func Process(path string) string
 }
 
 // ---------------------------------------------------------------------------
+// Untyped composite literals in onerr return
+// ---------------------------------------------------------------------------
+
+// TestOnErrReturnUntypedCompositeLiteral checks that an untyped composite literal
+// `{}` in an inline onerr return resolves to the correct struct type from the
+// enclosing function's return signature.
+func TestOnErrReturnUntypedCompositeLiteral(t *testing.T) {
+	input := `type Result
+    value int
+
+func getData() (Result, error)
+    return Result{value: 1}, empty
+
+func Process() (Result, error)
+    data := getData() onerr return {}, error "failed: {error}"
+    return data, empty
+`
+	program := mustParse(t, input)
+	gen := New(program)
+	gen.SetAnalysisResult(semantic.NewWithFile(program, "test.kuki").AnalyzeResult())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+	t.Logf("Generated output:\n%s", output)
+
+	// The untyped literal {} must resolve to Result{}, not map[any]any{}.
+	if strings.Contains(output, "map[any]any{}") {
+		t.Errorf("untyped literal {} was not resolved to Result{}; got: %s", output)
+	}
+	if !strings.Contains(output, "Result{}") {
+		t.Errorf("expected Result{} in onerr return, got: %s", output)
+	}
+}
+
+// TestOnErrReturnUntypedCompositeLiteralWithFields checks that a keyed untyped
+// composite literal `{field: val}` resolves correctly in onerr return.
+func TestOnErrReturnUntypedCompositeLiteralWithFields(t *testing.T) {
+	input := `type Result
+    value int
+
+func getData() (Result, error)
+    return Result{value: 1}, empty
+
+func Process() (Result, error)
+    data := getData() onerr return {value: -1}, error "failed"
+    return data, empty
+`
+	program := mustParse(t, input)
+	gen := New(program)
+	gen.SetAnalysisResult(semantic.NewWithFile(program, "test.kuki").AnalyzeResult())
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+	t.Logf("Generated output:\n%s", output)
+
+	if strings.Contains(output, "map[any]any") {
+		t.Errorf("keyed untyped literal was not resolved; got: %s", output)
+	}
+	if !strings.Contains(output, "Result{") {
+		t.Errorf("expected Result{value: -1} in onerr return, got: %s", output)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------
 

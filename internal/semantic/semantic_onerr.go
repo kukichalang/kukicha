@@ -66,6 +66,18 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 		a.recordLint(LintOnerr, pos, fmt.Sprintf("onerr variable '%s' shadows declaration at %s:%d", onerrrName, sym.Defined.File, sym.Defined.Line))
 	}
 
+	// Resolve untyped composite literals in onerr return expressions against the
+	// enclosing function's return types. This mirrors the logic in the normal
+	// return-statement analyzer (semantic_statements.go) and must run before
+	// analyzeExpression so the codegen sees a resolved type.
+	if ret, ok := clause.Handler.(*ast.ReturnExpr); ok && a.currentFunc != nil {
+		if len(ret.Values) == len(a.currentFunc.Returns) {
+			for i, val := range ret.Values {
+				a.resolveUntypedLiteral(val, a.currentFunc.Returns[i])
+			}
+		}
+	}
+
 	prev := a.inOnerr
 	prevAlias := a.currentOnerrAlias
 	a.inOnerr = true

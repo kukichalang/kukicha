@@ -670,7 +670,7 @@ func executeRaw(c Client) (Completion, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return Completion{}, error "API request failed with status {resp.StatusCode}"
+        errBody := fetch.Bytes(resp) onerr return {}, error "API request failed with status {resp.StatusCode}"
         return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     comp := Completion{}
@@ -705,7 +705,7 @@ func executeStreamRaw(c Client) (Completion, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return Completion{}, error "API request failed with status {resp.StatusCode}"
+        errBody := fetch.Bytes(resp) onerr return {}, error "API request failed with status {resp.StatusCode}"
         return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read SSE stream line by line
@@ -750,7 +750,7 @@ func executeStreamRaw(c Client) (Completion, error)
                             call.Function.Arguments = call.Function.Arguments + tcDelta.Function.Arguments
                         callsMap[idx] = call
 
-    scanner.Err() onerr return Completion{}, error "{error}"
+    scanner.Err() onerr return {}, error "{error}"
 
     # Convert map to list
     toolCalls := make(list of ToolCall, 0)
@@ -1370,7 +1370,7 @@ func rExecuteRaw(c ResponseClient) (Response, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return Response{}, error "API request failed with status {resp.StatusCode}"
+        errBody := fetch.Bytes(resp) onerr return {}, error "API request failed with status {resp.StatusCode}"
         return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     result := Response{}
@@ -1405,7 +1405,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return Response{}, error "API request failed with status {resp.StatusCode}"
+        errBody := fetch.Bytes(resp) onerr return {}, error "API request failed with status {resp.StatusCode}"
         return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read SSE stream line by line
@@ -1459,7 +1459,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
             if evt.Type == "error"
                 return {}, error evt.Message
 
-    scanner.Err() onerr return Response{}, error "{error}"
+    scanner.Err() onerr return {}, error "{error}"
 
     # Convert map to output items
     output := empty list of OutputItem
@@ -1995,7 +1995,7 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return AnthropicResponse{}, error "Anthropic API request failed with status {resp.StatusCode}"
+        errBody := fetch.Bytes(resp) onerr return {}, error "Anthropic API request failed with status {resp.StatusCode}"
         return {}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
 
     result := AnthropicResponse{}
@@ -2032,7 +2032,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
     defer resp.Body.Close()
 
     if resp.StatusCode >= 400
-        errBody := fetch.Bytes(resp) onerr return AnthropicResponse{}, error "Anthropic API request failed with status {resp.StatusCode}"
+        errBody := fetch.Bytes(resp) onerr return {}, error "Anthropic API request failed with status {resp.StatusCode}"
         return {}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read Anthropic SSE stream
@@ -2081,7 +2081,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
             if evt.Type == "error"
                 return {}, error "Anthropic streaming error"
 
-    scanner.Err() onerr return AnthropicResponse{}, error "{error}"
+    scanner.Err() onerr return {}, error "{error}"
 
     # Convert map to content blocks
     blocks := empty list of ContentBlock

@@ -36,9 +36,9 @@ func Parse(tag string) (Version, error)
     if len(parts) != 3
         return {}, error "invalid semver: {tag}"
 
-    major := cast.Atoi(parts[0]) onerr return Version{}, error "invalid semver: {tag}"
-    minor := cast.Atoi(parts[1]) onerr return Version{}, error "invalid semver: {tag}"
-    patch := cast.Atoi(parts[2]) onerr return Version{}, error "invalid semver: {tag}"
+    major := cast.Atoi(parts[0]) onerr return {}, error "invalid semver: {tag}"
+    minor := cast.Atoi(parts[1]) onerr return {}, error "invalid semver: {tag}"
+    patch := cast.Atoi(parts[2]) onerr return {}, error "invalid semver: {tag}"
 
     if major < 0 or minor < 0 or patch < 0
         return {}, error "invalid semver: {tag}"

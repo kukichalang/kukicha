@@ -112,7 +112,7 @@ func IsValid(pattern string) bool
 # Compile compiles a pattern for repeated use (avoids re-compilation per call)
 # Example: p := regex.Compile(`\d+`) onerr panic "{error}"
 func Compile(pattern string) (Pattern, error)
-    re := regexp.Compile(pattern) onerr return Pattern{}, error "invalid pattern: {error}"
+    re := regexp.Compile(pattern) onerr return {}, error "invalid pattern: {error}"
     return {re: re}, empty
 
 # MustCompile compiles a pattern, panicking on invalid input

@@ -348,6 +348,44 @@ func Process() error
 }
 
 // ---------------------------------------------------------------------------
+// Untyped composite literals in onerr return
+// ---------------------------------------------------------------------------
+
+func TestOnErrReturnUntypedCompositeLiteral(t *testing.T) {
+	input := `type Result
+    value int
+
+func getData() (Result, error)
+    return Result{value: 1}, empty
+
+func Process() (Result, error)
+    data := getData() onerr return {}, error "failed: {error}"
+    return data, empty
+`
+	errs := analyzeInput(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected no semantic errors for untyped composite literal in onerr return, got: %v", errs)
+	}
+}
+
+func TestOnErrReturnEmptyUntypedCompositeLiteral(t *testing.T) {
+	input := `type Result
+    value int
+
+func getData() (Result, error)
+    return Result{value: 1}, empty
+
+func Process() (Result, error)
+    data := getData() onerr return {}, error "failed"
+    return data, empty
+`
+	errs := analyzeInput(t, input)
+	if len(errs) > 0 {
+		t.Errorf("expected no semantic errors for empty untyped literal in onerr return, got: %v", errs)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------
 
