@@ -16,7 +16,7 @@ type DoCase
     want string
 
 func TestDo(t reference testing.T)
-    cases := list of DoCase{DoCase{name: "returns value when no error", value: "ok", err: empty, want: "ok"}}
+    cases := list of DoCase{{name: "returns value when no error", value: "ok", err: empty, want: "ok"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -31,7 +31,7 @@ type OkCase
     wantPanic bool
 
 func TestOk(t reference testing.T)
-    cases := list of OkCase{OkCase{name: "succeeds when error empty", err: empty, wantPanic: false}}
+    cases := list of OkCase{{name: "succeeds when error empty", err: empty, wantPanic: false}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

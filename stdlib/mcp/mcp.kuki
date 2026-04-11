@@ -35,7 +35,7 @@ func Serve(server reference mcp.Server) error
 
 # Prop creates a new SchemaProperty
 func Prop(name string, typ string, description string) SchemaProperty
-    return SchemaProperty{Name: name, Type: typ, Description: description}
+    return {Name: name, Type: typ, Description: description}
 
 # Schema creates a JSON schema object from a list of properties
 func Schema(props list of SchemaProperty) map of string to any
@@ -255,7 +255,7 @@ func CallTool on s reference ClientSession(ctx context.Context, params reference
                 parts = append(parts, data as string)
 
     text := strpkg.Join(parts, "\n")
-    return CallToolResult{Text: text, IsError: result.IsError, Content: content}, empty
+    return {Text: text, IsError: result.IsError, Content: content}, empty
 
 # ClientTool represents an MCP tool discovered from a server
 type ClientTool

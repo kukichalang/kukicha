@@ -18,7 +18,7 @@ type ReadWriteCase
     name string
 
 func TestReadWrite(t reference testing.T)
-    cases := list of ReadWriteCase{ReadWriteCase{name: "basic"}}
+    cases := list of ReadWriteCase{{name: "basic"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -44,7 +44,7 @@ type WriteJSONCase
     name string
 
 func TestWriteJSON(t reference testing.T)
-    cases := list of WriteJSONCase{WriteJSONCase{name: "write struct"}}
+    cases := list of WriteJSONCase{{name: "write struct"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -70,7 +70,7 @@ type ExistsCase
     name string
 
 func TestExists(t reference testing.T)
-    cases := list of ExistsCase{ExistsCase{name: "file exists"}}
+    cases := list of ExistsCase{{name: "file exists"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -93,7 +93,7 @@ type IsDirCase
     name string
 
 func TestIsDir(t reference testing.T)
-    cases := list of IsDirCase{IsDirCase{name: "check directory"}}
+    cases := list of IsDirCase{{name: "check directory"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -119,7 +119,7 @@ type ListCase
     name string
 
 func TestList(t reference testing.T)
-    cases := list of ListCase{ListCase{name: "list files"}}
+    cases := list of ListCase{{name: "list files"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -145,7 +145,7 @@ type AppendCase
     name string
 
 func TestAppend(t reference testing.T)
-    cases := list of AppendCase{AppendCase{name: "append string"}}
+    cases := list of AppendCase{{name: "append string"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -174,7 +174,7 @@ type CopyCase
     name string
 
 func TestCopy(t reference testing.T)
-    cases := list of CopyCase{CopyCase{name: "copy file"}}
+    cases := list of CopyCase{{name: "copy file"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -205,7 +205,7 @@ type DeleteCase
     name string
 
 func TestDelete(t reference testing.T)
-    cases := list of DeleteCase{DeleteCase{name: "delete file"}}
+    cases := list of DeleteCase{{name: "delete file"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -229,7 +229,7 @@ type TempFileCase
     name string
 
 func TestTempFile(t reference testing.T)
-    cases := list of TempFileCase{TempFileCase{name: "create temp file"}}
+    cases := list of TempFileCase{{name: "create temp file"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -248,7 +248,7 @@ type PathCase
     name string
 
 func TestPathFunctions(t reference testing.T)
-    cases := list of PathCase{PathCase{name: "path operations"}}
+    cases := list of PathCase{{name: "path operations"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -269,7 +269,7 @@ type UseWithCase
     name string
 
 func TestUseWith(t reference testing.T)
-    cases := list of UseWithCase{UseWithCase{name: "use with block"}}
+    cases := list of UseWithCase{{name: "use with block"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -296,7 +296,7 @@ type WatchCase
     name string
 
 func TestWatch(t reference testing.T)
-    cases := list of WatchCase{WatchCase{name: "watch file"}}
+    cases := list of WatchCase{{name: "watch file"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

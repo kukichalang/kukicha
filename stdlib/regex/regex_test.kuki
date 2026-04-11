@@ -133,7 +133,7 @@ type FindGroupsValuesCase
     name string
 
 func TestFindGroupsValues(t reference testing.T)
-    cases := list of FindGroupsValuesCase{FindGroupsValuesCase{name: "capture group values"}}
+    cases := list of FindGroupsValuesCase{{name: "capture group values"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -224,7 +224,7 @@ type ReplaceFuncCase
     name string
 
 func TestReplaceFunc(t reference testing.T)
-    cases := list of ReplaceFuncCase{ReplaceFuncCase{name: "wrap matches"}}
+    cases := list of ReplaceFuncCase{{name: "wrap matches"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -322,7 +322,7 @@ type CompiledFindCase
     name string
 
 func TestCompiledFind(t reference testing.T)
-    cases := list of CompiledFindCase{CompiledFindCase{name: "compiled find"}}
+    cases := list of CompiledFindCase{{name: "compiled find"}}
 
     p := regex.MustCompile(`\d+`)
     for tc in cases
@@ -340,7 +340,7 @@ type CompiledReplaceCase
     name string
 
 func TestCompiledReplace(t reference testing.T)
-    cases := list of CompiledReplaceCase{CompiledReplaceCase{name: "compiled replace"}}
+    cases := list of CompiledReplaceCase{{name: "compiled replace"}}
 
     p := regex.MustCompile(`\s+`)
     for tc in cases
@@ -354,7 +354,7 @@ type CompiledSplitCase
     name string
 
 func TestCompiledSplit(t reference testing.T)
-    cases := list of CompiledSplitCase{CompiledSplitCase{name: "compiled split"}}
+    cases := list of CompiledSplitCase{{name: "compiled split"}}
 
     p := regex.MustCompile(`[,;]\s*`)
     for tc in cases

@@ -446,7 +446,7 @@ func TestFindLast(t reference testing.T)
     # Ideally we'd use a list of structs with IDs.
 
     t.Run("found last with condition", (t reference testing.T) =>
-        itemsWithIds := list of Item{Item{Id: 1, Name: "a"}, Item{Id: 2, Name: "b"}, Item{Id: 3, Name: "a"}}
+        itemsWithIds := list of Item{{Id: 1, Name: "a"}, {Id: 2, Name: "b"}, {Id: 3, Name: "a"}}
 
         val, err := slice.FindLast(itemsWithIds, (v Item) => v.Name == "a")
         test.AssertNoError(t, err)
@@ -468,7 +468,7 @@ func TestFindLastOr(t reference testing.T)
     )
 
     t.Run("match last item", (t reference testing.T) =>
-        itemsWithIds := list of Item{Item{Id: 1, Name: "a"}, Item{Id: 2, Name: "b"}, Item{Id: 3, Name: "a"}}
+        itemsWithIds := list of Item{{Id: 1, Name: "a"}, {Id: 2, Name: "b"}, {Id: 3, Name: "a"}}
 
         val := itemsWithIds |> slice.FindLastOr((v Item) => v.Name == "a", Item{Id: 0, Name: ""})
         test.AssertEqual(t, (val as Item).Id, 3)

@@ -17,7 +17,7 @@ type MarshalCase
     name string
 
 func TestMarshal(t reference testing.T)
-    cases := list of MarshalCase{MarshalCase{name: "marshal person"}}
+    cases := list of MarshalCase{{name: "marshal person"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -37,7 +37,7 @@ type UnmarshalCase
     name string
 
 func TestUnmarshal(t reference testing.T)
-    cases := list of UnmarshalCase{UnmarshalCase{name: "unmarshal person"}}
+    cases := list of UnmarshalCase{{name: "unmarshal person"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -57,7 +57,7 @@ type RoundTripCase
     name string
 
 func TestMarshalUnmarshalRoundTrip(t reference testing.T)
-    cases := list of RoundTripCase{RoundTripCase{name: "round trip"}}
+    cases := list of RoundTripCase{{name: "round trip"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -78,7 +78,7 @@ type MarshalPrettyCase
     name string
 
 func TestMarshalPretty(t reference testing.T)
-    cases := list of MarshalPrettyCase{MarshalPrettyCase{name: "pretty print"}}
+    cases := list of MarshalPrettyCase{{name: "pretty print"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -101,7 +101,7 @@ type MarshalWriteCase
     name string
 
 func TestMarshalWrite(t reference testing.T)
-    cases := list of MarshalWriteCase{MarshalWriteCase{name: "write to buffer"}}
+    cases := list of MarshalWriteCase{{name: "write to buffer"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -118,7 +118,7 @@ type UnmarshalReadCase
     name string
 
 func TestUnmarshalRead(t reference testing.T)
-    cases := list of UnmarshalReadCase{UnmarshalReadCase{name: "read from buffer"}}
+    cases := list of UnmarshalReadCase{{name: "read from buffer"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -139,7 +139,7 @@ type EncodeCase
     name string
 
 func TestEncode(t reference testing.T)
-    cases := list of EncodeCase{EncodeCase{name: "encode to buffer"}}
+    cases := list of EncodeCase{{name: "encode to buffer"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -157,7 +157,7 @@ type DecodeCase
     name string
 
 func TestDecode(t reference testing.T)
-    cases := list of DecodeCase{DecodeCase{name: "decode from buffer"}}
+    cases := list of DecodeCase{{name: "decode from buffer"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -180,7 +180,7 @@ type WithIndentCase
     name string
 
 func TestWithIndent(t reference testing.T)
-    cases := list of WithIndentCase{WithIndentCase{name: "indent encoding"}}
+    cases := list of WithIndentCase{{name: "indent encoding"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -198,7 +198,7 @@ type UnmarshalInvalidCase
     name string
 
 func TestUnmarshalInvalidJSON(t reference testing.T)
-    cases := list of UnmarshalInvalidCase{UnmarshalInvalidCase{name: "invalid json"}}
+    cases := list of UnmarshalInvalidCase{{name: "invalid json"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

@@ -30,7 +30,7 @@ type AddRowCase
     name string
 
 func TestAddRow(t reference testing.T)
-    cases := list of AddRowCase{AddRowCase{name: "add one row"}}
+    cases := list of AddRowCase{{name: "add one row"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -46,7 +46,7 @@ type ToStringCase
     name string
 
 func TestToString(t reference testing.T)
-    cases := list of ToStringCase{ToStringCase{name: "plain output"}}
+    cases := list of ToStringCase{{name: "plain output"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -62,7 +62,7 @@ type MarkdownCase
     name string
 
 func TestMarkdown(t reference testing.T)
-    cases := list of MarkdownCase{MarkdownCase{name: "markdown style"}}
+    cases := list of MarkdownCase{{name: "markdown style"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

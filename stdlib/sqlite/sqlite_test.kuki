@@ -28,7 +28,7 @@ type OpenMemoryCase
     name string
 
 func TestOpenMemory(t reference testing.T)
-    cases := list of OpenMemoryCase{OpenMemoryCase{name: "open in-memory and query"}}
+    cases := list of OpenMemoryCase{{name: "open in-memory and query"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -48,7 +48,7 @@ type OpenCase
     name string
 
 func TestOpen(t reference testing.T)
-    cases := list of OpenCase{OpenCase{name: "open file database with WAL"}}
+    cases := list of OpenCase{{name: "open file database with WAL"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -81,7 +81,7 @@ type OpenWithCase
     name string
 
 func TestOpenWith(t reference testing.T)
-    cases := list of OpenWithCase{OpenWithCase{name: "open with custom pragmas"}}
+    cases := list of OpenWithCase{{name: "open with custom pragmas"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -242,7 +242,7 @@ type VacuumCase
     name string
 
 func TestVacuum(t reference testing.T)
-    cases := list of VacuumCase{VacuumCase{name: "vacuum succeeds"}}
+    cases := list of VacuumCase{{name: "vacuum succeeds"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -258,7 +258,7 @@ type BackupCase
     name string
 
 func TestBackup(t reference testing.T)
-    cases := list of BackupCase{BackupCase{name: "backup and verify"}}
+    cases := list of BackupCase{{name: "backup and verify"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -292,7 +292,7 @@ type VersionCase
     name string
 
 func TestVersion(t reference testing.T)
-    cases := list of VersionCase{VersionCase{name: "returns version string"}}
+    cases := list of VersionCase{{name: "returns version string"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -310,7 +310,7 @@ type BatchExecCase
     batchSize int
 
 func TestBatchExec(t reference testing.T)
-    cases := list of BatchExecCase{BatchExecCase{name: "batch insert 100 rows", batchSize: 100}}
+    cases := list of BatchExecCase{{name: "batch insert 100 rows", batchSize: 100}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -334,7 +334,7 @@ type CreateFunctionCase
     name string
 
 func TestCreateFunction(t reference testing.T)
-    cases := list of CreateFunctionCase{CreateFunctionCase{name: "register and use custom function"}}
+    cases := list of CreateFunctionCase{{name: "register and use custom function"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -361,7 +361,7 @@ type DumpCase
     name string
 
 func TestDump(t reference testing.T)
-    cases := list of DumpCase{DumpCase{name: "dump contains schema and data"}}
+    cases := list of DumpCase{{name: "dump contains schema and data"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

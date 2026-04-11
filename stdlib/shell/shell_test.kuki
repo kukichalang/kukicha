@@ -13,7 +13,7 @@ type ExecuteCase
     name string
 
 func TestExecute(t reference testing.T)
-    cases := list of ExecuteCase{ExecuteCase{name: "basic"}}
+    cases := list of ExecuteCase{{name: "basic"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -32,7 +32,7 @@ type ExecuteWithDirCase
     name string
 
 func TestExecuteWithDir(t reference testing.T)
-    cases := list of ExecuteWithDirCase{ExecuteWithDirCase{name: "with dir"}}
+    cases := list of ExecuteWithDirCase{{name: "with dir"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -50,7 +50,7 @@ type ExecuteWithEnvCase
     name string
 
 func TestExecuteWithEnv(t reference testing.T)
-    cases := list of ExecuteWithEnvCase{ExecuteWithEnvCase{name: "with env"}}
+    cases := list of ExecuteWithEnvCase{{name: "with env"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -68,7 +68,7 @@ type ExecuteFailedCase
     name string
 
 func TestExecuteFailed(t reference testing.T)
-    cases := list of ExecuteFailedCase{ExecuteFailedCase{name: "failed"}}
+    cases := list of ExecuteFailedCase{{name: "failed"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -87,7 +87,7 @@ type WhichCase
     name string
 
 func TestWhich(t reference testing.T)
-    cases := list of WhichCase{WhichCase{name: "which"}}
+    cases := list of WhichCase{{name: "which"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -171,7 +171,7 @@ type FlagIfMultiArgCase
     name string
 
 func TestFlagIfMultiArg(t reference testing.T)
-    cases := list of FlagIfMultiArgCase{FlagIfMultiArgCase{name: "multi-arg flag"}}
+    cases := list of FlagIfMultiArgCase{{name: "multi-arg flag"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -220,7 +220,7 @@ type EnvCase
     name string
 
 func TestEnv(t reference testing.T)
-    cases := list of EnvCase{EnvCase{name: "env operations"}}
+    cases := list of EnvCase{{name: "env operations"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

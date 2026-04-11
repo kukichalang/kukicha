@@ -11,7 +11,7 @@ type ReadLineCase
     want bool
 
 func TestReadLine(t reference testing.T)
-    cases := list of ReadLineCase{ReadLineCase{name: "function exists", want: true}}
+    cases := list of ReadLineCase{{name: "function exists", want: true}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -27,7 +27,7 @@ type PromptCase
     want bool
 
 func TestPrompt(t reference testing.T)
-    cases := list of PromptCase{PromptCase{name: "function exists", want: true}}
+    cases := list of PromptCase{{name: "function exists", want: true}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -43,7 +43,7 @@ type ConfirmCase
     want bool
 
 func TestConfirm(t reference testing.T)
-    cases := list of ConfirmCase{ConfirmCase{name: "function exists", want: true}}
+    cases := list of ConfirmCase{{name: "function exists", want: true}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -59,7 +59,7 @@ type ChooseCase
     want bool
 
 func TestChoose(t reference testing.T)
-    cases := list of ChooseCase{ChooseCase{name: "function exists", want: true}}
+    cases := list of ChooseCase{{name: "function exists", want: true}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

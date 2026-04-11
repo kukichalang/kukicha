@@ -91,7 +91,7 @@ type PreviewReleaseAllFlagsCase
     name string
 
 func TestPreviewReleaseAllFlags(t reference testing.T)
-    cases := list of PreviewReleaseAllFlagsCase{PreviewReleaseAllFlagsCase{name: "all flags present"}}
+    cases := list of PreviewReleaseAllFlagsCase{{name: "all flags present"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -113,7 +113,7 @@ type PreviewReleaseNoFlagsCase
     name string
 
 func TestPreviewReleaseNoFlags(t reference testing.T)
-    cases := list of PreviewReleaseNoFlagsCase{PreviewReleaseNoFlagsCase{name: "no optional flags"}}
+    cases := list of PreviewReleaseNoFlagsCase{{name: "no optional flags"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -130,7 +130,7 @@ type CurrentBranchCase
     name string
 
 func TestCurrentBranch(t reference testing.T)
-    cases := list of CurrentBranchCase{CurrentBranchCase{name: "returns a branch name"}}
+    cases := list of CurrentBranchCase{{name: "returns a branch name"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -147,7 +147,7 @@ func TestListTags(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of ListTagsCase{ListTagsCase{name: "list tags from public repo"}}
+    cases := list of ListTagsCase{{name: "list tags from public repo"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -164,7 +164,7 @@ func TestDefaultBranch(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of DefaultBranchCase{DefaultBranchCase{name: "default branch of cli/cli"}}
+    cases := list of DefaultBranchCase{{name: "default branch of cli/cli"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -181,7 +181,7 @@ func TestCurrentUser(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of CurrentUserCase{CurrentUserCase{name: "returns authenticated user"}}
+    cases := list of CurrentUserCase{{name: "returns authenticated user"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -198,7 +198,7 @@ func TestTagExists(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of TagExistsCase{TagExistsCase{name: "existing tag"}}
+    cases := list of TagExistsCase{{name: "existing tag"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -215,7 +215,7 @@ func TestRepoExists(t reference testing.T)
     if not ghAvailable()
         t.Skip("gh CLI not available or not authenticated")
 
-    cases := list of RepoExistsCase{RepoExistsCase{name: "existing repo"}}
+    cases := list of RepoExistsCase{{name: "existing repo"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

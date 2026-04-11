@@ -27,7 +27,7 @@ type Root
 # All file operations on the returned Root are confined to this directory.
 func New(path string) (Root, error)
     r := os.OpenRoot(path) onerr explain "sandbox open"
-    return Root{root: r, path: path}, empty
+    return {root: r, path: path}, empty
 
 # Close releases the resources associated with the Root.
 func Close(r Root) error

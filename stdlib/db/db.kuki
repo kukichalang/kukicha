@@ -79,7 +79,7 @@ func Query(pool Pool, query string, many args any) (Rows, error)
 # kuki:security "sql"
 func QueryRow(pool Pool, query string, many args any) Row
     row := pool.conn.QueryRow(query, many args)
-    return Row{row: row}
+    return {row: row}
 
 # Exec executes a query that doesn't return rows (INSERT, UPDATE, DELETE).
 # Returns the number of rows affected.
@@ -233,7 +233,7 @@ func TxQuery(tx Tx, query string, many args any) (Rows, error)
 # kuki:security "sql"
 func TxQueryRow(tx Tx, query string, many args any) Row
     row := tx.tx.QueryRow(query, many args)
-    return Row{row: row}
+    return {row: row}
 
 # TxExec executes a non-returning query within a transaction.
 # Returns the number of rows affected.
@@ -281,7 +281,7 @@ func RawDB(pool Pool) reference sql.DB
 # NewPool wraps an existing *sql.DB as a Pool.
 # Useful when a driver provides its own Open function (e.g., SQLite with init callbacks).
 func NewPool(conn reference sql.DB) Pool
-    return Pool{conn: conn}
+    return {conn: conn}
 
 # ============================================================================
 # Internal Helpers

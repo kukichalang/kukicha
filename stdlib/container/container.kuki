@@ -106,7 +106,7 @@ type ContainerEvent
 
 # New starts a configuration builder.
 func New() Config
-    return Config{}
+    return {}
 
 # Host sets the Docker host URL on the config builder.
 func Host(cfg Config, host string) Config
@@ -158,7 +158,7 @@ func Remove(engine Engine, containerID string) error
 
 # Login creates an Auth with the given credentials.
 func Login(username string, password string, server string) Auth
-    return Auth{username: username, password: password, serverAddress: server}
+    return {username: username, password: password, serverAddress: server}
 
 # AuthEncode encodes auth credentials as a base64 JSON string for Docker registry headers.
 func AuthEncode(auth Auth) string
@@ -283,7 +283,7 @@ func Inspect(engine Engine, containerID string) (ContainerInfo, error)
     if info.State != empty
         status = info.State.Status
         state = info.State.Status
-    return ContainerInfo{id: info.ID, image: info.Config.Image, status: status, state: state, names: names}, empty
+    return {id: info.ID, image: info.Config.Image, status: status, state: state, names: names}, empty
 
 # Exec runs a command in an existing container and returns combined stdout/stderr.
 # An optional ctx.Handle can be passed for cancellation support.
@@ -342,7 +342,7 @@ func convertEvent(msg dockerevents.Message) ContainerEvent
     actor := msg.Actor.ID
     if name, ok := msg.Actor.Attributes["name"]; ok and name != ""
         actor = name
-    return ContainerEvent{
+    return {
         id: msg.ID,
         resource: msg.Type as string,
         action: msg.Action as string,
@@ -467,7 +467,7 @@ func loadDockerAuth(serverAddress string) (string, string, string, error)
 # LoginFromConfig loads registry credentials from ~/.docker/config.json.
 func LoginFromConfig(server string) (Auth, error)
     username, password, addr, _ := loadDockerAuth(server) onerr return
-    return Auth{username: username, password: password, serverAddress: addr}, empty
+    return {username: username, password: password, serverAddress: addr}, empty
 
 # --- Functions migrated from container_helper.go (client init + build + copy) ---
 
@@ -496,12 +496,12 @@ func Connect() (Engine, error)
             host = "unix://" + p
             break
     cli := newClient(host) onerr return
-    return Engine{cli: cli}, empty
+    return {cli: cli}, empty
 
 # ConnectRemote creates an Engine connected to a specific Docker host.
 func ConnectRemote(host string) (Engine, error)
     cli := newClient(host) onerr return
-    return Engine{cli: cli}, empty
+    return {cli: cli}, empty
 
 # Open creates an Engine from the builder configuration.
 func Open(cfg Config) (Engine, error)
@@ -511,7 +511,7 @@ func Open(cfg Config) (Engine, error)
     if cfg.apiVersion != ""
         opts = append(opts, client.WithVersion(cfg.apiVersion))
     cli := client.NewClientWithOpts(many opts) onerr explain "container open"
-    return Engine{cli: cli}, empty
+    return {cli: cli}, empty
 
 # buildImage creates a tar archive from contextPath, calls ImageBuild,
 # and parses the JSON stream for the final image ID.
@@ -578,7 +578,7 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
 # Build builds a Docker image from a directory. Returns imageID and build output.
 func Build(engine Engine, path string, tag string) (BuildOutput, error)
     imageID, output, _ := buildImage(engine.cli, path, tag) onerr return
-    return BuildOutput{imageID: imageID, output: output}, empty
+    return {imageID: imageID, output: output}, empty
 
 # extractTar extracts a tar archive to the destination path.
 func extractTar(reader io.Reader, destPath string) error

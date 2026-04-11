@@ -62,7 +62,7 @@ type ByCase
     name string
 
 func TestBy(t reference testing.T)
-    cases := list of ByCase{ByCase{name: "sort by length"}}
+    cases := list of ByCase{{name: "sort by length"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -76,7 +76,7 @@ type ByKeyCase
     name string
 
 func TestByKey(t reference testing.T)
-    cases := list of ByKeyCase{ByKeyCase{name: "sort by string length"}}
+    cases := list of ByKeyCase{{name: "sort by string length"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -91,7 +91,7 @@ type ReverseCase
     name string
 
 func TestReverse(t reference testing.T)
-    cases := list of ReverseCase{ReverseCase{name: "reverse ints"}}
+    cases := list of ReverseCase{{name: "reverse ints"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

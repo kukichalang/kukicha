@@ -42,14 +42,14 @@ type Args
 # NewArgs creates an Args from a map of values (useful for testing)
 # Example: args := cli.NewArgs(myValues)
 func NewArgs(values map of string to string) Args
-    return Args{values: values}
+    return {values: values}
 
 # Builder Pattern Functions
 
 # New creates a new CLI application builder
 # Example: app := cli.New("myapp")
 func New(name string) App
-    return App{
+    return {
         name: name,
         description: "",
         args: make(list of ArgDef),

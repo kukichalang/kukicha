@@ -11,7 +11,7 @@ type LengthCase
     name string
 
 func TestRandomStringLength(t reference testing.T)
-    cases := list of LengthCase{LengthCase{name: "lengths"}}
+    cases := list of LengthCase{{name: "lengths"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

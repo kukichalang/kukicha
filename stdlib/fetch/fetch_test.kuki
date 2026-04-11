@@ -29,7 +29,7 @@ func TestGet(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of GetCase{GetCase{name: "basic get"}}
+    cases := list of GetCase{{name: "basic get"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -55,7 +55,7 @@ func TestJson(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of JsonCase{JsonCase{name: "parse object"}}
+    cases := list of JsonCase{{name: "parse object"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -81,7 +81,7 @@ func TestJsonArray(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of JsonArrayCase{JsonArrayCase{name: "parse array"}}
+    cases := list of JsonArrayCase{{name: "parse array"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -99,7 +99,7 @@ type DecodeCase
     name string
 
 func TestDecode(t reference testing.T)
-    testData := list of TestData{TestData{Message: "typed", Count: 7}, TestData{Message: "decode", Count: 9}}
+    testData := list of TestData{{Message: "typed", Count: 7}, {Message: "decode", Count: 9}}
 
     jsonBytes, _ := json.Marshal(testData)
     server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r reference http.Request)
@@ -110,7 +110,7 @@ func TestDecode(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of DecodeCase{DecodeCase{name: "decode into reference"}}
+    cases := list of DecodeCase{{name: "decode into reference"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -202,7 +202,7 @@ func TestText(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of TextCase{TextCase{name: "read as text"}}
+    cases := list of TextCase{{name: "read as text"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -226,7 +226,7 @@ func TestPost(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of PostCase{PostCase{name: "post object"}}
+    cases := list of PostCase{{name: "post object"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -289,7 +289,7 @@ func TestRequestBuilder(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of RequestBuilderCase{RequestBuilderCase{name: "builder properties"}}
+    cases := list of RequestBuilderCase{{name: "builder properties"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -305,7 +305,7 @@ type AuthHelpersCase
     name string
 
 func TestAuthHelpers(t reference testing.T)
-    cases := list of AuthHelpersCase{AuthHelpersCase{name: "auth headers"}}
+    cases := list of AuthHelpersCase{{name: "auth headers"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -348,7 +348,7 @@ func TestFormData(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of FormDataCase{FormDataCase{name: "post form data"}}
+    cases := list of FormDataCase{{name: "post form data"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -378,7 +378,7 @@ func TestSession(t reference testing.T)
 
     defer server.Close()
 
-    cases := list of SessionCase{SessionCase{name: "persist cookies"}}
+    cases := list of SessionCase{{name: "persist cookies"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

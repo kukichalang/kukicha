@@ -24,7 +24,7 @@ type Timer
 
 # New creates a logger with service and environment metadata.
 func New(service string, environment string) Logger
-    return Logger{service: service, environment: environment, component: "", correlationID: ""}
+    return {service: service, environment: environment, component: "", correlationID: ""}
 
 # Component sets the component field on the logger.
 func Component(logger Logger, component string) Logger
@@ -83,7 +83,7 @@ func Log(logger Logger, level string, message string, fields map of string to an
 
 # Start begins a timer for an operation.
 func Start(logger Logger, operation string) Timer
-    return Timer{logger: logger, operation: operation, startedAt: time.Now()}
+    return {logger: logger, operation: operation, startedAt: time.Now()}
 
 # Stop records a successful timer completion with duration in milliseconds.
 func Stop(timer Timer, fields map of string to any)

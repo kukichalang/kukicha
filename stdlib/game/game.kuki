@@ -122,7 +122,7 @@ var KeyEscape ebiten.Key = ebiten.KeyEscape
 
 # Window creates a new game App with a title and dimensions
 func Window(title string, width int, height int) App
-    return App{title: title, width: width, height: height}
+    return {title: title, width: width, height: height}
 
 # OnSetup registers a function called once before the game starts
 func OnSetup(app App, fn func()) App
@@ -230,7 +230,7 @@ func CircleOverlapsRect(c Circle, r Rect) bool
 
 # MakeColor creates a Color from RGBA values (0-255)
 func MakeColor(r int, g int, b int, a int) Color
-    return Color{R: r, G: g, B: b, A: a}
+    return {R: r, G: g, B: b, A: a}
 
 # Random returns a random integer between min (inclusive) and max (exclusive)
 func Random(min int, max int) int

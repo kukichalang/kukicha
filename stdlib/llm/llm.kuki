@@ -671,7 +671,7 @@ func executeRaw(c Client) (Completion, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return Completion{}, error "API request failed with status {resp.StatusCode}"
-        return Completion{}, error "API request failed ({resp.StatusCode}): {errBody as string}"
+        return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     comp := Completion{}
     json.UnmarshalRead(resp.Body, reference of comp) onerr return
@@ -706,7 +706,7 @@ func executeStreamRaw(c Client) (Completion, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return Completion{}, error "API request failed with status {resp.StatusCode}"
-        return Completion{}, error "API request failed ({resp.StatusCode}): {errBody as string}"
+        return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read SSE stream line by line
     fullContent := ""
@@ -1371,7 +1371,7 @@ func rExecuteRaw(c ResponseClient) (Response, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return Response{}, error "API request failed with status {resp.StatusCode}"
-        return Response{}, error "API request failed ({resp.StatusCode}): {errBody as string}"
+        return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     result := Response{}
     json.UnmarshalRead(resp.Body, reference of result) onerr return
@@ -1406,7 +1406,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return Response{}, error "API request failed with status {resp.StatusCode}"
-        return Response{}, error "API request failed ({resp.StatusCode}): {errBody as string}"
+        return {}, error "API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read SSE stream line by line
     # OpenResponses uses semantic event types
@@ -1457,7 +1457,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
 
             # Handle error events
             if evt.Type == "error"
-                return Response{}, error evt.Message
+                return {}, error evt.Message
 
     scanner.Err() onerr return Response{}, error "{error}"
 
@@ -1996,7 +1996,7 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return AnthropicResponse{}, error "Anthropic API request failed with status {resp.StatusCode}"
-        return AnthropicResponse{}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
+        return {}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
 
     result := AnthropicResponse{}
     json.UnmarshalRead(resp.Body, reference of result) onerr return
@@ -2033,7 +2033,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
 
     if resp.StatusCode >= 400
         errBody := fetch.Bytes(resp) onerr return AnthropicResponse{}, error "Anthropic API request failed with status {resp.StatusCode}"
-        return AnthropicResponse{}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
+        return {}, error "Anthropic API request failed ({resp.StatusCode}): {errBody as string}"
 
     # Read Anthropic SSE stream
     contentBlocks := make(map of int to ContentBlock)
@@ -2079,7 +2079,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
 
             # Handle error events
             if evt.Type == "error"
-                return AnthropicResponse{}, error "Anthropic streaming error"
+                return {}, error "Anthropic streaming error"
 
     scanner.Err() onerr return AnthropicResponse{}, error "{error}"
 

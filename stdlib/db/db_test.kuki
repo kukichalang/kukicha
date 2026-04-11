@@ -27,7 +27,7 @@ type OpenCloseCase
     name string
 
 func TestOpenAndClose(t reference testing.T)
-    cases := list of OpenCloseCase{OpenCloseCase{name: "open and close in-memory"}}
+    cases := list of OpenCloseCase{{name: "open and close in-memory"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -121,7 +121,7 @@ type ScanAllValuesCase
 func TestScanAllValues(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanAllValuesCase{ScanAllValuesCase{name: "verify field values"}}
+    cases := list of ScanAllValuesCase{{name: "verify field values"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -176,7 +176,7 @@ type ScanRowCase
 func TestScanRow(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of ScanRowCase{ScanRowCase{name: "single row via QueryRow"}}
+    cases := list of ScanRowCase{{name: "single row via QueryRow"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -193,7 +193,7 @@ type TransactionCase
 func TestTransaction(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of TransactionCase{TransactionCase{name: "commit on success"}}
+    cases := list of TransactionCase{{name: "commit on success"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -215,7 +215,7 @@ type TransactionRollbackCase
 func TestTransactionRollback(t reference testing.T)
     pool := setupTestDB(t)
     defer db.Close(pool)
-    cases := list of TransactionRollbackCase{TransactionRollbackCase{name: "rollback on error"}}
+    cases := list of TransactionRollbackCase{{name: "rollback on error"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -285,7 +285,7 @@ func TestNullHandling(t reference testing.T)
     db.Exec(pool, "CREATE TABLE null_test (id INTEGER PRIMARY KEY, name TEXT, bio TEXT)") onerr panic "create: {error}"
     db.Exec(pool, "INSERT INTO null_test (id, name) VALUES (?, ?)", 1, "Alice") onerr panic "insert: {error}"
 
-    cases := list of NullCase{NullCase{name: "null becomes zero value"}}
+    cases := list of NullCase{{name: "null becomes zero value"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

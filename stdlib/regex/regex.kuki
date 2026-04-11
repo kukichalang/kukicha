@@ -113,14 +113,14 @@ func IsValid(pattern string) bool
 # Example: p := regex.Compile(`\d+`) onerr panic "{error}"
 func Compile(pattern string) (Pattern, error)
     re := regexp.Compile(pattern) onerr return Pattern{}, error "invalid pattern: {error}"
-    return Pattern{re: re}, empty
+    return {re: re}, empty
 
 # MustCompile compiles a pattern, panicking on invalid input
 # Use for known-good patterns initialized at startup
 # Example: p := regex.MustCompile(`\d+`)
 func MustCompile(pattern string) Pattern
     re := regexp.MustCompile(pattern)
-    return Pattern{re: re}
+    return {re: re}
 
 # MatchCompiled reports whether text contains any match of the compiled pattern
 # Example: if regex.MatchCompiled(p, text)

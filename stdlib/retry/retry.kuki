@@ -22,7 +22,7 @@ type Config
 
 # New creates a default retry configuration: 3 attempts, 1s initial delay, exponential backoff
 func New() Config
-    return Config{MaxAttempts: 3, InitialDelay: 1000, Strategy: 1}
+    return {MaxAttempts: 3, InitialDelay: 1000, Strategy: 1}
 
 # Attempts sets the maximum number of retry attempts
 func Attempts(cfg Config, maxAttempts int) Config

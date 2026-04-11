@@ -21,7 +21,7 @@
 #       |> ort.Threads(4)
 #       |> ort.Load("model.onnx",
 #           list of string{"input"}, list of string{"output"},
-#           list of Tensor{input}, list of Tensor{output})
+#           list of Tensor{input}, list of {output})
 #       onerr panic "load: {error}"
 #   defer ort.Close(model)
 #
@@ -88,11 +88,11 @@ type IOInfo
 # Init initializes the ONNX Runtime environment. If the ORT_LIB_PATH environment
 # variable is set, it is used as the shared library path.
 func Init() (Env, error)
-    return Env{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # InitWithPath initializes ONNX Runtime using an explicit shared library path.
 func InitWithPath(path string) (Env, error)
-    return Env{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # Cleanup destroys the ONNX Runtime environment.
 func Cleanup(env Env) error
@@ -110,7 +110,7 @@ func Version() string
 
 # New creates a default configuration builder.
 func New() Config
-    return Config{}
+    return {}
 
 # Threads sets the intra-op thread count.
 func Threads(cfg Config, n int) Config
@@ -142,7 +142,7 @@ func EPWithOptions(cfg Config, name string, options map of string to string) Con
 
 # Load creates an AdvancedSession from a model file with pre-allocated tensors.
 func Load(cfg Config, path string, inputNames list of string, outputNames list of string, inputs list of Tensor, outputs list of Tensor) (Model, error)
-    return Model{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # Close destroys the model session and frees resources.
 func Close(model Model) error
@@ -165,19 +165,19 @@ func Shape(many dims int64) list of int64
 
 # NewFloat32 creates a float32 tensor with the given shape and data.
 func NewFloat32(shape list of int64, data list of float32) (Tensor, error)
-    return Tensor{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # ZeroFloat32 creates a zeroed float32 tensor with the given shape.
 func ZeroFloat32(shape list of int64) (Tensor, error)
-    return Tensor{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # NewInt64 creates an int64 tensor with the given shape and data.
 func NewInt64(shape list of int64, data list of int64) (Tensor, error)
-    return Tensor{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # ZeroInt64 creates a zeroed int64 tensor with the given shape.
 func ZeroInt64(shape list of int64) (Tensor, error)
-    return Tensor{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # Destroy releases the underlying tensor memory.
 func Destroy(tensor Tensor) error
@@ -205,7 +205,7 @@ func Dtype(tensor Tensor) string
 
 # Inspect reads model metadata and input/output info from an ONNX file.
 func Inspect(path string) (ModelInfo, error)
-    return ModelInfo{}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/ort")
 
 # InputNames returns the input names from a ModelInfo.
 func InputNames(info ModelInfo) list of string

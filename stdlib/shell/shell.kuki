@@ -48,7 +48,7 @@ func Output(name string, many args string) (string, error)
 # New creates a new Command builder
 # Example: cmd := shell.New("git", "status")
 func New(name string, many args string) Command
-    return Command{name: name, args: args, dir: "", timeout: 0, env: make(map of string to string)}
+    return {name: name, args: args, dir: "", timeout: 0, env: make(map of string to string)}
 
 # Dir sets the working directory for the command
 # Example: cmd |> shell.Dir("./myproject")
@@ -102,7 +102,7 @@ func Execute(cmd Command) Result
     # Get exit code
     exitCode := getExitCode(err)
 
-    return Result{stdout: stdoutBuf.Bytes(), stderr: stderrBuf.Bytes(), exitCode: exitCode, err: err}
+    return {stdout: stdoutBuf.Bytes(), stderr: stderrBuf.Bytes(), exitCode: exitCode, err: err}
 
 # getExitCode extracts the exit code from an error
 func getExitCode(err error) int

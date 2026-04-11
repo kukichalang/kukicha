@@ -26,7 +26,7 @@ type Fragment
 #   html.Render("<h1>{html.Escape(name)}</h1>")
 #   html.Render("<div>{html.Embed(child)}</div>")
 func Render(htmlStr string) Fragment
-    return Fragment{content: htmlStr}
+    return {content: htmlStr}
 
 # Escape returns an HTML-escaped string safe for interpolation.
 # Use inside Render() for any user-controlled value.
@@ -70,7 +70,7 @@ func Join(many fragments Fragment) Fragment
     buf := bytes.Buffer{}
     for f in fragments
         buf.WriteString(f.content)
-    return Fragment{content: buf.String()}
+    return {content: buf.String()}
 
 # Map applies a function to each item and joins the resulting Fragments.
 # Useful for rendering lists without manual accumulation.
@@ -83,7 +83,7 @@ func Map(items list of any, f func(any) Fragment) Fragment
     for item in items
         result := f(item)
         buf.WriteString(result.content)
-    return Fragment{content: buf.String()}
+    return {content: buf.String()}
 
 # Attr escapes a string for safe use in an HTML attribute value.
 # Wraps html.EscapeString — identical to Escape() but communicates intent.
@@ -96,7 +96,7 @@ func Attr(s string) string
 func When(condition bool, f Fragment) Fragment
     if condition
         return f
-    return Fragment{content: ""}
+    return {content: ""}
 
 # WhenElse returns the first fragment if condition is true, otherwise the second.
 # Example: html.Embed(html.WhenElse(loggedIn, userNav, guestNav))

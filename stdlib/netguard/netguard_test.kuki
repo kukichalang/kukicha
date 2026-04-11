@@ -11,7 +11,7 @@ type GuardCase
     name string
 
 func TestAllowBlockGuards(t reference testing.T)
-    cases := list of GuardCase{GuardCase{name: "allow and block"}}
+    cases := list of GuardCase{{name: "allow and block"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -30,7 +30,7 @@ type SSRFCase
     name string
 
 func TestSSRFGuard(t reference testing.T)
-    cases := list of SSRFCase{SSRFCase{name: "ssrf blocks private"}}
+    cases := list of SSRFCase{{name: "ssrf blocks private"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

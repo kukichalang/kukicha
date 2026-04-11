@@ -34,16 +34,16 @@ func Parse(tag string) (Version, error)
 
     parts := raw |> string.Split(".")
     if len(parts) != 3
-        return Version{}, error "invalid semver: {tag}"
+        return {}, error "invalid semver: {tag}"
 
     major := cast.Atoi(parts[0]) onerr return Version{}, error "invalid semver: {tag}"
     minor := cast.Atoi(parts[1]) onerr return Version{}, error "invalid semver: {tag}"
     patch := cast.Atoi(parts[2]) onerr return Version{}, error "invalid semver: {tag}"
 
     if major < 0 or minor < 0 or patch < 0
-        return Version{}, error "invalid semver: {tag}"
+        return {}, error "invalid semver: {tag}"
 
-    return Version{major: major, minor: minor, patch: patch, prefix: prefix}, empty
+    return {major: major, minor: minor, patch: patch, prefix: prefix}, empty
 
 # Bump increments the version by the given level: "major", "minor", or "patch"
 # Higher components are incremented and lower ones are zeroed

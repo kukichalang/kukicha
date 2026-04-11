@@ -16,7 +16,7 @@
 #       |> webinfer.EP("webnn")
 #       |> webinfer.Load(env, "model.onnx",
 #           list of string{"input"}, list of string{"output"},
-#           list of Tensor{input}, list of Tensor{output})
+#           list of Tensor{input}, list of {output})
 #       onerr panic "load: {error}"
 #   defer webinfer.Close(model)
 #
@@ -70,7 +70,7 @@ type IOInfo
 # Init launches a headless Chromium instance via Playwright and loads
 # onnxruntime-web from CDN.
 func Init() (Env, error)
-    return Env{}, errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
 
 # Cleanup closes the browser and stops the Playwright driver.
 func Cleanup(env Env) error
@@ -88,7 +88,7 @@ func Version(env Env) string
 
 # New creates a default configuration builder.
 func New() Config
-    return Config{ep: "wasm"}
+    return {ep: "wasm"}
 
 # EP sets the execution provider: "webnn", "webgpu", or "wasm".
 func EP(cfg Config, ep string) Config
@@ -99,7 +99,7 @@ func EP(cfg Config, ep string) Config
 
 # Load reads an ONNX model file and creates an inference session in the browser.
 func Load(cfg Config, env Env, path string, inputNames list of string, outputNames list of string, inputs list of Tensor, outputs list of Tensor) (Model, error)
-    return Model{}, errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
+    return {}, errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
 
 # Close destroys the browser-side inference session.
 func Close(model Model) error
@@ -122,25 +122,25 @@ func Shape(many dims int64) list of int64
 
 # NewFloat32 creates a float32 tensor with the given shape and data.
 func NewFloat32(shape list of int64, data list of float32) (Tensor, error)
-    return Tensor{shape: shape, dtype: "float32", float32Data: data}, empty
+    return {shape: shape, dtype: "float32", float32Data: data}, empty
 
 # ZeroFloat32 creates a zeroed float32 tensor with the given shape.
 func ZeroFloat32(shape list of int64) (Tensor, error)
     size := 1 as int64
     for d in shape
         size = size * d
-    return Tensor{shape: shape, dtype: "float32", float32Data: make(list of float32, size)}, empty
+    return {shape: shape, dtype: "float32", float32Data: make(list of float32, size)}, empty
 
 # NewInt64 creates an int64 tensor with the given shape and data.
 func NewInt64(shape list of int64, data list of int64) (Tensor, error)
-    return Tensor{shape: shape, dtype: "int64", int64Data: data}, empty
+    return {shape: shape, dtype: "int64", int64Data: data}, empty
 
 # ZeroInt64 creates a zeroed int64 tensor with the given shape.
 func ZeroInt64(shape list of int64) (Tensor, error)
     size := 1 as int64
     for d in shape
         size = size * d
-    return Tensor{shape: shape, dtype: "int64", int64Data: make(list of int64, size)}, empty
+    return {shape: shape, dtype: "int64", int64Data: make(list of int64, size)}, empty
 
 # Destroy is a no-op for the web backend (GC handles memory).
 func Destroy(tensor Tensor) error
@@ -168,7 +168,7 @@ func Dtype(tensor Tensor) string
 
 # Inspect is not supported by the web backend. Use ort.Inspect instead.
 func Inspect(path string) (ModelInfo, error)
-    return ModelInfo{}, errors.New("webinfer: model inspection not supported (use ort.Inspect)")
+    return {}, errors.New("webinfer: model inspection not supported (use ort.Inspect)")
 
 # InputNames returns the input names from a ModelInfo.
 func InputNames(info ModelInfo) list of string

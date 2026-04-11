@@ -25,7 +25,7 @@ type Table
 # New creates a new table with the given column headers.
 # Example: t := table.New(list of string{"Name", "Age"})
 func New(headers list of string) Table
-    return Table{Headers: headers, Rows: make(list of list of string, 0)}
+    return {Headers: headers, Rows: make(list of list of string, 0)}
 
 # AddRow appends a row of string values to the table and returns the updated table.
 # Values are coerced to strings. Rows with fewer columns than headers are padded with "".

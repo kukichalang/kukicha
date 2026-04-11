@@ -37,7 +37,7 @@ type HMACCase
     name string
 
 func TestHMAC(t reference testing.T)
-    cases := list of HMACCase{HMACCase{name: "basic hmac"}}
+    cases := list of HMACCase{{name: "basic hmac"}}
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
