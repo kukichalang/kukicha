@@ -6,48 +6,58 @@ Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go**,
 
 ---
 
-## Go vs Kukicha
+## A taste of Kukicha
 
-```go
-// Go — sum types need interface casts, no exhaustiveness check
-type DeployStatus interface{ status() }
-
-type Running  struct{ Replicas, Healthy int }
-func (Running)  status() {}
-type Failed   struct{ Reason string; ExitCode int }
-func (Failed)   status() {}
-
-func isHealthy(s DeployStatus) bool {
-    if r, ok := s.(Running); ok {
-        return r.Healthy == r.Replicas
-    }
-    return false
-}
-```
+Triage open GitHub issues with an LLM. Fetch, classify in parallel, keep the urgent ones, sort, print — end to end in 40 lines, no `if err != nil` ladder.
 
 ```kukicha
-# Kukicha — variant enums with pattern matching
-enum DeployStatus
-    Running
-        replicas int
-        healthy int
-    Failed
-        reason string
-        exitCode int
+# triage.kuki — classify open issues with Claude, flag the urgent ones
+import "stdlib/concurrent"
+import "stdlib/fetch"
+import "stdlib/json" as jsonpkg
+import "stdlib/llm"
+import "stdlib/slice"
+import "stdlib/sort"
 
-func isHealthy(s DeployStatus) bool
-    if s is Running as v
-        return v.healthy equals v.replicas
-    return false
+type Issue
+    number int
+    title string
+    body string
+
+type Verdict
+    number int
+    severity int # 1 = trivial .. 5 = on fire
+    kind string # bug | feature | docs | question
+    summary string
+
+func triage(i Issue) Verdict
+    reply := llm.New("anthropic:claude-sonnet-4-6")
+        |> llm.JSONMode()
+        |> llm.System("Classify GitHub issues. Reply JSON: \{severity:1-5, kind, summary\}")
+        |> llm.Ask("{i.title}\n\n{i.body}") onerr return Verdict{}
+
+    v := Verdict{number: i.number}
+    jsonpkg.UnmarshalString(reply, reference of v) onerr return Verdict{}
+    return v
+
+func main()
+    issues := fetch.Get("https://api.github.com/repos/golang/go/issues?per_page=20")
+        |> fetch.CheckStatus()
+        |> fetch.Json(empty list of Issue) onerr panic "github: {error}"
+
+    urgent := issues
+        |> concurrent.MapWithLimit(4, triage)
+        |> slice.Filter(v => v.severity >= 4)
+        |> sort.ByKey(v => -v.severity)
+
+    print("Needs attention:")
+    for v in urgent
+        print("  [P{v.severity}] {v.kind}  #{v.number}  {v.summary}")
 ```
 
-```kukicha
-# Error handling? onerr:
-result := fetchData()
-    |> parse() onerr return explain "pipeline failed"
-```
+Reads like the English description above it. Underneath: typed HTTP→JSON decode with `fetch.Json(list of Issue)`, a pipeline-level `onerr` that catches network, status, and decode in one handler, an LLM builder composed with pipes, structured output decoded straight into a `Verdict` struct, bounded parallelism without goroutine or errgroup bookkeeping, and stdlib `Filter`/`sort.ByKey` chained on the result. Every `err != nil` you'd write in Go is absorbed by `onerr`.
 
-Both Go and Kukicha examples above are valid Kukicha. Rename `.go` to `.kuki` and it compiles unchanged. 
+All valid Go is still valid Kukicha — rename `.go` to `.kuki` and it compiles unchanged. 
 
 ---
 
