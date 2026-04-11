@@ -298,6 +298,14 @@ The AST stores the body as a `PipedSwitchBody`, implemented by both `*SwitchStmt
 
 In codegen, value-producing piped switches are wrapped in an IIFE. Regular piped switches generate `switch left { ... }`; typed piped switches generate `switch v := left.(type) { ... }`. Return-type inference for typed piped switches special-cases `return v` so the IIFE can stay strongly typed instead of falling back to `any`. When the IIFE has a return type and the switch has no `otherwise` clause, `generatePipedSwitchExpr` appends `panic("unreachable")` after the switch body inside the IIFE — this satisfies Go's "missing return" check for exhaustive variant switches.
 
+### UntypedCompositeLiteral
+
+`UntypedCompositeLiteral` represents a composite literal without an explicit type — `{key: val, ...}` (keyed) or `{elem1, elem2, ...}` (positional). Fields: `IsKeyed bool`, `Entries []*UntypedEntry` (each with `Key Expression` nullable + `Value Expression`), `WasMultiline bool`, and **`ResolvedType TypeAnnotation` — mutated by the semantic pass**.
+
+This is the only AST node whose field is intentionally mutated during semantic analysis. `resolveUntypedLiteral` (in `semantic_expressions.go`) sets `ResolvedType` from the surrounding expected-type context (return type, parameter type, LHS type, list element type) **before** `analyzeExpression` runs, so downstream analysis and codegen see the resolved type as if the user had written it explicitly.
+
+The parser (`parseUntypedCompositeLiteral` in `parser_expr.go`) decides keyed vs positional from the first element: if a `TOKEN_COLON` follows the first expression, the whole literal is keyed; otherwise it's positional. `MapLiteralExpr` is still used for literals with an explicit type annotation (`map of K to V{...}`) — the two nodes coexist.
+
 ### Directive
 
 `Directive` represents a `# kuki:name args...` annotation. It has `Name string`, `Args []string`, and `Token lexer.Token`. `FunctionDecl`, `TypeDecl`, and `InterfaceDecl` all have a `Directives []Directive` field. The parser collects `TOKEN_DIRECTIVE` tokens in `skipIgnoredTokens` and attaches them to the next declaration via `drainDirectives()`.
@@ -395,6 +403,32 @@ The `empty` keyword has its own type kind (`TypeKindNil`) in `symbols.go`. This 
 ### Struct literal validation
 
 The semantic analyzer validates struct literal field names and types at compile time. During `collectDeclarations()`, each struct type's field names and types are stored in `TypeInfo.Fields`. When a `StructLiteralExpr` is analyzed, the analyzer resolves the struct's symbol and checks that every field name exists on the struct and that the value type is compatible with the declared field type.
+
+### Untyped composite literals and expected-type threading
+
+`UntypedCompositeLiteral` (the `{field: val}` / `{1, 2, 3}` form without a type prefix) uses an **expected-type threading** pattern that's unique in the semantic pass. The call sites that know the expected type call `resolveUntypedLiteral(expr, expectedType)` **before** `analyzeExpression(expr)`, which mutates the node's `ResolvedType` field so that `analyzeUntypedCompositeLiteral` sees the resolution as if the user had written it explicitly. Five call sites thread the expected type:
+
+| Site | Function | Expected type source |
+|------|----------|----------------------|
+| Var decl | `analyzeVarDeclStmt` | `stmt.Type` |
+| Assign | `analyzeAssignStmt` | LHS target type (via `typeInfoToTypeAnnotation`) |
+| Return | `analyzeReturnStmt` | `currentFunc.Returns[i]` |
+| Call arg | `analyzeCallExpr` | `funcType.Params[i]` (via `typeInfoToTypeAnnotation`, skipping piped-arg offset) |
+| List element | `analyzeListLiteral` | `expr.Type` element type |
+
+`resolveUntypedLiteral` also recurses into nested untyped literals inside `ListType.ElementType` and `MapType.ValueType`, so `list of Point{{x:1, y:2}, {x:3, y:4}}` resolves the inner elements to `Point`.
+
+`typeInfoToTypeAnnotation` in `semantic_types.go` is the inverse of `typeAnnotationToTypeInfo` — it bounces a resolved `*TypeInfo` back to an `ast.TypeAnnotation` so the threading can assign it to `ResolvedType`. Returns `nil` when the conversion isn't possible (unknown kind, function types). Needed because LHS and parameter types arrive as `*TypeInfo` but `ResolvedType` is an AST node.
+
+`validateUntypedLiteralAgainstType` runs after resolution and dispatches on `resolved.Kind`:
+- **`TypeKindNamed`/`TypeKindStruct`** — resolve the symbol, walk `Fields`, check field names and per-field type compatibility
+- **`TypeKindMap`/`TypeKindList`** — analyze entries to populate `exprTypes`; map key/value compatibility is enforced via the resolved key/value types threaded into nested literals
+
+**Variant enum gotcha:** when the expected type is a variant enum parent (e.g., `Shape` with cases `Circle`/`Square`), `validateUntypedLiteralAgainstType` rejects the literal with an explicit error listing the concrete cases. The parent is lowered to a sealed Go interface in codegen, so `Shape{radius: 5.0}` would be invalid Go. The check is in the `TypeKindNamed`/`TypeKindStruct` branch — it resolves the symbol, detects `sym.Type.Kind == TypeKindVariant`, and errors before the field-walk.
+
+### MapLiteralExpr analysis
+
+`analyzeMapLiteral` handles explicitly-typed map literals (`map of K to V{...}`). It walks pairs, infers key and value types (preferring the annotation when present), and returns `TypeInfo{Kind: TypeKindMap, KeyType: ..., ValueType: ...}`. **Always use `ValueType` for the value type, never `ElementType`** — `ElementType` is reserved for lists/channels/references. Getting this wrong silently passes compatibility checks because `typesCompatible` falls through to "compatible when unknown" whenever either side's `ValueType` is nil.
 
 ### Method and field resolution
 
@@ -548,6 +582,20 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 ### Variant enum codegen
 
 `generateVariantEnumDecl()` (in `codegen_decl.go`) emits: (1) a sealed marker interface (`type Shape interface{ isShape() }`), (2) a struct per case (`type Circle struct { radius float64 }`), and (3) marker methods (`func (Circle) isShape() {}`). Unit variants get empty structs. The `variantCaseTypes` map tracks case name → parent enum name.
+
+### Untyped composite literal codegen
+
+`generateUntypedCompositeLiteral` in `codegen_expr.go` dispatches on whether the semantic pass populated `expr.ResolvedType`:
+
+- **Resolved** → `generateResolvedCompositeLiteral` switches on the AST type:
+  - `*ast.NamedType` → `Point{x: 1, y: 2}`
+  - `*ast.ListType` → reuses the `generateTypeAnnotation` output (`[]T`) as the prefix
+  - `*ast.PrimitiveType` → `[]T{...}`
+  - `*ast.MapType` → `map[K]V{k: v, ...}`
+  - default fallback → prefixes with `typeName` and lets the Go compiler validate
+- **Unresolved** (no context) → defaults: empty `{}` → `map[any]any{}`, keyed `{k: v}` → `map[any]any{k: v}`, positional `{e1, e2}` → `[]any{e1, e2}`
+
+Contributors adding a new AST node that contains expressions **must** update three codegen walkers for untyped literals (these are easy to miss): `scanExprForAutoImports`, `walkExpr`, and `exprHasNonPrintfInterpolation`. The formatter also needs `maxExprLine` and `untypedCompositeLiteralToString` updated so wrapping/printing works.
 
 ### onerr code generation (Lowerer + IR)
 

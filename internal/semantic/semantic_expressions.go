@@ -2,6 +2,8 @@ package semantic
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/kukichalang/kukicha/internal/ast"
 )
@@ -772,9 +774,9 @@ func (a *Analyzer) analyzeMapLiteral(expr *ast.MapLiteralExpr) *TypeInfo {
 	}
 
 	return &TypeInfo{
-		Kind:        TypeKindMap,
-		KeyType:     keyType,
-		ElementType: valType,
+		Kind:      TypeKindMap,
+		KeyType:   keyType,
+		ValueType: valType,
 	}
 }
 
@@ -855,10 +857,21 @@ func (a *Analyzer) resolveUntypedLiteral(expr ast.Expression, expectedType ast.T
 // composite literal are compatible with the resolved type.
 func (a *Analyzer) validateUntypedLiteralAgainstType(expr *ast.UntypedCompositeLiteral, resolved *TypeInfo) {
 	switch resolved.Kind {
-	case TypeKindNamed:
+	case TypeKindNamed, TypeKindStruct:
 		// Struct — validate field names and value types
 		var structFields map[string]*TypeInfo
 		if sym := a.symbolTable.Resolve(resolved.Name); sym != nil && sym.Type != nil {
+			// Variant enum parent: reject — the user must specify a concrete case.
+			// The parent is lowered to a sealed Go interface, so Shape{...} is invalid.
+			if sym.Type.Kind == TypeKindVariant {
+				cases := make([]string, 0, len(sym.Type.VariantCases))
+				for name := range sym.Type.VariantCases {
+					cases = append(cases, name)
+				}
+				sort.Strings(cases)
+				a.error(expr.Pos(), fmt.Sprintf("cannot use untyped literal for variant enum '%s' — specify a concrete case (%s)", resolved.Name, strings.Join(cases, ", ")))
+				return
+			}
 			structFields = sym.Type.Fields
 		}
 		if structFields == nil {

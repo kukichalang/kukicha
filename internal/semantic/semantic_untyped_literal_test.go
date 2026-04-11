@@ -163,3 +163,88 @@ func TestUntypedLiteralBottomUpInference(t *testing.T) {
 		t.Errorf("unexpected error: %v", e)
 	}
 }
+
+// TestMapLiteralTypeMismatch verifies that analyzeMapLiteral stores the value
+// type on TypeInfo.ValueType (not ElementType) so that map-to-map compatibility
+// checks in typesCompatible can catch real mismatches instead of falling through
+// the "unknown = compatible" escape hatch.
+func TestMapLiteralTypeMismatch(t *testing.T) {
+	input := `func takes(m map of string to bool)
+    print("{m}")
+
+func main()
+    takes(map of string to int{"a": 1})
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "incompatible") || strings.Contains(e.Error(), "map of string to int") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected map type mismatch error, got: %v", errs)
+	}
+}
+
+// TestMapLiteralValueTypeFieldPopulated verifies the TypeInfo returned by
+// analyzeMapLiteral has ValueType populated (regression for a bug where it
+// was wrongly stored in ElementType).
+func TestMapLiteralValueTypePopulated(t *testing.T) {
+	input := `func main()
+    m := map of string to int{"a": 1}
+    _ = m
+`
+	analyzer, errs := analyzeSource(t, input)
+	for _, e := range errs {
+		t.Errorf("unexpected error: %v", e)
+	}
+	prog := analyzer.program
+	fn := prog.Declarations[0].(*ast.FunctionDecl)
+	decl := fn.Body.Statements[0].(*ast.VarDeclStmt)
+	lit, ok := decl.Values[0].(*ast.MapLiteralExpr)
+	if !ok {
+		t.Fatalf("expected MapLiteralExpr, got %T", decl.Values[0])
+	}
+	ti := analyzer.exprTypes[lit]
+	if ti == nil {
+		t.Fatal("expected TypeInfo recorded on map literal")
+	}
+	if ti.Kind != TypeKindMap {
+		t.Fatalf("expected TypeKindMap, got %v", ti.Kind)
+	}
+	if ti.ValueType == nil {
+		t.Fatal("expected ValueType to be populated, got nil (bug: value type leaking into ElementType field)")
+	}
+	if ti.ValueType.Kind != TypeKindInt {
+		t.Errorf("expected ValueType kind TypeKindInt, got %v", ti.ValueType.Kind)
+	}
+	if ti.KeyType == nil || ti.KeyType.Kind != TypeKindString {
+		t.Errorf("expected KeyType kind TypeKindString, got %v", ti.KeyType)
+	}
+}
+
+// TestUntypedLiteralVariantEnumParentRejected verifies that an untyped
+// composite literal is rejected when the resolved type is a variant enum
+// parent (which compiles to a sealed Go interface, so `Shape{...}` is invalid).
+func TestUntypedLiteralVariantEnumParentRejected(t *testing.T) {
+	input := `enum Shape
+    Circle
+        radius float64
+    Square
+        side float64
+
+func describe() Shape
+    return {radius: 5.0}
+`
+	_, errs := analyzeSource(t, input)
+	found := false
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "variant enum") && strings.Contains(e.Error(), "Shape") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected variant enum rejection error, got: %v", errs)
+	}
+}

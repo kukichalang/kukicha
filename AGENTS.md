@@ -25,6 +25,7 @@ All valid Go is valid Kukicha. Current version: **0.1.5**
 | (no sum types) | `enum Shape` with `Circle` / `Point` (variant enum) | |
 | `if _, ok := v.(Circle); ok` | `if v is Circle as c` (variant case check) | |
 | (no ternary) | `if COND then EXPR else EXPR` (if-expression) | |
+| `T{field: val}` or `[]T{e1, e2}` (always) | `{field: val}` / `{e1, e2}` when type is inferrable | |
 
 ## Keyword Aliases (English-Friendly Forms)
 
