@@ -100,6 +100,65 @@ func Tool(server reference mcp.Server, name string, description string, schema a
         }, empty
     )
 
+# ToolSamplingHandler is a tool handler that receives a *ServerSession so it
+# can invoke sampling (createMessage) on the connected AI client.
+# Register it with ToolWithSampling.
+type ToolSamplingHandler func(context.Context, reference ServerSession, map of string to any) (any, error)
+
+# ServerSession wraps *mcp.ServerSession so tool handlers can call sampling
+# without a direct dependency on the go-sdk.
+type ServerSession
+    inner reference mcp.ServerSession
+
+# CreateMessage sends a sampling/createMessage request to the connected client
+# and returns the AI-generated response. Use this inside a ToolWithSampling
+# handler to get AI completions during tool execution.
+func CreateMessage on ss reference ServerSession(ctx context.Context, params reference mcp.CreateMessageParams) (reference mcp.CreateMessageResult, error)
+    return ss.inner.CreateMessage(ctx, params)
+
+# CreateMessageWithTools sends a sampling request that includes tools and
+# supports array content in the response (parallel tool_use blocks).
+func CreateMessageWithTools on ss reference ServerSession(ctx context.Context, params reference mcp.CreateMessageWithToolsParams) (reference mcp.CreateMessageWithToolsResult, error)
+    return ss.inner.CreateMessageWithTools(ctx, params)
+
+# ToolWithSampling registers an MCP tool whose handler receives a *ServerSession
+# for sampling. This is the sampling-capable analogue of Tool.
+# Example:
+#   mcp.ToolWithSampling(server, "chat", "Chat with the AI", schema,
+#       func(ctx, session, args) {
+#           msgs := []*mcp.SamplingMessage{{Role: "user", Content: &mcp.TextContent{Text: args["message"].(string)}}}
+#           result, _ := session.CreateMessage(ctx, &mcp.CreateMessageParams{Messages: msgs, MaxTokens: 1024})
+#           return result.Content.(*mcp.TextContent).Text, nil
+#       })
+func ToolWithSampling(server reference mcp.Server, name string, description string, schema any, handler ToolSamplingHandler)
+    server.AddTool(reference of mcp.Tool{Name: name, Description: description, InputSchema: schema}, func(ctx context.Context, req reference mcp.CallToolRequest) (reference mcp.CallToolResult, error)
+        args := make(map of string to any)
+        if len(req.Params.Arguments) > 0
+            unmarshalErr := json.Unmarshal(req.Params.Arguments, reference of args)
+            if unmarshalErr != empty
+                return empty, unmarshalErr
+        ss := reference of ServerSession{inner: req.Session}
+        res, handlerErr := handler(ctx, ss, args)
+        if handlerErr != empty
+            return reference of mcp.CallToolResult{
+                Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}},
+                IsError: true,
+            }, empty
+
+        res |> switch as r
+            when reference mcp.CallToolResult
+                return r, empty
+            when string
+                return reference of mcp.CallToolResult{
+                    Content: list of mcp.Content{reference of mcp.TextContent{Text: r}},
+                }, empty
+
+        data, _ := json.Marshal(res)
+        return reference of mcp.CallToolResult{
+            Content: list of mcp.Content{reference of mcp.TextContent{Text: string(data)}},
+        }, empty
+    )
+
 # Client is a wrapper around mcp.Client for creating MCP client sessions.
 type Client
     inner reference mcp.Client
