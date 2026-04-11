@@ -1,0 +1,49 @@
+# triage.kuki — classify open GitHub issues with an LLM, flag the urgent ones.
+#
+# Usage:
+#   export ANTHROPIC_API_KEY=sk-ant-...
+#   kukicha run examples/triage.kuki
+#
+# This is the README hero example. See README.md for the Go-ergonomics pitch.
+
+import "stdlib/concurrent"
+import "stdlib/fetch"
+import "stdlib/json" as jsonpkg
+import "stdlib/llm"
+import "stdlib/slice"
+import "stdlib/sort"
+
+type Issue
+    number int
+    title string
+    body string
+
+type Verdict
+    number int
+    severity int # 1 = trivial .. 5 = on fire
+    kind string # bug | feature | docs | question
+    summary string
+
+func triage(i Issue) Verdict
+    reply := llm.New("anthropic:claude-sonnet-4-6")
+        |> llm.JSONMode()
+        |> llm.System("Classify GitHub issues. Reply JSON: \{severity:1-5, kind, summary\}")
+        |> llm.Ask("{i.title}\n\n{i.body}") onerr return Verdict{}
+
+    v := Verdict{number: i.number}
+    jsonpkg.UnmarshalString(reply, reference of v) onerr return Verdict{}
+    return v
+
+func main()
+    issues := fetch.Get("https://api.github.com/repos/golang/go/issues?per_page=20")
+        |> fetch.CheckStatus()
+        |> fetch.Json(empty list of Issue) onerr panic "github: {error}"
+
+    urgent := issues
+        |> concurrent.MapWithLimit(4, triage)
+        |> slice.Filter(v => v.severity >= 4)
+        |> sort.ByKey(v => -v.severity)
+
+    print("Needs attention:")
+    for v in urgent
+        print("  [P{v.severity}] {v.kind}  #{v.number}  {v.summary}")
