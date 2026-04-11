@@ -1,11 +1,11 @@
 ---
 name: cmd
-description: Kukicha CLI and code generator internals — subcommand descriptions, key functions, stdin/stdout wiring for kukicha-lsp, and test file coverage for cmd/kukicha, cmd/genstdlibregistry, and cmd/gengostdlib. Use when working on the CLI or generator binaries.
+description: Kukicha CLI and code generator internals — subcommand descriptions, key functions, stdin/stdout wiring for kukicha-lsp, kukicha-proxy module proxy, kukicha-wasm playground, and test file coverage for cmd/kukicha, cmd/genstdlibregistry, and cmd/gengostdlib. Use when working on the CLI or generator binaries.
 ---
 
 # cmd/ — CLI Entry Points
 
-The `cmd/` directory contains three standalone binaries, a Go→Kukicha converter, and two code generators.
+The `cmd/` directory contains five standalone binaries, a Go→Kukicha converter, and two code generators.
 
 ## Binaries
 
@@ -114,6 +114,41 @@ Key internal packages:
 - `internal/blend/suggestion.go` — `Suggestion` type, `PatternSet`, `ParsePatterns()`
 
 Build: `make blend` or `go build -o ./kukicha-blend ./cmd/kukicha-blend`
+
+### `cmd/kukicha-proxy/` — Go Module Proxy with Cooldown Filtering
+
+Self-hosted `GOPROXY` implementation, **written in Kukicha itself** (`main.kuki` + `main_test.go`). Adds first-seen timestamp tracking so only module versions that have been publicly available for a configurable cooldown period are served — a supply-chain mitigation against freshly uploaded malicious releases. See https://github.com/golang/go/issues/76485 for the upstream proposal that motivated it.
+
+Two modes:
+
+| Mode | Storage | Upstream | Use case |
+|------|---------|----------|----------|
+| `local` | On-disk JSON cache | `proxy.kukicha.org` (configurable) | Developer machines — dependency-free binary |
+| `hosted` | SQLite (via `stdlib/sqlite`) | `proxy.golang.org` | Shared team/org proxy |
+
+Exposes the standard GOPROXY endpoints (`/<module>/@v/list`, `/@latest`, `/<version>.info|.mod|.zip`) and proxies requests upstream after checking first-seen timestamps. Graceful shutdown wired through `os/signal` so the SQLite store flushes cleanly.
+
+Key types in `main.kuki`:
+- `versionRecord` — module/version/first-seen row (JSON- and SQL-tagged)
+- `seenStore` interface — pluggable backend (`FirstSeen`, `Shutdown`)
+- Local mode: JSON-backed store
+- Hosted mode: SQLite-backed store using `stdlib/db` + `stdlib/sqlite`
+
+Build: `kukicha build ./cmd/kukicha-proxy` (produces a standalone Go binary via the normal Kukicha build pipeline).
+
+### `cmd/kukicha-wasm/` — WASM Playground Entrypoint
+
+Single-file Go (~60 lines, `//go:build js && wasm`) that exposes **one** JS binding: `kukichaTranspile(source)` returns `{goSource, errors}`. Used by the web playground to run the full compiler pipeline (parser → semantic → codegen → `go/format`) entirely in the browser with no server round-trip.
+
+The `transpile()` function is panic-free — every pipeline stage funnels errors into `transpileResult.Errors` so the JS side gets structured output. The main loop installs the binding via `js.Global().Set("kukichaTranspile", ...)` and blocks on `<-make(chan struct{})` to keep the WASM module alive.
+
+Build:
+
+```bash
+GOOS=js GOARCH=wasm go build -o kukicha.wasm ./cmd/kukicha-wasm
+```
+
+Ship `kukicha.wasm` alongside `wasm_exec.js` (copied by `build.go`'s `wasmScaffold()` for the user-facing `--wasm` flag, or fetched from `$(go env GOROOT)/misc/wasm/` for the playground build).
 
 ## Code Generators
 

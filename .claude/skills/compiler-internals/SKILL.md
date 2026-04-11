@@ -150,6 +150,10 @@ Between HEAD→MID and MID→MID/TAIL, normal expression tokens are emitted. The
 
 **Brace depth tracking:** `interpStack []interpState` on the `Lexer` tracks nesting within each interpolation level. Each `interpState` stores `braceDepth int` and `quote rune` (either `'"'` or `'\''`). `{` inside an interpolation increments the top entry's `braceDepth`; `}` at depth 0 ends the interpolation and resumes string scanning via `scanStringContinuation(quote)`, which uses the stored quote to know which delimiter terminates the string. This correctly handles nested braces like `{MyStruct{field: 1}}` and interpolation in both double-quoted and single-quoted strings.
 
+### Backtick raw string literals
+
+`scanRawString()` scans `` `...` `` raw string literals, emitting `TOKEN_STRING_RAW`. Follows Go semantics: no escape processing, no interpolation, may span multiple lines. Backticks cannot appear in the content (Go's own restriction — there is no escape mechanism inside raw strings). NUL bytes are rejected.
+
 ### Single-quote multi-line strings
 
 `scanSingleQuoteString()` scans `'...'` strings. These are multi-line with auto-dedent (same as `"""..."""`), but use single quotes — ideal for HTML templating where double quotes are used for attributes. The raw content is collected, then passed to `dedentTripleQuote()` and `scanStringFromContent()` for interpolation tokenization. Escape `\'` for literal single quotes inside.
@@ -267,6 +271,22 @@ Always store the keyword's `lexer.Token` as the first field — it carries line/
 
 `OnErrClause` is **not** a standalone `Statement` or `Expression`. It is an optional field on `VarDeclStmt`, `AssignStmt`, and `ExpressionStmt`. The `Handler` field holds the parsed error handler expression (`PanicExpr`, `EmptyExpr`, `DiscardExpr`, `ReturnExpr`, or a default value expression). Shorthand forms use boolean flags instead of `Handler`: `ShorthandReturn`, `ShorthandContinue`, `ShorthandBreak`.
 
+### IsExpr (variant case check)
+
+`IsExpr` represents a variant case check: `EXPR is CaseName` or `EXPR is CaseName as v`. Fields: `Value Expression` (the tagged union being inspected), `Case *Identifier` (the variant case name), optional `Binding *Identifier` (the `as v` binding).
+
+The binding form is only valid in an `if` condition. The analyzer's `allowIsBinding bool` transient is set to `true` while analyzing an if condition and checked when `IsExpr.Binding != nil` — anywhere else triggers a compile error. The binding's narrowed type is recorded on `exprTypes` so the if body can use it as the concrete case struct.
+
+Codegen has two paths:
+- **As if-condition with binding:** `generateIfStmt` detects `*ast.IsExpr` with `Binding != nil` and emits Go's type-switch-style init: `if c, _isOk := v.(Circle); _isOk { ... }` (see `isExprBindingHeader` in `codegen_stmt.go`).
+- **As a bare expression** (e.g. inside a boolean combinator, or binding-less): `generateIsExpr` emits an IIFE `func() bool { _, _isOk := v.(Circle); return _isOk }()` so the check works in any expression position.
+
+### IfExpression (if-then-else value form)
+
+`IfExpression` represents the value-producing form `if COND then THEN else ELSE`. Fields: `Condition`, `Then Expression`, `Else Expression` (required). Chained `else if` is encoded as a nested `IfExpression` in the `Else` slot, not a separate construct.
+
+Codegen (`generateIfExpression`) emits a Go IIFE: `func() T { if cond { return then } else { return else } }()`. The return type is inferred via `inferExprType(expr)` with a fallback to `inferExprType(expr.Then)` and finally `any`. Nested `IfExpression` in the `Else` slot is flattened by `buildIfExprElseChain` into a real `else if`/`else` chain rather than a sequence of nested IIFEs.
+
 ### PipedSwitchExpr
 
 `PipedSwitchExpr` represents both regular and typed piped switches:
@@ -295,6 +315,7 @@ Currently supported directives:
 | File | Contents |
 |------|---------|
 | `semantic.go` | Core `Analyzer` struct, `New`, `Analyze`, `AnalyzeResult`, `AnalysisResult` type, error/warn helpers |
+| `diagnostic.go` | Structured `Diagnostic{File,Line,Col,Severity,Category,Message,Suggestion}` (JSON-tagged for `kukicha check --json`), `RenderPretty()` (Elm-style source-line block with caret + hint, optional ANSI color) |
 | `semantic_directives.go` | `DirectiveResult` struct, `CollectDirectives()` — extracts deprecated/panics/todo from AST directives |
 | `semantic_declarations.go` | Package name validation, skill validation, declaration collection/analysis, enum validation and exhaustiveness checking |
 | `semantic_statements.go` | Statement analysis (`analyzeBlock`, `analyzeStatement`, `analyzeIfStmt`, …) |
@@ -312,7 +333,7 @@ Currently supported directives:
 
 ### Analyzer struct layout
 
-The `Analyzer` has 17 fields grouped by lifecycle phase:
+The `Analyzer` has 18 fields grouped by lifecycle phase:
 
 | Group | Fields |
 |-------|--------|
@@ -320,9 +341,11 @@ The `Analyzer` has 17 fields grouped by lifecycle phase:
 | Infrastructure | `symbolTable`, `security`, `errors`, `warnings` |
 | Pre-pass output | `directives *DirectiveResult` (set once by `CollectDirectives`) |
 | Pass 1 output | `importAliases` |
-| Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrAlias`, `inPipedSwitch` |
+| Pass 2 transient | `currentFunc`, `loopDepth`, `switchDepth`, `inOnerr`, `currentOnerrAlias`, `inPipedSwitch`, `allowIsBinding` |
 | Pass 2 output | `exprReturnCounts`, `exprTypes` |
 | Lint candidates | `lintCandidates []LintCandidate` (collected during analysis, emitted in final pass) |
+
+`allowIsBinding` is set to `true` for the duration of an if-condition analysis and consumed by `analyzeIsExpr` to allow the `is Case as v` binding form (rejected everywhere else).
 
 ### Analysis passes
 
@@ -657,6 +680,23 @@ Use `g.write(str)` (no indent) or `g.writeLine(str)` (with current indent + newl
 | `printStatement()` | `printStatementWithComments()` |
 
 Some base `Printer` methods are called directly by both paths (e.g., `printVarDeclStmt`, `printAssignStmt`, `printReturnStmt`, `exprToString`), so fixes there propagate automatically. But inline logic in the duplicated methods must be updated in both places.
+
+### Width-driven wrapping (`maxLineWidth = 100`)
+
+The formatter wraps pipe chains and collection literals (`StructLiteralExpr`, `ListLiteralExpr`, `MapLiteralExpr`) when the single-line rendering would exceed `maxLineWidth` (100 characters, counting the current indent). This lives in `printer.go`'s `pipeExprToString`, `structLiteralToString`, `listLiteralToString`, and `mapLiteralToString`.
+
+### User-authored multiline preservation (`WasMultiline`)
+
+To avoid collapsing short multiline layouts the user deliberately wrote (e.g., demo code, docstrings, config-style struct literals), four AST nodes carry a `WasMultiline bool` field:
+
+- `PipeExpr`
+- `StructLiteralExpr`
+- `ListLiteralExpr`
+- `MapLiteralExpr`
+
+The parser sets `WasMultiline = true` when the source span crosses line boundaries — for collection literals this is a straightforward `closeTok.Line > openTok.Line` check captured from the `consume(RBRACE/RBRACKET)` token; for pipe chains the flag is set whenever a `|>` operator token appears on a later line than the previous meaningful token, and it carries forward through the entire chain so any intermediate PipeExpr in the spine signals the whole chain.
+
+The formatter's single-line-early-return checks (`pipeExprToString` walks down the `Left` spine looking for any PipeExpr with `WasMultiline`; the three literal functions check `!expr.WasMultiline && fitsOnLine`) keep authored multiline layouts across format passes while still wrapping overlong single-line input and collapsing short single-line input. This is the mechanism that prevents `kukicha fmt -w` from destroying demo code that was previously broken by the 100-char wrap rule.
 
 ### Parenthesis preservation
 
