@@ -357,7 +357,7 @@ function main()
     print("Server running on http://localhost:8080")
     print("")
     print("Try these commands in another terminal:")
-    print("  curl -X POST -d '{\"url\":\"https://go.dev\"}' http://localhost:8080/shorten")
+    print(`  curl -X POST -d '{"url":"https://go.dev"}' http://localhost:8080/shorten`)
     print("  curl -L http://localhost:8080/r/1")
     print("")
 

@@ -126,7 +126,13 @@ function draw(screen game.Screen)
     game.DrawCircle(screen, ball.X, ball.Y, ball.Radius, game.Yellow)
 
     # Draw bricks with row-based colors
-    colors := list of game.Color{game.Red, game.Orange, game.Yellow, game.Green, game.Blue}
+    colors := list of game.Color{
+        game.Red,
+        game.Orange,
+        game.Yellow,
+        game.Green,
+        game.Blue,
+    }
     for i from 0 to len(bricks)
         if not alive[i]
             continue

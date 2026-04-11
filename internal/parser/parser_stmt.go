@@ -665,7 +665,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 		return p.parseMultiValueAssignmentStmt()
 	}
 
-	expr := p.parseExpression()
+	expr := p.parseStatementExpression()
 
 	// Check for increment/decrement operators
 	if p.match(lexer.TOKEN_PLUS_PLUS, lexer.TOKEN_MINUS_MINUS) {
@@ -682,7 +682,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 	if p.match(lexer.TOKEN_ASSIGN, lexer.TOKEN_BIT_AND_ASSIGN) {
 		operator := p.previousToken()
 		// Regular assignment: x = value
-		values := p.parseExpressionList()
+		values := p.parseStatementExpressionList()
 		stmt := &ast.AssignStmt{
 			Targets: []ast.Expression{expr},
 			Values:  values,
@@ -708,7 +708,7 @@ func (p *Parser) parseExpressionOrAssignmentStmt() ast.Statement {
 			p.error(p.previousToken(), "walrus operator can only be used with identifiers")
 			return nil
 		}
-		values := p.parseExpressionList()
+		values := p.parseStatementExpressionList()
 		stmt := &ast.VarDeclStmt{
 			Names:  []*ast.Identifier{ident},
 			Values: values,
@@ -815,7 +815,7 @@ func (p *Parser) parseMultiValueAssignmentStmt() ast.Statement {
 	if p.match(lexer.TOKEN_WALRUS) {
 		operator := p.previousToken()
 		// Multi-value declaration: x, y := expr, expr
-		values := p.parseExpressionList()
+		values := p.parseStatementExpressionList()
 		stmt := &ast.VarDeclStmt{
 			Names:  names,
 			Values: values,
@@ -830,7 +830,7 @@ func (p *Parser) parseMultiValueAssignmentStmt() ast.Statement {
 	} else if p.match(lexer.TOKEN_ASSIGN) {
 		operator := p.previousToken()
 		// Multi-value assignment: x, y = expr, expr
-		values := p.parseExpressionList()
+		values := p.parseStatementExpressionList()
 		stmt := &ast.AssignStmt{
 			Targets: targets,
 			Values:  values,
@@ -863,6 +863,20 @@ func (p *Parser) parseExpressionList() []ast.Expression {
 	}
 
 	return expressions
+}
+
+func (p *Parser) parseStatementExpression() ast.Expression {
+	prev := p.allowInlineOnErr
+	p.allowInlineOnErr = false
+	defer func() { p.allowInlineOnErr = prev }()
+	return p.parseExpression()
+}
+
+func (p *Parser) parseStatementExpressionList() []ast.Expression {
+	prev := p.allowInlineOnErr
+	p.allowInlineOnErr = false
+	defer func() { p.allowInlineOnErr = prev }()
+	return p.parseExpressionList()
 }
 
 // parseOnErrClause parses the onerr clause after a statement.

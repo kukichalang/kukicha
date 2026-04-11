@@ -125,7 +125,7 @@ func TestContains(t reference testing.T)
 # --- TestIsEmpty ---
 func TestIsEmpty(t reference testing.T)
     t.Run("empty set", (t reference testing.T) =>
-        test.AssertTrue(t, set.IsEmpty(set.From(empty list of string)))
+        test.AssertTrue(t, set.IsEmpty(set.New("")))
     )
 
     t.Run("non-empty set", (t reference testing.T) =>

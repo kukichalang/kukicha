@@ -179,7 +179,7 @@ func TestIsEmpty(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set_test.kuki:127
 	t.Run("empty set", func(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set_test.kuki:128
-		test.AssertTrue(t, set.IsEmpty(set.From([]string{})))
+		test.AssertTrue(t, set.IsEmpty(set.New("")))
 	})
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set_test.kuki:131
 	t.Run("non-empty set", func(t *testing.T) {

@@ -77,6 +77,35 @@ func Process(path string) int
 	}
 }
 
+func TestInlineOnErrReturnExpressionValid(t *testing.T) {
+	input := `func readData(path string) (string, error)
+    return "data", empty
+
+func Process(path string) string
+    return readData(path) onerr ""
+`
+	errors := analyzeInput(t, input)
+	if len(errors) > 0 {
+		t.Errorf("expected no semantic errors for inline onerr return expression, got: %v", errors)
+	}
+}
+
+func TestInlineOnErrReturnExpressionRejectsWrongDefaultType(t *testing.T) {
+	input := `func readData(path string) (string, error)
+    return "data", empty
+
+func Process(path string) string
+    return readData(path) onerr 0
+`
+	errors := analyzeInput(t, input)
+	if len(errors) == 0 {
+		t.Fatal("expected semantic error for mismatched inline onerr default type")
+	}
+	if !strings.Contains(errors[0].Error(), "inline onerr default value") {
+		t.Errorf("expected inline onerr default type error, got: %v", errors[0])
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Proposal B: onerr as e — {err} diagnostic improvement
 // ---------------------------------------------------------------------------

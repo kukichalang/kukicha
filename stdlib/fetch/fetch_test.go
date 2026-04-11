@@ -109,7 +109,7 @@ type JsonArrayCase struct {
 //line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:74
 func TestJsonArray(t *testing.T) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:75
-	jsonBytes := []byte("[{\"message\":\"a\",\"count\":1},{\"message\":\"b\",\"count\":2}]")
+	jsonBytes := []byte(`[{"message":"a","count":1},{"message":"b","count":2}]`)
 //line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:76
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line /var/home/tluker/repos/go/kukicha/stdlib/fetch/fetch_test.kuki:77

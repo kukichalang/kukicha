@@ -38,10 +38,7 @@ func tofuInit(stackPath string)
         cli.Fatal("tofu init failed for {stackPath}: {error}")
 
 func tofuOutput(stackPath string, key string) string
-    result := shell.Output("tofu", "-chdir=" + stackPath, "output", "-raw", key) onerr
-        return ""
-
-    return result
+    return shell.Output("tofu", "-chdir=" + stackPath, "output", "-raw", key) onerr ""
 
 # ── Apply a Stack (plan → guard → apply) ─────────────────────
 # Returns a variant enum — caller pattern-matches on the outcome

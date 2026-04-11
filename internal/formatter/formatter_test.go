@@ -155,6 +155,18 @@ func TestFormatOnErrShorthandReturn(t *testing.T) {
 	assertFormatted(t, source, expected)
 }
 
+func TestFormatInlineOnErrReturnExpression(t *testing.T) {
+	source := `func Read(path string) string
+    return files.ReadAll(path) onerr ""
+`
+
+	expected := `func Read(path string) string
+    return files.ReadAll(path) onerr ""
+`
+
+	assertFormatted(t, source, expected)
+}
+
 func TestFormatOnErrShorthandContinue(t *testing.T) {
 	source := `func Process(items list of string) list of string
     results := make(list of string, 0)

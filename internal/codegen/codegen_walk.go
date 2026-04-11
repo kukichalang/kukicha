@@ -381,6 +381,8 @@ func (g *Generator) walkExpr(expr ast.Expression, visit func(ast.Expression) boo
 				return true
 			}
 		}
+	case *ast.OnErrExpr:
+		return g.walkExpr(e.Expression, visit) || g.walkExpr(e.Default, visit)
 	case *ast.MakeExpr:
 		for _, arg := range e.Args {
 			if g.walkExpr(arg, visit) {
@@ -699,6 +701,8 @@ func (g *Generator) exprHasNonPrintfInterpolation(expr ast.Expression) bool {
 		if slices.ContainsFunc(e.Values, g.exprHasNonPrintfInterpolation) {
 			return true
 		}
+	case *ast.OnErrExpr:
+		return g.exprHasNonPrintfInterpolation(e.Expression) || g.exprHasNonPrintfInterpolation(e.Default)
 	case *ast.MakeExpr:
 		if slices.ContainsFunc(e.Args, g.exprHasNonPrintfInterpolation) {
 			return true

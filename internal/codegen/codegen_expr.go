@@ -183,6 +183,8 @@ func (g *Generator) exprToString(expr ast.Expression) string {
 		return fmt.Sprintf("errors.New(%s)", g.exprToString(e.Message))
 	case *ast.ReturnExpr:
 		return g.generateReturnExpr(e)
+	case *ast.OnErrExpr:
+		return g.generateInlineOnErrExpr(e)
 	case *ast.MakeExpr:
 		return g.generateMakeExpr(e)
 	case *ast.CloseExpr:
@@ -1052,7 +1054,7 @@ var printfReceiverMethods = map[string]bool{
 	"Printf": true,
 	"Warnf":  true,
 	"Infof":  true,
-	"Debugf":  true,
+	"Debugf": true,
 }
 
 // knownPackages lists import package names that should use printfPackageFuncs
@@ -1199,12 +1201,38 @@ func (g *Generator) generateMakeExpr(expr *ast.MakeExpr) string {
 	return fmt.Sprintf("make(%s, %s)", targetType, strings.Join(args, ", "))
 }
 
-
-
 func (g *Generator) generateReturnExpr(expr *ast.ReturnExpr) string {
 	values := make([]string, len(expr.Values))
 	for i, v := range expr.Values {
 		values[i] = g.exprToString(v)
 	}
 	return "return " + strings.Join(values, ", ")
+}
+
+func (g *Generator) generateInlineOnErrExpr(expr *ast.OnErrExpr) string {
+	valueVar := g.uniqueId("onerrVal")
+	errVar := g.uniqueId("err")
+	valueType := "any"
+	if ti, ok := g.exprTypes[expr]; ok && ti != nil && ti.Kind != semantic.TypeKindUnknown {
+		valueType = g.typeInfoToGoString(ti)
+	} else if ti, ok := g.exprTypes[expr.Expression]; ok && ti != nil && ti.Kind != semantic.TypeKindUnknown {
+		valueType = g.typeInfoToGoString(ti)
+	} else if g.currentReturnIndex >= 0 && g.currentReturnIndex < len(g.currentReturnTypes) {
+		valueType = g.generateTypeAnnotation(g.currentReturnTypes[g.currentReturnIndex])
+	}
+
+	return fmt.Sprintf(
+		"func() %s {\n%s\t%s, %s := %s\n%s\tif %s != nil {\n%s\t\treturn %s\n%s\t}\n%s\treturn %s\n%s}()",
+		valueType,
+		g.indentStr(),
+		valueVar, errVar, g.exprToString(expr.Expression),
+		g.indentStr(),
+		errVar,
+		g.indentStr(),
+		g.exprToString(expr.Default),
+		g.indentStr(),
+		g.indentStr(),
+		valueVar,
+		g.indentStr(),
+	)
 }

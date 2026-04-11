@@ -137,7 +137,7 @@ func doList(args cli.Args, initialTag string)
             result = append(result, je)
         jsonpkg.WriteOutput(result) onerr panic "{error}"
     else if csv
-        print("\"repo\",\"current_tag\",\"next_tag\"")
+        print(`"repo","current_tag","next_tag"`)
         for entry in entries
             display := entry.current
             if display equals ""

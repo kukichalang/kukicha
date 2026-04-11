@@ -229,6 +229,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression) (result *TypeInfo) {
 			a.analyzeExpression(v)
 		}
 		return &TypeInfo{Kind: TypeKindUnknown}
+	case *ast.OnErrExpr:
+		return a.analyzeInlineOnErrExpr(e)
 	case *ast.ErrorExpr:
 		if e.Message != nil {
 			a.analyzeExpression(e.Message)
@@ -266,6 +268,8 @@ func (a *Analyzer) analyzeExpressionMulti(expr ast.Expression) []*TypeInfo {
 		return []*TypeInfo{a.analyzeFieldAccessExpr(e, nil)}
 	case *ast.PipeExpr:
 		return a.analyzePipeExprMulti(e)
+	case *ast.OnErrExpr:
+		return []*TypeInfo{a.analyzeInlineOnErrExpr(e)}
 	case *ast.IndexExpr:
 		// Map index supports two-value form: val, ok := m[key]
 		leftType := a.analyzeExpression(e.Left)

@@ -23,6 +23,7 @@ type Parser struct {
 	pos               int
 	errors            []error         // Collected errors - parsing continues after errors for better diagnostics
 	pendingDirectives []ast.Directive // Directives collected before the next declaration
+	allowInlineOnErr  bool
 }
 
 // New creates a new parser from a source string.
@@ -41,24 +42,27 @@ func New(source string, filename string) (*Parser, error) {
 		// positioned "file:line:col: message" diagnostics rather than a
 		// single opaque "lexer errors: [...]" string.
 		return &Parser{
-			tokens: nil,
-			pos:    0,
-			errors: l.Errors(),
+			tokens:           nil,
+			pos:              0,
+			errors:           l.Errors(),
+			allowInlineOnErr: true,
 		}, nil
 	}
 	return &Parser{
-		tokens: tokens,
-		pos:    0,
-		errors: []error{},
+		tokens:           tokens,
+		pos:              0,
+		errors:           []error{},
+		allowInlineOnErr: true,
 	}, nil
 }
 
 // NewFromTokens creates a new parser from a slice of tokens
 func NewFromTokens(tokens []lexer.Token) *Parser {
 	return &Parser{
-		tokens: tokens,
-		pos:    0,
-		errors: []error{},
+		tokens:           tokens,
+		pos:              0,
+		errors:           []error{},
+		allowInlineOnErr: true,
 	}
 }
 

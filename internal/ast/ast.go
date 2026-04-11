@@ -332,9 +332,9 @@ func (t *FunctionType) typeNode() {}
 // OnErrClause represents the error handling part of an onerr statement.
 // It is not an AST node itself — it is a field on VarDeclStmt, AssignStmt, and ExpressionStmt.
 type OnErrClause struct {
-	Token           lexer.Token // The 'onerr' token
-	Handler         Expression  // Error handler (panic, error, empty, discard, or default value)
-	Explain         string      // Optional explanation/hint for LLM (e.g., onerr explain "hint message")
+	Token             lexer.Token // The 'onerr' token
+	Handler           Expression  // Error handler (panic, error, empty, discard, or default value)
+	Explain           string      // Optional explanation/hint for LLM (e.g., onerr explain "hint message")
 	ShorthandReturn   bool        // True for bare "onerr return" — propagate error with zero values
 	ShorthandContinue bool        // True for bare "onerr continue"
 	ShorthandBreak    bool        // True for bare "onerr break"
@@ -957,6 +957,18 @@ func (e *ReturnExpr) Pos() Position {
 	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
 }
 func (e *ReturnExpr) exprNode() {}
+
+type OnErrExpr struct {
+	Token      lexer.Token // The 'onerr' token
+	Expression Expression
+	Default    Expression
+}
+
+func (e *OnErrExpr) TokenLiteral() string { return e.Token.Lexeme }
+func (e *OnErrExpr) Pos() Position {
+	return Position{Line: e.Token.Line, Column: e.Token.Column, File: e.Token.File}
+}
+func (e *OnErrExpr) exprNode() {}
 
 type MakeExpr struct {
 	Token lexer.Token // The 'make' token

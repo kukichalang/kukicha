@@ -530,7 +530,10 @@ import "stdlib/string"
 function main()
     text := "  HELLO world  "
 
-    clean := text |> string.TrimSpace() |> string.ToLower() |> string.Title()
+    clean := text
+        |> string.TrimSpace()
+        |> string.ToLower()
+        |> string.Title()
     print(clean)  # "Hello World"
 ```
 

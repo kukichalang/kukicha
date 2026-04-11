@@ -87,7 +87,10 @@ func TestOpenWith(t reference testing.T)
         t.Run(tc.name, (t reference testing.T) =>
             dir := t.TempDir()
             path := filepath.Join(dir, "test.db")
-            pragmas := map of string to string{"journal_mode": "WAL", "busy_timeout": "5000"}
+            pragmas := map of string to string{
+                "journal_mode": "WAL",
+                "busy_timeout": "5000",
+            }
 
             pool := sqlite.OpenWith(path, pragmas) onerr panic "open: {error}"
             defer db.Close(pool)

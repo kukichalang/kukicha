@@ -212,7 +212,11 @@ variable shakeTimer int = 0
 
 variable shakeIntensity float64 = 0.0
 
-variable levelNames list of string = list of string{"First Steep", "Quality Control", "The Full Blend"}
+variable levelNames list of string = list of string{
+    "First Steep",
+    "Quality Control",
+    "The Full Blend",
+}
 
 variable levelDescs list of string = list of string{
     "Two lanes. Match the order.",

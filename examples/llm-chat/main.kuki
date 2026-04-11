@@ -173,7 +173,9 @@ func main()
     # 11. OpenResponses multi-turn with previous_response_id
     # ──────────────────────────────────────
     print("--- OpenResponses: Multi-turn ---")
-    firstResp, err11 := llm.NewResponse("openai:gpt-4o") |> llm.RStore |> llm.RAskRaw("What is a goroutine?")
+    firstResp, err11 := llm.NewResponse("openai:gpt-4o")
+        |> llm.RStore
+        |> llm.RAskRaw("What is a goroutine?")
     if err11 isnt empty
         print("Error: {err11}")
     else

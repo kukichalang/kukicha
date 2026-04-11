@@ -1102,6 +1102,8 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 			vals[i] = p.exprToString(v)
 		}
 		return "return " + strings.Join(vals, ", ")
+	case *ast.OnErrExpr:
+		return p.exprToString(e.Expression) + " onerr " + p.exprToString(e.Default)
 	case *ast.RecoverExpr:
 		return "recover"
 	case *ast.ArrowLambda:

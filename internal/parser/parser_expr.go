@@ -26,11 +26,30 @@ import (
 // 10. postfix (call, index, slice, method call)
 // 11. primary
 //
-// Note: onerr is NOT an expression operator. It is a statement-level clause
-// attached to VarDeclStmt, AssignStmt, or ExpressionStmt.
+// Note: onerr supports both statement-level clauses and expression form.
+// The expression form (`EXPR onerr DEFAULT`) is enabled in expression contexts
+// like `return`, but statement parsing temporarily disables it so existing
+// statement-level `x := f() onerr return` forms keep their current meaning.
 
 func (p *Parser) parseExpression() ast.Expression {
+	if p.allowInlineOnErr {
+		return p.parseOnErrExpr()
+	}
 	return p.parseOrExpr()
+}
+
+func (p *Parser) parseOnErrExpr() ast.Expression {
+	left := p.parseOrExpr()
+	if !p.match(lexer.TOKEN_ONERR) {
+		return left
+	}
+
+	token := p.previousToken()
+	return &ast.OnErrExpr{
+		Token:      token,
+		Expression: left,
+		Default:    p.parseExpression(),
+	}
 }
 
 func (p *Parser) parseOrExpr() ast.Expression {
@@ -544,30 +563,30 @@ func isIdentifierToken(t lexer.TokenType) bool {
 	case lexer.TOKEN_IDENTIFIER,
 		// Keywords accepted as identifiers — these are Go builtins or
 		// common English words that users need as field/method names.
-		lexer.TOKEN_EMPTY,    // empty / nil — already accepted pre-existing
-		lexer.TOKEN_ERROR,    // error — Go's error type, very common field name
-		lexer.TOKEN_CLOSE,    // close — Go builtin, common method name
-		lexer.TOKEN_MAKE,     // make — factory methods
-		lexer.TOKEN_SEND,     // send — networking/messaging APIs
-		lexer.TOKEN_RECEIVE,  // receive — networking/messaging APIs
-		lexer.TOKEN_PANIC,    // panic — Go builtin, plausible method name
-		lexer.TOKEN_RECOVER,  // recover — Go builtin, plausible method name
-		lexer.TOKEN_MAP,      // map — functional .map() methods
-		lexer.TOKEN_LIST,     // list — registry.list(), very common
-		lexer.TOKEN_CHANNEL,  // channel — plausible field name
-		lexer.TOKEN_SELECT,   // select — db.select(), query builders
-		lexer.TOKEN_TYPE,     // type — node.type, very common field name
-		lexer.TOKEN_SKILL,    // skill — plausible field name
-		lexer.TOKEN_ENUM,     // enum — plausible field name
-		lexer.TOKEN_ON,       // on — event.on(), event APIs
-		lexer.TOKEN_OF,       // of — plausible field name
-		lexer.TOKEN_AS,       // as — converter.as()
-		lexer.TOKEN_FROM,     // from — range.from, query builders
-		lexer.TOKEN_TO,       // to — range.to, query builders
-		lexer.TOKEN_IN,       // in — plausible field name
-		lexer.TOKEN_DEFAULT,  // default/otherwise — config.default
-		lexer.TOKEN_DISCARD,  // discard — plausible method name
-		lexer.TOKEN_MANY:     // many — plausible field name
+		lexer.TOKEN_EMPTY,   // empty / nil — already accepted pre-existing
+		lexer.TOKEN_ERROR,   // error — Go's error type, very common field name
+		lexer.TOKEN_CLOSE,   // close — Go builtin, common method name
+		lexer.TOKEN_MAKE,    // make — factory methods
+		lexer.TOKEN_SEND,    // send — networking/messaging APIs
+		lexer.TOKEN_RECEIVE, // receive — networking/messaging APIs
+		lexer.TOKEN_PANIC,   // panic — Go builtin, plausible method name
+		lexer.TOKEN_RECOVER, // recover — Go builtin, plausible method name
+		lexer.TOKEN_MAP,     // map — functional .map() methods
+		lexer.TOKEN_LIST,    // list — registry.list(), very common
+		lexer.TOKEN_CHANNEL, // channel — plausible field name
+		lexer.TOKEN_SELECT,  // select — db.select(), query builders
+		lexer.TOKEN_TYPE,    // type — node.type, very common field name
+		lexer.TOKEN_SKILL,   // skill — plausible field name
+		lexer.TOKEN_ENUM,    // enum — plausible field name
+		lexer.TOKEN_ON,      // on — event.on(), event APIs
+		lexer.TOKEN_OF,      // of — plausible field name
+		lexer.TOKEN_AS,      // as — converter.as()
+		lexer.TOKEN_FROM,    // from — range.from, query builders
+		lexer.TOKEN_TO,      // to — range.to, query builders
+		lexer.TOKEN_IN,      // in — plausible field name
+		lexer.TOKEN_DEFAULT, // default/otherwise — config.default
+		lexer.TOKEN_DISCARD, // discard — plausible method name
+		lexer.TOKEN_MANY:    // many — plausible field name
 		return true
 	default:
 		return false
@@ -614,6 +633,7 @@ func (p *Parser) parseFloatLiteral() *ast.FloatLiteral {
 		Value: value,
 	}
 }
+
 // parseStringLiteral parses a non-interpolated string (TOKEN_STRING).
 func (p *Parser) parseStringLiteral() *ast.StringLiteral {
 	token := p.advance()

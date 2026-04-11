@@ -77,6 +77,30 @@ func (a *Analyzer) analyzeOnErrClause(clause *ast.OnErrClause) {
 	a.currentOnerrAlias = prevAlias
 }
 
+func (a *Analyzer) analyzeInlineOnErrExpr(expr *ast.OnErrExpr) *TypeInfo {
+	valueTypes := a.analyzeExpressionMulti(expr.Expression)
+	if len(valueTypes) != 2 {
+		a.error(expr.Pos(), fmt.Sprintf("inline onerr requires an expression returning (T, error), got %d values", len(valueTypes)))
+		a.analyzeExpression(expr.Default)
+		return &TypeInfo{Kind: TypeKindUnknown}
+	}
+
+	errType := valueTypes[1]
+	if errType == nil || errType.Kind != TypeKindNamed || errType.Name != "error" {
+		a.error(expr.Pos(), "inline onerr requires an expression returning (T, error)")
+		a.analyzeExpression(expr.Default)
+		return valueTypes[0]
+	}
+
+	defaultType := a.analyzeExpression(expr.Default)
+	if !a.typesCompatible(valueTypes[0], defaultType) {
+		a.error(expr.Default.Pos(), fmt.Sprintf("inline onerr default value must be assignable to %s, got %s", valueTypes[0], defaultType))
+	}
+
+	a.recordReturnCount(expr, 1)
+	return valueTypes[0]
+}
+
 // funcReturnsError reports whether the function's last return type is "error".
 func funcReturnsError(decl *ast.FunctionDecl) bool {
 	if len(decl.Returns) == 0 {
@@ -144,4 +168,3 @@ func patchExprPosition(expr ast.Expression, file string, line, column int) {
 		}
 	}
 }
-

@@ -477,6 +477,8 @@ func (g *Generator) inferReturnCount(expr ast.Expression) (int, bool) {
 		return 0, false
 	case *ast.FieldAccessExpr:
 		return 1, true
+	case *ast.OnErrExpr:
+		return 1, true
 	}
 	return 0, false
 }

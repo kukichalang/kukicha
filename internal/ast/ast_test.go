@@ -196,12 +196,13 @@ func TestNodeInterface_Expressions(t *testing.T) {
 		&DerefExpr{Token: lexer.Token{Lexeme: "dereference", Line: 25, Column: 1}},
 		&ArrowLambda{Token: lexer.Token{Lexeme: "=>", Line: 26, Column: 1}},
 		&ReturnExpr{Token: lexer.Token{Lexeme: "return", Line: 27, Column: 1}},
-		&FunctionLiteral{Token: lexer.Token{Lexeme: "func", Line: 28, Column: 1}},
-		&NamedArgument{Token: lexer.Token{Lexeme: "name", Line: 29, Column: 1}},
-		&StructLiteralExpr{Token: lexer.Token{Lexeme: "User", Line: 30, Column: 1}},
-		&ListLiteralExpr{Token: lexer.Token{Lexeme: "[", Line: 31, Column: 1}},
-		&MapLiteralExpr{Token: lexer.Token{Lexeme: "{", Line: 32, Column: 1}},
-		&BlockExpr{Token: lexer.Token{Lexeme: "INDENT", Line: 33, Column: 1}},
+		&OnErrExpr{Token: lexer.Token{Lexeme: "onerr", Line: 28, Column: 1}},
+		&FunctionLiteral{Token: lexer.Token{Lexeme: "func", Line: 29, Column: 1}},
+		&NamedArgument{Token: lexer.Token{Lexeme: "name", Line: 30, Column: 1}},
+		&StructLiteralExpr{Token: lexer.Token{Lexeme: "User", Line: 31, Column: 1}},
+		&ListLiteralExpr{Token: lexer.Token{Lexeme: "[", Line: 32, Column: 1}},
+		&MapLiteralExpr{Token: lexer.Token{Lexeme: "{", Line: 33, Column: 1}},
+		&BlockExpr{Token: lexer.Token{Lexeme: "INDENT", Line: 34, Column: 1}},
 	}
 	for _, n := range nodes {
 		if n.TokenLiteral() == "" {

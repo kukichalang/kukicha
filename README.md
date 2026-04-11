@@ -9,24 +9,45 @@ Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go**,
 ## Go vs Kukicha
 
 ```go
-// Go — 8 lines of error ceremony
-data, err := fetchData()
-if err != nil {
-    return fmt.Errorf("fetch: %w", err)
-}
-result, err := parse(data)
-if err != nil {
-    return fmt.Errorf("parse: %w", err)
+// Go — sum types need interface casts, no exhaustiveness check
+type DeployStatus interface{ status() }
+
+type Running  struct{ Replicas, Healthy int }
+func (Running)  status() {}
+type Failed   struct{ Reason string; ExitCode int }
+func (Failed)   status() {}
+
+func isHealthy(s DeployStatus) bool {
+    if r, ok := s.(Running); ok {
+        return r.Healthy == r.Replicas
+    }
+    return false
 }
 ```
 
 ```kukicha
-// Kukicha — same thing, 2 lines
+# Kukicha — variant enums with pattern matching
+enum DeployStatus
+    Running
+        replicas int
+        healthy int
+    Failed
+        reason string
+        exitCode int
+
+func isHealthy(s DeployStatus) bool
+    if s is Running as v
+        return v.healthy equals v.replicas
+    return false
+```
+
+```kukicha
+# Error handling? onerr:
 result := fetchData()
     |> parse() onerr return explain "pipeline failed"
 ```
 
-Both are valid Kukicha. The Go version compiles as-is. 
+Both Go and Kukicha examples above are valid Kukicha. Rename `.go` to `.kuki` and it compiles unchanged. 
 
 ---
 

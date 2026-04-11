@@ -193,6 +193,33 @@ func TestParseOnErrStatement(t *testing.T) {
 	}
 }
 
+func TestParseInlineOnErrReturnExpression(t *testing.T) {
+	input := `func Test() string
+    return ReadFile("test.txt") onerr ""
+`
+
+	program := mustParseProgram(t, input)
+
+	fn := program.Declarations[0].(*ast.FunctionDecl)
+	retStmt := fn.Body.Statements[0].(*ast.ReturnStmt)
+	onErrExpr, ok := retStmt.Values[0].(*ast.OnErrExpr)
+	if !ok {
+		t.Fatalf("expected OnErrExpr, got %T", retStmt.Values[0])
+	}
+
+	if _, ok := onErrExpr.Expression.(*ast.CallExpr); !ok {
+		t.Fatalf("expected call expression on left side, got %T", onErrExpr.Expression)
+	}
+
+	strLit, ok := onErrExpr.Default.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("expected string literal default, got %T", onErrExpr.Default)
+	}
+	if strLit.Value != "" {
+		t.Errorf("expected empty-string default, got %q", strLit.Value)
+	}
+}
+
 func TestParseListType(t *testing.T) {
 	input := `func Test(items list of string)
     return items

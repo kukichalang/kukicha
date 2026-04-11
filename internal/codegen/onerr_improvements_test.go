@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/kukichalang/kukicha/internal/ast"
-	"github.com/kukichalang/kukicha/internal/parser"
 	. "github.com/kukichalang/kukicha/internal/codegen"
+	"github.com/kukichalang/kukicha/internal/parser"
+	"github.com/kukichalang/kukicha/internal/semantic"
 )
 
 // ---------------------------------------------------------------------------
@@ -25,6 +26,7 @@ func Process(path string) error
 `
 	program := mustParse(t, input)
 	gen := New(program)
+	gen.SetAnalysisResult(semantic.NewWithFile(program, "test.kuki").AnalyzeResult())
 	output, err := gen.Generate()
 	if err != nil {
 		t.Fatalf("codegen error: %v", err)
@@ -202,6 +204,28 @@ func Process() int
 	}
 	if !strings.Contains(output, "if err_") {
 		t.Errorf("expected error check; got: %s", output)
+	}
+}
+
+func TestInlineOnErrReturnExpressionCodegen(t *testing.T) {
+	input := `func readData(path string) (string, error)
+    return "data", empty
+
+func Process(path string) string
+    return readData(path) onerr ""
+`
+	program := mustParse(t, input)
+	gen := New(program)
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "return func() string {") {
+		t.Errorf("expected inline onerr return expression to compile through an IIFE, got: %s", output)
+	}
+	if !strings.Contains(output, `if err_`) || !strings.Contains(output, `return ""`) {
+		t.Errorf("expected inline onerr error check with default return, got: %s", output)
 	}
 }
 
