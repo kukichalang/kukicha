@@ -73,8 +73,8 @@ func (p *Printer) printImport(imp *ast.ImportDecl) {
 // 1 = third-party (first segment contains a dot, e.g. "github.com/...")
 func importBucket(path string) int {
 	first := path
-	if i := strings.IndexByte(path, '/'); i >= 0 {
-		first = path[:i]
+	if before, _, ok := strings.Cut(path, "/"); ok {
+		first = before
 	}
 	if strings.Contains(first, ".") {
 		return 1
