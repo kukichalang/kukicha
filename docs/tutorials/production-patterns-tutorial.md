@@ -152,7 +152,7 @@ function GetLink on s reference Server(code string) (Link, bool)
     s.mu.RLock()             # Shared access for reading
     defer s.mu.RUnlock()
 
-    link := s.db.GetLink(code) onerr return Link{}, false
+    link := s.db.GetLink(code) onerr return {}, false
     return link, true
 
 # RecordClick increments the click counter for a link

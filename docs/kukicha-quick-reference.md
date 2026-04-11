@@ -107,6 +107,9 @@ config := parse(data) onerr DefaultConfig
 # Propagate — passes the original error to the caller
 data := files.ReadString("config.json") onerr return
 
+# Return zero struct + wrapped error (type inferred from function signature)
+v := semver.Parse(tag) onerr return {}, error "invalid: {error}"
+
 # Wrap and propagate — adds context before returning
 data := files.ReadString("config.json") onerr explain "loading config"
 

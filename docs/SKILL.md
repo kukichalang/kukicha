@@ -244,6 +244,7 @@ The caught error is always `{error}` — never `{err}`. Using `{err}` is a compi
 data := fetch.Get(url) onerr panic "failed: {error}"        # stop with message
 data := fetch.Get(url) onerr return                         # propagate (shorthand — raw error, zero values)
 data := fetch.Get(url) onerr return empty, error "{error}"  # propagate (verbose, wraps error)
+data := fetch.Get(url) onerr return {}, error "{error}"     # propagate with untyped zero struct
 port := getPort()      onerr 8080                           # default value
 _    := riskyOp()      onerr discard                        # ignore
 v    := parse(item)    onerr continue                       # skip iteration (inside for loop)
@@ -397,6 +398,7 @@ func main()
 
 Supported inference contexts:
 - **Return statements** — type from function return signature
+- **`onerr return`** — type from enclosing function's return signature
 - **Function arguments** — type from parameter signature
 - **Assignments** — type from left-hand side variable
 - **Typed list elements** — type from `list of T`
