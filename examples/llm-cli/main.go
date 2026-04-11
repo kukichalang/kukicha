@@ -72,77 +72,77 @@ func runAgent(ctx context.Context, a *Agent, userPrompt string, history []llm.Me
 	for round := range maxRounds {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:49
 		client := llm.Messages(llm.APIKey(llm.Path(llm.BaseURL(llm.Model(llm.New(""), a.Config.Model), a.Config.WebUIURL), "/api/chat/completions"), a.Config.WebUIAPIKey), messages)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:52
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:57
 		for _, t := range tools {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:53
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:58
 			client = llm.AddTool(client, t.Function.Name, t.Function.Description, t.Function.Parameters)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:56
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:61
 		if a.OnText != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:57
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:62
 			client = llm.Stream(client, a.OnText)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:59
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:64
 		if len(tools) > 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:60
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:65
 			client = llm.ToolChoiceAuto(client)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:63
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:68
 		comp, err_1 := llm.SendRaw(client)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:63
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:68
 		if err_1 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:63
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:68
 			return nil, fmt.Errorf("LLM request failed (round %v): %v", round, err_1)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:65
-		content := llm.GetContent(comp)
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:70
+		content := llm.GetContent(comp)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:75
 		if llm.HasToolCalls(comp) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:71
-			toolCalls := llm.GetToolCalls(comp)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:74
-			messages = append(messages, llm.Message{Role: "assistant", Content: content, ToolCalls: toolCalls})
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:76
+			toolCalls := llm.GetToolCalls(comp)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:79
+			messages = append(messages, llm.Message{Role: "assistant", Content: content, ToolCalls: toolCalls})
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:81
 			for _, tc := range toolCalls {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:77
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:82
 				if a.OnToolCall != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:78
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:83
 					a.OnToolCall(tc.Function.Name, tc.Function.Arguments)
 				}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:80
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:85
 				toolResult, err_2 := callBridgeTool(ctx, a.Bridge, tc.Function.Name, tc.Function.Arguments)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:80
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:85
 				if err_2 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:80
-					//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:81
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:85
+					//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:86
 					toolResult = fmt.Sprintf("ERROR: %v", err_2)
 				}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:83
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:88
 				if a.OnToolResult != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:84
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:89
 					a.OnToolResult(tc.Function.Name, truncateStr(toolResult, 500))
 				}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:87
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:92
 				messages = append(messages, llm.Message{Role: "tool", Content: toolResult, ToolCallID: tc.ID})
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:89
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:94
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:92
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:97
 		return &RunResult{Content: content, Messages: messages, Rounds: (round + 1)}, nil
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:94
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:99
 	return nil, fmt.Errorf("agent hit max rounds (%v) without completing", maxRounds)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:96
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:101
 func truncateStr(s string, n int) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:97
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:102
 	if len(s) <= n {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:98
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:103
 		return s
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:99
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/agent.kuki:104
 	return (s[:n] + "...")
 }
 
@@ -156,7 +156,7 @@ type ToolRoute struct {
 type BridgeServer struct {
 	Name    string
 	URL     string
-	Session mcp.ClientSession
+	Session *mcp.ClientSession
 	Tools   []mcp.ClientTool
 }
 
@@ -181,165 +181,152 @@ func connectBridges(ctx context.Context, configs map[string]MCPServerConfig) (*B
 		}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:38
 		server := &BridgeServer{Name: name, URL: cfg.URL, Session: session}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:45
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:41
 		tools, toolsErr := mcp.ListTools(ctx, session)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:46
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:42
 		if toolsErr != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:47
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:43
 			mcp.Close(session)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:48
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:44
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:50
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:46
 		server.Tools = tools
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:51
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:47
 		b.Servers = append(b.Servers, server)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:54
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:50
 		for _, t := range tools {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:55
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:51
 			prefixed := fmt.Sprintf("%v_%v", name, sanitizeName(t.Name))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:56
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:52
 			b.ToolMap[prefixed] = ToolRoute{ServerName: name, OriginalName: t.Name}
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:58
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:54
 	return b, nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:60
-func connectOne(ctx context.Context, cfg MCPServerConfig) (mcp.ClientSession, error) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:61
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:56
+func connectOne(ctx context.Context, cfg MCPServerConfig) (*mcp.ClientSession, error) {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:57
 	if cfg.APIKey != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:62
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:58
 		return mcp.BearerConnect(ctx, cfg.URL, cfg.APIKey)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:64
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:60
 	return mcp.Connect(ctx, cfg.URL)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:66
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:62
 func closeBridges(b *Bridge) error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:67
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:63
 	for _, s := range b.Servers {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:68
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:64
 		mcp.Close(s.Session)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:69
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:65
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:72
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:68
 func bridgeTools(b *Bridge) []llm.Tool {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:73
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:69
 	tools := make([]llm.Tool, 0, len(b.ToolMap))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:75
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:71
 	for _, s := range b.Servers {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:76
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:72
 		for _, t := range s.Tools {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:77
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:73
 			prefixed := fmt.Sprintf("%v_%v", s.Name, sanitizeName(t.Name))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:78
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:74
 			tools = append(tools, llm.Tool{Type: "function", Function: llm.ToolFunction{Name: prefixed, Description: fmt.Sprintf("(%v) %v", s.Name, t.Description), Parameters: t.InputSchema}})
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:87
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:83
 	return tools
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:89
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:85
 func bridgeToolCount(b *Bridge) int {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:90
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:86
 	count := 0
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:91
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:87
 	for _, s := range b.Servers {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:92
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:88
 		count = (count + len(s.Tools))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:93
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:89
 	return count
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:95
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:91
 func bridgeToolNames(b *Bridge) []string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:96
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:92
 	names := make([]string, 0, len(b.ToolMap))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:97
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:93
 	for prefixed := range b.ToolMap {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:98
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:94
 		names = append(names, prefixed)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:99
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:95
 	return names
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:102
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:98
 func callBridgeTool(ctx context.Context, b *Bridge, name string, argsJSON string) (string, error) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:103
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:99
 	route, ok := b.ToolMap[name]
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:104
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:100
 	if !ok {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:105
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:101
 		return "", fmt.Errorf("unknown tool: %v", name)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:107
-	found := false
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:108
-	session := mcp.ClientSession{}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:109
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:103
 	for _, s := range b.Servers {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:110
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:104
 		if s.Name == route.ServerName {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:105
+			args := make(map[string]any)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:106
+			if (argsJSON != "") && (argsJSON != "{}") {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:107
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:107
+				err_3 := jsonpkg.UnmarshalString(argsJSON, &args)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:107
+				if err_3 != nil {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:107
+					return "", fmt.Errorf("invalid tool arguments: %v", err_3)
+				}
+			}
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:109
+			result, err := mcp.CallTool(ctx, s.Session, route.OriginalName, args)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:110
+			if err != nil {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:111
-			session = s.Session
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:112
-			found = true
+				return "", err
+			}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:113
-			break
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:115
-	if !found {
+			if result.IsError {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:114
+				return fmt.Sprintf("ERROR: %v", result.Text), nil
+			}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:116
-		return "", fmt.Errorf("server %v not connected", route.ServerName)
+			return result.Text, nil
+		}
 	}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:118
-	args := make(map[string]any)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:119
-	if (argsJSON != "") && (argsJSON != "{}") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:120
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:120
-		err_3 := jsonpkg.UnmarshalString(argsJSON, &args)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:120
-		if err_3 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:120
-			return "", fmt.Errorf("invalid tool arguments: %v", err_3)
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:122
-	result, err := mcp.CallTool(ctx, session, route.OriginalName, args)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:123
-	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:124
-		return "", err
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:126
-	if result.IsError {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:127
-		return fmt.Sprintf("ERROR: %v", result.Text), nil
-	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:129
-	return result.Text, nil
+	return "", fmt.Errorf("server %v not connected", route.ServerName)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:131
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:120
 func sanitizeName(name string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:132
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:121
 	result := strpkg.ReplaceAll(name, "/", "_")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:133
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:122
 	result = strpkg.ReplaceAll(result, " ", "_")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:134
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:123
 	result = strpkg.ReplaceAll(result, "-", "_")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:135
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/bridge.kuki:124
 	return result
 }
 
@@ -372,105 +359,105 @@ func defaultConfigPath() string {
 func loadConfig() Config {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:30
 	cfg := Config{WebUIURL: "http://localhost:3000", TerminalMCPURL: "http://127.0.0.1:9000/mcp", Model: "llama3.1", MaxToolRounds: 15, MCPServers: make(map[string]MCPServerConfig)}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:33
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:39
 	data, err_4 := files.ReadString(defaultConfigPath())
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:33
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:39
 	if err_4 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:33
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:39
 		data = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:34
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:40
 	if data != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:35
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:35
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:41
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:41
 		err_5 := jsonpkg.UnmarshalString(data, &cfg)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:35
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:41
 		if err_5 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:35
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:41
 
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:37
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:43
 	if cfg.MCPServers == nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:38
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:44
 		cfg.MCPServers = make(map[string]MCPServerConfig)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:41
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:47
 	v := env.GetOr("OWUI_WEBUI_URL", "")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:42
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:48
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:43
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:49
 		cfg.WebUIURL = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:45
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:51
 	v = env.GetOr("OWUI_WEBUI_API_KEY", "")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:46
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:52
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:47
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:53
 		cfg.WebUIAPIKey = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:49
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:55
 	v = env.GetOr("OWUI_MODEL", "")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:50
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:56
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:51
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:57
 		cfg.Model = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:53
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:59
 	v = env.GetOr("OWUI_TERMINAL_MCP_URL", "")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:54
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:60
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:55
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:61
 		cfg.TerminalMCPURL = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:57
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:63
 	v = env.GetOr("OWUI_TERMINAL_MCP_API_KEY", "")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:58
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:64
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:59
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:65
 		cfg.TerminalMCPAPIKey = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:61
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:67
 	if cfg.TerminalMCPURL != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:62
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:68
 		cfg.MCPServers["terminal"] = MCPServerConfig{URL: cfg.TerminalMCPURL, APIKey: cfg.TerminalMCPAPIKey}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:64
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:70
 	return cfg
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:66
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:72
 func saveConfig(cfg Config) error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:67
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:73
 	path := defaultConfigPath()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:68
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:68
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:74
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:74
 	err_6 := os.MkdirAll(filepath.Dir(path), 0700)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:68
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:74
 	if err_6 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:68
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:74
 		return fmt.Errorf("%v", err_6)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:69
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:69
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:75
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:75
 	err_7 := files.Write(cfg, path)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:69
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:75
 	if err_7 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:69
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:75
 		return err_7
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:70
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:76
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:72
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:78
 func validateConfig(cfg Config) error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:73
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:79
 	if cfg.WebUIAPIKey == "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:74
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:80
 		return errors.New("Open WebUI API key required: set OWUI_WEBUI_API_KEY or run `owui configure`")
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:75
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/config.kuki:81
 	return nil
 }
 
@@ -478,743 +465,743 @@ func validateConfig(cfg Config) error {
 var version string = "dev"
 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:21
-const ansiReset = "[0m"
-
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:22
-const ansiDim = "[2m"
+const ansiReset = "\x1b[0m"
 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:23
-const ansiYellow = "[33m"
-
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:24
-const ansiBoldYellow = "[1;33m"
+const ansiDim = "\x1b[2m"
 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:25
-const ansiBoldCyan = "[1;36m"
-
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:26
-const ansiRed = "[91m"
+const ansiYellow = "\x1b[33m"
 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:27
-const ansiGreen = "[32m"
+const ansiBoldYellow = "\x1b[1;33m"
 
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:29
+const ansiBoldCyan = "\x1b[1;36m"
+
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:31
+const ansiRed = "\x1b[91m"
+
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:33
+const ansiGreen = "\x1b[32m"
+
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:35
 func dimFmt(s string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:30
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:36
 	return fmt.Sprintf("%v%v%v", ansiDim, s, ansiReset)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:32
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:38
 func toolFmt(s string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:33
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:39
 	return fmt.Sprintf("%v%v%v", ansiYellow, s, ansiReset)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:35
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:41
 func errFmt(s string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:36
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:42
 	return fmt.Sprintf("%v%v%v", ansiRed, s, ansiReset)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:38
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:44
 func greenFmt(s string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:39
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:45
 	return fmt.Sprintf("%v%v%v", ansiGreen, s, ansiReset)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:41
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:47
 func boldCyanFmt(s string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:42
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:48
 	return fmt.Sprintf("%v%v%v", ansiBoldCyan, s, ansiReset)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:44
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:50
 func boldYellowFmt(s string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:45
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:51
 	return fmt.Sprintf("%v%v%v", ansiBoldYellow, s, ansiReset)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:49
-func main() {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:50
-	args := os.Args[1:]
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:53
-	flagModel := ""
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:54
-	flagChat := false
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:55
-	flagRaw := false
+func main() {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:56
-	flagSystem := ""
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:57
-	positional := make([]string, 0)
+	args := os.Args[1:]
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:59
-	i := 0
+	flagModel := ""
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:60
-	for i < len(args) {
+	flagChat := false
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:61
-		arg := args[i]
+	flagRaw := false
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:62
-		if (arg == "-m") || (arg == "--model") {
+	flagSystem := ""
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:63
-			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:64
-			if i < len(args) {
+	positional := make([]string, 0)
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:65
+	i := 0
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:66
+	for i < len(args) {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:67
+		arg := args[i]
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:68
+		if (arg == "-m") || (arg == "--model") {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:69
+			i = (i + 1)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:70
+			if i < len(args) {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:71
 				flagModel = args[i]
 			}
 		} else if strpkg.HasPrefix(arg, "--model=") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:67
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:73
 			flagModel = strpkg.TrimPrefix(arg, "--model=")
 		} else if (arg == "-c") || (arg == "--chat") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:69
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:75
 			flagChat = true
 		} else if arg == "--raw" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:71
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:77
 			flagRaw = true
 		} else if (arg == "-S") || (arg == "--system") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:73
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:79
 			i = (i + 1)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:74
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:80
 			if i < len(args) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:75
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:81
 				flagSystem = args[i]
 			}
 		} else if strpkg.HasPrefix(arg, "--system=") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:77
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:83
 			flagSystem = strpkg.TrimPrefix(arg, "--system=")
 		} else if (arg == "-h") || (arg == "--help") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:79
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:85
 			printUsage()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:80
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:86
 			return
 		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:82
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:88
 			positional = append(positional, arg)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:83
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:89
 		i = (i + 1)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:86
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:92
 	if len(positional) > 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:87
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:93
 		cmd := positional[0]
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:88
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:94
 		if cmd == "models" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:89
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:89
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:95
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:95
 			err_8 := cmdListModels()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:89
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:95
 			if err_8 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:89
-				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:90
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:95
+				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:96
 				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_8)))
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:91
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:98
 			return
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:92
-		if cmd == "tools" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:93
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:93
-			err_9 := cmdListTools()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:93
-			if err_9 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:93
-				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:94
-				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_9)))
-			}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:95
-			return
-		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:96
-		if cmd == "health" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:97
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:97
-			err_10 := cmdHealth()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:97
-			if err_10 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:97
-				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:98
-				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_10)))
-			}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:99
-			return
-		}
+		if cmd == "tools" {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:100
-		if cmd == "configure" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:101
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:101
-			err_11 := cmdConfigure()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:101
-			if err_11 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:101
-				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:102
-				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_11)))
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:100
+			err_9 := cmdListTools()
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:100
+			if err_9 != nil {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:100
+				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:101
+				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_9)))
 			}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:103
 			return
 		}
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:104
-		if cmd == "version" {
+		if cmd == "health" {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:105
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:105
+			err_10 := cmdHealth()
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:105
+			if err_10 != nil {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:105
+				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:106
+				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_10)))
+			}
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:108
+			return
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:109
+		if cmd == "configure" {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:110
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:110
+			err_11 := cmdConfigure()
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:110
+			if err_11 != nil {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:110
+				//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:111
+				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_11)))
+			}
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:113
+			return
+		}
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:114
+		if cmd == "version" {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:115
 			fmt.Println(fmt.Sprintf("owui %v", version))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:106
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:116
 			return
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:109
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:109
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:119
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:119
 	err_12 := cmdRun(positional, flagModel, flagChat, flagRaw, flagSystem)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:109
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:119
 	if err_12 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:109
-		//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:110
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:119
+		//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:120
 		cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_12)))
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:114
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:124
 func cmdRun(positional []string, flagModel string, flagChat bool, flagRaw bool, flagSystem string) error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:115
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:125
 	cfg := loadConfig()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:116
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:126
 	if flagModel != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:117
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:127
 		cfg.Model = flagModel
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:118
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:118
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:128
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:128
 	err_13 := validateConfig(cfg)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:118
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:128
 	if err_13 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:118
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:128
 		return err_13
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:120
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:130
 	ctx := context.Background()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:122
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:132
 	bridge, err_14 := connectBridges(ctx, cfg.MCPServers)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:122
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:132
 	if err_14 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:122
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:132
 		return fmt.Errorf("connecting to MCP servers: %v", err_14)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:123
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:133
 	defer closeBridges(bridge)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:125
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:135
 	if isTTYErr() {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:126
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:136
 		fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", dimFmt("MCP connected:"), dimFmt(fmt.Sprintf("%v tools from configured servers", bridgeToolCount(bridge)))))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:128
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:138
 	a := &Agent{Bridge: bridge, Config: cfg, MaxRounds: cfg.MaxToolRounds}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:130
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:140
 	if flagSystem != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:131
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:141
 		a.SystemPrompt = flagSystem
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:133
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:143
 	prompt := gatherPrompt(positional)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:136
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:146
 	if flagChat {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:137
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:147
 		runChat(ctx, a, prompt)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:138
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:148
 		return nil
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:141
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:151
 	if prompt == "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:142
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:152
 		return errors.New("no prompt provided — use -c for interactive chat")
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:144
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:154
 	isTTY := isTTYOut()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:146
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:156
 	if isTTY {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:147
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:157
 		a.OnToolCall = func(name string, toolArgs string) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:148
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:158
 			fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 80))))
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:150
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:160
 		a.OnToolResult = func(name string, result string) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:151
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:161
 			fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 120))))
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:153
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:163
 	a.OnText = func(chunk string) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:154
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:164
 		if isTTY && !flagRaw {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:155
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:165
 			fmt.Print(chunk)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:157
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:167
 	result, err_15 := runAgent(ctx, a, prompt, []llm.Message{})
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:157
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:167
 	if err_15 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:157
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:167
 		return err_15
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:159
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:169
 	if isTTY && !flagRaw {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:160
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:170
 		fmt.Println()
 	} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:162
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:172
 		fmt.Print(result.Content)
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:164
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:174
 	if isTTY {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:165
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:175
 		fmt.Fprint(os.Stderr, fmt.Sprintf("%v\n", dimFmt(fmt.Sprintf("(%v tool rounds)", result.Rounds))))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:167
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:177
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:171
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:181
 type ModelEntry struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:175
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:185
 type ModelsResponse struct {
 	Data []ModelEntry `json:"data"`
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:178
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:188
 func cmdListModels() error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:179
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:189
 	cfg := loadConfig()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:180
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:190
 	if cfg.WebUIAPIKey == "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:181
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:191
 		return errors.New("Open WebUI API key required")
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:183
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:193
 	url := fmt.Sprintf("%v/api/models", strpkg.TrimRight(cfg.WebUIURL, "/"))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:184
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:194
 	// pipe step 1: fetch.Do(...)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:184
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:194
 	resp, err_17 := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:184
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:194
 	if err_17 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:184
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:194
 		return err_17
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:186
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:196
 	defer resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:188
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:198
 	if resp.StatusCode != 200 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:189
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:199
 		body, err_18 := fetch.Bytes(resp)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:189
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:199
 		if err_18 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:189
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:199
 			return fmt.Errorf("HTTP %v", resp.StatusCode)
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:190
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:200
 		return fmt.Errorf("HTTP %v: %v", resp.StatusCode, string(body))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:192
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:202
 	models := ModelsResponse{}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:193
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:193
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:203
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:203
 	err_19 := jsonpkg.UnmarshalRead(resp.Body, &models)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:193
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:203
 	if err_19 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:193
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:203
 		return err_19
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:195
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:205
 	fmt.Println(boldCyanFmt("Available models:"))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:196
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:206
 	for _, m := range models.Data {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:197
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:207
 		name := m.Name
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:198
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:208
 		if name == "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:199
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:209
 			name = m.ID
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:200
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:210
 		fmt.Println(fmt.Sprintf("  %v %v", name, dimFmt(fmt.Sprintf("(%v)", m.ID))))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:202
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:212
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:204
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:214
 func cmdListTools() error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:205
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:215
 	cfg := loadConfig()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:206
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:216
 	ctx := context.Background()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:208
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:218
 	bridge, err_20 := connectBridges(ctx, cfg.MCPServers)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:208
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:218
 	if err_20 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:208
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:218
 		return err_20
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:209
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:219
 	defer closeBridges(bridge)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:211
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:221
 	fmt.Println(boldYellowFmt("Tools from configured servers:"))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:212
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:222
 	for _, name := range bridgeToolNames(bridge) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:213
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:223
 		fmt.Println(fmt.Sprintf("  %v", name))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:215
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:225
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:217
-func cmdHealth() error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:218
-	cfg := loadConfig()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:219
-	ctx := context.Background()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:222
-	fmt.Printf("Open WebUI  (%v)  ", cfg.WebUIURL)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:223
-	if cfg.WebUIAPIKey != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:224
-		url := fmt.Sprintf("%v/api/models", strpkg.TrimRight(cfg.WebUIURL, "/"))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:225
-		resp, err := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:227
-		if err != nil {
+func cmdHealth() error {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:228
+	cfg := loadConfig()
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:229
+	ctx := context.Background()
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:232
+	fmt.Printf("Open WebUI  (%v)  ", cfg.WebUIURL)
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:233
+	if cfg.WebUIAPIKey != "" {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:234
+		url := fmt.Sprintf("%v/api/models", strpkg.TrimRight(cfg.WebUIURL, "/"))
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:235
+		resp, err := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:237
+		if err != nil {
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:238
 			fmt.Println(errFmt("x"), err)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:230
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:240
 			resp.Body.Close()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:231
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:241
 			if resp.StatusCode == 200 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:232
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:242
 				fmt.Println(greenFmt("ok"))
 			} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:234
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:244
 				fmt.Println(errFmt("x"), fmt.Sprintf("HTTP %v", resp.StatusCode))
 			}
 		}
 	} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:236
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:246
 		fmt.Println(errFmt("x"), "no API key")
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:239
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:249
 	for name, mcfg := range cfg.MCPServers {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:240
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:250
 		fmt.Printf("%v MCP (%v)  ", name, mcfg.URL)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:241
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:251
 		m := make(map[string]MCPServerConfig)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:242
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:252
 		m[name] = mcfg
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:243
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:253
 		bridge, err := connectBridges(ctx, m)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:244
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:254
 		if err != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:245
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:255
 			fmt.Println(errFmt("x"), err)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:247
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:257
 			fmt.Println(greenFmt("ok"), fmt.Sprintf("%v tools", bridgeToolCount(bridge)))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:248
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:258
 			closeBridges(bridge)
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:250
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:260
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:252
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:262
 func cmdConfigure() error {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:253
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:263
 	cfg := loadConfig()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:255
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:265
 	v, err_21 := input.ReadLine(fmt.Sprintf("Open WebUI URL [%v]: ", cfg.WebUIURL))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:255
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:265
 	if err_21 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:255
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:265
 		v = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:256
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:266
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:257
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:267
 		cfg.WebUIURL = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:259
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:269
 	var err_22 error
 	v, err_22 = input.ReadLine(fmt.Sprintf("Open WebUI API Key [%v]: ", maskKey(cfg.WebUIAPIKey)))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:259
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:269
 	if err_22 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:259
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:269
 		v = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:260
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:270
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:261
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:271
 		cfg.WebUIAPIKey = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:263
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:273
 	var err_23 error
 	v, err_23 = input.ReadLine(fmt.Sprintf("Model [%v]: ", cfg.Model))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:263
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:273
 	if err_23 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:263
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:273
 		v = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:264
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:274
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:265
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:275
 		cfg.Model = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:267
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:277
 	var err_24 error
 	v, err_24 = input.ReadLine(fmt.Sprintf("terminal MCP URL [%v]: ", cfg.TerminalMCPURL))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:267
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:277
 	if err_24 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:267
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:277
 		v = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:268
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:278
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:269
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:279
 		cfg.TerminalMCPURL = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:271
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:281
 	var err_25 error
 	v, err_25 = input.ReadLine(fmt.Sprintf("terminal MCP API Key [%v]: ", maskKey(cfg.TerminalMCPAPIKey)))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:271
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:281
 	if err_25 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:271
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:281
 		v = ""
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:272
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:282
 	if v != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:273
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:283
 		cfg.TerminalMCPAPIKey = v
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:275
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:275
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:285
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:285
 	err_26 := saveConfig(cfg)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:275
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:285
 	if err_26 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:275
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:285
 		return err_26
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:276
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:286
 	fmt.Println(greenFmt(fmt.Sprintf("Saved to %v", defaultConfigPath())))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:277
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:287
 	return nil
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:281
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:291
 func runChat(ctx context.Context, a *Agent, initialPrompt string) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:282
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:292
 	history := []llm.Message{}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:283
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:293
 	prompt := initialPrompt
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:285
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:295
 	fmt.Println(dimFmt(fmt.Sprintf("owui chat — model: %v — type 'exit' to quit", a.Config.Model)))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:286
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:296
 	fmt.Println("")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:288
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:298
 	for {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:289
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:299
 		if prompt == "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:290
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:300
 			var err_27 error
 			prompt, err_27 = input.ReadLine(boldCyanFmt("you> "))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:290
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:300
 			if err_27 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:290
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:300
 				break
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:291
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:301
 			if (prompt == "exit") || (prompt == "quit") {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:292
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:302
 				break
 			}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:293
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:303
 			if prompt == "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:294
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:304
 				continue
 			}
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:296
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:306
 		a.OnToolCall = func(name string, toolArgs string) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:297
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:307
 			fmt.Fprint(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 60))))
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:299
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:309
 		a.OnToolResult = func(name string, result string) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:300
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:310
 			fmt.Fprint(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 80))))
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:302
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:312
 		a.OnText = nil
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:304
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:314
 		result, err_28 := runAgent(ctx, a, prompt, history)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:304
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:314
 		if err_28 != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:304
-			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:305
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:314
+			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:315
 			fmt.Println(errFmt(fmt.Sprintf("error: %v", err_28)))
-			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:306
+			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:316
 			fmt.Println("")
-			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:307
+			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:317
 			prompt = ""
-			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:308
+			//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:318
 			continue
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:310
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:320
 		fmt.Println("")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:311
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:321
 		fmt.Println(fmt.Sprintf("%v  %v", dimFmt(a.Config.Model), result.Content))
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:312
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:322
 		if result.Rounds > 1 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:313
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:323
 			fmt.Println(dimFmt(fmt.Sprintf("  (%v rounds)", result.Rounds)))
 		}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:314
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:324
 		fmt.Println("")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:316
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:326
 		history = result.Messages
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:317
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:327
 		prompt = ""
 	}
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:321
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:331
 func gatherPrompt(args []string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:322
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:332
 	prompt := ""
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:325
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:335
 	if !isTerminal(os.Stdin) && (len(args) == 0) {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:326
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:336
 		data, _ := io.ReadAll(os.Stdin)
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:327
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:337
 		prompt = strpkg.TrimSpace(string(data))
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:329
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:339
 	if len(args) > 0 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:330
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:340
 		argText := strpkg.Join(args, " ")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:331
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:341
 		if prompt != "" {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:332
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:342
 			prompt = fmt.Sprintf("%v\n\n%v", argText, prompt)
 		} else {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:334
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:344
 			prompt = argText
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:336
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:346
 	return prompt
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:338
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:348
 func isTerminal(f *os.File) bool {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:339
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:349
 	info, err := f.Stat()
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:340
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:350
 	if err != nil {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:341
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:351
 		return false
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:342
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:352
 	return ((info.Mode() & 0x200000) != 0)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:344
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:354
 func isTTYOut() bool {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:345
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:355
 	return isTerminal(os.Stdout)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:347
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:357
 func isTTYErr() bool {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:348
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:358
 	return isTerminal(os.Stderr)
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:350
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:360
 func maskKey(k string) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:351
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:361
 	if len(k) < 8 {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:352
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:362
 		return "--------"
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:353
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:363
 	return fmt.Sprintf("%v...%v", k[:4], k[(len(k)-4):])
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:355
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:365
 func truncateFmt(s string, n int) string {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:356
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:366
 	s = strpkg.ReplaceAll(s, "\n", " ")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:357
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:367
 	if len(s) <= n {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:358
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:368
 		return s
 	}
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:359
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:369
 	return fmt.Sprintf("%v...", s[:n])
 }
 
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:361
-func printUsage() {
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:362
-	fmt.Println("owui — CLI agent: Open WebUI models + Open Terminal via MCP")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:363
-	fmt.Println("")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:364
-	fmt.Println("Usage:")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:365
-	fmt.Println("  owui [flags] [prompt]     Agent mode (one-shot or piped)")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:366
-	fmt.Println("  owui -c [prompt]          Interactive chat")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:367
-	fmt.Println("  owui models               List available models")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:368
-	fmt.Println("  owui tools                List MCP tools")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:369
-	fmt.Println("  owui health               Check connectivity")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:370
-	fmt.Println("  owui configure            Save configuration")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:371
-	fmt.Println("  owui version              Print version")
+func printUsage() {
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:372
-	fmt.Println("")
+	fmt.Println("owui — CLI agent: Open WebUI models + Open Terminal via MCP")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:373
-	fmt.Println("Flags:")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:374
-	fmt.Println("  -m, --model <model>       Override model")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:375
-	fmt.Println("  -c, --chat                Interactive chat mode")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:376
-	fmt.Println("  -S, --system <prompt>     Override system prompt")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:377
-	fmt.Println("  --raw                     Raw output (no formatting)")
-//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:378
 	fmt.Println("")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:374
+	fmt.Println("Usage:")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:375
+	fmt.Println("  owui [flags] [prompt]     Agent mode (one-shot or piped)")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:376
+	fmt.Println("  owui -c [prompt]          Interactive chat")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:377
+	fmt.Println("  owui models               List available models")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:378
+	fmt.Println("  owui tools                List MCP tools")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:379
-	fmt.Println("Environment:")
+	fmt.Println("  owui health               Check connectivity")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:380
-	fmt.Println("  OWUI_WEBUI_URL            Open WebUI URL (default: http://localhost:3000)")
+	fmt.Println("  owui configure            Save configuration")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:381
-	fmt.Println("  OWUI_WEBUI_API_KEY        Open WebUI API key (required)")
+	fmt.Println("  owui version              Print version")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:382
-	fmt.Println("  OWUI_MODEL                Model name (default: llama3.1)")
+	fmt.Println("")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:383
-	fmt.Println("  OWUI_TERMINAL_MCP_URL     terminal MCP URL (default: http://127.0.0.1:9000/mcp)")
+	fmt.Println("Flags:")
 //line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:384
+	fmt.Println("  -m, --model <model>       Override model")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:385
+	fmt.Println("  -c, --chat                Interactive chat mode")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:386
+	fmt.Println("  -S, --system <prompt>     Override system prompt")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:387
+	fmt.Println("  --raw                     Raw output (no formatting)")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:388
+	fmt.Println("")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:389
+	fmt.Println("Environment:")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:390
+	fmt.Println("  OWUI_WEBUI_URL            Open WebUI URL (default: http://localhost:3000)")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:391
+	fmt.Println("  OWUI_WEBUI_API_KEY        Open WebUI API key (required)")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:392
+	fmt.Println("  OWUI_MODEL                Model name (default: llama3.1)")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:393
+	fmt.Println("  OWUI_TERMINAL_MCP_URL     terminal MCP URL (default: http://127.0.0.1:9000/mcp)")
+//line /var/home/tluker/repos/go/kukicha/examples/llm-cli/main.kuki:394
 	fmt.Println("  OWUI_TERMINAL_MCP_API_KEY terminal MCP API key (optional, for authenticated servers)")
 }
