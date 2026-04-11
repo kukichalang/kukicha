@@ -2,170 +2,176 @@
 
 package set
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:9
-func From[K comparable](items []K) map[K]bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:10
-	s := make(map[K]bool, len(items))
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:11
-	for _, item := range items {
+func New[K comparable](hint ...K) map[K]bool {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:12
+	return make(map[K]bool)
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:16
+func From[K comparable](items []K) map[K]bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:17
+	s := make(map[K]bool, len(items))
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:18
+	for _, item := range items {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:19
 		s[item] = true
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:13
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:20
 	return s
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:18
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:25
 func Add[K comparable](s map[K]bool, item K) map[K]bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:19
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:26
 	result := make(map[K]bool, (len(s) + 1))
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:20
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:27
 	for k := range s {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:21
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:28
 		result[k] = true
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:22
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:29
 	result[item] = true
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:23
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:30
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:28
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:35
 func AddIn[K comparable](s map[K]bool, item K) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:29
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:36
 	s[item] = true
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:34
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:41
 func Remove[K comparable](s map[K]bool, item K) map[K]bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:35
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:42
 	result := make(map[K]bool, len(s))
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:36
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:43
 	for k := range s {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:37
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:44
 		if k != item {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:38
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:45
 			result[k] = true
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:39
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:46
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:44
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:51
 func RemoveIn[K comparable](s map[K]bool, item K) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:45
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:52
 	delete(s, item)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:49
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:56
 func Contains[K comparable](s map[K]bool, item K) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:50
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:57
 	return s[item]
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:54
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:61
 func Len[K comparable](s map[K]bool) int {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:55
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:62
 	return len(s)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:59
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:66
 func IsEmpty[K comparable](s map[K]bool) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:60
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:67
 	return (len(s) == 0)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:65
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:72
 func ToSlice[K comparable](s map[K]bool) []K {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:66
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:73
 	result := make([]K, 0, len(s))
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:67
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:74
 	for k := range s {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:68
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:75
 		result = append(result, k)
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:69
-	return result
-}
-
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:73
-func Union[K comparable](a map[K]bool, b map[K]bool) map[K]bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:74
-	result := make(map[K]bool, (len(a) + len(b)))
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:75
-	for k := range a {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:76
-		result[k] = true
-	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:77
-	for k := range b {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:78
-		result[k] = true
-	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:79
 	return result
 }
 
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:80
+func Union[K comparable](a map[K]bool, b map[K]bool) map[K]bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:81
+	result := make(map[K]bool, (len(a) + len(b)))
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:82
+	for k := range a {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:83
-func Intersect[K comparable](a map[K]bool, b map[K]bool) map[K]bool {
+		result[k] = true
+	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:84
-	result := make(map[K]bool)
+	for k := range b {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:85
-	for k := range a {
+		result[k] = true
+	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:86
-		if b[k] {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:87
-			result[k] = true
-		}
-	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:88
 	return result
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:92
-func Difference[K comparable](a map[K]bool, b map[K]bool) map[K]bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:93
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:90
+func Intersect[K comparable](a map[K]bool, b map[K]bool) map[K]bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:91
 	result := make(map[K]bool)
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:94
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:92
 	for k := range a {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:95
-		if !b[k] {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:96
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:93
+		if b[k] {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:94
 			result[k] = true
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:97
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:95
 	return result
 }
 
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:99
+func Difference[K comparable](a map[K]bool, b map[K]bool) map[K]bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:100
+	result := make(map[K]bool)
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:101
-func IsSubset[K comparable](sub map[K]bool, super map[K]bool) bool {
+	for k := range a {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:102
-	for k := range sub {
+		if !b[k] {
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:103
-		if !super[k] {
+			result[k] = true
+		}
+	}
 //line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:104
+	return result
+}
+
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:108
+func IsSubset[K comparable](sub map[K]bool, super map[K]bool) bool {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:109
+	for k := range sub {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:110
+		if !super[k] {
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:111
 			return false
 		}
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:105
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:112
 	return true
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:109
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:116
 func IsSuperset[K comparable](super map[K]bool, sub map[K]bool) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:110
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:117
 	return IsSubset(sub, super)
 }
 
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:114
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:121
 func Equal[K comparable](a map[K]bool, b map[K]bool) bool {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:115
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:122
 	if len(a) != len(b) {
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:116
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:123
 		return false
 	}
-//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:117
+//line /var/home/tluker/repos/go/kukicha/stdlib/set/set.kuki:124
 	return IsSubset(a, b)
 }

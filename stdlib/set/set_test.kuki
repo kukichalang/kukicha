@@ -7,6 +7,21 @@ import "stdlib/slice"
 import "stdlib/test"
 import "testing"
 
+# --- TestNew ---
+func TestNew(t reference testing.T)
+    t.Run("creates empty set", (t reference testing.T) =>
+        s := set.New("")
+        test.AssertEqual(t, set.Len(s), 0)
+        test.AssertTrue(t, set.IsEmpty(s))
+    )
+
+    t.Run("can add items after creation", (t reference testing.T) =>
+        s := set.New("")
+        set.AddIn(s, "a")
+        test.AssertEqual(t, set.Len(s), 1)
+        test.AssertTrue(t, set.Contains(s, "a"))
+    )
+
 # --- TestFrom ---
 type FromCase
     name string

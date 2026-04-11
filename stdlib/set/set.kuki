@@ -4,6 +4,13 @@
 
 petiole set
 
+# New creates a new empty set.
+# Pass a zero value to indicate the element type:
+#   s := set.New("")      # set of string
+#   s := set.New(0)       # set of int
+func New(many hint any2) map of any2 to bool
+    return make(map of any2 to bool)
+
 # From creates a new set from a slice of items
 # Example: s := set.From(list of string{"a", "b", "c"})
 func From(items list of any2) map of any2 to bool

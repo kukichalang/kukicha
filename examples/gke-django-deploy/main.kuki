@@ -85,8 +85,8 @@ func doDeploy(args cli.Args)
 
     # ── Summary ───────────────────────────────────────────────
     print("")
-    succeeded := set.From(empty list of string)
-    failed := set.From(empty list of string)
+    succeeded := set.New("")
+    failed := set.New("")
 
     for i, result in results
         ns := namespaces[i]
