@@ -374,3 +374,124 @@ func TestDump(t reference testing.T)
             test.AssertTrue(t, strpkg.Contains(sql, "Alice"))
             test.AssertTrue(t, strpkg.Contains(sql, "Bob"))
         )
+
+# --- TestAddNotNull ---
+
+func TestAddNotNull(t reference testing.T)
+    t.Run("add NOT NULL to column", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)") onerr panic "create: {error}"
+        db.Exec(pool, "INSERT INTO items (name) VALUES (?)", "widget") onerr panic "insert: {error}"
+
+        sqlite.AddNotNull(pool, "items", "name") onerr panic "add not null: {error}"
+
+        _, err := db.Exec(pool, "INSERT INTO items (name) VALUES (NULL)")
+        test.AssertError(t, err)
+    )
+
+# Inserting NULL should now fail.
+
+# --- TestDropNotNull ---
+
+func TestDropNotNull(t reference testing.T)
+    t.Run("drop NOT NULL from column", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT NOT NULL)") onerr panic "create: {error}"
+
+        sqlite.DropNotNull(pool, "items", "name") onerr panic "drop not null: {error}"
+
+        db.Exec(pool, "INSERT INTO items (name) VALUES (NULL)") onerr panic "insert null: {error}"
+    )
+
+# Inserting NULL should now succeed.
+
+# --- TestAddCheck ---
+
+func TestAddCheck(t reference testing.T)
+    t.Run("add CHECK constraint", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        db.Exec(pool, "CREATE TABLE ages (id INTEGER PRIMARY KEY, age INTEGER)") onerr panic "create: {error}"
+
+        sqlite.AddCheck(pool, "ages", "age >= 0") onerr panic "add check: {error}"
+
+        _, err := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1)
+        test.AssertError(t, err)
+
+        db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", 25) onerr panic "insert: {error}"
+    )
+
+# Inserting a negative age should now fail.
+
+# Inserting a valid age should succeed.
+
+# --- TestDropCheck ---
+
+func TestDropCheck(t reference testing.T)
+    t.Run("drop named CHECK constraint", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        db.Exec(pool, "CREATE TABLE ages (id INTEGER PRIMARY KEY, age INTEGER, CONSTRAINT age_positive CHECK (age >= 0))") onerr panic "create: {error}"
+
+        _, err := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1)
+        test.AssertError(t, err)
+
+        sqlite.DropCheck(pool, "ages", "age_positive") onerr panic "drop check: {error}"
+
+        db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1) onerr panic "insert: {error}"
+    )
+
+# Should fail with negative age.
+
+# Inserting a negative age should now succeed.
+
+# --- TestAddNotNullInvalidName ---
+
+func TestAddNotNullInvalidName(t reference testing.T)
+    t.Run("reject invalid names", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        err := sqlite.AddNotNull(pool, "table; DROP TABLE users", "col")
+        test.AssertError(t, err)
+
+        err2 := sqlite.DropNotNull(pool, "ok", "col; DROP TABLE users")
+        test.AssertError(t, err2)
+    )
+
+# --- TestAddCheckInvalid ---
+
+func TestAddCheckInvalid(t reference testing.T)
+    t.Run("reject empty expression", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        err := sqlite.AddCheck(pool, "t", "")
+        test.AssertError(t, err)
+    )
+
+# --- TestReindexExpressions ---
+
+func TestReindexExpressions(t reference testing.T)
+    t.Run("reindex expressions succeeds", (t reference testing.T) =>
+        pool := sqlite.OpenMemory() onerr panic "open: {error}"
+        defer db.Close(pool)
+
+        db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)") onerr panic "create: {error}"
+        db.Exec(pool, "CREATE INDEX idx_name_lower ON items (lower(name))") onerr panic "index: {error}"
+        db.Exec(pool, "INSERT INTO items (name) VALUES (?)", "Hello") onerr panic "insert: {error}"
+
+        sqlite.ReindexExpressions(pool) onerr panic "reindex: {error}"
+
+        rawDB := db.RawDB(pool)
+        row := rawDB.QueryRow("SELECT name FROM items WHERE lower(name) = ?", "hello")
+        result := ""
+        row.Scan(reference of result) onerr panic "scan: {error}"
+        test.AssertEqual(t, result, "Hello")
+    )

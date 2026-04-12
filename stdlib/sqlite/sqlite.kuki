@@ -145,6 +145,68 @@ func Version(pool db.Pool) (string, error)
     return version, empty
 
 # ============================================================================
+# Schema Alteration (SQLite 3.53.0+)
+# ============================================================================
+
+# AddNotNull adds a NOT NULL constraint to an existing column.
+# Requires SQLite 3.53.0 or later.
+# Example: sqlite.AddNotNull(pool, "users", "email") onerr panic "{error}"
+# kuki:security "sql"
+func AddNotNull(pool db.Pool, table string, column string) error
+    if not isValidPragmaName(table) or not isValidPragmaName(column)
+        return error "sqlite.AddNotNull: invalid table or column name"
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s SET NOT NULL", quoteIdentifier(table), quoteIdentifier(column)))
+    return err
+
+# DropNotNull removes a NOT NULL constraint from an existing column.
+# Requires SQLite 3.53.0 or later.
+# Example: sqlite.DropNotNull(pool, "users", "email") onerr panic "{error}"
+# kuki:security "sql"
+func DropNotNull(pool db.Pool, table string, column string) error
+    if not isValidPragmaName(table) or not isValidPragmaName(column)
+        return error "sqlite.DropNotNull: invalid table or column name"
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s DROP NOT NULL", quoteIdentifier(table), quoteIdentifier(column)))
+    return err
+
+# AddCheck adds a CHECK constraint to an existing table.
+# Requires SQLite 3.53.0 or later.
+# The expression must be a valid SQL expression (e.g., "age >= 0").
+# Example: sqlite.AddCheck(pool, "users", "length(name) > 0") onerr panic "{error}"
+# kuki:security "sql"
+func AddCheck(pool db.Pool, table string, expr string) error
+    if not isValidPragmaName(table)
+        return error "sqlite.AddCheck: invalid table name"
+    if len(expr) == 0
+        return error "sqlite.AddCheck: empty check expression"
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s ADD CHECK (%s)", quoteIdentifier(table), expr))
+    return err
+
+# DropCheck removes a named CHECK constraint from an existing table.
+# Requires SQLite 3.53.0 or later.
+# The constraint must have been added with a name, e.g.,
+# ADD CONSTRAINT age_positive CHECK (age >= 0).
+# Example: sqlite.DropCheck(pool, "users", "users_name_check") onerr panic "{error}"
+# kuki:security "sql"
+func DropCheck(pool db.Pool, table string, constraintName string) error
+    if not isValidPragmaName(table) or not isValidPragmaName(constraintName)
+        return error "sqlite.DropCheck: invalid table or constraint name"
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", quoteIdentifier(table), constraintName))
+    return err
+
+# ReindexExpressions rebuilds all expression indexes on the database,
+# fixing any stale entries caused by deterministic function changes.
+# Requires SQLite 3.53.0 or later.
+# Example: sqlite.ReindexExpressions(pool) onerr panic "{error}"
+func ReindexExpressions(pool db.Pool) error
+    rawDB := db.RawDB(pool)
+    _, err := rawDB.Exec("REINDEX EXPRESSIONS")
+    return err
+
+# ============================================================================
 # Batch Operations
 # ============================================================================
 

@@ -1,0 +1,88 @@
+# Kukicha SQLite JSON example — a bookmark tagger.
+#
+# Demonstrates SQLite 3.53.0+ JSON functions (json_array_insert and
+# jsonb_array_insert) used directly in SQL via stdlib/db and stdlib/sqlite.
+#
+# A bookmarks table keeps tags in a JSON array column. We add, reorder,
+# and query tags using SQLite's native JSON machinery — no Go-side
+# marshal/unmarshal round-trip required.
+
+import "os"
+import "path/filepath"
+import "stdlib/db"
+import "stdlib/sqlite"
+
+type Bookmark
+    Id int64 as "id"
+    Url string as "url"
+    Title string as "title"
+    Tags string as "tags"
+
+type TagCount
+    Tag string as "tag"
+    Count int64 as "count"
+
+func main()
+    path := filepath.Join(os.TempDir(), "bookmark-tags.db")
+    os.Remove(path) onerr discard
+
+    pool := sqlite.Open(path) onerr panic "open: {error}"
+    defer db.Close(pool)
+
+    v := sqlite.Version(pool) onerr panic "version: {error}"
+    print("=== SQLite JSON Bookmark Tagger (SQLite {v}) ===")
+    print("")
+
+    # Tags live in a TEXT column holding a JSON array. Default '[]' lets
+    # json_array_insert work even when no tags have been added yet.
+    createSQL := "CREATE TABLE bookmarks (id INTEGER PRIMARY KEY, url TEXT NOT NULL, title TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '[]')"
+    db.Exec(pool, createSQL) onerr panic "create: {error}"
+
+    # Seed three bookmarks with initial JSON tag arrays.
+    seed := "INSERT INTO bookmarks (url, title, tags) VALUES (?, ?, ?)"
+    db.Exec(pool, seed, "https://sqlite.org", "SQLite", `["db","embedded"]`) onerr panic "seed: {error}"
+    db.Exec(pool, seed, "https://go.dev", "Go", `["lang","systems"]`) onerr panic "seed: {error}"
+    db.Exec(pool, seed, "https://kukicha.org", "Kukicha", `["lang"]`) onerr panic "seed: {error}"
+
+    # --- json_array_insert: add a tag at a specific position ---
+    # Insert "fast" at index 0 → shifts existing tags to the right.
+    prepend := "UPDATE bookmarks SET tags = json_array_insert(tags, '$[0]', ?) WHERE title = ?"
+    db.Exec(pool, prepend, "fast", "SQLite") onerr panic "prepend: {error}"
+
+    # Insert multiple tags in a single call. The special '$[#]' path
+    # means "one past the end of the array" — SQLite's idiom for append.
+    appendTwo := "UPDATE bookmarks SET tags = json_array_insert(tags, '$[#]', ?, '$[#]', ?) WHERE title = ?"
+    db.Exec(pool, appendTwo, "open-source", "tooling", "Kukicha") onerr panic "append: {error}"
+
+    # --- jsonb_array_insert: same semantics, binary storage ---
+    # Faster for read-heavy pipelines since there's no re-parse on every
+    # query. We still render with json() when selecting, so clients see text.
+    jsonbPrepend := "UPDATE bookmarks SET tags = jsonb_array_insert(tags, '$[0]', ?) WHERE title = ?"
+    db.Exec(pool, jsonbPrepend, "concurrent", "Go") onerr panic "jsonb insert: {error}"
+
+    # --- Show all bookmarks with their tags rendered as text ---
+    print("--- All bookmarks ---")
+    listSQL := "SELECT id, url, title, json(tags) AS tags FROM bookmarks ORDER BY id"
+    all := db.Query(pool, listSQL) |> db.ScanAll(empty list of Bookmark) onerr panic "scan: {error}"
+    for b in all.(list of Bookmark)
+        print("  [{b.Id}] {b.Title} — {b.Url}")
+        print("       tags: {b.Tags}")
+
+    # --- Query by tag using json_each ---
+    print("")
+    print("--- Bookmarks tagged 'lang' ---")
+    byTagSQL := "SELECT b.id, b.url, b.title, json(b.tags) AS tags FROM bookmarks b, json_each(b.tags) t WHERE t.value = ? ORDER BY b.id"
+    tagged := db.Query(pool, byTagSQL, "lang") |> db.ScanAll(empty list of Bookmark) onerr panic "scan: {error}"
+    for b in tagged.(list of Bookmark)
+        print("  {b.Title}: {b.Tags}")
+
+    # --- Tag histogram: which tags show up most often? ---
+    print("")
+    print("--- Tag histogram ---")
+    histoSQL := "SELECT t.value AS tag, COUNT(*) AS count FROM bookmarks b, json_each(b.tags) t GROUP BY t.value ORDER BY count DESC, tag"
+    counts := db.Query(pool, histoSQL) |> db.ScanAll(empty list of TagCount) onerr panic "scan: {error}"
+    for c in counts.(list of TagCount)
+        print("  {c.Tag}: {c.Count}")
+
+    print("")
+    print("Done. Database: {path}")
