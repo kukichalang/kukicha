@@ -1050,6 +1050,53 @@ n := sqlite.BatchExec(pool, "INSERT INTO users (name) VALUES (?)", rows) onerr p
 
 # Dump as SQL text
 sql := sqlite.Dump(pool) onerr panic "{error}"
+
+# Schema alteration (SQLite 3.53.0+)
+sqlite.AddNotNull(pool, "users", "email") onerr panic "{error}"
+sqlite.DropNotNull(pool, "users", "email") onerr panic "{error}"
+sqlite.AddCheck(pool, "users", "length(name) > 0") onerr panic "{error}"
+sqlite.DropCheck(pool, "users", "constraint_name") onerr panic "{error}"
+sqlite.ReindexExpressions(pool) onerr panic "{error}"
+```
+
+**SQLite JSON functions** — Use `json_array_insert()` and `jsonb_array_insert()`
+(SQLite 3.53.0+) directly in SQL queries via `db.Query` / `db.Exec`.
+These are SQL-level functions — no Go wrapper needed.
+
+```kukicha
+import "stdlib/db"
+import "stdlib/sqlite"
+
+pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
+defer db.Close(pool)
+
+db.Exec(pool, `CREATE TABLE items (
+    id INTEGER PRIMARY KEY,
+    tags TEXT DEFAULT '[]'
+)`) onerr panic "{error}"
+
+db.Exec(pool, `INSERT INTO items (tags) VALUES (?)`, `["go", "sqlite"]`) onerr panic "{error}"
+
+# Insert "kukicha" at index 1 → ["go", "kukicha", "sqlite"]
+db.Exec(pool, `UPDATE items SET tags = json_array_insert(tags, '$[1]', ?) WHERE id = ?`,
+    "kukicha", 1) onerr panic "{error}"
+
+# Multiple insertions in one call (each path/value pair shifts subsequent elements)
+db.Exec(pool, `UPDATE items SET tags = json_array_insert(tags, '$[0]', ?, '$[3]', ?)`,
+    "first", "last") onerr panic "{error}"
+
+# Query with json_array_insert (useful in SELECT for previewing changes)
+preview := db.Query(pool, `SELECT json_array_insert(tags, '$[0]', 'new') FROM items WHERE id = ?`, 1)
+    |> db.ScanOne(empty string) onerr panic "{error}"
+
+# jsonb_array_insert works identically but returns binary JSONB (faster for storage pipelines)
+db.Exec(pool, `UPDATE items SET tags = jsonb_array_insert(tags, '$[1]', ?) WHERE id = ?`,
+    "fast", 1) onerr panic "{error}"
+
+# Combine with other SQLite JSON functions
+db.Exec(pool, `UPDATE items
+    SET tags = json_array_insert(tags, '$[0]', json_extract(meta, '$.priority'))
+    WHERE id = ?`, 1) onerr panic "{error}"
 ```
 
 #### Security & Crypto
