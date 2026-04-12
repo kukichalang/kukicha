@@ -1081,9 +1081,10 @@ db.Exec(pool, `INSERT INTO items (tags) VALUES (?)`, `["go", "sqlite"]`) onerr p
 db.Exec(pool, `UPDATE items SET tags = json_array_insert(tags, '$[1]', ?) WHERE id = ?`,
     "kukicha", 1) onerr panic "{error}"
 
-# Multiple insertions in one call (each path/value pair shifts subsequent elements)
-db.Exec(pool, `UPDATE items SET tags = json_array_insert(tags, '$[0]', ?, '$[3]', ?)`,
-    "first", "last") onerr panic "{error}"
+# Append with '$[#]' — SQLite's "one past the end" subscript.
+# Batch-append two tags in a single call.
+db.Exec(pool, `UPDATE items SET tags = json_array_insert(tags, '$[#]', ?, '$[#]', ?)`,
+    "first-appended", "second-appended") onerr panic "{error}"
 
 # Query with json_array_insert (useful in SELECT for previewing changes)
 preview := db.Query(pool, `SELECT json_array_insert(tags, '$[0]', 'new') FROM items WHERE id = ?`, 1)
