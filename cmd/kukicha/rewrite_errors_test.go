@@ -8,7 +8,7 @@ import (
 func TestRewriteGoErrors_Basic(t *testing.T) {
 	stderr := []byte("/tmp/kukicha-run-123.go:10:5: undefined: foo")
 	result := rewriteGoErrors(stderr, "/tmp/kukicha-run-123.go", "/home/user/app.kuki")
-	expected := "/home/user/app.kuki:10:5: undefined: foo"
+	expected := "/home/user/app.kuki: undefined: foo"
 	if string(result) != expected {
 		t.Errorf("got %q, want %q", string(result), expected)
 	}
@@ -17,7 +17,7 @@ func TestRewriteGoErrors_Basic(t *testing.T) {
 func TestRewriteGoErrors_MultipleOccurrences(t *testing.T) {
 	stderr := []byte("/tmp/run.go:1: error1\n/tmp/run.go:5: error2\n")
 	result := rewriteGoErrors(stderr, "/tmp/run.go", "app.kuki")
-	expected := "app.kuki:1: error1\napp.kuki:5: error2\n"
+	expected := "app.kuki: error1\napp.kuki: error2\n"
 	if string(result) != expected {
 		t.Errorf("got %q, want %q", string(result), expected)
 	}
@@ -42,6 +42,51 @@ func TestRewriteGoErrors_NilStderr(t *testing.T) {
 	result := rewriteGoErrors(nil, "/tmp/run.go", "app.kuki")
 	if result != nil {
 		t.Errorf("expected nil for nil input, got %q", string(result))
+	}
+}
+
+func TestRewriteGoErrors_ImportFailure(t *testing.T) {
+	stderr := []byte(`/tmp/run.go:3:8: cannot find package "foo"`)
+	result := rewriteGoErrors(stderr, "/tmp/run.go", "app.kuki")
+	expected := `app.kuki: cannot find package "foo"`
+	if string(result) != expected {
+		t.Errorf("got %q, want %q", string(result), expected)
+	}
+}
+
+func TestRewriteGoErrors_LinkerError(t *testing.T) {
+	stderr := []byte("/tmp/run.go: undefined: Foo")
+	result := rewriteGoErrors(stderr, "/tmp/run.go", "app.kuki")
+	expected := "app.kuki: undefined: Foo"
+	if string(result) != expected {
+		t.Errorf("got %q, want %q", string(result), expected)
+	}
+}
+
+func TestRewriteGoErrors_PackageError(t *testing.T) {
+	stderr := []byte("/tmp/run.go:1:1: expected 'package', found 'EOF'")
+	result := rewriteGoErrors(stderr, "/tmp/run.go", "app.kuki")
+	expected := "app.kuki: expected 'package', found 'EOF'"
+	if string(result) != expected {
+		t.Errorf("got %q, want %q", string(result), expected)
+	}
+}
+
+func TestRewriteGoErrors_LineOnlyNoCol(t *testing.T) {
+	stderr := []byte("/tmp/run.go:42: some error")
+	result := rewriteGoErrors(stderr, "/tmp/run.go", "app.kuki")
+	expected := "app.kuki: some error"
+	if string(result) != expected {
+		t.Errorf("got %q, want %q", string(result), expected)
+	}
+}
+
+func TestRewriteGoErrors_PreservesKukiPositions(t *testing.T) {
+	input := "/home/user/app.kuki:15:3: real semantic error\n"
+	stderr := []byte(input)
+	result := rewriteGoErrors(stderr, "/tmp/run.go", "/home/user/app.kuki")
+	if string(result) != input {
+		t.Errorf("got %q, want %q", string(result), input)
 	}
 }
 

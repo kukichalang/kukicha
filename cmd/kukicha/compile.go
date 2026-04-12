@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -381,23 +382,24 @@ func detectTargetFromFile(filename string) (string, error) {
 	return detectTarget(string(source)), nil
 }
 
-// rewriteGoErrors replaces references to the generated .go file path in stderr
-// output with the original .kuki source path. While //line directives handle
-// most source mapping, some Go compiler errors reference the physical file path
-// directly (e.g., package-level errors, import failures, syntax errors in
-// generated code). This function catches those residual references.
+// rewriteGoErrors rewrites residual references to the generated .go file path
+// in Go toolchain stderr output. It is reached when //line directives did NOT
+// translate a position — typically package-level errors (import failures,
+// "declared but not used"), linker errors, go.mod resolution errors, and
+// panic frames outside //line-covered statements.
 //
-// The replacement is intentionally simple (strings.ReplaceAll) because Go error
-// formats vary across versions and tools (go build, go vet, etc.). A regex
-// approach would need to track multiple formats and could miss edge cases.
-// The broad replacement is safe because goFile is a unique temp/output path
-// that won't appear in error messages for any other reason.
+// In those cases any :line:col following the .go path refers to the GENERATED
+// file, not the .kuki source, so we strip them. Pointing the user at
+// "app.kuki:247: undefined: Foo" when line 247 is unrelated would be worse
+// than "app.kuki: undefined: Foo". Positions that DID flow through //line
+// already reference the .kuki path and are left alone.
 func rewriteGoErrors(stderr []byte, goFile, kukiFile string) []byte {
 	if len(stderr) == 0 {
 		return stderr
 	}
-	result := strings.ReplaceAll(string(stderr), goFile, kukiFile)
-	return []byte(result)
+	pattern := regexp.QuoteMeta(goFile) + `(?::\d+(?::\d+)?)?`
+	re := regexp.MustCompile(pattern)
+	return re.ReplaceAll(stderr, []byte(kukiFile))
 }
 
 // rewriteVarNames scans stderr for generated temp variable names (pipe_N, err_N)

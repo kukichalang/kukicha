@@ -31,7 +31,7 @@ Key internal functions in `compile.go`:
 
 - **`compile()`** — Shared pipeline: resolve path → parse → analyze → detect target → codegen → gofmt. Returns `compileResult` used by `build`, `run`, and `pack`.
 - **`loadAndAnalyze()`** — Parse + semantic analysis, returns AST + return counts + expr types.
-- **`rewriteGoErrors()`** — Replaces generated `.go` file paths in Go compiler stderr with original `.kuki` paths.
+- **`rewriteGoErrors()`** — Rewrites residual references to the generated `.go` path in Go toolchain stderr back to the `.kuki` source path, stripping any trailing `:line[:col]`. Reached only when `//line` directives did not translate a position (package/import errors, linker errors, `go.mod` failures) — in those cases the `:line:col` refers to the generated file, so dropping it is more honest than preserving a fake source position.
 - **`rewriteVarNames()`** — Scans stderr for generated temp variable names (`pipe_N`, `err_N`) and appends a "variable hints" section mapping them to source descriptions from `compileResult.varMap`.
 - **`stripFirstLine()`** — Strips first line (header comment) for `--if-changed` body comparison.
 
@@ -131,7 +131,7 @@ Test files and what they cover:
 | `kukicha/pack_test.go` | `generateSkillMD` YAML output, `defaultValueToYAML` |
 | `kukicha/stdlib_test.go` | `needsStdlib` (no import, kukicha repo, user project) |
 | `kukicha/brew_test.go` | `stripGeneratedHeader` (standard, no-header, no-blank-line, empty), `TestBrewProducesValidGo` (examples), `TestBrewWritesFile` |
-| `kukicha/rewrite_errors_test.go` | `rewriteGoErrors` (basic, multi, empty, no-match, nil), `rewriteVarNames` (matching, no-match, empty) |
+| `kukicha/rewrite_errors_test.go` | `rewriteGoErrors` (basic, multi, empty, no-match, nil, import-failure, linker-error, package-error, line-only, preserves-kuki-positions), `rewriteVarNames` (matching, no-match, empty) |
 | `genstdlibregistry/main_test.go` | `scanRegistry` (exported, types, params, skips, deprecated), `formatRegistry`, `typeAnnotationToRepr` |
 
 ## Release Process
