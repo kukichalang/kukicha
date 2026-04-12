@@ -159,6 +159,10 @@ print("Math: 1 + 1 = {1 + 1}")
 # Escape braces with \{ and \}
 json := "key: \{value\}"             # literal braces in output
 
+# Raw strings (backticks) — no escapes, no interpolation.
+# Best for prompts, SQL, regex, or JSON templates with literal braces:
+prompt := `Reply JSON: {severity:1-5, kind, summary}`
+
 # OS path separator
 path := "{dir}\sep{file}"            # \ on Windows, / on Unix
 ```

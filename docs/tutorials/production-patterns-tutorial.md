@@ -231,7 +231,7 @@ function GetLink on d Database(code string) (Link, error)
         onerr return
     links := result.(list of Link)
     if len(links) == 0
-        return Link{}, error "link not found: {code}"
+        return {}, error "link not found: {code}"
     return links[0], empty
 
 # GetAllLinks returns all links, newest first
@@ -654,9 +654,9 @@ Use `result` when you want success/failure as a first-class value you can return
 import "stdlib/errors"
 
 function LoadConfig(path string) (Config, error)
-    data := files.ReadString(path) onerr return Config{}, errors.Wrap(error, "load config")
+    data := files.ReadString(path) onerr return {}, errors.Wrap(error, "load config")
     cfg := Config{}
-    json.UnmarshalString(data, reference of cfg) onerr return Config{}, errors.Wrap(error, "parse config")
+    json.UnmarshalString(data, reference of cfg) onerr return {}, errors.Wrap(error, "parse config")
     return cfg, empty
 ```
 

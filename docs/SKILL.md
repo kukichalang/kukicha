@@ -119,6 +119,10 @@ greeting := "Hello {name}!"          # {expr} is interpolated
 json := "key: \{value\}"             # \{ and \} produce literal braces
 path := "{dir}\sep{file}"            # \sep → OS path separator at runtime
 
+# Raw strings (backticks) — no escapes, no interpolation. Best for prompts,
+# SQL, regex, or JSON templates that contain lots of literal braces:
+prompt := `Reply JSON: {severity:1-5, kind, summary}`
+
 # Escape sequences: \n \t \r \\ \" \' \xHH (hex) \0-\377 (octal)
 esc  := "\033[0m"                    # octal escape (ESC character)
 byte := "\x1b[31m"                   # hex escape (same ESC character)

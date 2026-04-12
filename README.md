@@ -33,11 +33,11 @@ type Verdict
 func triage(i Issue) Verdict
     reply := llm.New("anthropic:claude-sonnet-4-6")
         |> llm.JSONMode()
-        |> llm.System("Classify GitHub issues. Reply JSON: \{severity:1-5, kind, summary\}")
-        |> llm.Ask("{i.title}\n\n{i.body}") onerr return Verdict{}
+        |> llm.System(`Classify GitHub issues. Reply JSON: {severity:1-5, kind, summary}`)
+        |> llm.Ask("{i.title}\n\n{i.body}") onerr return {}
 
     v := Verdict{number: i.number}
-    jsonpkg.UnmarshalString(reply, reference of v) onerr return Verdict{}
+    jsonpkg.UnmarshalString(reply, reference of v) onerr return {}
     return v
 
 func main()
