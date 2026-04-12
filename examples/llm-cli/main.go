@@ -461,747 +461,787 @@ func validateConfig(cfg Config) error {
 	return nil
 }
 
-//line examples/llm-cli/main.kuki:18
+//line examples/llm-cli/main.kuki:19
 var version string = "dev"
 
-//line examples/llm-cli/main.kuki:21
+//line examples/llm-cli/main.kuki:22
 const ansiReset = "\x1b[0m"
 
-//line examples/llm-cli/main.kuki:23
+//line examples/llm-cli/main.kuki:24
 const ansiDim = "\x1b[2m"
 
-//line examples/llm-cli/main.kuki:25
+//line examples/llm-cli/main.kuki:26
 const ansiYellow = "\x1b[33m"
 
-//line examples/llm-cli/main.kuki:27
+//line examples/llm-cli/main.kuki:28
 const ansiBoldYellow = "\x1b[1;33m"
 
-//line examples/llm-cli/main.kuki:29
+//line examples/llm-cli/main.kuki:30
 const ansiBoldCyan = "\x1b[1;36m"
 
-//line examples/llm-cli/main.kuki:31
+//line examples/llm-cli/main.kuki:32
 const ansiRed = "\x1b[91m"
 
-//line examples/llm-cli/main.kuki:33
+//line examples/llm-cli/main.kuki:34
 const ansiGreen = "\x1b[32m"
 
-//line examples/llm-cli/main.kuki:35
-func dimFmt(s string) string {
 //line examples/llm-cli/main.kuki:36
+func dimFmt(s string) string {
+//line examples/llm-cli/main.kuki:37
 	return fmt.Sprintf("%v%v%v", ansiDim, s, ansiReset)
 }
 
-//line examples/llm-cli/main.kuki:38
-func toolFmt(s string) string {
 //line examples/llm-cli/main.kuki:39
+func toolFmt(s string) string {
+//line examples/llm-cli/main.kuki:40
 	return fmt.Sprintf("%v%v%v", ansiYellow, s, ansiReset)
 }
 
-//line examples/llm-cli/main.kuki:41
-func errFmt(s string) string {
 //line examples/llm-cli/main.kuki:42
+func errFmt(s string) string {
+//line examples/llm-cli/main.kuki:43
 	return fmt.Sprintf("%v%v%v", ansiRed, s, ansiReset)
 }
 
-//line examples/llm-cli/main.kuki:44
-func greenFmt(s string) string {
 //line examples/llm-cli/main.kuki:45
+func greenFmt(s string) string {
+//line examples/llm-cli/main.kuki:46
 	return fmt.Sprintf("%v%v%v", ansiGreen, s, ansiReset)
 }
 
-//line examples/llm-cli/main.kuki:47
-func boldCyanFmt(s string) string {
 //line examples/llm-cli/main.kuki:48
+func boldCyanFmt(s string) string {
+//line examples/llm-cli/main.kuki:49
 	return fmt.Sprintf("%v%v%v", ansiBoldCyan, s, ansiReset)
 }
 
-//line examples/llm-cli/main.kuki:50
-func boldYellowFmt(s string) string {
 //line examples/llm-cli/main.kuki:51
+func boldYellowFmt(s string) string {
+//line examples/llm-cli/main.kuki:52
 	return fmt.Sprintf("%v%v%v", ansiBoldYellow, s, ansiReset)
 }
 
-//line examples/llm-cli/main.kuki:55
-func main() {
 //line examples/llm-cli/main.kuki:56
+func main() {
+//line examples/llm-cli/main.kuki:57
 	args := os.Args[1:]
-//line examples/llm-cli/main.kuki:59
-	flagModel := ""
 //line examples/llm-cli/main.kuki:60
-	flagChat := false
+	flagModel := ""
 //line examples/llm-cli/main.kuki:61
-	flagRaw := false
+	flagChat := false
 //line examples/llm-cli/main.kuki:62
-	flagSystem := ""
+	flagRaw := false
 //line examples/llm-cli/main.kuki:63
+	flagSystem := ""
+//line examples/llm-cli/main.kuki:64
 	positional := make([]string, 0)
-//line examples/llm-cli/main.kuki:65
-	i := 0
 //line examples/llm-cli/main.kuki:66
-	for i < len(args) {
+	i := 0
 //line examples/llm-cli/main.kuki:67
-		arg := args[i]
+	for i < len(args) {
 //line examples/llm-cli/main.kuki:68
-		if (arg == "-m") || (arg == "--model") {
+		arg := args[i]
 //line examples/llm-cli/main.kuki:69
-			i = (i + 1)
+		if (arg == "-m") || (arg == "--model") {
 //line examples/llm-cli/main.kuki:70
-			if i < len(args) {
+			i = (i + 1)
 //line examples/llm-cli/main.kuki:71
+			if i < len(args) {
+//line examples/llm-cli/main.kuki:72
 				flagModel = args[i]
 			}
 		} else if strpkg.HasPrefix(arg, "--model=") {
-//line examples/llm-cli/main.kuki:73
+//line examples/llm-cli/main.kuki:74
 			flagModel = strpkg.TrimPrefix(arg, "--model=")
 		} else if (arg == "-c") || (arg == "--chat") {
-//line examples/llm-cli/main.kuki:75
+//line examples/llm-cli/main.kuki:76
 			flagChat = true
 		} else if arg == "--raw" {
-//line examples/llm-cli/main.kuki:77
+//line examples/llm-cli/main.kuki:78
 			flagRaw = true
 		} else if (arg == "-S") || (arg == "--system") {
-//line examples/llm-cli/main.kuki:79
-			i = (i + 1)
 //line examples/llm-cli/main.kuki:80
-			if i < len(args) {
+			i = (i + 1)
 //line examples/llm-cli/main.kuki:81
+			if i < len(args) {
+//line examples/llm-cli/main.kuki:82
 				flagSystem = args[i]
 			}
 		} else if strpkg.HasPrefix(arg, "--system=") {
-//line examples/llm-cli/main.kuki:83
+//line examples/llm-cli/main.kuki:84
 			flagSystem = strpkg.TrimPrefix(arg, "--system=")
 		} else if (arg == "-h") || (arg == "--help") {
-//line examples/llm-cli/main.kuki:85
-			printUsage()
 //line examples/llm-cli/main.kuki:86
+			printUsage()
+//line examples/llm-cli/main.kuki:87
 			return
 		} else {
-//line examples/llm-cli/main.kuki:88
+//line examples/llm-cli/main.kuki:89
 			positional = append(positional, arg)
 		}
-//line examples/llm-cli/main.kuki:89
+//line examples/llm-cli/main.kuki:90
 		i = (i + 1)
 	}
-//line examples/llm-cli/main.kuki:92
-	if len(positional) > 0 {
 //line examples/llm-cli/main.kuki:93
-		cmd := positional[0]
+	if len(positional) > 0 {
 //line examples/llm-cli/main.kuki:94
+		cmd := positional[0]
+//line examples/llm-cli/main.kuki:95
 		if cmd == "models" {
-//line examples/llm-cli/main.kuki:95
-//line examples/llm-cli/main.kuki:95
+//line examples/llm-cli/main.kuki:96
+//line examples/llm-cli/main.kuki:96
 			err_8 := cmdListModels()
-//line examples/llm-cli/main.kuki:95
+//line examples/llm-cli/main.kuki:96
 			if err_8 != nil {
-//line examples/llm-cli/main.kuki:95
-				//line examples/llm-cli/main.kuki:96
+//line examples/llm-cli/main.kuki:96
+				//line examples/llm-cli/main.kuki:97
 				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_8)))
 			}
-//line examples/llm-cli/main.kuki:98
+//line examples/llm-cli/main.kuki:99
 			return
 		}
-//line examples/llm-cli/main.kuki:99
+//line examples/llm-cli/main.kuki:100
 		if cmd == "tools" {
-//line examples/llm-cli/main.kuki:100
-//line examples/llm-cli/main.kuki:100
+//line examples/llm-cli/main.kuki:101
+//line examples/llm-cli/main.kuki:101
 			err_9 := cmdListTools()
-//line examples/llm-cli/main.kuki:100
+//line examples/llm-cli/main.kuki:101
 			if err_9 != nil {
-//line examples/llm-cli/main.kuki:100
-				//line examples/llm-cli/main.kuki:101
+//line examples/llm-cli/main.kuki:101
+				//line examples/llm-cli/main.kuki:102
 				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_9)))
 			}
-//line examples/llm-cli/main.kuki:103
+//line examples/llm-cli/main.kuki:104
 			return
 		}
-//line examples/llm-cli/main.kuki:104
+//line examples/llm-cli/main.kuki:105
 		if cmd == "health" {
-//line examples/llm-cli/main.kuki:105
-//line examples/llm-cli/main.kuki:105
+//line examples/llm-cli/main.kuki:106
+//line examples/llm-cli/main.kuki:106
 			err_10 := cmdHealth()
-//line examples/llm-cli/main.kuki:105
+//line examples/llm-cli/main.kuki:106
 			if err_10 != nil {
-//line examples/llm-cli/main.kuki:105
-				//line examples/llm-cli/main.kuki:106
+//line examples/llm-cli/main.kuki:106
+				//line examples/llm-cli/main.kuki:107
 				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_10)))
 			}
-//line examples/llm-cli/main.kuki:108
+//line examples/llm-cli/main.kuki:109
 			return
 		}
-//line examples/llm-cli/main.kuki:109
+//line examples/llm-cli/main.kuki:110
 		if cmd == "configure" {
-//line examples/llm-cli/main.kuki:110
-//line examples/llm-cli/main.kuki:110
+//line examples/llm-cli/main.kuki:111
+//line examples/llm-cli/main.kuki:111
 			err_11 := cmdConfigure()
-//line examples/llm-cli/main.kuki:110
+//line examples/llm-cli/main.kuki:111
 			if err_11 != nil {
-//line examples/llm-cli/main.kuki:110
-				//line examples/llm-cli/main.kuki:111
+//line examples/llm-cli/main.kuki:111
+				//line examples/llm-cli/main.kuki:112
 				cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_11)))
 			}
-//line examples/llm-cli/main.kuki:113
+//line examples/llm-cli/main.kuki:114
 			return
 		}
-//line examples/llm-cli/main.kuki:114
-		if cmd == "version" {
 //line examples/llm-cli/main.kuki:115
-			fmt.Println(fmt.Sprintf("owui %v", version))
+		if cmd == "version" {
 //line examples/llm-cli/main.kuki:116
+			fmt.Println(fmt.Sprintf("owui %v", version))
+//line examples/llm-cli/main.kuki:117
 			return
 		}
 	}
-//line examples/llm-cli/main.kuki:119
-//line examples/llm-cli/main.kuki:119
+//line examples/llm-cli/main.kuki:120
+//line examples/llm-cli/main.kuki:120
 	err_12 := cmdRun(positional, flagModel, flagChat, flagRaw, flagSystem)
-//line examples/llm-cli/main.kuki:119
+//line examples/llm-cli/main.kuki:120
 	if err_12 != nil {
-//line examples/llm-cli/main.kuki:119
-		//line examples/llm-cli/main.kuki:120
+//line examples/llm-cli/main.kuki:120
+		//line examples/llm-cli/main.kuki:121
 		cli.Fatal(errFmt(fmt.Sprintf("error: %v", err_12)))
 	}
 }
 
-//line examples/llm-cli/main.kuki:124
-func cmdRun(positional []string, flagModel string, flagChat bool, flagRaw bool, flagSystem string) error {
 //line examples/llm-cli/main.kuki:125
-	cfg := loadConfig()
+func cmdRun(positional []string, flagModel string, flagChat bool, flagRaw bool, flagSystem string) error {
 //line examples/llm-cli/main.kuki:126
-	if flagModel != "" {
+	cfg := loadConfig()
 //line examples/llm-cli/main.kuki:127
+	if flagModel != "" {
+//line examples/llm-cli/main.kuki:128
 		cfg.Model = flagModel
 	}
-//line examples/llm-cli/main.kuki:128
-//line examples/llm-cli/main.kuki:128
+//line examples/llm-cli/main.kuki:129
+//line examples/llm-cli/main.kuki:129
 	err_13 := validateConfig(cfg)
-//line examples/llm-cli/main.kuki:128
+//line examples/llm-cli/main.kuki:129
 	if err_13 != nil {
-//line examples/llm-cli/main.kuki:128
+//line examples/llm-cli/main.kuki:129
 		return err_13
 	}
-//line examples/llm-cli/main.kuki:130
+//line examples/llm-cli/main.kuki:131
 	ctx := context.Background()
-//line examples/llm-cli/main.kuki:132
+//line examples/llm-cli/main.kuki:133
 	bridge, err_14 := connectBridges(ctx, cfg.MCPServers)
-//line examples/llm-cli/main.kuki:132
+//line examples/llm-cli/main.kuki:133
 	if err_14 != nil {
-//line examples/llm-cli/main.kuki:132
+//line examples/llm-cli/main.kuki:133
 		return fmt.Errorf("connecting to MCP servers: %v", err_14)
 	}
-//line examples/llm-cli/main.kuki:133
+//line examples/llm-cli/main.kuki:134
 	defer closeBridges(bridge)
-//line examples/llm-cli/main.kuki:135
-	if isTTYErr() {
 //line examples/llm-cli/main.kuki:136
+	if isTTYErr() {
+//line examples/llm-cli/main.kuki:137
 		fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", dimFmt("MCP connected:"), dimFmt(fmt.Sprintf("%v tools from configured servers", bridgeToolCount(bridge)))))
 	}
-//line examples/llm-cli/main.kuki:138
+//line examples/llm-cli/main.kuki:139
 	a := &Agent{Bridge: bridge, Config: cfg, MaxRounds: cfg.MaxToolRounds}
-//line examples/llm-cli/main.kuki:140
-	if flagSystem != "" {
 //line examples/llm-cli/main.kuki:141
+	if flagSystem != "" {
+//line examples/llm-cli/main.kuki:142
 		a.SystemPrompt = flagSystem
 	}
-//line examples/llm-cli/main.kuki:143
-	prompt := gatherPrompt(positional)
-//line examples/llm-cli/main.kuki:146
-	if flagChat {
-//line examples/llm-cli/main.kuki:147
-		runChat(ctx, a, prompt)
-//line examples/llm-cli/main.kuki:148
-		return nil
+//line examples/llm-cli/main.kuki:145
+	agentsDoc, err_15 := files.ReadString("AGENTS.md")
+//line examples/llm-cli/main.kuki:145
+	if err_15 != nil {
+//line examples/llm-cli/main.kuki:145
+		agentsDoc = ""
 	}
+//line examples/llm-cli/main.kuki:146
+	if agentsDoc != "" {
+//line examples/llm-cli/main.kuki:147
+		base := a.SystemPrompt
+//line examples/llm-cli/main.kuki:148
+		if base == "" {
+//line examples/llm-cli/main.kuki:149
+			base = defaultSystemPrompt
+		}
+//line examples/llm-cli/main.kuki:150
+		a.SystemPrompt = fmt.Sprintf("%v\n\n# Project Context (AGENTS.md)\n\n%v", base, agentsDoc)
 //line examples/llm-cli/main.kuki:151
-	if prompt == "" {
+		if isTTYErr() {
 //line examples/llm-cli/main.kuki:152
-		return errors.New("no prompt provided — use -c for interactive chat")
+			fmt.Fprint(os.Stderr, fmt.Sprintf("%v\n", dimFmt("Loaded AGENTS.md from current directory")))
+		}
 	}
 //line examples/llm-cli/main.kuki:154
-	isTTY := isTTYOut()
-//line examples/llm-cli/main.kuki:156
-	if isTTY {
+	prompt := gatherPrompt(positional)
 //line examples/llm-cli/main.kuki:157
-		a.OnToolCall = func(name string, toolArgs string) {
+	if flagChat {
 //line examples/llm-cli/main.kuki:158
+		runChat(ctx, a, prompt)
+//line examples/llm-cli/main.kuki:159
+		return nil
+	}
+//line examples/llm-cli/main.kuki:162
+	if prompt == "" {
+//line examples/llm-cli/main.kuki:163
+		return errors.New("no prompt provided — use -c for interactive chat")
+	}
+//line examples/llm-cli/main.kuki:165
+	isTTY := isTTYOut()
+//line examples/llm-cli/main.kuki:167
+	if isTTY {
+//line examples/llm-cli/main.kuki:168
+		a.OnToolCall = func(name string, toolArgs string) {
+//line examples/llm-cli/main.kuki:169
 			fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 80))))
 		}
-//line examples/llm-cli/main.kuki:160
+//line examples/llm-cli/main.kuki:171
 		a.OnToolResult = func(name string, result string) {
-//line examples/llm-cli/main.kuki:161
+//line examples/llm-cli/main.kuki:172
 			fmt.Fprint(os.Stderr, fmt.Sprintf("%v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 120))))
 		}
 	}
-//line examples/llm-cli/main.kuki:163
+//line examples/llm-cli/main.kuki:174
 	a.OnText = func(chunk string) {
-//line examples/llm-cli/main.kuki:164
+//line examples/llm-cli/main.kuki:175
 		if isTTY && !flagRaw {
-//line examples/llm-cli/main.kuki:165
+//line examples/llm-cli/main.kuki:176
 			fmt.Print(chunk)
 		}
 	}
-//line examples/llm-cli/main.kuki:167
-	result, err_15 := runAgent(ctx, a, prompt, []llm.Message{})
-//line examples/llm-cli/main.kuki:167
-	if err_15 != nil {
-//line examples/llm-cli/main.kuki:167
-		return err_15
+//line examples/llm-cli/main.kuki:178
+	result, err_16 := runAgent(ctx, a, prompt, []llm.Message{})
+//line examples/llm-cli/main.kuki:178
+	if err_16 != nil {
+//line examples/llm-cli/main.kuki:178
+		return err_16
 	}
-//line examples/llm-cli/main.kuki:169
+//line examples/llm-cli/main.kuki:180
 	if isTTY && !flagRaw {
-//line examples/llm-cli/main.kuki:170
+//line examples/llm-cli/main.kuki:181
 		fmt.Println()
 	} else {
-//line examples/llm-cli/main.kuki:172
+//line examples/llm-cli/main.kuki:183
 		fmt.Print(result.Content)
 	}
-//line examples/llm-cli/main.kuki:174
+//line examples/llm-cli/main.kuki:185
 	if isTTY {
-//line examples/llm-cli/main.kuki:175
+//line examples/llm-cli/main.kuki:186
 		fmt.Fprint(os.Stderr, fmt.Sprintf("%v\n", dimFmt(fmt.Sprintf("(%v tool rounds)", result.Rounds))))
 	}
-//line examples/llm-cli/main.kuki:177
+//line examples/llm-cli/main.kuki:188
 	return nil
 }
 
-//line examples/llm-cli/main.kuki:181
+//line examples/llm-cli/main.kuki:192
 type ModelEntry struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-//line examples/llm-cli/main.kuki:185
+//line examples/llm-cli/main.kuki:196
 type ModelsResponse struct {
 	Data []ModelEntry `json:"data"`
 }
 
-//line examples/llm-cli/main.kuki:188
+//line examples/llm-cli/main.kuki:199
 func cmdListModels() error {
-//line examples/llm-cli/main.kuki:189
+//line examples/llm-cli/main.kuki:200
 	cfg := loadConfig()
-//line examples/llm-cli/main.kuki:190
+//line examples/llm-cli/main.kuki:201
 	if cfg.WebUIAPIKey == "" {
-//line examples/llm-cli/main.kuki:191
+//line examples/llm-cli/main.kuki:202
 		return errors.New("Open WebUI API key required")
 	}
-//line examples/llm-cli/main.kuki:193
+//line examples/llm-cli/main.kuki:204
 	url := fmt.Sprintf("%v/api/models", strpkg.TrimRight(cfg.WebUIURL, "/"))
-//line examples/llm-cli/main.kuki:194
+//line examples/llm-cli/main.kuki:205
 	// pipe step 1: fetch.Do(...)
-//line examples/llm-cli/main.kuki:194
-	resp, err_17 := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
-//line examples/llm-cli/main.kuki:194
-	if err_17 != nil {
-//line examples/llm-cli/main.kuki:194
-		return err_17
+//line examples/llm-cli/main.kuki:205
+	resp, err_18 := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
+//line examples/llm-cli/main.kuki:205
+	if err_18 != nil {
+//line examples/llm-cli/main.kuki:205
+		return err_18
 	}
-//line examples/llm-cli/main.kuki:196
+//line examples/llm-cli/main.kuki:207
 	defer resp.Body.Close()
-//line examples/llm-cli/main.kuki:198
+//line examples/llm-cli/main.kuki:209
 	if resp.StatusCode != 200 {
-//line examples/llm-cli/main.kuki:199
-		body, err_18 := fetch.Bytes(resp)
-//line examples/llm-cli/main.kuki:199
-		if err_18 != nil {
-//line examples/llm-cli/main.kuki:199
+//line examples/llm-cli/main.kuki:210
+		body, err_19 := fetch.Bytes(resp)
+//line examples/llm-cli/main.kuki:210
+		if err_19 != nil {
+//line examples/llm-cli/main.kuki:210
 			return fmt.Errorf("HTTP %v", resp.StatusCode)
 		}
-//line examples/llm-cli/main.kuki:200
+//line examples/llm-cli/main.kuki:211
 		return fmt.Errorf("HTTP %v: %v", resp.StatusCode, string(body))
 	}
-//line examples/llm-cli/main.kuki:202
+//line examples/llm-cli/main.kuki:213
 	models := ModelsResponse{}
-//line examples/llm-cli/main.kuki:203
-//line examples/llm-cli/main.kuki:203
-	err_19 := jsonpkg.UnmarshalRead(resp.Body, &models)
-//line examples/llm-cli/main.kuki:203
-	if err_19 != nil {
-//line examples/llm-cli/main.kuki:203
-		return err_19
-	}
-//line examples/llm-cli/main.kuki:205
-	fmt.Println(boldCyanFmt("Available models:"))
-//line examples/llm-cli/main.kuki:206
-	for _, m := range models.Data {
-//line examples/llm-cli/main.kuki:207
-		name := m.Name
-//line examples/llm-cli/main.kuki:208
-		if name == "" {
-//line examples/llm-cli/main.kuki:209
-			name = m.ID
-		}
-//line examples/llm-cli/main.kuki:210
-		fmt.Println(fmt.Sprintf("  %v %v", name, dimFmt(fmt.Sprintf("(%v)", m.ID))))
-	}
-//line examples/llm-cli/main.kuki:212
-	return nil
-}
-
 //line examples/llm-cli/main.kuki:214
-func cmdListTools() error {
-//line examples/llm-cli/main.kuki:215
-	cfg := loadConfig()
-//line examples/llm-cli/main.kuki:216
-	ctx := context.Background()
-//line examples/llm-cli/main.kuki:218
-	bridge, err_20 := connectBridges(ctx, cfg.MCPServers)
-//line examples/llm-cli/main.kuki:218
+//line examples/llm-cli/main.kuki:214
+	err_20 := jsonpkg.UnmarshalRead(resp.Body, &models)
+//line examples/llm-cli/main.kuki:214
 	if err_20 != nil {
-//line examples/llm-cli/main.kuki:218
+//line examples/llm-cli/main.kuki:214
 		return err_20
 	}
+//line examples/llm-cli/main.kuki:216
+	fmt.Println(boldCyanFmt("Available models:"))
+//line examples/llm-cli/main.kuki:217
+	for _, m := range models.Data {
+//line examples/llm-cli/main.kuki:218
+		name := m.Name
 //line examples/llm-cli/main.kuki:219
-	defer closeBridges(bridge)
+		if name == "" {
+//line examples/llm-cli/main.kuki:220
+			name = m.ID
+		}
 //line examples/llm-cli/main.kuki:221
-	fmt.Println(boldYellowFmt("Tools from configured servers:"))
-//line examples/llm-cli/main.kuki:222
-	for _, name := range bridgeToolNames(bridge) {
-//line examples/llm-cli/main.kuki:223
-		fmt.Println(fmt.Sprintf("  %v", name))
+		fmt.Println(fmt.Sprintf("  %v %v", name, dimFmt(fmt.Sprintf("(%v)", m.ID))))
 	}
-//line examples/llm-cli/main.kuki:225
+//line examples/llm-cli/main.kuki:223
 	return nil
 }
 
-//line examples/llm-cli/main.kuki:227
-func cmdHealth() error {
-//line examples/llm-cli/main.kuki:228
+//line examples/llm-cli/main.kuki:225
+func cmdListTools() error {
+//line examples/llm-cli/main.kuki:226
 	cfg := loadConfig()
-//line examples/llm-cli/main.kuki:229
+//line examples/llm-cli/main.kuki:227
 	ctx := context.Background()
+//line examples/llm-cli/main.kuki:229
+	bridge, err_21 := connectBridges(ctx, cfg.MCPServers)
+//line examples/llm-cli/main.kuki:229
+	if err_21 != nil {
+//line examples/llm-cli/main.kuki:229
+		return err_21
+	}
+//line examples/llm-cli/main.kuki:230
+	defer closeBridges(bridge)
 //line examples/llm-cli/main.kuki:232
-	fmt.Printf("Open WebUI  (%v)  ", cfg.WebUIURL)
+	fmt.Println(boldYellowFmt("Tools from configured servers:"))
 //line examples/llm-cli/main.kuki:233
-	if cfg.WebUIAPIKey != "" {
+	for _, name := range bridgeToolNames(bridge) {
 //line examples/llm-cli/main.kuki:234
-		url := fmt.Sprintf("%v/api/models", strpkg.TrimRight(cfg.WebUIURL, "/"))
-//line examples/llm-cli/main.kuki:235
-		resp, err := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
-//line examples/llm-cli/main.kuki:237
-		if err != nil {
+		fmt.Println(fmt.Sprintf("  %v", name))
+	}
+//line examples/llm-cli/main.kuki:236
+	return nil
+}
+
 //line examples/llm-cli/main.kuki:238
+func cmdHealth() error {
+//line examples/llm-cli/main.kuki:239
+	cfg := loadConfig()
+//line examples/llm-cli/main.kuki:240
+	ctx := context.Background()
+//line examples/llm-cli/main.kuki:243
+	fmt.Printf("Open WebUI  (%v)  ", cfg.WebUIURL)
+//line examples/llm-cli/main.kuki:244
+	if cfg.WebUIAPIKey != "" {
+//line examples/llm-cli/main.kuki:245
+		url := fmt.Sprintf("%v/api/models", strpkg.TrimRight(cfg.WebUIURL, "/"))
+//line examples/llm-cli/main.kuki:246
+		resp, err := fetch.Do(fetch.BearerAuth(fetch.New(url), cfg.WebUIAPIKey))
+//line examples/llm-cli/main.kuki:248
+		if err != nil {
+//line examples/llm-cli/main.kuki:249
 			fmt.Println(errFmt("x"), err)
 		} else {
-//line examples/llm-cli/main.kuki:240
+//line examples/llm-cli/main.kuki:251
 			resp.Body.Close()
-//line examples/llm-cli/main.kuki:241
+//line examples/llm-cli/main.kuki:252
 			if resp.StatusCode == 200 {
-//line examples/llm-cli/main.kuki:242
+//line examples/llm-cli/main.kuki:253
 				fmt.Println(greenFmt("ok"))
 			} else {
-//line examples/llm-cli/main.kuki:244
+//line examples/llm-cli/main.kuki:255
 				fmt.Println(errFmt("x"), fmt.Sprintf("HTTP %v", resp.StatusCode))
 			}
 		}
 	} else {
-//line examples/llm-cli/main.kuki:246
+//line examples/llm-cli/main.kuki:257
 		fmt.Println(errFmt("x"), "no API key")
 	}
-//line examples/llm-cli/main.kuki:249
+//line examples/llm-cli/main.kuki:260
 	for name, mcfg := range cfg.MCPServers {
-//line examples/llm-cli/main.kuki:250
+//line examples/llm-cli/main.kuki:261
 		fmt.Printf("%v MCP (%v)  ", name, mcfg.URL)
-//line examples/llm-cli/main.kuki:251
+//line examples/llm-cli/main.kuki:262
 		m := make(map[string]MCPServerConfig)
-//line examples/llm-cli/main.kuki:252
+//line examples/llm-cli/main.kuki:263
 		m[name] = mcfg
-//line examples/llm-cli/main.kuki:253
+//line examples/llm-cli/main.kuki:264
 		bridge, err := connectBridges(ctx, m)
-//line examples/llm-cli/main.kuki:254
+//line examples/llm-cli/main.kuki:265
 		if err != nil {
-//line examples/llm-cli/main.kuki:255
+//line examples/llm-cli/main.kuki:266
 			fmt.Println(errFmt("x"), err)
 		} else {
-//line examples/llm-cli/main.kuki:257
+//line examples/llm-cli/main.kuki:268
 			fmt.Println(greenFmt("ok"), fmt.Sprintf("%v tools", bridgeToolCount(bridge)))
-//line examples/llm-cli/main.kuki:258
+//line examples/llm-cli/main.kuki:269
 			closeBridges(bridge)
 		}
 	}
-//line examples/llm-cli/main.kuki:260
+//line examples/llm-cli/main.kuki:271
 	return nil
 }
 
-//line examples/llm-cli/main.kuki:262
+//line examples/llm-cli/main.kuki:273
 func cmdConfigure() error {
-//line examples/llm-cli/main.kuki:263
+//line examples/llm-cli/main.kuki:274
 	cfg := loadConfig()
-//line examples/llm-cli/main.kuki:265
-	v, err_21 := input.ReadLine(fmt.Sprintf("Open WebUI URL [%v]: ", cfg.WebUIURL))
-//line examples/llm-cli/main.kuki:265
-	if err_21 != nil {
-//line examples/llm-cli/main.kuki:265
+//line examples/llm-cli/main.kuki:276
+	v, err_22 := input.ReadLine(fmt.Sprintf("Open WebUI URL [%v]: ", cfg.WebUIURL))
+//line examples/llm-cli/main.kuki:276
+	if err_22 != nil {
+//line examples/llm-cli/main.kuki:276
 		v = ""
 	}
-//line examples/llm-cli/main.kuki:266
+//line examples/llm-cli/main.kuki:277
 	if v != "" {
-//line examples/llm-cli/main.kuki:267
+//line examples/llm-cli/main.kuki:278
 		cfg.WebUIURL = v
 	}
-//line examples/llm-cli/main.kuki:269
-	var err_22 error
-	v, err_22 = input.ReadLine(fmt.Sprintf("Open WebUI API Key [%v]: ", maskKey(cfg.WebUIAPIKey)))
-//line examples/llm-cli/main.kuki:269
-	if err_22 != nil {
-//line examples/llm-cli/main.kuki:269
+//line examples/llm-cli/main.kuki:280
+	var err_23 error
+	v, err_23 = input.ReadLine(fmt.Sprintf("Open WebUI API Key [%v]: ", maskKey(cfg.WebUIAPIKey)))
+//line examples/llm-cli/main.kuki:280
+	if err_23 != nil {
+//line examples/llm-cli/main.kuki:280
 		v = ""
 	}
-//line examples/llm-cli/main.kuki:270
+//line examples/llm-cli/main.kuki:281
 	if v != "" {
-//line examples/llm-cli/main.kuki:271
+//line examples/llm-cli/main.kuki:282
 		cfg.WebUIAPIKey = v
 	}
-//line examples/llm-cli/main.kuki:273
-	var err_23 error
-	v, err_23 = input.ReadLine(fmt.Sprintf("Model [%v]: ", cfg.Model))
-//line examples/llm-cli/main.kuki:273
-	if err_23 != nil {
-//line examples/llm-cli/main.kuki:273
+//line examples/llm-cli/main.kuki:284
+	var err_24 error
+	v, err_24 = input.ReadLine(fmt.Sprintf("Model [%v]: ", cfg.Model))
+//line examples/llm-cli/main.kuki:284
+	if err_24 != nil {
+//line examples/llm-cli/main.kuki:284
 		v = ""
 	}
-//line examples/llm-cli/main.kuki:274
+//line examples/llm-cli/main.kuki:285
 	if v != "" {
-//line examples/llm-cli/main.kuki:275
+//line examples/llm-cli/main.kuki:286
 		cfg.Model = v
 	}
-//line examples/llm-cli/main.kuki:277
-	var err_24 error
-	v, err_24 = input.ReadLine(fmt.Sprintf("terminal MCP URL [%v]: ", cfg.TerminalMCPURL))
-//line examples/llm-cli/main.kuki:277
-	if err_24 != nil {
-//line examples/llm-cli/main.kuki:277
+//line examples/llm-cli/main.kuki:288
+	var err_25 error
+	v, err_25 = input.ReadLine(fmt.Sprintf("terminal MCP URL [%v]: ", cfg.TerminalMCPURL))
+//line examples/llm-cli/main.kuki:288
+	if err_25 != nil {
+//line examples/llm-cli/main.kuki:288
 		v = ""
 	}
-//line examples/llm-cli/main.kuki:278
+//line examples/llm-cli/main.kuki:289
 	if v != "" {
-//line examples/llm-cli/main.kuki:279
+//line examples/llm-cli/main.kuki:290
 		cfg.TerminalMCPURL = v
 	}
-//line examples/llm-cli/main.kuki:281
-	var err_25 error
-	v, err_25 = input.ReadLine(fmt.Sprintf("terminal MCP API Key [%v]: ", maskKey(cfg.TerminalMCPAPIKey)))
-//line examples/llm-cli/main.kuki:281
-	if err_25 != nil {
-//line examples/llm-cli/main.kuki:281
+//line examples/llm-cli/main.kuki:292
+	var err_26 error
+	v, err_26 = input.ReadLine(fmt.Sprintf("terminal MCP API Key [%v]: ", maskKey(cfg.TerminalMCPAPIKey)))
+//line examples/llm-cli/main.kuki:292
+	if err_26 != nil {
+//line examples/llm-cli/main.kuki:292
 		v = ""
 	}
-//line examples/llm-cli/main.kuki:282
+//line examples/llm-cli/main.kuki:293
 	if v != "" {
-//line examples/llm-cli/main.kuki:283
+//line examples/llm-cli/main.kuki:294
 		cfg.TerminalMCPAPIKey = v
 	}
-//line examples/llm-cli/main.kuki:285
-//line examples/llm-cli/main.kuki:285
-	err_26 := saveConfig(cfg)
-//line examples/llm-cli/main.kuki:285
-	if err_26 != nil {
-//line examples/llm-cli/main.kuki:285
-		return err_26
+//line examples/llm-cli/main.kuki:296
+//line examples/llm-cli/main.kuki:296
+	err_27 := saveConfig(cfg)
+//line examples/llm-cli/main.kuki:296
+	if err_27 != nil {
+//line examples/llm-cli/main.kuki:296
+		return err_27
 	}
-//line examples/llm-cli/main.kuki:286
+//line examples/llm-cli/main.kuki:297
 	fmt.Println(greenFmt(fmt.Sprintf("Saved to %v", defaultConfigPath())))
-//line examples/llm-cli/main.kuki:287
+//line examples/llm-cli/main.kuki:298
 	return nil
 }
 
-//line examples/llm-cli/main.kuki:291
-func runChat(ctx context.Context, a *Agent, initialPrompt string) {
-//line examples/llm-cli/main.kuki:292
-	history := []llm.Message{}
-//line examples/llm-cli/main.kuki:293
-	prompt := initialPrompt
-//line examples/llm-cli/main.kuki:295
-	fmt.Println(dimFmt(fmt.Sprintf("owui chat — model: %v — type 'exit' to quit", a.Config.Model)))
-//line examples/llm-cli/main.kuki:296
-	fmt.Println("")
-//line examples/llm-cli/main.kuki:298
-	for {
-//line examples/llm-cli/main.kuki:299
-		if prompt == "" {
-//line examples/llm-cli/main.kuki:300
-			var err_27 error
-			prompt, err_27 = input.ReadLine(boldCyanFmt("you> "))
-//line examples/llm-cli/main.kuki:300
-			if err_27 != nil {
-//line examples/llm-cli/main.kuki:300
-				break
-			}
-//line examples/llm-cli/main.kuki:301
-			if (prompt == "exit") || (prompt == "quit") {
 //line examples/llm-cli/main.kuki:302
+func runChat(ctx context.Context, a *Agent, initialPrompt string) {
+//line examples/llm-cli/main.kuki:303
+	history := []llm.Message{}
+//line examples/llm-cli/main.kuki:304
+	prompt := initialPrompt
+//line examples/llm-cli/main.kuki:306
+	fmt.Println(dimFmt(fmt.Sprintf("owui chat — model: %v — type 'exit' to quit", a.Config.Model)))
+//line examples/llm-cli/main.kuki:307
+	fmt.Println("")
+//line examples/llm-cli/main.kuki:309
+	for {
+//line examples/llm-cli/main.kuki:310
+		if prompt == "" {
+//line examples/llm-cli/main.kuki:311
+			var err_28 error
+			prompt, err_28 = input.ReadLine(boldCyanFmt("you> "))
+//line examples/llm-cli/main.kuki:311
+			if err_28 != nil {
+//line examples/llm-cli/main.kuki:311
 				break
 			}
-//line examples/llm-cli/main.kuki:303
+//line examples/llm-cli/main.kuki:312
+			if (prompt == "exit") || (prompt == "quit") {
+//line examples/llm-cli/main.kuki:313
+				break
+			}
+//line examples/llm-cli/main.kuki:314
 			if prompt == "" {
-//line examples/llm-cli/main.kuki:304
+//line examples/llm-cli/main.kuki:315
 				continue
 			}
 		}
-//line examples/llm-cli/main.kuki:306
+//line examples/llm-cli/main.kuki:317
 		a.OnToolCall = func(name string, toolArgs string) {
-//line examples/llm-cli/main.kuki:307
+//line examples/llm-cli/main.kuki:318
 			fmt.Fprint(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("-> %v", name)), dimFmt(truncateFmt(toolArgs, 60))))
 		}
-//line examples/llm-cli/main.kuki:309
+//line examples/llm-cli/main.kuki:320
 		a.OnToolResult = func(name string, result string) {
-//line examples/llm-cli/main.kuki:310
+//line examples/llm-cli/main.kuki:321
 			fmt.Fprint(os.Stderr, fmt.Sprintf("  %v %v\n", toolFmt(fmt.Sprintf("<- %v", name)), dimFmt(truncateFmt(result, 80))))
 		}
-//line examples/llm-cli/main.kuki:312
-		a.OnText = nil
-//line examples/llm-cli/main.kuki:314
-		result, err_28 := runAgent(ctx, a, prompt, history)
-//line examples/llm-cli/main.kuki:314
-		if err_28 != nil {
-//line examples/llm-cli/main.kuki:314
-			//line examples/llm-cli/main.kuki:315
-			fmt.Println(errFmt(fmt.Sprintf("error: %v", err_28)))
-			//line examples/llm-cli/main.kuki:316
+//line examples/llm-cli/main.kuki:325
+		firstChunk := true
+//line examples/llm-cli/main.kuki:326
+		a.OnText = func(chunk string) {
+//line examples/llm-cli/main.kuki:327
+			if firstChunk {
+//line examples/llm-cli/main.kuki:328
+				fmt.Print(fmt.Sprintf("\n%v  ", dimFmt(a.Config.Model)))
+//line examples/llm-cli/main.kuki:329
+				firstChunk = false
+			}
+//line examples/llm-cli/main.kuki:330
+			fmt.Print(chunk)
+		}
+//line examples/llm-cli/main.kuki:332
+		result, err_29 := runAgent(ctx, a, prompt, history)
+//line examples/llm-cli/main.kuki:332
+		if err_29 != nil {
+//line examples/llm-cli/main.kuki:332
+			//line examples/llm-cli/main.kuki:333
+			fmt.Println(errFmt(fmt.Sprintf("error: %v", err_29)))
+			//line examples/llm-cli/main.kuki:334
 			fmt.Println("")
-			//line examples/llm-cli/main.kuki:317
+			//line examples/llm-cli/main.kuki:335
 			prompt = ""
-			//line examples/llm-cli/main.kuki:318
+			//line examples/llm-cli/main.kuki:336
 			continue
 		}
-//line examples/llm-cli/main.kuki:320
-		fmt.Println("")
-//line examples/llm-cli/main.kuki:321
-		fmt.Println(fmt.Sprintf("%v  %v", dimFmt(a.Config.Model), result.Content))
-//line examples/llm-cli/main.kuki:322
+//line examples/llm-cli/main.kuki:338
+		if firstChunk && (result.Content != "") {
+//line examples/llm-cli/main.kuki:340
+			fmt.Println(fmt.Sprintf("\n%v  %v", dimFmt(a.Config.Model), result.Content))
+		} else {
+//line examples/llm-cli/main.kuki:342
+			fmt.Println()
+		}
+//line examples/llm-cli/main.kuki:343
 		if result.Rounds > 1 {
-//line examples/llm-cli/main.kuki:323
+//line examples/llm-cli/main.kuki:344
 			fmt.Println(dimFmt(fmt.Sprintf("  (%v rounds)", result.Rounds)))
 		}
-//line examples/llm-cli/main.kuki:324
+//line examples/llm-cli/main.kuki:345
 		fmt.Println("")
-//line examples/llm-cli/main.kuki:326
+//line examples/llm-cli/main.kuki:347
 		history = result.Messages
-//line examples/llm-cli/main.kuki:327
+//line examples/llm-cli/main.kuki:348
 		prompt = ""
 	}
 }
 
-//line examples/llm-cli/main.kuki:331
+//line examples/llm-cli/main.kuki:352
 func gatherPrompt(args []string) string {
-//line examples/llm-cli/main.kuki:332
+//line examples/llm-cli/main.kuki:353
 	prompt := ""
-//line examples/llm-cli/main.kuki:335
+//line examples/llm-cli/main.kuki:356
 	if !isTerminal(os.Stdin) && (len(args) == 0) {
-//line examples/llm-cli/main.kuki:336
+//line examples/llm-cli/main.kuki:357
 		data, _ := io.ReadAll(os.Stdin)
-//line examples/llm-cli/main.kuki:337
+//line examples/llm-cli/main.kuki:358
 		prompt = strpkg.TrimSpace(string(data))
 	}
-//line examples/llm-cli/main.kuki:339
+//line examples/llm-cli/main.kuki:360
 	if len(args) > 0 {
-//line examples/llm-cli/main.kuki:340
+//line examples/llm-cli/main.kuki:361
 		argText := strpkg.Join(args, " ")
-//line examples/llm-cli/main.kuki:341
+//line examples/llm-cli/main.kuki:362
 		if prompt != "" {
-//line examples/llm-cli/main.kuki:342
+//line examples/llm-cli/main.kuki:363
 			prompt = fmt.Sprintf("%v\n\n%v", argText, prompt)
 		} else {
-//line examples/llm-cli/main.kuki:344
+//line examples/llm-cli/main.kuki:365
 			prompt = argText
 		}
 	}
-//line examples/llm-cli/main.kuki:346
+//line examples/llm-cli/main.kuki:367
 	return prompt
 }
 
-//line examples/llm-cli/main.kuki:348
+//line examples/llm-cli/main.kuki:369
 func isTerminal(f *os.File) bool {
-//line examples/llm-cli/main.kuki:349
+//line examples/llm-cli/main.kuki:370
 	info, err := f.Stat()
-//line examples/llm-cli/main.kuki:350
+//line examples/llm-cli/main.kuki:371
 	if err != nil {
-//line examples/llm-cli/main.kuki:351
+//line examples/llm-cli/main.kuki:372
 		return false
 	}
-//line examples/llm-cli/main.kuki:352
+//line examples/llm-cli/main.kuki:373
 	return ((info.Mode() & 0x200000) != 0)
 }
 
-//line examples/llm-cli/main.kuki:354
+//line examples/llm-cli/main.kuki:375
 func isTTYOut() bool {
-//line examples/llm-cli/main.kuki:355
+//line examples/llm-cli/main.kuki:376
 	return isTerminal(os.Stdout)
 }
 
-//line examples/llm-cli/main.kuki:357
+//line examples/llm-cli/main.kuki:378
 func isTTYErr() bool {
-//line examples/llm-cli/main.kuki:358
+//line examples/llm-cli/main.kuki:379
 	return isTerminal(os.Stderr)
 }
 
-//line examples/llm-cli/main.kuki:360
+//line examples/llm-cli/main.kuki:381
 func maskKey(k string) string {
-//line examples/llm-cli/main.kuki:361
+//line examples/llm-cli/main.kuki:382
 	if len(k) < 8 {
-//line examples/llm-cli/main.kuki:362
+//line examples/llm-cli/main.kuki:383
 		return "--------"
 	}
-//line examples/llm-cli/main.kuki:363
+//line examples/llm-cli/main.kuki:384
 	return fmt.Sprintf("%v...%v", k[:4], k[(len(k)-4):])
 }
 
-//line examples/llm-cli/main.kuki:365
+//line examples/llm-cli/main.kuki:386
 func truncateFmt(s string, n int) string {
-//line examples/llm-cli/main.kuki:366
+//line examples/llm-cli/main.kuki:387
 	s = strpkg.ReplaceAll(s, "\n", " ")
-//line examples/llm-cli/main.kuki:367
+//line examples/llm-cli/main.kuki:388
 	if len(s) <= n {
-//line examples/llm-cli/main.kuki:368
+//line examples/llm-cli/main.kuki:389
 		return s
 	}
-//line examples/llm-cli/main.kuki:369
+//line examples/llm-cli/main.kuki:390
 	return fmt.Sprintf("%v...", s[:n])
 }
 
-//line examples/llm-cli/main.kuki:371
-func printUsage() {
-//line examples/llm-cli/main.kuki:372
-	fmt.Println("owui — CLI agent: Open WebUI models + Open Terminal via MCP")
-//line examples/llm-cli/main.kuki:373
-	fmt.Println("")
-//line examples/llm-cli/main.kuki:374
-	fmt.Println("Usage:")
-//line examples/llm-cli/main.kuki:375
-	fmt.Println("  owui [flags] [prompt]     Agent mode (one-shot or piped)")
-//line examples/llm-cli/main.kuki:376
-	fmt.Println("  owui -c [prompt]          Interactive chat")
-//line examples/llm-cli/main.kuki:377
-	fmt.Println("  owui models               List available models")
-//line examples/llm-cli/main.kuki:378
-	fmt.Println("  owui tools                List MCP tools")
-//line examples/llm-cli/main.kuki:379
-	fmt.Println("  owui health               Check connectivity")
-//line examples/llm-cli/main.kuki:380
-	fmt.Println("  owui configure            Save configuration")
-//line examples/llm-cli/main.kuki:381
-	fmt.Println("  owui version              Print version")
-//line examples/llm-cli/main.kuki:382
-	fmt.Println("")
-//line examples/llm-cli/main.kuki:383
-	fmt.Println("Flags:")
-//line examples/llm-cli/main.kuki:384
-	fmt.Println("  -m, --model <model>       Override model")
-//line examples/llm-cli/main.kuki:385
-	fmt.Println("  -c, --chat                Interactive chat mode")
-//line examples/llm-cli/main.kuki:386
-	fmt.Println("  -S, --system <prompt>     Override system prompt")
-//line examples/llm-cli/main.kuki:387
-	fmt.Println("  --raw                     Raw output (no formatting)")
-//line examples/llm-cli/main.kuki:388
-	fmt.Println("")
-//line examples/llm-cli/main.kuki:389
-	fmt.Println("Environment:")
-//line examples/llm-cli/main.kuki:390
-	fmt.Println("  OWUI_WEBUI_URL            Open WebUI URL (default: http://localhost:3000)")
-//line examples/llm-cli/main.kuki:391
-	fmt.Println("  OWUI_WEBUI_API_KEY        Open WebUI API key (required)")
 //line examples/llm-cli/main.kuki:392
-	fmt.Println("  OWUI_MODEL                Model name (default: llama3.1)")
+func printUsage() {
 //line examples/llm-cli/main.kuki:393
-	fmt.Println("  OWUI_TERMINAL_MCP_URL     terminal MCP URL (default: http://127.0.0.1:9000/mcp)")
+	fmt.Println("owui — CLI agent: Open WebUI models + Open Terminal via MCP")
 //line examples/llm-cli/main.kuki:394
+	fmt.Println("")
+//line examples/llm-cli/main.kuki:395
+	fmt.Println("Usage:")
+//line examples/llm-cli/main.kuki:396
+	fmt.Println("  owui [flags] [prompt]     Agent mode (one-shot or piped)")
+//line examples/llm-cli/main.kuki:397
+	fmt.Println("  owui -c [prompt]          Interactive chat")
+//line examples/llm-cli/main.kuki:398
+	fmt.Println("  owui models               List available models")
+//line examples/llm-cli/main.kuki:399
+	fmt.Println("  owui tools                List MCP tools")
+//line examples/llm-cli/main.kuki:400
+	fmt.Println("  owui health               Check connectivity")
+//line examples/llm-cli/main.kuki:401
+	fmt.Println("  owui configure            Save configuration")
+//line examples/llm-cli/main.kuki:402
+	fmt.Println("  owui version              Print version")
+//line examples/llm-cli/main.kuki:403
+	fmt.Println("")
+//line examples/llm-cli/main.kuki:404
+	fmt.Println("Flags:")
+//line examples/llm-cli/main.kuki:405
+	fmt.Println("  -m, --model <model>       Override model")
+//line examples/llm-cli/main.kuki:406
+	fmt.Println("  -c, --chat                Interactive chat mode")
+//line examples/llm-cli/main.kuki:407
+	fmt.Println("  -S, --system <prompt>     Override system prompt")
+//line examples/llm-cli/main.kuki:408
+	fmt.Println("  --raw                     Raw output (no formatting)")
+//line examples/llm-cli/main.kuki:409
+	fmt.Println("")
+//line examples/llm-cli/main.kuki:410
+	fmt.Println("Environment:")
+//line examples/llm-cli/main.kuki:411
+	fmt.Println("  OWUI_WEBUI_URL            Open WebUI URL (default: http://localhost:3000)")
+//line examples/llm-cli/main.kuki:412
+	fmt.Println("  OWUI_WEBUI_API_KEY        Open WebUI API key (required)")
+//line examples/llm-cli/main.kuki:413
+	fmt.Println("  OWUI_MODEL                Model name (default: llama3.1)")
+//line examples/llm-cli/main.kuki:414
+	fmt.Println("  OWUI_TERMINAL_MCP_URL     terminal MCP URL (default: http://127.0.0.1:9000/mcp)")
+//line examples/llm-cli/main.kuki:415
 	fmt.Println("  OWUI_TERMINAL_MCP_API_KEY terminal MCP API key (optional, for authenticated servers)")
 }

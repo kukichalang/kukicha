@@ -11,6 +11,7 @@ import "io"
 import "os"
 import "stdlib/cli"
 import "stdlib/fetch"
+import "stdlib/files"
 import "stdlib/input"
 import "stdlib/json" as jsonpkg
 import "stdlib/string" as strpkg
@@ -139,6 +140,16 @@ func cmdRun(positional list of string, flagModel string, flagChat bool, flagRaw 
 
     if flagSystem isnt ""
         a.SystemPrompt = flagSystem
+
+    # Load AGENTS.md from cwd if present — gives the LLM project context
+    agentsDoc := files.ReadString("AGENTS.md") onerr ""
+    if agentsDoc isnt ""
+        base := a.SystemPrompt
+        if base equals ""
+            base = defaultSystemPrompt
+        a.SystemPrompt = "{base}\n\n# Project Context (AGENTS.md)\n\n{agentsDoc}"
+        if isTTYErr()
+            fmt.Fprint(os.Stderr, "{dimFmt("Loaded AGENTS.md from current directory")}\n")
 
     prompt := gatherPrompt(positional)
 
