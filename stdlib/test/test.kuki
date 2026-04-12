@@ -1,8 +1,8 @@
 petiole test
 
-import "testing"
-import "reflect"
 import "fmt"
+import "reflect"
+import "testing"
 
 func AssertEqual(t reference testing.T, got any, want any, many msgAndArgs any)
     t.Helper()
