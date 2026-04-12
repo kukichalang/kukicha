@@ -53,6 +53,7 @@ EnumCase ::= IDENTIFIER "=" Literal NEWLINE
 TypeDeclaration ::=
     | "type" IDENTIFIER NEWLINE INDENT FieldList DEDENT
     | "type" IDENTIFIER FunctionType NEWLINE
+    | "type" IDENTIFIER "=" TypeAnnotation NEWLINE
 
 FieldList ::= Field { Field }
 

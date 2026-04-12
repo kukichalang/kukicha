@@ -184,6 +184,7 @@ Non-interpolated strings still emit a single `TOKEN_STRING`.
 - Context-sensitive keywords: `list`, `map`, `channel` are only keywords when followed by `of` in a type context — this allows them as variable names elsewhere. `empty` and `error` are context-sensitive too: `isIdentifierFollower()` checks if the next token indicates identifier usage (`:=`, `=`, `&`, `.`, `[`, `:`, `|>`, `)`, `,`, string interpolation mid/tail, etc.); if so, they parse as identifiers instead of `EmptyExpr`/`ErrorExpr`. This means `empty |> iterator.Values()`, `print(empty)`, and `empty.field` all work when `empty` is a user-defined variable.
 - **Keywords as identifiers:** `parseIdentifier()` uses `isIdentifierToken()` to accept many keyword tokens in identifier position (method names, field names, function declaration names). This allows patterns like `obj.close()`, `db.select()`, `registry.list()`, `node.type`, `event.on()`. Only tokens with structural/control-flow meaning (e.g., `if`, `for`, `return`, `func`) are excluded. Previously only `close`, `empty`, and `error` were accepted; now ~25 keyword types are allowed.
 - **Type declarations inside functions:** `parseStatement()` parses `TOKEN_TYPE` into a `TypeDeclStmt` (wrapping a `TypeDecl`) rather than rejecting it at parse time. The error is deferred to semantic analysis, which keeps all validation in a single pass and produces a clearer error message.
+- **Transparent type aliases:** `parseTypeDecl()` detects `TOKEN_ASSIGN` (`=`) after the type name and sets `IsAlias: true` on the `TypeDecl`, then parses any `TypeAnnotation` (not just `FunctionType`). Non-alias forms only accept a `FunctionType` (via `AliasType`) or an indented struct body.
 
 ### Operator precedence (lowest → highest)
 
@@ -578,6 +579,18 @@ The Lowerer populates `Pos` using `posOf(expr)` (pipe step positions) and `claus
 `generateEnumDecl()` emits: (1) `type X int` or `type X string`, (2) a `const (...)` block with prefixed names (`StatusOK`, `StatusNotFound`), and (3) an auto-generated `String()` method (switch-based for int enums, `return string(e)` for string enums). The `String()` method is skipped if `hasMethodOnType()` finds a user-defined one.
 
 **Dot-access rewriting:** `generateFieldAccessExpr` checks `g.enumTypes[object]` — if the object is an enum name, `Status.OK` becomes `StatusOK`. The `enumTypes` map is populated in two pre-scans in `Generate()`: (1) local enums from the program's declarations, (2) cross-package enums by checking each imported package against `GetAllStdlibEnums()`.
+
+### Type alias codegen
+
+`generateTypeDecl()` in `codegen_decl.go` handles three forms:
+
+| Kukicha | Generated Go | Description |
+|---------|-------------|-------------|
+| `type Repo`<br>  `name string` | `type Repo struct { Name string }` | Struct type |
+| `type Handler func(T) R` | `type Handler func(T) R` | Defined function type |
+| `type X = pkg.T` | `type X = pkg.T` | Transparent alias |
+
+Transparent aliases (`IsAlias bool` on `TypeDecl`) use Go's `=` form: `X` and `pkg.T` are the **same type** — type assertions and type switches work without importing `pkg` directly. The `IsAlias` path can alias any `TypeAnnotation` (named types, list types, map types, etc.), while the non-alias path only accepts `FunctionType` via `AliasType`.
 
 ### Variant enum codegen
 

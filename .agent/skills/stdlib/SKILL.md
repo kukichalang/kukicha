@@ -195,7 +195,15 @@ resp.Body = reference of limitReadCloser{r: io.LimitReader(resp.Body, maxSize), 
 
 ## Module Structure
 
-Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. No `_helper.go` or `_tool.go` files.
+Every stdlib module is **pure Kukicha**: `<name>.kuki` source + `<name>.go` generated output. There are no hand-written Go implementation files anywhere in `stdlib/`.
+
+To re-export an external Go type (so callers can use it in type assertions without importing the original package), use a **transparent type alias** in the `.kuki` source:
+
+```kukicha
+type TextContent = mcp.TextContent     # re-exports external type; generates: type TextContent = mcp.TextContent
+```
+
+This generates Go's `type X = Y` form — the types are identical, enabling cross-package type assertions like `result.(*mcp.TextContent)`.
 
 ### WASM-only packages
 

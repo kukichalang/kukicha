@@ -64,7 +64,7 @@ go test ./... -v
 go test ./internal/lexer/... -v
 ```
 
-The linter (`golangci-lint`) catches unused code, unchecked errors, and common mistakes that tests alone don't detect. `make vet` covers stdlib packages that golangci-lint excludes. `make modernize` runs `go fix -diff` to detect outdated Go patterns in generated `.go` files — if it finds anything, update the `.kuki` source or hand-written Go code. All issues must be resolved before merging.
+The linter (`golangci-lint`) catches unused code, unchecked errors, and common mistakes that tests alone don't detect. `make vet` covers stdlib packages that golangci-lint excludes. `make modernize` runs `go fix -diff` to detect outdated Go patterns in generated `.go` files — if it finds anything, update the `.kuki` source (for stdlib) or the hand-written Go code (for compiler internals in `internal/`). All issues must be resolved before merging.
 
 ### 4. Commit Your Changes
 

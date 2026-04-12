@@ -137,7 +137,8 @@ type TypeDecl struct {
 	Token      lexer.Token // The 'type' token
 	Name       *Identifier
 	Fields     []*FieldDecl   // nil for type aliases
-	AliasType  TypeAnnotation // non-nil for type aliases (e.g., func(...) ...)
+	AliasType  TypeAnnotation // non-nil for type aliases (e.g., func(...) ...) or transparent aliases (type X = Y)
+	IsAlias    bool           // true for transparent Go type aliases (type X = Y), false for defined types (type X Y)
 	Directives []Directive    // Attached `# kuki:` directives
 }
 

@@ -169,7 +169,12 @@ func (p *Printer) printConstDecl(decl *ast.ConstDecl) {
 }
 
 func (p *Printer) printTypeDecl(decl *ast.TypeDecl) {
-	// Type alias (e.g., type Handler func(string))
+	// Transparent type alias (e.g., type TextContent = mcp.TextContent)
+	if decl.AliasType != nil && decl.IsAlias {
+		p.writeLine(fmt.Sprintf("type %s = %s", decl.Name.Value, p.typeAnnotationToString(decl.AliasType)))
+		return
+	}
+	// Defined type alias (e.g., type Handler func(string))
 	if decl.AliasType != nil {
 		p.writeLine(fmt.Sprintf("type %s %s", decl.Name.Value, p.typeAnnotationToString(decl.AliasType)))
 		return

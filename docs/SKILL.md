@@ -144,6 +144,21 @@ type Repo
     meta  map of string to string
 ```
 
+**Function type alias** (defines a new named type):
+
+```kukicha
+type Handler func(context.Context, string) (string, error)
+```
+
+**Transparent type alias** (same type as the target — `type X = Y`):
+
+```kukicha
+type TextContent = mcp.TextContent    # re-exports external type for type assertions
+type StringSlice = list of string     # alias any type annotation
+```
+
+Transparent aliases generate Go's `type X = Y` form: `X` and `Y` are identical types, so type assertions and type switches work across package boundaries without importing the original package.
+
 ### Enums
 
 ```kukicha

@@ -193,6 +193,92 @@ func TestParseFunctionTypeAlias(t *testing.T) {
 	}
 }
 
+func TestParseTransparentTypeAlias(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		typeName  string
+		aliasKind string // "named", "reference", "func", "list"
+	}{
+		{
+			name:      "named type alias",
+			input:     "type TextContent = pkg.TextContent\n",
+			typeName:  "TextContent",
+			aliasKind: "named",
+		},
+		{
+			name:      "reference type alias",
+			input:     "type MyPtr = reference pkg.SomeType\n",
+			typeName:  "MyPtr",
+			aliasKind: "reference",
+		},
+		{
+			name:      "func type transparent alias",
+			input:     "type Handler = func(string) error\n",
+			typeName:  "Handler",
+			aliasKind: "func",
+		},
+		{
+			name:      "list type transparent alias",
+			input:     "type StringSlice = list of string\n",
+			typeName:  "StringSlice",
+			aliasKind: "list",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			program := mustParseProgram(t, tt.input)
+
+			if len(program.Declarations) != 1 {
+				t.Fatalf("expected 1 declaration, got %d", len(program.Declarations))
+			}
+
+			typeDecl, ok := program.Declarations[0].(*ast.TypeDecl)
+			if !ok {
+				t.Fatalf("expected TypeDecl, got %T", program.Declarations[0])
+			}
+
+			if typeDecl.Name.Value != tt.typeName {
+				t.Errorf("expected type name %q, got %q", tt.typeName, typeDecl.Name.Value)
+			}
+
+			if !typeDecl.IsAlias {
+				t.Error("expected IsAlias=true for transparent type alias")
+			}
+
+			if typeDecl.AliasType == nil {
+				t.Fatal("expected AliasType to be non-nil")
+			}
+
+			if typeDecl.Fields != nil {
+				t.Errorf("expected Fields to be nil for type alias, got %v", typeDecl.Fields)
+			}
+		})
+	}
+}
+
+func TestFunctionTypeAliasIsNotTransparent(t *testing.T) {
+	// type X func(...) without = should remain a defined type (IsAlias=false)
+	input := "type Handler func(string) error\n"
+	program := mustParseProgram(t, input)
+
+	typeDecl, ok := program.Declarations[0].(*ast.TypeDecl)
+	if !ok {
+		t.Fatalf("expected TypeDecl, got %T", program.Declarations[0])
+	}
+
+	if typeDecl.IsAlias {
+		t.Error("expected IsAlias=false for defined function type (no =)")
+	}
+
+	if typeDecl.AliasType == nil {
+		t.Fatal("expected AliasType to be non-nil")
+	}
+}
+
+
 func TestParseStructTypeStillWorks(t *testing.T) {
 	input := `type Person
     Name string

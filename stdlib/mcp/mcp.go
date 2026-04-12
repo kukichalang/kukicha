@@ -409,3 +409,45 @@ func CallTool(ctx context.Context, session *ClientSession, name string, args map
 //line stdlib/mcp/mcp.kuki:313
 	return session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: args})
 }
+
+//line stdlib/mcp/mcp.kuki:328
+type TextContent = mcp.TextContent
+
+//line stdlib/mcp/mcp.kuki:331
+type ImageContent = mcp.ImageContent
+
+//line stdlib/mcp/mcp.kuki:334
+type CallToolParams = mcp.CallToolParams
+
+//line stdlib/mcp/mcp.kuki:337
+type SamplingMessage = mcp.SamplingMessage
+
+//line stdlib/mcp/mcp.kuki:341
+type SamplingMessageV2 = mcp.SamplingMessageV2
+
+//line stdlib/mcp/mcp.kuki:344
+type CreateMessageParams = mcp.CreateMessageParams
+
+//line stdlib/mcp/mcp.kuki:348
+type CreateMessageWithToolsParams = mcp.CreateMessageWithToolsParams
+
+//line stdlib/mcp/mcp.kuki:351
+type CreateMessageResult = mcp.CreateMessageResult
+
+//line stdlib/mcp/mcp.kuki:355
+type CreateMessageWithToolsResult = mcp.CreateMessageWithToolsResult
+
+//line stdlib/mcp/mcp.kuki:359
+type ToolUseContent = mcp.ToolUseContent
+
+//line stdlib/mcp/mcp.kuki:363
+type ToolResultContent = mcp.ToolResultContent
+
+//line stdlib/mcp/mcp.kuki:366
+type ToolChoice = mcp.ToolChoice
+
+//line stdlib/mcp/mcp.kuki:369
+type SamplingCapabilities = mcp.SamplingCapabilities
+
+//line stdlib/mcp/mcp.kuki:372
+type SamplingToolsCapabilities = mcp.SamplingToolsCapabilities

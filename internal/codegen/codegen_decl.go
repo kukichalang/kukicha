@@ -10,7 +10,12 @@ import (
 )
 
 func (g *Generator) generateTypeDecl(decl *ast.TypeDecl) {
-	// Type alias (e.g., type Handler func(string))
+	// Transparent type alias (e.g., type TextContent = mcp.TextContent)
+	if decl.AliasType != nil && decl.IsAlias {
+		g.writeLine(fmt.Sprintf("type %s = %s", decl.Name.Value, g.generateTypeAnnotation(decl.AliasType)))
+		return
+	}
+	// Defined type alias (e.g., type Handler func(string))
 	if decl.AliasType != nil {
 		g.writeLine(fmt.Sprintf("type %s %s", decl.Name.Value, g.generateTypeAnnotation(decl.AliasType)))
 		return

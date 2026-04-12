@@ -309,7 +309,14 @@ func runChat(ctx context.Context, a reference Agent, initialPrompt string)
         a.OnToolResult = func(name string, result string)
             fmt.Fprint(os.Stderr, "  {toolFmt("<- {name}")} {dimFmt(truncateFmt(result, 80))}\n")
 
-        a.OnText = empty
+        # Stream response chunks; print the model prefix lazily on the first chunk
+        # so tool-call output (stderr) appears before the response line starts.
+        firstChunk := true
+        a.OnText = func(chunk string)
+            if firstChunk
+                fmt.Print("\n{dimFmt(a.Config.Model)}  ")
+                firstChunk = false
+            fmt.Print(chunk)
 
         result := runAgent(ctx, a, prompt, history) onerr
             print(errFmt("error: {error}"))
@@ -317,8 +324,11 @@ func runChat(ctx context.Context, a reference Agent, initialPrompt string)
             prompt = ""
             continue
 
-        print("")
-        print("{dimFmt(a.Config.Model)}  {result.Content}")
+        if firstChunk and result.Content isnt ""
+            # Streaming produced no chunks (e.g. buffered response) — print normally.
+            print("\n{dimFmt(a.Config.Model)}  {result.Content}")
+        else
+            fmt.Println()
         if result.Rounds > 1
             print(dimFmt("  ({result.Rounds} rounds)"))
         print("")

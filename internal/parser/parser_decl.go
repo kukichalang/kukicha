@@ -222,7 +222,19 @@ func (p *Parser) parseTypeDecl() ast.Declaration {
 	name := p.parseIdentifier()
 	p.skipNewlines()
 
-	// Check for type alias: type Name func(...) ...
+	// Check for transparent type alias: type Name = SomeType
+	if p.match(lexer.TOKEN_ASSIGN) {
+		aliasType := p.parseTypeAnnotation()
+		p.skipNewlines()
+		return &ast.TypeDecl{
+			Token:     token,
+			Name:      name,
+			AliasType: aliasType,
+			IsAlias:   true,
+		}
+	}
+
+	// Check for defined function type alias: type Name func(...) ...
 	if p.check(lexer.TOKEN_FUNC) {
 		aliasType := p.parseTypeAnnotation()
 		p.skipNewlines()

@@ -311,3 +311,62 @@ func ListTools(ctx context.Context, session reference ClientSession) (list of Cl
 # CallTool calls a specific tool by name with arguments.
 func CallTool(ctx context.Context, session reference ClientSession, name string, args map of string to any) (CallToolResult, error)
     return session.CallTool(ctx, reference of mcp.CallToolParams{Name: name, Arguments: args})
+
+# Type aliases re-exporting go-sdk content and parameter types so callers can
+# type-assert CallToolResult.Content elements without a direct dependency on
+# github.com/modelcontextprotocol/go-sdk/mcp.
+#
+# Example:
+#   for _, c in result.Content
+#       c |> switch as v
+#           when reference mcp.TextContent
+#               print(v.Text)
+#           when reference mcp.ImageContent
+#               print("[image: {v.MIMEType}]")
+
+# TextContent is a content item containing plain text.
+type TextContent = mcp.TextContent
+
+# ImageContent is a content item containing base64-encoded image data.
+type ImageContent = mcp.ImageContent
+
+# CallToolParams holds the parameters for a CallTool request.
+type CallToolParams = mcp.CallToolParams
+
+# SamplingMessage is a single-content sampling conversation turn (pre-2025-11-25 wire format).
+type SamplingMessage = mcp.SamplingMessage
+
+# SamplingMessageV2 is a multi-content sampling conversation turn (2025-11-25 wire format).
+# Use this with CreateMessageWithToolsParams to support parallel tool calls.
+type SamplingMessageV2 = mcp.SamplingMessageV2
+
+# CreateMessageParams is the request sent by the server to the client for sampling.
+type CreateMessageParams = mcp.CreateMessageParams
+
+# CreateMessageWithToolsParams is a sampling request that includes tools and tool-choice.
+# Use with ServerSession.CreateMessageWithTools and SamplingWithToolsHandler.
+type CreateMessageWithToolsParams = mcp.CreateMessageWithToolsParams
+
+# CreateMessageResult is the client's response to a basic sampling request.
+type CreateMessageResult = mcp.CreateMessageResult
+
+# CreateMessageWithToolsResult is the client's response to a tool-enabled sampling request.
+# Content is a slice to support multiple parallel tool-use blocks.
+type CreateMessageWithToolsResult = mcp.CreateMessageWithToolsResult
+
+# ToolUseContent represents a request from the assistant to invoke a tool.
+# Only valid in sampling messages.
+type ToolUseContent = mcp.ToolUseContent
+
+# ToolResultContent represents the result of a tool invocation.
+# Only valid in sampling messages with role "user".
+type ToolResultContent = mcp.ToolResultContent
+
+# ToolChoice controls how the model uses tools during sampling.
+type ToolChoice = mcp.ToolChoice
+
+# SamplingCapabilities describes the client's support for sampling.
+type SamplingCapabilities = mcp.SamplingCapabilities
+
+# SamplingToolsCapabilities indicates the client supports tool use in sampling.
+type SamplingToolsCapabilities = mcp.SamplingToolsCapabilities

@@ -321,7 +321,48 @@ func TestGenerateTypeAlias(t *testing.T) {
 	if !strings.Contains(output, "type Handler func(string) error") {
 		t.Errorf("expected type alias, got:\n%s", output)
 	}
+
+	// Defined type alias must NOT use = (it's a new type, not transparent)
+	if strings.Contains(output, "type Handler = func") {
+		t.Errorf("defined func type alias should not use =, got:\n%s", output)
+	}
 }
+
+func TestGenerateTransparentTypeAlias(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "named type transparent alias",
+			input:    "type TextContent = pkg.TextContent\n",
+			expected: "type TextContent = pkg.TextContent",
+		},
+		{
+			name:     "list type transparent alias",
+			input:    "type StringSlice = list of string\n",
+			expected: "type StringSlice = []string",
+		},
+		{
+			name:     "func type transparent alias",
+			input:    "type Handler = func(string) error\n",
+			expected: "type Handler = func(string) error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			output := generateSource(t, tt.input)
+			if !strings.Contains(output, tt.expected) {
+				t.Errorf("expected %q in output, got:\n%s", tt.expected, output)
+			}
+		})
+	}
+}
+
+
 
 func TestGenerateStructWithJsonTag(t *testing.T) {
 	input := `type Repo
