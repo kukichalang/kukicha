@@ -327,162 +327,162 @@ func (s *ClientSession) CallTool(ctx context.Context, params *mcp.CallToolParams
 //line stdlib/mcp/mcp.kuki:256
 			parts = append(parts, fmt.Sprintf("[resource: %v]", v.URI))
 		case *mcp.EmbeddedResource:
-//line stdlib/mcp/mcp.kuki:258
-			if (v.Resource != nil) && (v.Resource.Text != "") {
 //line stdlib/mcp/mcp.kuki:259
+			if (v.Resource != nil) && (v.Resource.Text != "") {
+//line stdlib/mcp/mcp.kuki:260
 				parts = append(parts, v.Resource.Text)
 			} else {
-//line stdlib/mcp/mcp.kuki:261
-				data, _ := json.Marshal(c)
 //line stdlib/mcp/mcp.kuki:262
+				data, _ := json.Marshal(c)
+//line stdlib/mcp/mcp.kuki:263
 				parts = append(parts, string(data))
 			}
 		default:
-//line stdlib/mcp/mcp.kuki:264
-			data, _ := json.Marshal(c)
 //line stdlib/mcp/mcp.kuki:265
+			data, _ := json.Marshal(c)
+//line stdlib/mcp/mcp.kuki:266
 			parts = append(parts, string(data))
 		}
 	}
-//line stdlib/mcp/mcp.kuki:267
-	text := strpkg.Join(parts, "\n")
 //line stdlib/mcp/mcp.kuki:268
+	text := strpkg.Join(parts, "\n")
+//line stdlib/mcp/mcp.kuki:269
 	return CallToolResult{Text: text, IsError: result.IsError, Content: content}, nil
 }
 
-//line stdlib/mcp/mcp.kuki:271
+//line stdlib/mcp/mcp.kuki:272
 type ClientTool struct {
 	Name        string
 	Description string
 	InputSchema map[string]any
 }
 
-//line stdlib/mcp/mcp.kuki:282
+//line stdlib/mcp/mcp.kuki:283
 type CallToolResult struct {
 	Text    string
 	IsError bool
 	Content []any
 }
 
-//line stdlib/mcp/mcp.kuki:288
+//line stdlib/mcp/mcp.kuki:289
 type bearerTransport struct {
 	token string
 	base  http.RoundTripper
 }
 
-//line stdlib/mcp/mcp.kuki:292
-func (t *bearerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 //line stdlib/mcp/mcp.kuki:293
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", t.token))
+func (t *bearerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 //line stdlib/mcp/mcp.kuki:294
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", t.token))
+//line stdlib/mcp/mcp.kuki:295
 	return t.base.RoundTrip(req)
 }
 
-//line stdlib/mcp/mcp.kuki:297
-func Connect(ctx context.Context, endpoint string) (*ClientSession, error) {
 //line stdlib/mcp/mcp.kuki:298
+func Connect(ctx context.Context, endpoint string) (*ClientSession, error) {
+//line stdlib/mcp/mcp.kuki:299
 	return ConnectWithClient(ctx, endpoint, nil)
 }
 
-//line stdlib/mcp/mcp.kuki:303
-func BearerConnect(ctx context.Context, endpoint string, token string) (*ClientSession, error) {
 //line stdlib/mcp/mcp.kuki:304
-	httpClient := &http.Client{Transport: &bearerTransport{token: token, base: http.DefaultTransport}}
+func BearerConnect(ctx context.Context, endpoint string, token string) (*ClientSession, error) {
 //line stdlib/mcp/mcp.kuki:305
+	httpClient := &http.Client{Transport: &bearerTransport{token: token, base: http.DefaultTransport}}
+//line stdlib/mcp/mcp.kuki:306
 	return ConnectWithClient(ctx, endpoint, httpClient)
 }
 
-//line stdlib/mcp/mcp.kuki:310
-func ConnectWithClient(ctx context.Context, endpoint string, httpClient *http.Client) (*ClientSession, error) {
 //line stdlib/mcp/mcp.kuki:311
-	client := mcp.NewClient(&mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"}, nil)
+func ConnectWithClient(ctx context.Context, endpoint string, httpClient *http.Client) (*ClientSession, error) {
 //line stdlib/mcp/mcp.kuki:312
+	client := mcp.NewClient(&mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"}, nil)
+//line stdlib/mcp/mcp.kuki:313
 	transport := &mcp.StreamableClientTransport{Endpoint: endpoint, HTTPClient: httpClient}
-//line stdlib/mcp/mcp.kuki:313
+//line stdlib/mcp/mcp.kuki:314
 	session, err_4 := client.Connect(ctx, transport, nil)
-//line stdlib/mcp/mcp.kuki:313
+//line stdlib/mcp/mcp.kuki:314
 	if err_4 != nil {
-//line stdlib/mcp/mcp.kuki:313
+//line stdlib/mcp/mcp.kuki:314
 		return nil, fmt.Errorf("MCP connect to %v failed: %v", endpoint, err_4)
 	}
-//line stdlib/mcp/mcp.kuki:314
+//line stdlib/mcp/mcp.kuki:315
 	return &ClientSession{inner: session}, nil
 }
 
-//line stdlib/mcp/mcp.kuki:319
-func ConnectFromSession(inner *mcp.ClientSession) *ClientSession {
 //line stdlib/mcp/mcp.kuki:320
+func ConnectFromSession(inner *mcp.ClientSession) *ClientSession {
+//line stdlib/mcp/mcp.kuki:321
 	return &ClientSession{inner: inner}
 }
 
-//line stdlib/mcp/mcp.kuki:323
-func Close(session *ClientSession) error {
 //line stdlib/mcp/mcp.kuki:324
+func Close(session *ClientSession) error {
+//line stdlib/mcp/mcp.kuki:325
 	return session.inner.Close()
 }
 
-//line stdlib/mcp/mcp.kuki:327
-func ListTools(ctx context.Context, session *ClientSession) ([]ClientTool, error) {
 //line stdlib/mcp/mcp.kuki:328
+func ListTools(ctx context.Context, session *ClientSession) ([]ClientTool, error) {
+//line stdlib/mcp/mcp.kuki:329
 	return session.ListTools(ctx)
 }
 
-//line stdlib/mcp/mcp.kuki:331
-func CallTool(ctx context.Context, session *ClientSession, name string, args map[string]any) (CallToolResult, error) {
 //line stdlib/mcp/mcp.kuki:332
+func CallTool(ctx context.Context, session *ClientSession, name string, args map[string]any) (CallToolResult, error) {
+//line stdlib/mcp/mcp.kuki:333
 	return session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: args})
 }
 
-//line stdlib/mcp/mcp.kuki:353
+//line stdlib/mcp/mcp.kuki:354
 type AudioContent = mcp.AudioContent
 
-//line stdlib/mcp/mcp.kuki:356
+//line stdlib/mcp/mcp.kuki:357
 type ResourceLink = mcp.ResourceLink
 
-//line stdlib/mcp/mcp.kuki:359
+//line stdlib/mcp/mcp.kuki:360
 type EmbeddedResource = mcp.EmbeddedResource
 
-//line stdlib/mcp/mcp.kuki:363
+//line stdlib/mcp/mcp.kuki:364
 type ResourceContents = mcp.ResourceContents
 
-//line stdlib/mcp/mcp.kuki:366
+//line stdlib/mcp/mcp.kuki:367
 type TextContent = mcp.TextContent
 
-//line stdlib/mcp/mcp.kuki:369
+//line stdlib/mcp/mcp.kuki:370
 type ImageContent = mcp.ImageContent
 
-//line stdlib/mcp/mcp.kuki:372
+//line stdlib/mcp/mcp.kuki:373
 type CallToolParams = mcp.CallToolParams
 
-//line stdlib/mcp/mcp.kuki:375
+//line stdlib/mcp/mcp.kuki:376
 type SamplingMessage = mcp.SamplingMessage
 
-//line stdlib/mcp/mcp.kuki:379
+//line stdlib/mcp/mcp.kuki:380
 type SamplingMessageV2 = mcp.SamplingMessageV2
 
-//line stdlib/mcp/mcp.kuki:382
+//line stdlib/mcp/mcp.kuki:383
 type CreateMessageParams = mcp.CreateMessageParams
 
-//line stdlib/mcp/mcp.kuki:386
+//line stdlib/mcp/mcp.kuki:387
 type CreateMessageWithToolsParams = mcp.CreateMessageWithToolsParams
 
-//line stdlib/mcp/mcp.kuki:389
+//line stdlib/mcp/mcp.kuki:390
 type CreateMessageResult = mcp.CreateMessageResult
 
-//line stdlib/mcp/mcp.kuki:393
+//line stdlib/mcp/mcp.kuki:394
 type CreateMessageWithToolsResult = mcp.CreateMessageWithToolsResult
 
-//line stdlib/mcp/mcp.kuki:397
+//line stdlib/mcp/mcp.kuki:398
 type ToolUseContent = mcp.ToolUseContent
 
-//line stdlib/mcp/mcp.kuki:401
+//line stdlib/mcp/mcp.kuki:402
 type ToolResultContent = mcp.ToolResultContent
 
-//line stdlib/mcp/mcp.kuki:404
+//line stdlib/mcp/mcp.kuki:405
 type ToolChoice = mcp.ToolChoice
 
-//line stdlib/mcp/mcp.kuki:407
+//line stdlib/mcp/mcp.kuki:408
 type SamplingCapabilities = mcp.SamplingCapabilities
 
-//line stdlib/mcp/mcp.kuki:410
+//line stdlib/mcp/mcp.kuki:411
 type SamplingToolsCapabilities = mcp.SamplingToolsCapabilities

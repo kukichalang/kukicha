@@ -255,6 +255,7 @@ func CallTool on s reference ClientSession(ctx context.Context, params reference
             when reference mcp.ResourceLink
                 parts = append(parts, "[resource: {v.URI}]")
             when reference mcp.EmbeddedResource
+                # Use the resource text when available; binary resources (blob-only) fall back to JSON.
                 if v.Resource != empty and v.Resource.Text != ""
                     parts = append(parts, v.Resource.Text)
                 else

@@ -74,56 +74,60 @@ func TestCallToolRichContent(t *testing.T) {
 //line stdlib/mcp/mcp_test.kuki:63
 	cTransport, sTransport := gomcp.NewInMemoryTransports()
 //line stdlib/mcp/mcp_test.kuki:65
-	richResult := &gomcp.CallToolResult{Content: []gomcp.Content{&gomcp.TextContent{Text: "hello"}, &gomcp.ImageContent{MIMEType: "image/png"}, &gomcp.AudioContent{MIMEType: "audio/wav"}, &gomcp.ResourceLink{URI: "file:///doc.txt"}, &gomcp.EmbeddedResource{Resource: &gomcp.ResourceContents{Text: "embedded text"}}}}
-//line stdlib/mcp/mcp_test.kuki:67
+	richContent := []gomcp.Content{&gomcp.TextContent{Text: "hello"}, &gomcp.ImageContent{MIMEType: "image/png"}, &gomcp.AudioContent{MIMEType: "audio/wav"}, &gomcp.ResourceLink{URI: "file:///doc.txt"}, &gomcp.EmbeddedResource{Resource: &gomcp.ResourceContents{Text: "embedded text"}}}
+//line stdlib/mcp/mcp_test.kuki:72
+	richResult := &gomcp.CallToolResult{Content: richContent}
+//line stdlib/mcp/mcp_test.kuki:73
+	emptySchema := map[string]any{"type": "object", "properties": map[string]any{}}
+//line stdlib/mcp/mcp_test.kuki:75
 	server := gomcp.NewServer(&gomcp.Implementation{Name: "test", Version: "1.0"}, nil)
-//line stdlib/mcp/mcp_test.kuki:68
-	server.AddTool(&gomcp.Tool{Name: "rich", InputSchema: map[string]any{"type": "object", "properties": map[string]any{}}}, func(ctx context.Context, req *gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-//line stdlib/mcp/mcp_test.kuki:69
+//line stdlib/mcp/mcp_test.kuki:76
+	server.AddTool(&gomcp.Tool{Name: "rich", InputSchema: emptySchema}, func(ctx context.Context, req *gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
+//line stdlib/mcp/mcp_test.kuki:77
 		return richResult, nil
 	})
-//line stdlib/mcp/mcp_test.kuki:72
+//line stdlib/mcp/mcp_test.kuki:80
 	ss, err_1 := server.Connect(ctx, sTransport, nil)
-//line stdlib/mcp/mcp_test.kuki:72
+//line stdlib/mcp/mcp_test.kuki:80
 	if err_1 != nil {
-//line stdlib/mcp/mcp_test.kuki:72
-		//line stdlib/mcp/mcp_test.kuki:73
+//line stdlib/mcp/mcp_test.kuki:80
+		//line stdlib/mcp/mcp_test.kuki:81
 		t.Fatalf("server connect failed: %v", err_1)
-		//line stdlib/mcp/mcp_test.kuki:74
+		//line stdlib/mcp/mcp_test.kuki:82
 		return
 	}
-//line stdlib/mcp/mcp_test.kuki:75
-	defer ss.Close()
-//line stdlib/mcp/mcp_test.kuki:77
-	client := gomcp.NewClient(&gomcp.Implementation{Name: "test-client", Version: "1.0"}, nil)
-//line stdlib/mcp/mcp_test.kuki:78
-	rawSession, err_2 := client.Connect(ctx, cTransport, nil)
-//line stdlib/mcp/mcp_test.kuki:78
-	if err_2 != nil {
-//line stdlib/mcp/mcp_test.kuki:78
-		//line stdlib/mcp/mcp_test.kuki:79
-		t.Fatalf("client connect failed: %v", err_2)
-		//line stdlib/mcp/mcp_test.kuki:80
-		return
-	}
-//line stdlib/mcp/mcp_test.kuki:81
-	defer rawSession.Close()
 //line stdlib/mcp/mcp_test.kuki:83
-	session := mcppkg.ConnectFromSession(rawSession)
-//line stdlib/mcp/mcp_test.kuki:84
-	result, err_3 := mcppkg.CallTool(ctx, session, "rich", map[string]any{})
-//line stdlib/mcp/mcp_test.kuki:84
-	if err_3 != nil {
-//line stdlib/mcp/mcp_test.kuki:84
-		//line stdlib/mcp/mcp_test.kuki:85
-		t.Fatalf("CallTool failed: %v", err_3)
-		//line stdlib/mcp/mcp_test.kuki:86
+	defer ss.Close()
+//line stdlib/mcp/mcp_test.kuki:85
+	client := gomcp.NewClient(&gomcp.Implementation{Name: "test-client", Version: "1.0"}, nil)
+//line stdlib/mcp/mcp_test.kuki:86
+	rawSession, err_2 := client.Connect(ctx, cTransport, nil)
+//line stdlib/mcp/mcp_test.kuki:86
+	if err_2 != nil {
+//line stdlib/mcp/mcp_test.kuki:86
+		//line stdlib/mcp/mcp_test.kuki:87
+		t.Fatalf("client connect failed: %v", err_2)
+		//line stdlib/mcp/mcp_test.kuki:88
 		return
 	}
-//line stdlib/mcp/mcp_test.kuki:88
-	test.AssertEqual(t, result.Text, "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text")
 //line stdlib/mcp/mcp_test.kuki:89
+	defer rawSession.Close()
+//line stdlib/mcp/mcp_test.kuki:91
+	session := mcppkg.ConnectFromSession(rawSession)
+//line stdlib/mcp/mcp_test.kuki:92
+	result, err_3 := mcppkg.CallTool(ctx, session, "rich", map[string]any{})
+//line stdlib/mcp/mcp_test.kuki:92
+	if err_3 != nil {
+//line stdlib/mcp/mcp_test.kuki:92
+		//line stdlib/mcp/mcp_test.kuki:93
+		t.Fatalf("CallTool failed: %v", err_3)
+		//line stdlib/mcp/mcp_test.kuki:94
+		return
+	}
+//line stdlib/mcp/mcp_test.kuki:96
+	test.AssertEqual(t, result.Text, "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text")
+//line stdlib/mcp/mcp_test.kuki:97
 	test.AssertEqual(t, len(result.Content), 5)
-//line stdlib/mcp/mcp_test.kuki:90
+//line stdlib/mcp/mcp_test.kuki:98
 	test.AssertFalse(t, result.IsError)
 }

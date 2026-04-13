@@ -62,10 +62,18 @@ func TestCallToolRichContent(t reference testing.T)
     ctx := context.Background()
     cTransport, sTransport := gomcp.NewInMemoryTransports()
 
-    richResult := reference of gomcp.CallToolResult{Content: list of gomcp.Content{reference of gomcp.TextContent{Text: "hello"}, reference of gomcp.ImageContent{MIMEType: "image/png"}, reference of gomcp.AudioContent{MIMEType: "audio/wav"}, reference of gomcp.ResourceLink{URI: "file:///doc.txt"}, reference of gomcp.EmbeddedResource{Resource: reference of gomcp.ResourceContents{Text: "embedded text"}}}}
+    richContent := list of gomcp.Content{
+        reference of gomcp.TextContent{Text: "hello"},
+        reference of gomcp.ImageContent{MIMEType: "image/png"},
+        reference of gomcp.AudioContent{MIMEType: "audio/wav"},
+        reference of gomcp.ResourceLink{URI: "file:///doc.txt"},
+        reference of gomcp.EmbeddedResource{Resource: reference of gomcp.ResourceContents{Text: "embedded text"}},
+    }
+    richResult := reference of gomcp.CallToolResult{Content: richContent}
+    emptySchema := map of string to any{"type": "object", "properties": map of string to any{}}
 
     server := gomcp.NewServer(reference of gomcp.Implementation{Name: "test", Version: "1.0"}, empty)
-    server.AddTool(reference of gomcp.Tool{Name: "rich", InputSchema: map of string to any{"type": "object", "properties": map of string to any{}}}, func(ctx context.Context, req reference gomcp.CallToolRequest) (reference gomcp.CallToolResult, error)
+    server.AddTool(reference of gomcp.Tool{Name: "rich", InputSchema: emptySchema}, func(ctx context.Context, req reference gomcp.CallToolRequest) (reference gomcp.CallToolResult, error)
         return richResult, empty
     )
 
