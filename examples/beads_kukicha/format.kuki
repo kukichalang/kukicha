@@ -1,0 +1,243 @@
+# beads_kukicha — display formatting helpers
+
+petiole main
+
+import "fmt"
+import "os"
+import "stdlib/datetime"
+import "stdlib/json" as jsonpkg
+import "stdlib/string" as strpkg
+import "time"
+
+# --- ANSI color constants ---
+
+const ansiReset = "\x1b[0m"
+
+const ansiBold = "\x1b[1m"
+
+const ansiDim = "\x1b[2m"
+
+const ansiRed = "\x1b[91m"
+
+const ansiGreen = "\x1b[32m"
+
+const ansiYellow = "\x1b[33m"
+
+const ansiBlue = "\x1b[34m"
+
+const ansiCyan = "\x1b[36m"
+
+const ansiBoldRed = "\x1b[1;91m"
+
+# --- Color helpers ---
+
+func bold(s string) string
+    return "{ansiBold}{s}{ansiReset}"
+
+func dim(s string) string
+    return "{ansiDim}{s}{ansiReset}"
+
+func red(s string) string
+    return "{ansiRed}{s}{ansiReset}"
+
+func green(s string) string
+    return "{ansiGreen}{s}{ansiReset}"
+
+func yellow(s string) string
+    return "{ansiYellow}{s}{ansiReset}"
+
+func blue(s string) string
+    return "{ansiBlue}{s}{ansiReset}"
+
+func cyan(s string) string
+    return "{ansiCyan}{s}{ansiReset}"
+
+# --- Enum name converters ---
+
+func statusName(s int) string
+    if s equals StatusOpen
+        return "open"
+    if s equals StatusInProgress
+        return "in-progress"
+    if s equals StatusBlocked
+        return "blocked"
+    if s equals StatusClosed
+        return "closed"
+    return "unknown"
+
+func statusColor(s int) string
+    name := statusName(s)
+    if s equals StatusOpen
+        return green(name)
+    if s equals StatusInProgress
+        return cyan(name)
+    if s equals StatusBlocked
+        return red(name)
+    if s equals StatusClosed
+        return dim(name)
+    return name
+
+func stringToStatus(s string) int
+    if s equals "open"
+        return StatusOpen
+    if s equals "in-progress" or s equals "in_progress" or s equals "inprogress"
+        return StatusInProgress
+    if s equals "blocked"
+        return StatusBlocked
+    if s equals "closed"
+        return StatusClosed
+    return -1
+
+func priorityName(p int) string
+    if p equals PriorityCritical
+        return "critical"
+    if p equals PriorityHigh
+        return "high"
+    if p equals PriorityMedium
+        return "medium"
+    if p equals PriorityLow
+        return "low"
+    if p equals PriorityBacklog
+        return "backlog"
+    return "unknown"
+
+func priorityColor(p int) string
+    name := priorityName(p)
+    if p equals PriorityCritical
+        return "{ansiBoldRed}{name}{ansiReset}"
+    if p equals PriorityHigh
+        return red(name)
+    if p equals PriorityMedium
+        return yellow(name)
+    if p equals PriorityLow
+        return blue(name)
+    if p equals PriorityBacklog
+        return dim(name)
+    return name
+
+func stringToPriority(s string) int
+    if s equals "critical" or s equals "0"
+        return PriorityCritical
+    if s equals "high" or s equals "1"
+        return PriorityHigh
+    if s equals "medium" or s equals "2"
+        return PriorityMedium
+    if s equals "low" or s equals "3"
+        return PriorityLow
+    if s equals "backlog" or s equals "4"
+        return PriorityBacklog
+    return -1
+
+func typeName(t int) string
+    if t equals TypeTask
+        return "task"
+    if t equals TypeBug
+        return "bug"
+    if t equals TypeFeature
+        return "feature"
+    if t equals TypeEpic
+        return "epic"
+    if t equals TypeChore
+        return "chore"
+    return "unknown"
+
+func stringToType(s string) int
+    if s equals "task"
+        return TypeTask
+    if s equals "bug"
+        return TypeBug
+    if s equals "feature"
+        return TypeFeature
+    if s equals "epic"
+        return TypeEpic
+    if s equals "chore"
+        return TypeChore
+    return -1
+
+func depTypeName(d int) string
+    if d equals DepBlocks
+        return "blocks"
+    if d equals DepRelated
+        return "related"
+    if d equals DepParentChild
+        return "parent-child"
+    return "unknown"
+
+func stringToDepType(s string) int
+    if s equals "blocks"
+        return DepBlocks
+    if s equals "related"
+        return DepRelated
+    if s equals "parent-child" or s equals "parent_child"
+        return DepParentChild
+    return -1
+
+# --- Time formatting ---
+
+func nowISO() string
+    return datetime.Format(datetime.Now(), "datetime")
+
+func timeAgo(iso string) string
+    t := datetime.Parse(iso, "datetime") onerr return iso
+    diff := time.Since(t)
+    secs := diff.Seconds() as int64
+    if secs < 60
+        return "just now"
+    mins := secs / 60
+    if mins < 60
+        return "{mins}m ago"
+    hours := mins / 60
+    if hours < 24
+        return "{hours}h ago"
+    days := hours / 24
+    if days < 30
+        return "{days}d ago"
+    months := days / 30
+    return "{months}mo ago"
+
+# --- Display helpers ---
+
+func printIssue(issue Issue)
+    print("{bold(issue.Id)}  {issue.Title}")
+    print("  status:   {statusColor(issue.Status)}")
+    print("  priority: {priorityColor(issue.Priority)}")
+    print("  type:     {typeName(issue.IssueType)}")
+    if issue.Assignee isnt ""
+        print("  assignee: {issue.Assignee}")
+    if issue.Labels isnt "[]" and issue.Labels isnt ""
+        print("  labels:   {issue.Labels}")
+    if issue.Description isnt ""
+        print("  desc:     {issue.Description}")
+    print("  created:  {timeAgo(issue.CreatedAt)} {dim("({issue.CreatedAt})")}")
+    if issue.UpdatedAt isnt issue.CreatedAt
+        print("  updated:  {timeAgo(issue.UpdatedAt)}")
+    if issue.ClosedAt isnt ""
+        print("  closed:   {timeAgo(issue.ClosedAt)}")
+    print("  hash:     {dim(issue.ContentHash[:16])}")
+
+func printIssueRow(issue Issue)
+    id := strpkg.PadRight(issue.Id, 14, " ")
+    typ := strpkg.PadRight(typeName(issue.IssueType), 9, " ")
+    age := strpkg.PadRight(timeAgo(issue.CreatedAt), 10, " ")
+    title := issue.Title
+    if len(title) > 50
+        title = title[:47] + "..."
+    print("  {dim(id)} {statusColor(issue.Status)} {priorityColor(issue.Priority)} {dim(typ)} {dim(age)} {title}")
+
+func printIssueList(issues list of Issue)
+    if len(issues) equals 0
+        print(dim("  No issues found."))
+        return
+    header := strpkg.PadRight("  ID", 16, " ") + strpkg.PadRight("STATUS", 14, " ") + strpkg.PadRight("PRI", 12, " ") + strpkg.PadRight("TYPE", 11, " ") + strpkg.PadRight("AGE", 12, " ") + "TITLE"
+    print(dim(header))
+    for issue in issues
+        printIssueRow(issue)
+
+func printJSON(v any)
+    data := jsonpkg.MarshalPretty(v) onerr
+        fmt.Fprintln(os.Stderr, "json error: {error}")
+        return
+    fmt.Println(data as string)
+
+func errPrint(msg string)
+    fmt.Fprintln(os.Stderr, "{ansiRed}error:{ansiReset} {msg}")

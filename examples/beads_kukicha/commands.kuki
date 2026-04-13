@@ -1,0 +1,563 @@
+# beads_kukicha — CLI command handlers
+# Each doXxx function bridges CLI args to store operations and formatting.
+
+petiole main
+
+import "fmt"
+import "os"
+import "stdlib/cli"
+import "stdlib/db"
+import "stdlib/string" as strpkg
+
+# doInit initializes the beads database.
+func doInit(args cli.Args)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    initDB(pool) onerr
+        errPrint("cannot initialize schema: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(map of string to string{"status": "initialized", "db": dbPath})
+    else
+        print(green("Initialized beads database at {dbPath}"))
+
+# doCreate creates a new issue.
+func doCreate(args cli.Args)
+    title := cli.GetString(args, "title")
+    if title equals ""
+        errPrint("--title is required")
+        return
+
+    desc := cli.GetString(args, "description")
+    typStr := cli.GetString(args, "type")
+    priStr := cli.GetString(args, "priority")
+    assignee := cli.GetString(args, "assignee")
+    labelsStr := cli.GetString(args, "labels")
+
+    issueType := stringToType(typStr)
+    if issueType equals -1
+        issueType = TypeTask
+
+    priority := stringToPriority(priStr)
+    if priority equals -1
+        priority = PriorityMedium
+
+    # Build JSON array from comma-separated labels
+    labelsJSON := "[]"
+    if labelsStr isnt ""
+        parts := strpkg.Split(labelsStr, ",")
+        labelsJSON = "["
+        for i, part in parts
+            if i > 0
+                labelsJSON = labelsJSON + ","
+            labelsJSON = labelsJSON + "\"" + strpkg.TrimSpace(part) + "\""
+        labelsJSON = labelsJSON + "]"
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    issue := createIssue(pool, title, desc, issueType, priority, assignee, labelsJSON) onerr
+        errPrint("cannot create issue: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(issue)
+    else
+        print("{green("Created")} {bold(issue.Id)}  {issue.Title}")
+
+# doList lists issues with optional filters.
+func doList(args cli.Args)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    statusFilter := -1
+    statusStr := cli.GetString(args, "status")
+    if statusStr isnt ""
+        statusFilter = stringToStatus(statusStr)
+
+    priorityFilter := -1
+    priStr := cli.GetString(args, "priority")
+    if priStr isnt ""
+        priorityFilter = stringToPriority(priStr)
+
+    typeFilter := -1
+    typStr := cli.GetString(args, "type")
+    if typStr isnt ""
+        typeFilter = stringToType(typStr)
+
+    assignee := cli.GetString(args, "assignee")
+    label := cli.GetString(args, "label")
+
+    issues := listIssues(pool, statusFilter, priorityFilter, typeFilter, assignee, label, 100) onerr
+        errPrint("cannot list issues: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(issues)
+    else
+        printIssueList(issues)
+
+# doShow displays a single issue with its deps and comments.
+func doShow(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    issue := getIssue(pool, id) onerr
+        errPrint("issue not found: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(issue)
+        return
+
+    printIssue(issue)
+
+    # Show dependencies
+    deps := listDeps(pool, id) onerr
+        return
+    if len(deps) > 0
+        print("")
+        print("  {bold("Dependencies:")}")
+        for d in deps
+            if d.IssueId equals id
+                print("    depends on {d.DependsOnId} ({depTypeName(d.DepType)})")
+            else
+                print("    blocks {d.IssueId} ({depTypeName(d.DepType)})")
+
+    # Show comments
+    comments := listComments(pool, id) onerr
+        return
+    if len(comments) > 0
+        print("")
+        print("  {bold("Comments:")}")
+        for c in comments
+            author := c.Author
+            if author equals ""
+                author = "anonymous"
+            print("    {dim(timeAgo(c.CreatedAt))} {dim("by")} {author}")
+            print("      {c.Body}")
+
+# doUpdate updates fields on an issue.
+func doUpdate(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    title := cli.GetString(args, "title")
+    if title isnt ""
+        updateIssueTitle(pool, id, title) onerr
+            errPrint("cannot update title: {error}")
+            return
+
+    desc := cli.GetString(args, "description")
+    if desc isnt ""
+        updateIssueDesc(pool, id, desc) onerr
+            errPrint("cannot update description: {error}")
+            return
+
+    priStr := cli.GetString(args, "priority")
+    if priStr isnt ""
+        pri := stringToPriority(priStr)
+        if pri isnt -1
+            updateIssuePriority(pool, id, pri) onerr
+                errPrint("cannot update priority: {error}")
+                return
+
+    assignee := cli.GetString(args, "assignee")
+    if assignee isnt ""
+        updateIssueAssignee(pool, id, assignee) onerr
+            errPrint("cannot update assignee: {error}")
+            return
+
+    statusStr := cli.GetString(args, "status")
+    if statusStr isnt ""
+        s := stringToStatus(statusStr)
+        if s isnt -1
+            updateIssueStatus(pool, id, s) onerr
+                errPrint("cannot update status: {error}")
+                return
+
+    if cli.IsJSON(args)
+        issue := getIssue(pool, id) onerr
+            errPrint("{error}")
+            return
+        printJSON(issue)
+    else
+        print(green("Updated {id}"))
+
+# doClose closes an issue.
+func doClose(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    closeIssue(pool, id) onerr
+        errPrint("cannot close: {error}")
+        return
+
+    if cli.IsJSON(args)
+        issue := getIssue(pool, id) onerr
+            errPrint("{error}")
+            return
+        printJSON(issue)
+    else
+        print(green("Closed {id}"))
+
+# doReopen reopens a closed issue.
+func doReopen(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    reopenIssue(pool, id) onerr
+        errPrint("cannot reopen: {error}")
+        return
+
+    if cli.IsJSON(args)
+        issue := getIssue(pool, id) onerr
+            errPrint("{error}")
+            return
+        printJSON(issue)
+    else
+        print(green("Reopened {id}"))
+
+# doDelete deletes an issue permanently.
+func doDelete(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    deleteIssue(pool, id) onerr
+        errPrint("cannot delete: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(map of string to string{"deleted": id})
+    else
+        print(green("Deleted {id}"))
+
+# doReady lists issues ready to work on (open + not blocked).
+func doReady(args cli.Args)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    issues := listReady(pool, 50) onerr
+        errPrint("cannot list ready issues: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(issues)
+    else
+        print(bold("Ready to work on:"))
+        printIssueList(issues)
+
+# doBlocked lists issues that are blocked.
+func doBlocked(args cli.Args)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    blocked := listBlocked(pool) onerr
+        errPrint("cannot list blocked: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(blocked)
+        return
+
+    if len(blocked) equals 0
+        print(dim("  No blocked issues."))
+        return
+
+    print(bold("Blocked issues:"))
+    for b in blocked
+        print("  {bold(b.IssueId)} {b.Title}")
+        print("    blocked by {dim(b.BlockerId)} {dim(b.BlockerTitle)}")
+
+# doDep handles dep add/remove/list subcommands.
+func doDep(args cli.Args)
+    # Sub-subcommand dispatch via os.Args
+    osArgs := os.Args
+    if len(osArgs) < 3
+        errPrint("usage: bd dep <add|remove|list> [flags]")
+        return
+
+    sub := osArgs[2]
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    if sub equals "add"
+        issueId := cli.GetString(args, "issue")
+        dependsOn := cli.GetString(args, "depends-on")
+        if issueId equals "" or dependsOn equals ""
+            errPrint("usage: bd dep add --issue <id> --depends-on <id> [--type blocks]")
+            return
+        depTypeStr := cli.GetString(args, "dep-type")
+        dt := DepBlocks
+        if depTypeStr isnt ""
+            dt = stringToDepType(depTypeStr)
+            if dt equals -1
+                dt = DepBlocks
+        addDep(pool, issueId, dependsOn, dt) onerr
+            errPrint("cannot add dependency: {error}")
+            return
+        print(green("Added dependency: {issueId} depends on {dependsOn}"))
+        return
+
+    if sub equals "remove"
+        issueId := cli.GetString(args, "issue")
+        dependsOn := cli.GetString(args, "depends-on")
+        if issueId equals "" or dependsOn equals ""
+            errPrint("usage: bd dep remove --issue <id> --depends-on <id>")
+            return
+        removeDep(pool, issueId, dependsOn) onerr
+            errPrint("cannot remove dependency: {error}")
+            return
+        print(green("Removed dependency"))
+        return
+
+    if sub equals "list"
+        issueId := cli.GetString(args, "issue")
+        if issueId equals ""
+            errPrint("usage: bd dep list --issue <id>")
+            return
+        deps := listDeps(pool, issueId) onerr
+            errPrint("cannot list dependencies: {error}")
+            return
+        if cli.IsJSON(args)
+            printJSON(deps)
+            return
+        if len(deps) equals 0
+            print(dim("  No dependencies."))
+            return
+        for d in deps
+            if d.IssueId equals issueId
+                print("  {d.IssueId} -> {d.DependsOnId} ({depTypeName(d.DepType)})")
+            else
+                print("  {d.DependsOnId} <- {d.IssueId} ({depTypeName(d.DepType)})")
+        return
+
+    errPrint("unknown dep subcommand: {sub}")
+
+# doLabel handles label add/remove subcommands.
+func doLabel(args cli.Args)
+    osArgs := os.Args
+    if len(osArgs) < 3
+        errPrint("usage: bd label <add|remove> --id <id> --label <label>")
+        return
+
+    sub := osArgs[2]
+    id := cli.GetString(args, "id")
+    label := cli.GetString(args, "label")
+    if id equals "" or label equals ""
+        errPrint("--id and --label are required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    if sub equals "add"
+        addLabel(pool, id, label) onerr
+            errPrint("cannot add label: {error}")
+            return
+        print(green("Added label '{label}' to {id}"))
+        return
+
+    if sub equals "remove"
+        removeLabel(pool, id, label) onerr
+            errPrint("cannot remove label: {error}")
+            return
+        print(green("Removed label '{label}' from {id}"))
+        return
+
+    errPrint("unknown label subcommand: {sub}")
+
+# doComment handles comment add/list subcommands.
+func doComment(args cli.Args)
+    osArgs := os.Args
+    if len(osArgs) < 3
+        errPrint("usage: bd comment <add|list> [flags]")
+        return
+
+    sub := osArgs[2]
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    if sub equals "add"
+        issueId := cli.GetString(args, "id")
+        body := cli.GetString(args, "body")
+        author := cli.GetString(args, "author")
+        if issueId equals "" or body equals ""
+            errPrint("--id and --body are required")
+            return
+        addComment(pool, issueId, body, author) onerr
+            errPrint("cannot add comment: {error}")
+            return
+        print(green("Comment added to {issueId}"))
+        return
+
+    if sub equals "list"
+        issueId := cli.GetString(args, "id")
+        if issueId equals ""
+            errPrint("--id is required")
+            return
+        comments := listComments(pool, issueId) onerr
+            errPrint("cannot list comments: {error}")
+            return
+        if cli.IsJSON(args)
+            printJSON(comments)
+            return
+        if len(comments) equals 0
+            print(dim("  No comments."))
+            return
+        for c in comments
+            author := c.Author
+            if author equals ""
+                author = "anonymous"
+            print("  {dim(timeAgo(c.CreatedAt))} {dim("by")} {author}")
+            print("    {c.Body}")
+        return
+
+    errPrint("unknown comment subcommand: {sub}")
+
+# doSearch searches issues by title/description.
+func doSearch(args cli.Args)
+    query := cli.GetString(args, "query")
+    if query equals ""
+        errPrint("--query is required")
+        return
+
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    issues := searchIssues(pool, query, 50) onerr
+        errPrint("cannot search: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(issues)
+    else
+        print(bold("Search results for \"{query}\":"))
+        printIssueList(issues)
+
+# doStats shows aggregate statistics.
+func doStats(args cli.Args)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    total := db.Count(pool, "SELECT COUNT(*) FROM issues") onerr
+        errPrint("cannot count: {error}")
+        return
+
+    if cli.IsJSON(args)
+        statusStats := getStatusStats(pool) onerr
+            errPrint("{error}")
+            return
+        priStats := getPriorityStats(pool) onerr
+            errPrint("{error}")
+            return
+        typeStats := getTypeStats(pool) onerr
+            errPrint("{error}")
+            return
+        result := map of string to any{
+            "total":       total,
+            "by_status":   statusStats,
+            "by_priority": priStats,
+            "by_type":     typeStats,
+        }
+        printJSON(result)
+        return
+
+    print(bold("Issue Statistics"))
+    print("  total: {total}")
+    print("")
+
+    statusStats := getStatusStats(pool) onerr
+        errPrint("{error}")
+        return
+    print("  {bold("By status:")}")
+    for s in statusStats
+        print("    {strpkg.PadRight(s.Label, 14, " ")} {s.Count}")
+
+    print("")
+    priStats := getPriorityStats(pool) onerr
+        errPrint("{error}")
+        return
+    print("  {bold("By priority:")}")
+    for p in priStats
+        print("    {strpkg.PadRight(p.Label, 14, " ")} {p.Count}")
+
+    print("")
+    typeStats := getTypeStats(pool) onerr
+        errPrint("{error}")
+        return
+    print("  {bold("By type:")}")
+    for t in typeStats
+        print("    {strpkg.PadRight(t.Label, 14, " ")} {t.Count}")

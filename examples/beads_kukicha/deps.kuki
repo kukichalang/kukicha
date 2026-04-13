@@ -1,0 +1,57 @@
+# beads_kukicha — dependency management and blocked cache
+
+petiole main
+
+import "stdlib/db"
+
+# addDep creates a dependency: issueId depends on dependsOnId.
+func addDep(pool db.Pool, issueId string, dependsOnId string, depType int) error
+    _ = getIssue(pool, issueId) onerr return
+    _ = getIssue(pool, dependsOnId) onerr return
+
+    if issueId equals dependsOnId
+        return error "an issue cannot depend on itself"
+
+    ts := nowISO()
+    db.Exec(pool, "INSERT INTO dependencies (issue_id, depends_on_id, dep_type, created_at) VALUES (?, ?, ?, ?)", issueId, dependsOnId, depType, ts) onerr return
+    logEvent(pool, issueId, EvtDepAdded, "", "{depTypeName(depType)} {dependsOnId}")
+    rebuildBlockedCache(pool) onerr return
+    return empty
+
+# removeDep removes a dependency between two issues.
+func removeDep(pool db.Pool, issueId string, dependsOnId string) error
+    db.Exec(pool, "DELETE FROM dependencies WHERE issue_id = ? AND depends_on_id = ?", issueId, dependsOnId) onerr return
+    logEvent(pool, issueId, EvtDepRemoved, dependsOnId, "")
+    rebuildBlockedCache(pool) onerr return
+    return empty
+
+# listDeps returns all dependencies involving the given issue.
+func listDeps(pool db.Pool, issueId string) (list of Dep, error)
+    result := db.Query(pool, "SELECT issue_id, depends_on_id, dep_type, created_at FROM dependencies WHERE issue_id = ? OR depends_on_id = ? ORDER BY created_at", issueId, issueId) |> db.ScanAll(empty list of Dep) onerr return
+    return result.(list of Dep), empty
+
+# rebuildBlockedCache rebuilds the materialized blocked issues cache.
+# An issue is blocked if it has a "blocks" dependency on an open issue.
+func rebuildBlockedCache(pool db.Pool) error
+    db.Transaction(pool, (tx) =>
+        db.TxExec(tx, "DELETE FROM blocked_issues_cache") onerr return
+        db.TxExec(tx, "INSERT INTO blocked_issues_cache (issue_id, blocked_by_id) SELECT d.issue_id, d.depends_on_id FROM dependencies d JOIN issues i ON i.id = d.depends_on_id WHERE d.dep_type = 0 AND i.status != 3") onerr return
+        return empty
+    ) onerr return
+    return empty
+
+# listReady returns open issues that are not blocked by any open dependency.
+func listReady(pool db.Pool, limit int) (list of Issue, error)
+    q := "SELECT id, title, description, status, priority, issue_type, assignee, json(labels) AS labels, content_hash, created_at, updated_at, closed_at FROM issues WHERE status = 0 AND id NOT IN (SELECT issue_id FROM blocked_issues_cache) ORDER BY priority ASC, created_at DESC"
+    if limit > 0
+        q = q + " LIMIT ?"
+        result := db.Query(pool, q, limit) |> db.ScanAll(empty list of Issue) onerr return
+        return result.(list of Issue), empty
+    result := db.Query(pool, q) |> db.ScanAll(empty list of Issue) onerr return
+    return result.(list of Issue), empty
+
+# listBlocked returns issues that are currently blocked with their blocker info.
+func listBlocked(pool db.Pool) (list of BlockedInfo, error)
+    q := "SELECT c.issue_id AS issue_id, i1.title AS title, c.blocked_by_id AS blocker_id, i2.title AS blocker_title FROM blocked_issues_cache c JOIN issues i1 ON i1.id = c.issue_id JOIN issues i2 ON i2.id = c.blocked_by_id ORDER BY i1.priority ASC"
+    result := db.Query(pool, q) |> db.ScanAll(empty list of BlockedInfo) onerr return
+    return result.(list of BlockedInfo), empty

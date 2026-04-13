@@ -1,0 +1,18 @@
+# beads_kukicha — ID generation and content hashing
+
+petiole main
+
+import "stdlib/crypto"
+
+# generateId creates a unique issue ID from the title and timestamp.
+# Format: bd-XXXXXXXX (8 hex chars from SHA256).
+func generateId(title string, ts string) string
+    raw := "{title}|{ts}"
+    hash := crypto.SHA256(raw)
+    return "bd-" + hash[:8]
+
+# contentHash computes a SHA256 hash over canonical issue fields.
+# Used to detect whether an issue has semantically changed.
+func contentHash(issue Issue) string
+    parts := "{issue.Title}\x00{issue.Description}\x00{issue.Status}\x00{issue.Priority}\x00{issue.IssueType}\x00{issue.Assignee}\x00{issue.Labels}"
+    return crypto.SHA256(parts)

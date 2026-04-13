@@ -1,0 +1,62 @@
+# beads_kukicha — database schema
+# All DDL statements and the initDB function.
+
+petiole main
+
+import "stdlib/db"
+
+# --- Table DDL ---
+
+const issuesSQL = "CREATE TABLE IF NOT EXISTS issues (id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', status INTEGER NOT NULL DEFAULT 0, priority INTEGER NOT NULL DEFAULT 2, issue_type INTEGER NOT NULL DEFAULT 0, assignee TEXT NOT NULL DEFAULT '', labels TEXT NOT NULL DEFAULT '[]', content_hash TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, closed_at TEXT NOT NULL DEFAULT '')"
+
+const depsSQL = "CREATE TABLE IF NOT EXISTS dependencies (issue_id TEXT NOT NULL, depends_on_id TEXT NOT NULL, dep_type INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, PRIMARY KEY (issue_id, depends_on_id), FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE, FOREIGN KEY (depends_on_id) REFERENCES issues(id) ON DELETE CASCADE)"
+
+const commentsSQL = "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, issue_id TEXT NOT NULL, body TEXT NOT NULL, author TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE)"
+
+const eventsSQL = "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, issue_id TEXT NOT NULL, event_type INTEGER NOT NULL, old_value TEXT NOT NULL DEFAULT '', new_value TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE)"
+
+const blockedCacheSQL = "CREATE TABLE IF NOT EXISTS blocked_issues_cache (issue_id TEXT NOT NULL, blocked_by_id TEXT NOT NULL, PRIMARY KEY (issue_id, blocked_by_id))"
+
+const configSQL = "CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '')"
+
+# --- Index DDL ---
+
+const idxIssuesStatus = "CREATE INDEX IF NOT EXISTS idx_issues_status ON issues(status)"
+
+const idxIssuesPriority = "CREATE INDEX IF NOT EXISTS idx_issues_priority ON issues(priority)"
+
+const idxIssuesType = "CREATE INDEX IF NOT EXISTS idx_issues_type ON issues(issue_type)"
+
+const idxIssuesAssignee = "CREATE INDEX IF NOT EXISTS idx_issues_assignee ON issues(assignee) WHERE assignee != ''"
+
+const idxDepsIssue = "CREATE INDEX IF NOT EXISTS idx_deps_issue ON dependencies(issue_id)"
+
+const idxDepsDepends = "CREATE INDEX IF NOT EXISTS idx_deps_depends ON dependencies(depends_on_id)"
+
+const idxCommentsIssue = "CREATE INDEX IF NOT EXISTS idx_comments_issue ON comments(issue_id)"
+
+const idxEventsIssue = "CREATE INDEX IF NOT EXISTS idx_events_issue ON events(issue_id)"
+
+const idxBlockedIssue = "CREATE INDEX IF NOT EXISTS idx_blocked_issue ON blocked_issues_cache(issue_id)"
+
+# initDB creates all tables and indexes inside a single transaction.
+func initDB(pool db.Pool) error
+    db.Transaction(pool, (tx) =>
+        db.TxExec(tx, issuesSQL) onerr return
+        db.TxExec(tx, depsSQL) onerr return
+        db.TxExec(tx, commentsSQL) onerr return
+        db.TxExec(tx, eventsSQL) onerr return
+        db.TxExec(tx, blockedCacheSQL) onerr return
+        db.TxExec(tx, configSQL) onerr return
+        db.TxExec(tx, idxIssuesStatus) onerr return
+        db.TxExec(tx, idxIssuesPriority) onerr return
+        db.TxExec(tx, idxIssuesType) onerr return
+        db.TxExec(tx, idxIssuesAssignee) onerr return
+        db.TxExec(tx, idxDepsIssue) onerr return
+        db.TxExec(tx, idxDepsDepends) onerr return
+        db.TxExec(tx, idxCommentsIssue) onerr return
+        db.TxExec(tx, idxEventsIssue) onerr return
+        db.TxExec(tx, idxBlockedIssue) onerr return
+        return empty
+    ) onerr return
+    return empty
