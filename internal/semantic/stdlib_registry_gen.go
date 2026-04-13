@@ -518,6 +518,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"mcp.CallTool":                    {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "mcp.CallToolResult"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"ctx", "session", "name", "args"}},
 	"mcp.Close":                       {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"session"}},
 	"mcp.Connect":                     {Count: 2, Types: []goStdlibType{{Kind: TypeKindReference}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"ctx", "endpoint"}},
+	"mcp.ConnectFromSession":          {Count: 1, Types: []goStdlibType{{Kind: TypeKindReference}}, ParamNames: []string{"inner"}},
 	"mcp.ConnectWithClient":           {Count: 2, Types: []goStdlibType{{Kind: TypeKindReference}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"ctx", "endpoint", "httpClient"}},
 	"mcp.ErrorResult":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}}, ParamNames: []string{"msg"}},
 	"mcp.ListTools":                   {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindNamed, Name: "ClientTool"}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"ctx", "session"}},
