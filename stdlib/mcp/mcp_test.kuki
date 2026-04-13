@@ -2,8 +2,12 @@
 
 petiole mcp_test
 
+import "context"
 import "stdlib/mcp" as mcppkg
+import "stdlib/test"
 import "testing"
+
+import "github.com/modelcontextprotocol/go-sdk/mcp" as gomcp
 
 # Test Schema and Required helpers
 func TestSchemaHelpers(t reference testing.T)
@@ -24,3 +28,73 @@ func TestResultHelpers(t reference testing.T)
     # ErrorResult should successfully construct a result
     if errRes == empty
         t.Errorf("ErrorResult should return non-empty result")
+
+# TestContentTypeAliases verifies all re-exported content type aliases are accessible
+# and can be used for type assertions against go-sdk values.
+func TestContentTypeAliases(t reference testing.T)
+    items := make(list of any, 4)
+    items[0] = reference of gomcp.AudioContent{MIMEType: "audio/mp3"}
+    items[1] = reference of gomcp.ResourceLink{URI: "file:///foo.txt"}
+    items[2] = reference of gomcp.EmbeddedResource{Resource: reference of gomcp.ResourceContents{Text: "hello"}}
+    items[3] = reference of gomcp.ResourceContents{URI: "file:///bar.txt", Text: "bar"}
+
+    # AudioContent alias - verify type assertion works via any
+    _, ok1 := items[0] as reference mcppkg.AudioContent
+    test.AssertTrue(t, ok1)
+
+    # ResourceLink alias
+    _, ok2 := items[1] as reference mcppkg.ResourceLink
+    test.AssertTrue(t, ok2)
+
+    # EmbeddedResource alias
+    _, ok3 := items[2] as reference mcppkg.EmbeddedResource
+    test.AssertTrue(t, ok3)
+
+    # ResourceContents alias
+    _, ok4 := items[3] as reference mcppkg.ResourceContents
+    test.AssertTrue(t, ok4)
+
+# --- TestCallToolRichContent ---
+
+# TestCallToolRichContent tests that CallTool correctly builds the Text field
+# for all content types and preserves raw items in the Content slice.
+func TestCallToolRichContent(t reference testing.T)
+    ctx := context.Background()
+    cTransport, sTransport := gomcp.NewInMemoryTransports()
+
+    richContent := list of gomcp.Content{
+        reference of gomcp.TextContent{Text: "hello"},
+        reference of gomcp.ImageContent{MIMEType: "image/png"},
+        reference of gomcp.AudioContent{MIMEType: "audio/wav"},
+        reference of gomcp.ResourceLink{URI: "file:///doc.txt"},
+        reference of gomcp.EmbeddedResource{Resource: reference of gomcp.ResourceContents{Text: "embedded text"}},
+    }
+    richResult := reference of gomcp.CallToolResult{Content: richContent}
+    emptySchema := map of string to any{"type": "object", "properties": empty map of string to any}
+
+    server := gomcp.NewServer(reference of gomcp.Implementation{Name: "test", Version: "1.0"}, empty)
+    server.AddTool(reference of gomcp.Tool{Name: "rich", InputSchema: emptySchema}, func(ctx context.Context, req reference gomcp.CallToolRequest) (reference gomcp.CallToolResult, error)
+        return richResult, empty
+    )
+
+    ss := server.Connect(ctx, sTransport, empty) onerr
+        t.Fatalf("server connect failed: {error}")
+        return
+
+    defer ss.Close()
+
+    client := gomcp.NewClient(reference of gomcp.Implementation{Name: "test-client", Version: "1.0"}, empty)
+    rawSession := client.Connect(ctx, cTransport, empty) onerr
+        t.Fatalf("client connect failed: {error}")
+        return
+
+    defer rawSession.Close()
+
+    session := mcppkg.ConnectFromSession(rawSession)
+    result := mcppkg.CallTool(ctx, session, "rich", empty map of string to any) onerr
+        t.Fatalf("CallTool failed: {error}")
+        return
+
+    test.AssertEqual(t, result.Text, "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text")
+    test.AssertEqual(t, len(result.Content), 5)
+    test.AssertFalse(t, result.IsError)

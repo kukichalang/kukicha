@@ -250,9 +250,21 @@ func CallTool on s reference ClientSession(ctx context.Context, params reference
                 parts = append(parts, v.Text)
             when reference mcp.ImageContent
                 parts = append(parts, "[image: {v.MIMEType}]")
+            when reference mcp.AudioContent
+                parts = append(parts, "[audio: {v.MIMEType}]")
+            when reference mcp.ResourceLink
+                parts = append(parts, "[resource: {v.URI}]")
+            when reference mcp.EmbeddedResource
+                if v.Resource != empty and v.Resource.Text != ""
+                    parts = append(parts, v.Resource.Text)
+                else
+                    data, _ := json.Marshal(c)
+                    parts = append(parts, data as string)
             otherwise
                 data, _ := json.Marshal(c)
                 parts = append(parts, data as string)
+
+    # Use the resource text when available; binary resources (blob-only) fall back to JSON.
 
     text := strpkg.Join(parts, "\n")
     return {Text: text, IsError: result.IsError, Content: content}, empty
@@ -264,8 +276,11 @@ type ClientTool
     InputSchema map of string to any
 
 # CallToolResult represents the result of a tool call.
-# Text is the concatenated text from all TextContent items.
-# Content holds the raw response items; type-assert elements to *TextContent, *ImageContent, etc.
+# Text is the concatenated text from all content items (TextContent verbatim;
+# ImageContent as "[image: mime]"; AudioContent as "[audio: mime]";
+# ResourceLink as "[resource: uri]"; EmbeddedResource as its text if available).
+# Content holds the raw response items; type-assert elements to *TextContent,
+# *ImageContent, *AudioContent, *ResourceLink, *EmbeddedResource, etc.
 type CallToolResult
     Text string
     IsError bool
@@ -300,6 +315,12 @@ func ConnectWithClient(ctx context.Context, endpoint string, httpClient referenc
     session := client.Connect(ctx, transport, empty) onerr return empty, error "MCP connect to {endpoint} failed: {error}"
     return reference of ClientSession{inner: session}, empty
 
+# ConnectFromSession wraps an existing *mcp.ClientSession into a ClientSession.
+# Use this when you have created a raw go-sdk session directly, for example
+# by pairing a client with NewInMemoryTransports() in tests.
+func ConnectFromSession(inner reference mcp.ClientSession) reference ClientSession
+    return reference of ClientSession{inner: inner}
+
 # Close closes the MCP client session.
 func Close(session reference ClientSession) error
     return session.inner.Close()
@@ -323,6 +344,25 @@ func CallTool(ctx context.Context, session reference ClientSession, name string,
 #               print(v.Text)
 #           when reference mcp.ImageContent
 #               print("[image: {v.MIMEType}]")
+#           when reference mcp.AudioContent
+#               print("[audio: {v.MIMEType}]")
+#           when reference mcp.ResourceLink
+#               print("[resource: {v.URI}]")
+#           when reference mcp.EmbeddedResource
+#               print(v.Resource.Text)
+
+# AudioContent contains base64-encoded audio data.
+type AudioContent = mcp.AudioContent
+
+# ResourceLink is a link to an external resource.
+type ResourceLink = mcp.ResourceLink
+
+# EmbeddedResource contains an embedded resource.
+type EmbeddedResource = mcp.EmbeddedResource
+
+# ResourceContents holds the text or binary contents of a resource.
+# It is used inside EmbeddedResource.
+type ResourceContents = mcp.ResourceContents
 
 # TextContent is a content item containing plain text.
 type TextContent = mcp.TextContent

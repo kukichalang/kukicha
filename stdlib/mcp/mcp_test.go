@@ -3,33 +3,131 @@
 package mcp_test
 
 import (
+	"context"
 	mcppkg "github.com/kukichalang/kukicha/stdlib/mcp"
+	"github.com/kukichalang/kukicha/stdlib/test"
+	gomcp "github.com/modelcontextprotocol/go-sdk/mcp"
 	"testing"
 )
 
-//line stdlib/mcp/mcp_test.kuki:9
-func TestSchemaHelpers(t *testing.T) {
 //line stdlib/mcp/mcp_test.kuki:13
+func TestSchemaHelpers(t *testing.T) {
+//line stdlib/mcp/mcp_test.kuki:17
 	if true {
-//line stdlib/mcp/mcp_test.kuki:14
+//line stdlib/mcp/mcp_test.kuki:18
 		return
 	}
 }
 
-//line stdlib/mcp/mcp_test.kuki:17
-func TestResultHelpers(t *testing.T) {
-//line stdlib/mcp/mcp_test.kuki:18
-	text := mcppkg.TextResult("hello")
-//line stdlib/mcp/mcp_test.kuki:20
-	if text == nil {
 //line stdlib/mcp/mcp_test.kuki:21
+func TestResultHelpers(t *testing.T) {
+//line stdlib/mcp/mcp_test.kuki:22
+	text := mcppkg.TextResult("hello")
+//line stdlib/mcp/mcp_test.kuki:24
+	if text == nil {
+//line stdlib/mcp/mcp_test.kuki:25
 		t.Errorf("TextResult should return non-empty result")
 	}
-//line stdlib/mcp/mcp_test.kuki:23
+//line stdlib/mcp/mcp_test.kuki:27
 	errRes := mcppkg.ErrorResult("boom")
-//line stdlib/mcp/mcp_test.kuki:25
+//line stdlib/mcp/mcp_test.kuki:29
 	if errRes == nil {
-//line stdlib/mcp/mcp_test.kuki:26
+//line stdlib/mcp/mcp_test.kuki:30
 		t.Errorf("ErrorResult should return non-empty result")
 	}
+}
+
+//line stdlib/mcp/mcp_test.kuki:34
+func TestContentTypeAliases(t *testing.T) {
+//line stdlib/mcp/mcp_test.kuki:35
+	items := make([]any, 4)
+//line stdlib/mcp/mcp_test.kuki:36
+	items[0] = &gomcp.AudioContent{MIMEType: "audio/mp3"}
+//line stdlib/mcp/mcp_test.kuki:37
+	items[1] = &gomcp.ResourceLink{URI: "file:///foo.txt"}
+//line stdlib/mcp/mcp_test.kuki:38
+	items[2] = &gomcp.EmbeddedResource{Resource: &gomcp.ResourceContents{Text: "hello"}}
+//line stdlib/mcp/mcp_test.kuki:39
+	items[3] = &gomcp.ResourceContents{URI: "file:///bar.txt", Text: "bar"}
+//line stdlib/mcp/mcp_test.kuki:42
+	_, ok1 := items[0].(*mcppkg.AudioContent)
+//line stdlib/mcp/mcp_test.kuki:43
+	test.AssertTrue(t, ok1)
+//line stdlib/mcp/mcp_test.kuki:46
+	_, ok2 := items[1].(*mcppkg.ResourceLink)
+//line stdlib/mcp/mcp_test.kuki:47
+	test.AssertTrue(t, ok2)
+//line stdlib/mcp/mcp_test.kuki:50
+	_, ok3 := items[2].(*mcppkg.EmbeddedResource)
+//line stdlib/mcp/mcp_test.kuki:51
+	test.AssertTrue(t, ok3)
+//line stdlib/mcp/mcp_test.kuki:54
+	_, ok4 := items[3].(*mcppkg.ResourceContents)
+//line stdlib/mcp/mcp_test.kuki:55
+	test.AssertTrue(t, ok4)
+}
+
+//line stdlib/mcp/mcp_test.kuki:61
+func TestCallToolRichContent(t *testing.T) {
+//line stdlib/mcp/mcp_test.kuki:62
+	ctx := context.Background()
+//line stdlib/mcp/mcp_test.kuki:63
+	cTransport, sTransport := gomcp.NewInMemoryTransports()
+//line stdlib/mcp/mcp_test.kuki:65
+	richContent := []gomcp.Content{&gomcp.TextContent{Text: "hello"}, &gomcp.ImageContent{MIMEType: "image/png"}, &gomcp.AudioContent{MIMEType: "audio/wav"}, &gomcp.ResourceLink{URI: "file:///doc.txt"}, &gomcp.EmbeddedResource{Resource: &gomcp.ResourceContents{Text: "embedded text"}}}
+//line stdlib/mcp/mcp_test.kuki:72
+	richResult := &gomcp.CallToolResult{Content: richContent}
+//line stdlib/mcp/mcp_test.kuki:73
+	emptySchema := map[string]any{"type": "object", "properties": map[string]any{}}
+//line stdlib/mcp/mcp_test.kuki:75
+	server := gomcp.NewServer(&gomcp.Implementation{Name: "test", Version: "1.0"}, nil)
+//line stdlib/mcp/mcp_test.kuki:76
+	server.AddTool(&gomcp.Tool{Name: "rich", InputSchema: emptySchema}, func(ctx context.Context, req *gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
+//line stdlib/mcp/mcp_test.kuki:77
+		return richResult, nil
+	})
+//line stdlib/mcp/mcp_test.kuki:80
+	ss, err_1 := server.Connect(ctx, sTransport, nil)
+//line stdlib/mcp/mcp_test.kuki:80
+	if err_1 != nil {
+//line stdlib/mcp/mcp_test.kuki:80
+		//line stdlib/mcp/mcp_test.kuki:81
+		t.Fatalf("server connect failed: %v", err_1)
+		//line stdlib/mcp/mcp_test.kuki:82
+		return
+	}
+//line stdlib/mcp/mcp_test.kuki:84
+	defer ss.Close()
+//line stdlib/mcp/mcp_test.kuki:86
+	client := gomcp.NewClient(&gomcp.Implementation{Name: "test-client", Version: "1.0"}, nil)
+//line stdlib/mcp/mcp_test.kuki:87
+	rawSession, err_2 := client.Connect(ctx, cTransport, nil)
+//line stdlib/mcp/mcp_test.kuki:87
+	if err_2 != nil {
+//line stdlib/mcp/mcp_test.kuki:87
+		//line stdlib/mcp/mcp_test.kuki:88
+		t.Fatalf("client connect failed: %v", err_2)
+		//line stdlib/mcp/mcp_test.kuki:89
+		return
+	}
+//line stdlib/mcp/mcp_test.kuki:91
+	defer rawSession.Close()
+//line stdlib/mcp/mcp_test.kuki:93
+	session := mcppkg.ConnectFromSession(rawSession)
+//line stdlib/mcp/mcp_test.kuki:94
+	result, err_3 := mcppkg.CallTool(ctx, session, "rich", map[string]any{})
+//line stdlib/mcp/mcp_test.kuki:94
+	if err_3 != nil {
+//line stdlib/mcp/mcp_test.kuki:94
+		//line stdlib/mcp/mcp_test.kuki:95
+		t.Fatalf("CallTool failed: %v", err_3)
+		//line stdlib/mcp/mcp_test.kuki:96
+		return
+	}
+//line stdlib/mcp/mcp_test.kuki:98
+	test.AssertEqual(t, result.Text, "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text")
+//line stdlib/mcp/mcp_test.kuki:99
+	test.AssertEqual(t, len(result.Content), 5)
+//line stdlib/mcp/mcp_test.kuki:100
+	test.AssertFalse(t, result.IsError)
 }

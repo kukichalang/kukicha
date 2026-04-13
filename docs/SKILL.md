@@ -1235,6 +1235,13 @@ print(result.Text)
 
 # Client with Bearer token authentication
 session := mcp.BearerConnect(ctx, "https://mcp.example.com/mcp", apiKey) onerr panic "{error}"
+
+# Wrap an existing go-sdk *mcp.ClientSession
+session := mcp.ConnectFromSession(rawSession)
+
+# Rich content type aliases (for type assertions on result.Content)
+# mcp.TextContent, mcp.ImageContent, mcp.AudioContent,
+# mcp.ResourceLink, mcp.EmbeddedResource, mcp.ResourceContents
 ```
 
 ---
