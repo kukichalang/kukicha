@@ -41,7 +41,7 @@ const idxBlockedIssue = "CREATE INDEX IF NOT EXISTS idx_blocked_issue ON blocked
 
 # initDB creates all tables and indexes inside a single transaction.
 func initDB(pool db.Pool) error
-    db.Transaction(pool, (tx) =>
+    db.Transaction(pool, tx =>
         db.TxExec(tx, issuesSQL) onerr return
         db.TxExec(tx, depsSQL) onerr return
         db.TxExec(tx, commentsSQL) onerr return
@@ -59,4 +59,5 @@ func initDB(pool db.Pool) error
         db.TxExec(tx, idxBlockedIssue) onerr return
         return empty
     ) onerr return
+
     return empty

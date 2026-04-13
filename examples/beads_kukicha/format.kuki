@@ -237,6 +237,7 @@ func printJSON(v any)
     data := jsonpkg.MarshalPretty(v) onerr
         fmt.Fprintln(os.Stderr, "json error: {error}")
         return
+
     fmt.Println(data as string)
 
 func errPrint(msg string)

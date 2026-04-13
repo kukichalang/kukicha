@@ -27,17 +27,19 @@ func removeDep(pool db.Pool, issueId string, dependsOnId string) error
 
 # listDeps returns all dependencies involving the given issue.
 func listDeps(pool db.Pool, issueId string) (list of Dep, error)
-    result := db.Query(pool, "SELECT issue_id, depends_on_id, dep_type, created_at FROM dependencies WHERE issue_id = ? OR depends_on_id = ? ORDER BY created_at", issueId, issueId) |> db.ScanAll(empty list of Dep) onerr return
+    result := db.Query(pool, "SELECT issue_id, depends_on_id, dep_type, created_at FROM dependencies WHERE issue_id = ? OR depends_on_id = ? ORDER BY created_at", issueId, issueId)
+        |> db.ScanAll(empty list of Dep) onerr return
     return result.(list of Dep), empty
 
 # rebuildBlockedCache rebuilds the materialized blocked issues cache.
 # An issue is blocked if it has a "blocks" dependency on an open issue.
 func rebuildBlockedCache(pool db.Pool) error
-    db.Transaction(pool, (tx) =>
+    db.Transaction(pool, tx =>
         db.TxExec(tx, "DELETE FROM blocked_issues_cache") onerr return
         db.TxExec(tx, "INSERT INTO blocked_issues_cache (issue_id, blocked_by_id) SELECT d.issue_id, d.depends_on_id FROM dependencies d JOIN issues i ON i.id = d.depends_on_id WHERE d.dep_type = 0 AND i.status != 3") onerr return
         return empty
     ) onerr return
+
     return empty
 
 # listReady returns open issues that are not blocked by any open dependency.

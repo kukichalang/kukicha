@@ -15,6 +15,7 @@ func doInit(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     initDB(pool) onerr
@@ -62,6 +63,7 @@ func doCreate(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     issue := createIssue(pool, title, desc, issueType, priority, assignee, labelsJSON) onerr
@@ -79,6 +81,7 @@ func doList(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     statusFilter := -1
@@ -119,6 +122,7 @@ func doShow(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     issue := getIssue(pool, id) onerr
@@ -134,6 +138,7 @@ func doShow(args cli.Args)
     # Show dependencies
     deps := listDeps(pool, id) onerr
         return
+
     if len(deps) > 0
         print("")
         print("  {bold("Dependencies:")}")
@@ -146,6 +151,7 @@ func doShow(args cli.Args)
     # Show comments
     comments := listComments(pool, id) onerr
         return
+
     if len(comments) > 0
         print("")
         print("  {bold("Comments:")}")
@@ -167,6 +173,7 @@ func doUpdate(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     title := cli.GetString(args, "title")
@@ -207,6 +214,7 @@ func doUpdate(args cli.Args)
         issue := getIssue(pool, id) onerr
             errPrint("{error}")
             return
+
         printJSON(issue)
     else
         print(green("Updated {id}"))
@@ -222,6 +230,7 @@ func doClose(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     closeIssue(pool, id) onerr
@@ -232,6 +241,7 @@ func doClose(args cli.Args)
         issue := getIssue(pool, id) onerr
             errPrint("{error}")
             return
+
         printJSON(issue)
     else
         print(green("Closed {id}"))
@@ -247,6 +257,7 @@ func doReopen(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     reopenIssue(pool, id) onerr
@@ -257,6 +268,7 @@ func doReopen(args cli.Args)
         issue := getIssue(pool, id) onerr
             errPrint("{error}")
             return
+
         printJSON(issue)
     else
         print(green("Reopened {id}"))
@@ -272,6 +284,7 @@ func doDelete(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     deleteIssue(pool, id) onerr
@@ -289,6 +302,7 @@ func doReady(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     issues := listReady(pool, 50) onerr
@@ -307,6 +321,7 @@ func doBlocked(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     blocked := listBlocked(pool) onerr
@@ -339,6 +354,7 @@ func doDep(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     if sub equals "add"
@@ -356,6 +372,7 @@ func doDep(args cli.Args)
         addDep(pool, issueId, dependsOn, dt) onerr
             errPrint("cannot add dependency: {error}")
             return
+
         print(green("Added dependency: {issueId} depends on {dependsOn}"))
         return
 
@@ -368,6 +385,7 @@ func doDep(args cli.Args)
         removeDep(pool, issueId, dependsOn) onerr
             errPrint("cannot remove dependency: {error}")
             return
+
         print(green("Removed dependency"))
         return
 
@@ -379,6 +397,7 @@ func doDep(args cli.Args)
         deps := listDeps(pool, issueId) onerr
             errPrint("cannot list dependencies: {error}")
             return
+
         if cli.IsJSON(args)
             printJSON(deps)
             return
@@ -412,12 +431,14 @@ func doLabel(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     if sub equals "add"
         addLabel(pool, id, label) onerr
             errPrint("cannot add label: {error}")
             return
+
         print(green("Added label '{label}' to {id}"))
         return
 
@@ -425,6 +446,7 @@ func doLabel(args cli.Args)
         removeLabel(pool, id, label) onerr
             errPrint("cannot remove label: {error}")
             return
+
         print(green("Removed label '{label}' from {id}"))
         return
 
@@ -442,6 +464,7 @@ func doComment(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     if sub equals "add"
@@ -454,6 +477,7 @@ func doComment(args cli.Args)
         addComment(pool, issueId, body, author) onerr
             errPrint("cannot add comment: {error}")
             return
+
         print(green("Comment added to {issueId}"))
         return
 
@@ -465,6 +489,7 @@ func doComment(args cli.Args)
         comments := listComments(pool, issueId) onerr
             errPrint("cannot list comments: {error}")
             return
+
         if cli.IsJSON(args)
             printJSON(comments)
             return
@@ -492,6 +517,7 @@ func doSearch(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     issues := searchIssues(pool, query, 50) onerr
@@ -510,6 +536,7 @@ func doStats(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     total := db.Count(pool, "SELECT COUNT(*) FROM issues") onerr
@@ -520,17 +547,20 @@ func doStats(args cli.Args)
         statusStats := getStatusStats(pool) onerr
             errPrint("{error}")
             return
+
         priStats := getPriorityStats(pool) onerr
             errPrint("{error}")
             return
+
         typeStats := getTypeStats(pool) onerr
             errPrint("{error}")
             return
+
         result := map of string to any{
-            "total":       total,
-            "by_status":   statusStats,
+            "total": total,
+            "by_status": statusStats,
             "by_priority": priStats,
-            "by_type":     typeStats,
+            "by_type": typeStats,
         }
         printJSON(result)
         return
@@ -542,6 +572,7 @@ func doStats(args cli.Args)
     statusStats := getStatusStats(pool) onerr
         errPrint("{error}")
         return
+
     print("  {bold("By status:")}")
     for s in statusStats
         print("    {strpkg.PadRight(s.Label, 14, " ")} {s.Count}")
@@ -550,6 +581,7 @@ func doStats(args cli.Args)
     priStats := getPriorityStats(pool) onerr
         errPrint("{error}")
         return
+
     print("  {bold("By priority:")}")
     for p in priStats
         print("    {strpkg.PadRight(p.Label, 14, " ")} {p.Count}")
@@ -558,6 +590,7 @@ func doStats(args cli.Args)
     typeStats := getTypeStats(pool) onerr
         errPrint("{error}")
         return
+
     print("  {bold("By type:")}")
     for t in typeStats
         print("    {strpkg.PadRight(t.Label, 14, " ")} {t.Count}")

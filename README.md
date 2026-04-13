@@ -66,7 +66,7 @@ All valid Go is still valid Kukicha — rename `.go` to `.kuki` and it compiles 
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```bash
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.6
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.7
 mkdir myapp && cd myapp
 kukicha init
 ```
@@ -160,4 +160,4 @@ All Go syntax is also accepted, Kukicha is a strict superset.
 
 ---
 
-**Version:** 0.1.6 | **License:** [MIT](LICENSE)
+**Version:** 0.1.7 | **License:** [MIT](LICENSE)

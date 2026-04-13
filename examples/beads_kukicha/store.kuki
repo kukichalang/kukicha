@@ -22,16 +22,16 @@ func createIssue(pool db.Pool, title string, desc string, issueType int, priorit
     id := generateId(title, ts)
 
     issue := Issue{
-        Id:          id,
-        Title:       title,
+        Id: id,
+        Title: title,
         Description: desc,
-        Status:      StatusOpen,
-        Priority:    priority,
-        IssueType:   issueType,
-        Assignee:    assignee,
-        Labels:      labelsJSON,
-        CreatedAt:   ts,
-        UpdatedAt:   ts,
+        Status: StatusOpen,
+        Priority: priority,
+        IssueType: issueType,
+        Assignee: assignee,
+        Labels: labelsJSON,
+        CreatedAt: ts,
+        UpdatedAt: ts,
     }
     issue.ContentHash = contentHash(issue)
 
@@ -127,6 +127,7 @@ func closeIssue(pool db.Pool, id string) error
     recomputeHash(pool, id)
     rebuildBlockedCache(pool) onerr
         return empty
+
     return empty
 
 func reopenIssue(pool db.Pool, id string) error
@@ -139,6 +140,7 @@ func reopenIssue(pool db.Pool, id string) error
     recomputeHash(pool, id)
     rebuildBlockedCache(pool) onerr
         return empty
+
     return empty
 
 func deleteIssue(pool db.Pool, id string) error
@@ -182,21 +184,25 @@ func addComment(pool db.Pool, issueId string, body string, author string) error
     return empty
 
 func listComments(pool db.Pool, issueId string) (list of Comment, error)
-    result := db.Query(pool, "SELECT id, issue_id, body, author, created_at FROM comments WHERE issue_id = ? ORDER BY created_at", issueId) |> db.ScanAll(empty list of Comment) onerr return
+    result := db.Query(pool, "SELECT id, issue_id, body, author, created_at FROM comments WHERE issue_id = ? ORDER BY created_at", issueId)
+        |> db.ScanAll(empty list of Comment) onerr return
     return result.(list of Comment), empty
 
 # --- Stats ---
 
 func getStatusStats(pool db.Pool) (list of StatRow, error)
-    result := db.Query(pool, "SELECT CASE status WHEN 0 THEN 'open' WHEN 1 THEN 'in-progress' WHEN 2 THEN 'blocked' WHEN 3 THEN 'closed' END AS label, COUNT(*) AS count FROM issues GROUP BY status ORDER BY status") |> db.ScanAll(empty list of StatRow) onerr return
+    result := db.Query(pool, "SELECT CASE status WHEN 0 THEN 'open' WHEN 1 THEN 'in-progress' WHEN 2 THEN 'blocked' WHEN 3 THEN 'closed' END AS label, COUNT(*) AS count FROM issues GROUP BY status ORDER BY status")
+        |> db.ScanAll(empty list of StatRow) onerr return
     return result.(list of StatRow), empty
 
 func getPriorityStats(pool db.Pool) (list of StatRow, error)
-    result := db.Query(pool, "SELECT CASE priority WHEN 0 THEN 'critical' WHEN 1 THEN 'high' WHEN 2 THEN 'medium' WHEN 3 THEN 'low' WHEN 4 THEN 'backlog' END AS label, COUNT(*) AS count FROM issues GROUP BY priority ORDER BY priority") |> db.ScanAll(empty list of StatRow) onerr return
+    result := db.Query(pool, "SELECT CASE priority WHEN 0 THEN 'critical' WHEN 1 THEN 'high' WHEN 2 THEN 'medium' WHEN 3 THEN 'low' WHEN 4 THEN 'backlog' END AS label, COUNT(*) AS count FROM issues GROUP BY priority ORDER BY priority")
+        |> db.ScanAll(empty list of StatRow) onerr return
     return result.(list of StatRow), empty
 
 func getTypeStats(pool db.Pool) (list of StatRow, error)
-    result := db.Query(pool, "SELECT CASE issue_type WHEN 0 THEN 'task' WHEN 1 THEN 'bug' WHEN 2 THEN 'feature' WHEN 3 THEN 'epic' WHEN 4 THEN 'chore' END AS label, COUNT(*) AS count FROM issues GROUP BY issue_type ORDER BY issue_type") |> db.ScanAll(empty list of StatRow) onerr return
+    result := db.Query(pool, "SELECT CASE issue_type WHEN 0 THEN 'task' WHEN 1 THEN 'bug' WHEN 2 THEN 'feature' WHEN 3 THEN 'epic' WHEN 4 THEN 'chore' END AS label, COUNT(*) AS count FROM issues GROUP BY issue_type ORDER BY issue_type")
+        |> db.ScanAll(empty list of StatRow) onerr return
     return result.(list of StatRow), empty
 
 # --- Internal helpers ---

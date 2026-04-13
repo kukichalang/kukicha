@@ -71,46 +71,46 @@ const EvtDeleted = 9
 # --- Struct Types ---
 
 type Issue
-    Id          string as "id"
-    Title       string as "title"
+    Id string as "id"
+    Title string as "title"
     Description string as "description"
-    Status      int    as "status"
-    Priority    int    as "priority"
-    IssueType   int    as "issue_type"
-    Assignee    string as "assignee"
-    Labels      string as "labels"
+    Status int as "status"
+    Priority int as "priority"
+    IssueType int as "issue_type"
+    Assignee string as "assignee"
+    Labels string as "labels"
     ContentHash string as "content_hash"
-    CreatedAt   string as "created_at"
-    UpdatedAt   string as "updated_at"
-    ClosedAt    string as "closed_at"
+    CreatedAt string as "created_at"
+    UpdatedAt string as "updated_at"
+    ClosedAt string as "closed_at"
 
 type Dep
-    IssueId     string as "issue_id"
+    IssueId string as "issue_id"
     DependsOnId string as "depends_on_id"
-    DepType     int    as "dep_type"
-    CreatedAt   string as "created_at"
+    DepType int as "dep_type"
+    CreatedAt string as "created_at"
 
 type Comment
-    Id        int64  as "id"
-    IssueId   string as "issue_id"
-    Body      string as "body"
-    Author    string as "author"
+    Id int64 as "id"
+    IssueId string as "issue_id"
+    Body string as "body"
+    Author string as "author"
     CreatedAt string as "created_at"
 
 type Event
-    Id        int64  as "id"
-    IssueId   string as "issue_id"
-    EventType int    as "event_type"
-    OldValue  string as "old_value"
-    NewValue  string as "new_value"
+    Id int64 as "id"
+    IssueId string as "issue_id"
+    EventType int as "event_type"
+    OldValue string as "old_value"
+    NewValue string as "new_value"
     CreatedAt string as "created_at"
 
 type BlockedInfo
-    IssueId      string as "issue_id"
-    Title        string as "title"
-    BlockerId    string as "blocker_id"
+    IssueId string as "issue_id"
+    Title string as "title"
+    BlockerId string as "blocker_id"
     BlockerTitle string as "blocker_title"
 
 type StatRow
     Label string as "label"
-    Count int64  as "count"
+    Count int64 as "count"
