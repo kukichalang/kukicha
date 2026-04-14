@@ -5,7 +5,7 @@ write Kukicha syntax** (`and`/`or`/`not`, `list of T`, `onerr`, pipes, enums)
 and use Kukicha's stdlib (`stdlib/*`) over raw Go packages. Fall back to Go
 only when Kukicha has no equivalent.
 
-Run `kukicha init` once per project to set up `go.mod` and extract the stdlib
+When `kukicha init` is run, this file is created and the stdlib is extracted
 into `.kukicha/stdlib/`. Browse the source files there for full API details
 beyond what this reference covers.
 
