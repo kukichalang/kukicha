@@ -1,8 +1,8 @@
 # Kukicha
 
-Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go**, rename `.go` to `.kuki` and it compiles unchanged. Then blend in features that didn't fit Go's minimalist philosophy: pipes, `onerr`, enums, if-expressions, readable operators. Not sure? `kukicha brew` gives you standard Go back. The stems dissolve and the tea remains.
+Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go** — rename `.go` to `.kuki` and it compiles unchanged. Then blend in pipes, `onerr`, enums, if-expressions, readable operators. One feature at a time, or all at once. `kukicha brew` gives you standard Go back whenever you want it.
 
-**[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](docs/SKILL.md)
+**[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](.claude/skills/stdlib/SKILL.md)
 
 ---
 
@@ -10,7 +10,7 @@ Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go**,
 
 Triage open GitHub issues with an LLM. Fetch, classify in parallel, keep the urgent ones, sort, print.
 
-```kukicha
+```
 # triage.kuki — classify open issues with Claude, flag the urgent ones
 import "stdlib/concurrent"
 import "stdlib/fetch"
@@ -55,7 +55,7 @@ func main()
         print("  [P{v.severity}] {v.kind}  #{v.number}  {v.summary}")
 ```
 
-Reads like the English description above it. Underneath: typed HTTP→JSON decode with `fetch.Json(list of Issue)`, a pipeline-level `onerr` that catches network, status, and decode in one handler, an LLM builder composed with pipes, structured output decoded straight into a `Verdict` struct, bounded parallelism without goroutine or errgroup bookkeeping, and stdlib `Filter`/`sort.ByKey` chained on the result. Every `err != nil` you'd write in Go is absorbed by `onerr`.
+`fetch.Json(list of Issue)` handles HTTP→JSON decode with a typed target. The pipeline-level `onerr` catches network, status, and decode failures in one place. `concurrent.MapWithLimit` runs the LLM calls four at a time — no goroutine or errgroup bookkeeping. The rest is `Filter` and `sort.ByKey` chained on the result. Every `err != nil` you'd write in Go is absorbed by `onerr`.
 
 All valid Go is still valid Kukicha, rename `.go` to `.kuki` and it compiles unchanged. 
 
@@ -65,7 +65,7 @@ All valid Go is still valid Kukicha, rename `.go` to `.kuki` and it compiles unc
 
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
-```bash
+```
 go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.7
 mkdir myapp && cd myapp
 kukicha init
@@ -75,19 +75,19 @@ kukicha init
 
 Create `hello.kuki`:
 
-```kukicha
+```
 function main()
     name := "World"
     print("Hello, {name}!")
 ```
 
-```bash
+```
 kukicha run hello.kuki
 ```
 
-### Adopt Gradually
+### Adopt gradually
 
-```bash
+```
 # See what your Go code looks like with Kukicha idioms
 kukicha-blend main.go
 
@@ -102,7 +102,7 @@ kukicha brew main.kuki
 ### Commands
 
 | Command | What it does |
-|---------|-------------|
+| --- | --- |
 | `kukicha check file.kuki` | Validate syntax without compiling |
 | `kukicha run file.kuki` | Compile and run immediately |
 | `kukicha build file.kuki` | Compile to a standalone binary |
@@ -112,14 +112,14 @@ kukicha brew main.kuki
 
 ---
 
-## What Kukicha Adds
+## What Kukicha adds
 
-Go's philosophy is radical simplicity. Some proven patterns from Rust, Elixir, Kotlin, and Python didn't fit that vision. Kukicha picks them up.
+Kukicha prioritizes readability and picks up patterns from Rust, Elixir, Kotlin, and Python that fit naturally alongside Go's existing syntax.
 
 | Feature | Go | Kukicha |
-|---------|-----|---------|
+| --- | --- | --- |
 | **Error handling** | `if err != nil { return err }` | `onerr return` |
-| **Pipes** | `f(g(h(x)))` | `x \|> h() \|> g() \|> f()` |
+| **Pipes** | `f(g(h(x)))` | `x |> h() |> g() |> f()` |
 | **If-expressions** | 5-line temp var + if/else | `x := if cond then a else b` |
 | **Readable operators** | `&&`, `\|\|`, `!` | `and`, `or`, `not` |
 | **Type syntax** | `[]string`, `map[K]V`, `*T` | `list of string`, `map of K to V`, `reference T` |
@@ -127,37 +127,40 @@ Go's philosophy is radical simplicity. Some proven patterns from Rust, Elixir, K
 | **Lambdas** | `func(x int) int { return x*2 }` | `(x int) => x * 2` |
 | **String interpolation** | `fmt.Sprintf("hi %s", name)` | `"hi {name}"` |
 
-All Go syntax is also accepted, Kukicha is a strict superset. 
+---
+
+## Why bother
+
+* Existing `.go` files compile as `.kuki` unchanged
+* `kukicha brew` converts back to standard Go anytime
+* Blend in one feature at a time; leave the rest as Go
+* **Compile-time security checks** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects before you ship
+* **42+ easy-to-use stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [more](.claude/skills/stdlib/SKILL.md)
+* **Ships as Go** — single binary, cross-compile, WASM, full Go ecosystem
 
 ---
 
-## What does Kukicha offer?
+## Editor support
 
-- Existing `.go` files compile as `.kuki` unchanged
-- `kukicha brew` converts back to standard Go anytime
-- Blend in one feature at a time, leave the rest as Go
-- **Security at compile time**, catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects at build time
-- **42+ ease-of-use stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [many more](docs/SKILL.md#stdlib-packages)
-- **Ships as Go**, single binary, cross-compile, WASM support and the full Go ecosystem
-
----
-
-## Editor Support
-
-- **VS Code:** Search `kukicha-lang` in extensions ([repo](https://github.com/kukichalang/vscode-kukicha))
-- **Zed:** [kukichalang/zed-kukicha](https://github.com/kukichalang/zed-kukicha)
-- **Other:** `make install-lsp` and point your editor at `kukicha-lsp`
+* **VS Code:** Search `kukicha-lang` in extensions ([repo](https://github.com/kukichalang/vscode-kukicha))
+* **Zed:** [kukichalang/zed-kukicha](https://github.com/kukichalang/zed-kukicha)
+* **Other:** `make install-lsp` and point your editor at `kukicha-lsp`
 
 ---
 
 ## Documentation
 
-- [Quick Reference](docs/kukicha-quick-reference.md) — Go-to-Kukicha translation table
-- [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
-- [Beginner Tutorial](docs/tutorials/beginner-tutorial.md) — first program, variables, functions
-- [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, auth, retry
-- [FAQ](docs/faq.md) | [Contributing](docs/contributing.md)
+* [Quick Reference](docs/kukicha-quick-reference.md) — Go-to-Kukicha translation table
+* [Agent Workflow Tutorial](docs/tutorials/agent-workflow-tutorial.md) — prompt AI, review, ship
+* [Beginner Tutorial](docs/tutorials/beginner-tutorial.md) — first program, variables, functions
+* [Production Patterns](docs/tutorials/production-patterns-tutorial.md) — databases, auth, retry
+* [FAQ](docs/faq.md) | [Contributing](docs/contributing.md)
 
 ---
 
 **Version:** 0.1.7 | **License:** [MIT](LICENSE)
+
+---
+
+[!NOTE]
+Portions of this codebase were written with AI assistance. All code is reviewed and tested by human maintainers before merge
