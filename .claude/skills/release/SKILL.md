@@ -11,13 +11,18 @@ Cuts a new Kukicha release following the process defined in `docs/contributing.m
 
 ### 1. Determine the next version
 
-Read the current version from `internal/version/version.go`. Increment the patch segment (e.g. `0.0.10` → `0.0.11`) unless the user specifies otherwise.
+Kukicha follows [Semantic Versioning](https://semver.org/). While pre-1.0.0:
+
+- **Patch** (0.1.x → 0.1.y): bug fixes, doc updates, refactors
+- **Minor** (0.1.x → 0.2.0): new language features, stdlib additions, behavioral changes
+
+Read the current version from `internal/version/version.go`. Increment the patch segment (e.g. `0.1.10` → `0.1.11`) unless the user specifies otherwise.
 
 ### 2. Bump version in source
 
 Edit `internal/version/version.go`:
 ```
-const Version = "0.0.X"   # new version
+const Version = "0.1.X"   # new version
 ```
 
 ### 3. Update version references in docs
