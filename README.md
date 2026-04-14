@@ -8,7 +8,7 @@ Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go**,
 
 ## A taste of Kukicha
 
-Triage open GitHub issues with an LLM. Fetch, classify in parallel, keep the urgent ones, sort, print — end to end in 40 lines, no `if err != nil` ladder.
+Triage open GitHub issues with an LLM. Fetch, classify in parallel, keep the urgent ones, sort, print.
 
 ```kukicha
 # triage.kuki — classify open issues with Claude, flag the urgent ones
@@ -57,7 +57,7 @@ func main()
 
 Reads like the English description above it. Underneath: typed HTTP→JSON decode with `fetch.Json(list of Issue)`, a pipeline-level `onerr` that catches network, status, and decode in one handler, an LLM builder composed with pipes, structured output decoded straight into a `Verdict` struct, bounded parallelism without goroutine or errgroup bookkeeping, and stdlib `Filter`/`sort.ByKey` chained on the result. Every `err != nil` you'd write in Go is absorbed by `onerr`.
 
-All valid Go is still valid Kukicha — rename `.go` to `.kuki` and it compiles unchanged. 
+All valid Go is still valid Kukicha, rename `.go` to `.kuki` and it compiles unchanged. 
 
 ---
 
