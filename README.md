@@ -162,5 +162,5 @@ Kukicha prioritizes readability and picks up patterns from Rust, Elixir, Kotlin,
 
 ---
 
-[!NOTE]
-Portions of this codebase were written with AI assistance. All code is reviewed and tested by human maintainers before merge
+>[!NOTE]
+>Portions of this codebase were written with AI assistance. Commits are reviewed by human maintainers before merge.
