@@ -66,7 +66,7 @@ All valid Go is still valid Kukicha, rename `.go` to `.kuki` and it compiles unc
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.7
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.8
 mkdir myapp && cd myapp
 kukicha init
 ```
@@ -158,7 +158,7 @@ Kukicha prioritizes readability and picks up patterns from Rust, Elixir, Kotlin,
 
 ---
 
-**Version:** 0.1.7 | **License:** [MIT](LICENSE)
+**Version:** 0.1.8 | **License:** [MIT](LICENSE)
 
 ---
 
