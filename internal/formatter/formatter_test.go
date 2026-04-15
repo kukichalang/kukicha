@@ -481,3 +481,55 @@ func main()
 `
 	assertFormatted(t, source, source)
 }
+
+// TestFormatBinaryPrecedenceParens verifies that the formatter preserves
+// parentheses that are semantically necessary to override left-associativity
+// when the right-hand sub-expression has equal precedence to its parent.
+func TestFormatBinaryPrecedenceParens(t *testing.T) {
+	cases := []struct {
+		name   string
+		source string
+	}{
+		{
+			name: "div by product (equal prec on right)",
+			source: `func f() float64
+    return a / (b * c)
+`,
+		},
+		{
+			name: "sub minus sub (equal prec on right, different associativity)",
+			source: `func f() float64
+    return a - (b - c)
+`,
+		},
+		{
+			name: "sub minus add (equal prec on right)",
+			source: `func f() float64
+    return a - (b + c)
+`,
+		},
+		{
+			name: "div by div (equal prec on right)",
+			source: `func f() float64
+    return a / (b / c)
+`,
+		},
+		{
+			name: "left-assoc mul+div left paren not needed",
+			source: `func f() float64
+    return a * b / c
+`,
+		},
+		{
+			name: "lower-prec child on right — parens needed",
+			source: `func f() float64
+    return a * (b + c)
+`,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assertFormatted(t, tc.source, tc.source)
+		})
+	}
+}

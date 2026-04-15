@@ -1303,11 +1303,13 @@ func operatorPrecedence(op string) int {
 
 // binaryOperandToString wraps a child expression in parens only when needed
 // to preserve the correct precedence relative to the parent operator.
-func (p *Printer) binaryOperandToString(child ast.Expression, parentPrec int) string {
+// isRight must be true when child is the right-hand operand: for left-associative
+// operators, equal precedence on the right also requires parens (e.g. a/(b*c)).
+func (p *Printer) binaryOperandToString(child ast.Expression, parentPrec int, isRight bool) string {
 	s := p.exprToString(child)
 	if bin, ok := child.(*ast.BinaryExpr); ok {
 		childPrec := operatorPrecedence(bin.Operator)
-		if childPrec < parentPrec {
+		if childPrec < parentPrec || (isRight && childPrec == parentPrec) {
 			return "(" + s + ")"
 		}
 	}
@@ -1316,8 +1318,8 @@ func (p *Printer) binaryOperandToString(child ast.Expression, parentPrec int) st
 
 func (p *Printer) binaryExprToString(expr *ast.BinaryExpr) string {
 	prec := operatorPrecedence(expr.Operator)
-	left := p.binaryOperandToString(expr.Left, prec)
-	right := p.binaryOperandToString(expr.Right, prec)
+	left := p.binaryOperandToString(expr.Left, prec, false)
+	right := p.binaryOperandToString(expr.Right, prec, true)
 
 	return fmt.Sprintf("%s %s %s", left, expr.Operator, right)
 }
