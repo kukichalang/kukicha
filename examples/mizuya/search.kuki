@@ -1,10 +1,9 @@
 # mizuya — FTS5 search, embedding storage, and vector similarity.
-# Vectors are stored as JSON text arrays so the custom SQL function
-# (sqlite.CreateFunction operates on strings) can parse them directly.
+# Vectors are stored as JSON text arrays. sqlite.CreateFunctionFloat registers
+# the cosine-distance UDF so SQLite receives a native REAL — no CAST needed.
 
 petiole main
 
-import "fmt"
 import "math"
 import "stdlib/db"
 import "stdlib/json" as jsonpkg
@@ -45,7 +44,7 @@ func similar(pool db.Pool, vec list of float64, k int) (list of SimilarHit, erro
     bytes, err := jsonpkg.Marshal(vec)
     if err isnt empty
         return empty, err
-    q := "SELECT e.id AS id, e.name AS name, e.type AS type, COALESCE(e.data ->> '$.summary', '') AS summary, CAST(vec_cosine_distance(emb.vec, ?) AS REAL) AS distance FROM embeddings emb JOIN entities e ON e.id = emb.entity_id ORDER BY distance ASC LIMIT ?"
+    q := "SELECT e.id AS id, e.name AS name, e.type AS type, COALESCE(e.data ->> '$.summary', '') AS summary, vec_cosine_distance(emb.vec, ?) AS distance FROM embeddings emb JOIN entities e ON e.id = emb.entity_id ORDER BY distance ASC LIMIT ?"
     result := db.Query(pool, q, bytes as string, k) |> db.ScanAll(empty list of SimilarHit) onerr return
     return result.(list of SimilarHit), empty
 
@@ -61,26 +60,25 @@ func getEmbedding(pool db.Pool, id string) (list of float64, error)
 # --- Custom SQL function: cosine distance ---
 
 # registerVecFunction installs vec_cosine_distance(a_json, b_json) on the
-# connection. sqlite.CreateFunction only supports string-in/string-out
-# scalar functions, so the vectors are shipped as JSON text and the result
-# is a formatted float that we CAST to REAL in the ORDER BY clause.
+# connection using sqlite.CreateFunctionFloat so SQLite receives a native
+# REAL value — no CAST required in ORDER BY.
 func registerVecFunction(pool db.Pool) error
-    sqlite.CreateFunction(pool, "vec_cosine_distance", 2, (args list of string) =>
-        return cosineFromJSON(args[0], args[1])
+    sqlite.CreateFunctionFloat(pool, "vec_cosine_distance", 2, (args list of string) =>
+        return cosineVec(args[0], args[1])
     ) onerr return
     return empty
 
-# cosineFromJSON parses two JSON-encoded float arrays and returns the
-# cosine distance (1 - cosine similarity), formatted as a decimal string.
-# Returns "1.0" on any parse or length-mismatch error — the max sensible
-# distance, which pushes bad rows to the end of the result set.
-func cosineFromJSON(aJSON string, bJSON string) string
+# cosineVec parses two JSON-encoded float64 arrays and returns the
+# cosine distance (1 - cosine similarity) as float64.
+# Returns 1.0 on any parse or length-mismatch error — the maximum distance,
+# which pushes bad rows to the end of the ORDER BY result set.
+func cosineVec(aJSON string, bJSON string) float64
     a := make(list of float64, 0)
     b := make(list of float64, 0)
-    jsonpkg.UnmarshalString(aJSON, reference of a) onerr return "1.0"
-    jsonpkg.UnmarshalString(bJSON, reference of b) onerr return "1.0"
+    jsonpkg.UnmarshalString(aJSON, reference of a) onerr return 1.0
+    jsonpkg.UnmarshalString(bJSON, reference of b) onerr return 1.0
     if len(a) != len(b) or len(a) == 0
-        return "1.0"
+        return 1.0
 
     dot := 0.0
     normA := 0.0
@@ -90,9 +88,8 @@ func cosineFromJSON(aJSON string, bJSON string) string
         normA = normA + a[i] * a[i]
         normB = normB + b[i] * b[i]
     if normA == 0.0 or normB == 0.0
-        return "1.0"
-    dist := 1.0 - dot / (math.Sqrt(normA) * math.Sqrt(normB))
-    return fmt.Sprintf("%.12g", dist)
+        return 1.0
+    return 1.0 - dot / (math.Sqrt(normA) * math.Sqrt(normB))
 
 # --- Toy embedding ---
 

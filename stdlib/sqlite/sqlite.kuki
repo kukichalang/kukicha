@@ -236,22 +236,63 @@ func BatchExec(pool db.Pool, query string, rows list of list of any) (int64, err
 # ============================================================================
 
 # CreateFunction registers a custom scalar SQL function on the database.
-# The function receives arguments as strings and returns a string result.
+# The function receives arguments as strings and returns a string (TEXT) result.
 # Sets MaxOpenConns(1) to ensure the function is available for all queries.
 # Example:
 #   sqlite.CreateFunction(pool, "reverse", 1, (args list of string) =>
-#       # reverse the first argument
 #       runes := list of rune(args[0])
 #       for i, j := 0, len(runes) - 1; i < j; i, j = i + 1, j - 1
 #           runes[i], runes[j] = runes[j], runes[i]
 #       return string(runes)
 #   ) onerr panic "{error}"
 func CreateFunction(pool db.Pool, name string, nArgs int, fn func(list of string) string) error
+    return registerScalarFunction(pool, name, nArgs, makeScalarFunc(fn))
+
+# CreateFunctionFloat registers a custom scalar SQL function that returns a
+# float64 value (stored as SQLite REAL). Use this for numeric UDFs like
+# distance metrics, trigonometry, or any computation that needs ORDER BY on the
+# result without a CAST.
+# Sets MaxOpenConns(1) to ensure the function is available for all queries.
+# Example:
+#   sqlite.CreateFunctionFloat(pool, "vec_cosine_distance", 2, (args list of string) =>
+#       return computeCosine(args[0], args[1])
+#   ) onerr panic "{error}"
+func CreateFunctionFloat(pool db.Pool, name string, nArgs int, fn func(list of string) float64) error
+    return registerScalarFunction(pool, name, nArgs, makeScalarFuncFloat(fn))
+
+# CreateFunctionInt registers a custom scalar SQL function that returns an
+# int64 value (stored as SQLite INTEGER).
+# Sets MaxOpenConns(1) to ensure the function is available for all queries.
+# Example:
+#   sqlite.CreateFunctionInt(pool, "word_count", 1, (args list of string) =>
+#       return len(strings.Fields(args[0])) as int64
+#   ) onerr panic "{error}"
+func CreateFunctionInt(pool db.Pool, name string, nArgs int, fn func(list of string) int64) error
+    return registerScalarFunction(pool, name, nArgs, makeScalarFuncInt(fn))
+
+# CreateFunctionBool registers a custom scalar SQL function that returns a
+# bool value (stored as SQLite INTEGER 0/1).
+# Sets MaxOpenConns(1) to ensure the function is available for all queries.
+# Example:
+#   sqlite.CreateFunctionBool(pool, "is_palindrome", 1, (args list of string) =>
+#       s := args[0]
+#       for i := 0; i < len(s)/2; i++
+#           if s[i] != s[len(s)-1-i]
+#               return false
+#       return true
+#   ) onerr panic "{error}"
+func CreateFunctionBool(pool db.Pool, name string, nArgs int, fn func(list of string) bool) error
+    return registerScalarFunction(pool, name, nArgs, makeScalarFuncBool(fn))
+
+# registerScalarFunction is the shared registration core for all CreateFunction*
+# variants. Sets MaxOpenConns(1) so the registered function is visible to every
+# subsequent query on this pool.
+func registerScalarFunction(pool db.Pool, name string, nArgs int, sfn sqlite3.ScalarFunction) error
     rawDB := db.RawDB(pool)
     rawDB.SetMaxOpenConns(1)
     sqlConn := rawDB.Conn(context.Background()) onerr return
     defer sqlConn.Close()
-    return sqlConn.Raw(makeCreateFuncCallback(name, nArgs, fn))
+    return sqlConn.Raw(makeRegisterFuncCallback(name, nArgs, sfn))
 
 func makeScalarFunc(fn func(list of string) string) sqlite3.ScalarFunction
     return func(ctx sqlite3.Context, many args sqlite3.Value)
@@ -259,6 +300,27 @@ func makeScalarFunc(fn func(list of string) string) sqlite3.ScalarFunction
         for i, arg in args
             strArgs[i] = arg.Text()
         ctx.ResultText(fn(strArgs))
+
+func makeScalarFuncFloat(fn func(list of string) float64) sqlite3.ScalarFunction
+    return func(ctx sqlite3.Context, many args sqlite3.Value)
+        strArgs := make(list of string, len(args))
+        for i, arg in args
+            strArgs[i] = arg.Text()
+        ctx.ResultFloat(fn(strArgs))
+
+func makeScalarFuncInt(fn func(list of string) int64) sqlite3.ScalarFunction
+    return func(ctx sqlite3.Context, many args sqlite3.Value)
+        strArgs := make(list of string, len(args))
+        for i, arg in args
+            strArgs[i] = arg.Text()
+        ctx.ResultInt64(fn(strArgs))
+
+func makeScalarFuncBool(fn func(list of string) bool) sqlite3.ScalarFunction
+    return func(ctx sqlite3.Context, many args sqlite3.Value)
+        strArgs := make(list of string, len(args))
+        for i, arg in args
+            strArgs[i] = arg.Text()
+        ctx.ResultBool(fn(strArgs))
 
 # ============================================================================
 # Dump
@@ -325,13 +387,13 @@ func makeBackupFunc(destPath string) func(any) error
             return error "sqlite.Backup: driver does not support raw connection access"
         return rawer.Raw().Backup("main", "file:" + destPath)
 
-func makeCreateFuncCallback(name string, nArgs int, fn func(list of string) string) func(any) error
+func makeRegisterFuncCallback(name string, nArgs int, sfn sqlite3.ScalarFunction) func(any) error
     return func(driverConn any) error
         rawer, ok := driverConn.(rawConnector)
         if not ok
             return error "sqlite.CreateFunction: driver does not support raw connection access"
         conn := rawer.Raw()
-        return conn.CreateFunction(name, nArgs, sqlite3.DETERMINISTIC, makeScalarFunc(fn))
+        return conn.CreateFunction(name, nArgs, sqlite3.DETERMINISTIC, sfn)
 
 # isValidPragmaName checks that a pragma name contains only safe characters.
 func isValidPragmaName(name string) bool

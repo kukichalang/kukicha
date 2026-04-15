@@ -356,6 +356,99 @@ func TestCreateFunction(t reference testing.T)
             test.AssertEqual(t, result, "HELLO")
         )
 
+# --- TestCreateFunctionFloat ---
+type CreateFunctionFloatCase
+    name string
+    input string
+    want float64
+
+func TestCreateFunctionFloat(t reference testing.T)
+    cases := list of CreateFunctionFloatCase{
+        {name: "str len as float", input: "hello", want: 5.0},
+        {name: "empty string", input: "", want: 0.0},
+    }
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            lenFn := func(args list of string) float64
+                return len(args[0]) as float64
+
+            sqlite.CreateFunctionFloat(pool, "str_len_f", 1, lenFn) onerr panic "create function: {error}"
+
+            db.Exec(pool, "CREATE TABLE words (w TEXT)") onerr panic "create: {error}"
+            db.Exec(pool, "INSERT INTO words (w) VALUES (?)", tc.input) onerr panic "insert: {error}"
+
+            rawDB := db.RawDB(pool)
+            row := rawDB.QueryRow("SELECT str_len_f(w) FROM words")
+            result := 0.0
+            row.Scan(reference of result) onerr panic "scan: {error}"
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestCreateFunctionInt ---
+type CreateFunctionIntCase
+    name string
+    input string
+    want int64
+
+func TestCreateFunctionInt(t reference testing.T)
+    cases := list of CreateFunctionIntCase{
+        {name: "str len as int", input: "hello", want: 5},
+        {name: "empty string", input: "", want: 0},
+    }
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            lenFn := func(args list of string) int64
+                return len(args[0]) as int64
+
+            sqlite.CreateFunctionInt(pool, "str_len_i", 1, lenFn) onerr panic "create function: {error}"
+
+            db.Exec(pool, "CREATE TABLE words (w TEXT)") onerr panic "create: {error}"
+            db.Exec(pool, "INSERT INTO words (w) VALUES (?)", tc.input) onerr panic "insert: {error}"
+
+            rawDB := db.RawDB(pool)
+            row := rawDB.QueryRow("SELECT str_len_i(w) FROM words")
+            result := 0 as int64
+            row.Scan(reference of result) onerr panic "scan: {error}"
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestCreateFunctionBool ---
+type CreateFunctionBoolCase
+    name string
+    values list of string
+    wantCount int64
+
+func TestCreateFunctionBool(t reference testing.T)
+    cases := list of CreateFunctionBoolCase{
+        {name: "filter non-empty strings", values: list of string{"hi", "", "there", ""}, wantCount: 2},
+    }
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            nonEmptyFn := func(args list of string) bool
+                return len(args[0]) > 0
+
+            sqlite.CreateFunctionBool(pool, "is_nonempty", 1, nonEmptyFn) onerr panic "create function: {error}"
+
+            db.Exec(pool, "CREATE TABLE vals (v TEXT)") onerr panic "create: {error}"
+            for _, val in tc.values
+                db.Exec(pool, "INSERT INTO vals (v) VALUES (?)", val) onerr panic "insert: {error}"
+
+            count := db.Count(pool, "SELECT COUNT(*) FROM vals WHERE is_nonempty(v)") onerr panic "count: {error}"
+            test.AssertEqual(t, count, tc.wantCount)
+        )
+
 # --- TestDump ---
 type DumpCase
     name string
