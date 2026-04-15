@@ -351,6 +351,10 @@ func CallTool(ctx context.Context, session reference ClientSession, name string,
 #           when reference mcp.EmbeddedResource
 #               print(v.Resource.Text)
 
+# Server is the MCP server type. Returned by New(); pass it to Tool(),
+# ToolWithSampling(), and Serve().
+type Server = mcp.Server
+
 # AudioContent contains base64-encoded audio data.
 type AudioContent = mcp.AudioContent
 

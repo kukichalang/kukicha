@@ -433,56 +433,59 @@ func CallTool(ctx context.Context, session *ClientSession, name string, args map
 	return session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: args})
 }
 
-//line stdlib/mcp/mcp.kuki:355
+//line stdlib/mcp/mcp.kuki:356
+type Server = mcp.Server
+
+//line stdlib/mcp/mcp.kuki:359
 type AudioContent = mcp.AudioContent
 
-//line stdlib/mcp/mcp.kuki:358
+//line stdlib/mcp/mcp.kuki:362
 type ResourceLink = mcp.ResourceLink
 
-//line stdlib/mcp/mcp.kuki:361
+//line stdlib/mcp/mcp.kuki:365
 type EmbeddedResource = mcp.EmbeddedResource
 
-//line stdlib/mcp/mcp.kuki:365
+//line stdlib/mcp/mcp.kuki:369
 type ResourceContents = mcp.ResourceContents
 
-//line stdlib/mcp/mcp.kuki:368
+//line stdlib/mcp/mcp.kuki:372
 type TextContent = mcp.TextContent
 
-//line stdlib/mcp/mcp.kuki:371
+//line stdlib/mcp/mcp.kuki:375
 type ImageContent = mcp.ImageContent
 
-//line stdlib/mcp/mcp.kuki:374
+//line stdlib/mcp/mcp.kuki:378
 type CallToolParams = mcp.CallToolParams
 
-//line stdlib/mcp/mcp.kuki:377
+//line stdlib/mcp/mcp.kuki:381
 type SamplingMessage = mcp.SamplingMessage
 
-//line stdlib/mcp/mcp.kuki:381
+//line stdlib/mcp/mcp.kuki:385
 type SamplingMessageV2 = mcp.SamplingMessageV2
 
-//line stdlib/mcp/mcp.kuki:384
+//line stdlib/mcp/mcp.kuki:388
 type CreateMessageParams = mcp.CreateMessageParams
 
-//line stdlib/mcp/mcp.kuki:388
+//line stdlib/mcp/mcp.kuki:392
 type CreateMessageWithToolsParams = mcp.CreateMessageWithToolsParams
 
-//line stdlib/mcp/mcp.kuki:391
+//line stdlib/mcp/mcp.kuki:395
 type CreateMessageResult = mcp.CreateMessageResult
 
-//line stdlib/mcp/mcp.kuki:395
+//line stdlib/mcp/mcp.kuki:399
 type CreateMessageWithToolsResult = mcp.CreateMessageWithToolsResult
 
-//line stdlib/mcp/mcp.kuki:399
+//line stdlib/mcp/mcp.kuki:403
 type ToolUseContent = mcp.ToolUseContent
 
-//line stdlib/mcp/mcp.kuki:403
+//line stdlib/mcp/mcp.kuki:407
 type ToolResultContent = mcp.ToolResultContent
 
-//line stdlib/mcp/mcp.kuki:406
+//line stdlib/mcp/mcp.kuki:410
 type ToolChoice = mcp.ToolChoice
 
-//line stdlib/mcp/mcp.kuki:409
+//line stdlib/mcp/mcp.kuki:413
 type SamplingCapabilities = mcp.SamplingCapabilities
 
-//line stdlib/mcp/mcp.kuki:412
+//line stdlib/mcp/mcp.kuki:416
 type SamplingToolsCapabilities = mcp.SamplingToolsCapabilities
