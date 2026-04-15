@@ -533,3 +533,51 @@ func TestFormatBinaryPrecedenceParens(t *testing.T) {
 		})
 	}
 }
+
+// TestFormatTypeCastOperandParens verifies that parentheses around the
+// operand of an `as` cast are preserved whenever the inner expression has
+// lower precedence than `as` (binary ops, unary prefixes, `is` checks).
+// Without parens, `(h % dim) as int` re-parses as `h % (dim as int)` —
+// `as` binds tighter than any binary operator.
+func TestFormatTypeCastOperandParens(t *testing.T) {
+	cases := []struct {
+		name   string
+		source string
+	}{
+		{
+			name: "binary mod cast to int",
+			source: `func f() int
+    return (h % dim) as int
+`,
+		},
+		{
+			name: "binary add cast",
+			source: `func f() uint32
+    return (a + b) as uint32
+`,
+		},
+		{
+			name: "unary minus cast",
+			source: `func f() int
+    return (-x) as int
+`,
+		},
+		{
+			name: "left-assoc cast chain — no parens",
+			source: `func f() int
+    return x as uint32 as int
+`,
+		},
+		{
+			name: "primary operand — no parens",
+			source: `func f() int
+    return x as int
+`,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assertFormatted(t, tc.source, tc.source)
+		})
+	}
+}

@@ -1141,6 +1141,9 @@ func (p *Printer) exprToString(expr ast.Expression) string {
 	case *ast.TypeCastExpr:
 		targetType := p.typeAnnotationToString(e.TargetType)
 		expr := p.exprToString(e.Expression)
+		if typeCastOperandNeedsParens(e.Expression) {
+			expr = "(" + expr + ")"
+		}
 		return fmt.Sprintf("%s as %s", expr, targetType)
 	case *ast.EmptyExpr:
 		if e.Type != nil {
@@ -1314,6 +1317,19 @@ func (p *Printer) binaryOperandToString(child ast.Expression, parentPrec int, is
 		}
 	}
 	return s
+}
+
+// typeCastOperandNeedsParens reports whether the operand of an `as` cast must
+// be parenthesized to preserve meaning. `as` binds tighter than any binary
+// operator and unary prefix, so expressions with lower precedence would
+// otherwise re-parse as `x as (T ...)` — e.g. `(h % dim) as int` must not
+// become `h % dim as int`, which parses as `h % (dim as int)`.
+func typeCastOperandNeedsParens(expr ast.Expression) bool {
+	switch expr.(type) {
+	case *ast.BinaryExpr, *ast.UnaryExpr, *ast.IsExpr:
+		return true
+	}
+	return false
 }
 
 func (p *Printer) binaryExprToString(expr *ast.BinaryExpr) string {
