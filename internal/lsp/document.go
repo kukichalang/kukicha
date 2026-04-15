@@ -81,6 +81,18 @@ func (ds *DocumentStore) Close(uri lsp.DocumentURI) {
 	delete(ds.documents, uri)
 }
 
+// All returns shallow clones of all open documents.
+func (ds *DocumentStore) All() []*Document {
+	ds.mu.RLock()
+	defer ds.mu.RUnlock()
+
+	docs := make([]*Document, 0, len(ds.documents))
+	for _, doc := range ds.documents {
+		docs = append(docs, cloneDocument(doc))
+	}
+	return docs
+}
+
 // Get retrieves a document by URI
 func (ds *DocumentStore) Get(uri lsp.DocumentURI) *Document {
 	ds.mu.RLock()

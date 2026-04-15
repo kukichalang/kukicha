@@ -103,6 +103,10 @@ func (s *Server) handleRequest(ctx context.Context, req *jsonrpc2.Request) (any,
 		return s.handleFormatting(ctx, req)
 	case "textDocument/signatureHelp":
 		return s.handleSignatureHelp(ctx, req)
+	case "textDocument/references":
+		return s.handleReferences(ctx, req)
+	case "workspace/symbol":
+		return s.handleWorkspaceSymbol(ctx, req)
 	default:
 		return nil, &jsonrpc2.Error{
 			Code:    jsonrpc2.CodeMethodNotFound,
@@ -138,9 +142,11 @@ func (s *Server) handleInitialize(ctx context.Context, req *jsonrpc2.Request) (*
 			},
 			HoverProvider:      true,
 			DefinitionProvider: true,
+			ReferencesProvider: true,
 			CompletionProvider: &lsp.CompletionOptions{
 				TriggerCharacters: []string{".", ":"},
 			},
+			WorkspaceSymbolProvider:   true,
 			DocumentSymbolProvider:    true,
 			DocumentFormattingProvider: true,
 			SignatureHelpProvider: &lsp.SignatureHelpOptions{
