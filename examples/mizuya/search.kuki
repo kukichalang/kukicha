@@ -105,7 +105,7 @@ func hashEmbed(text string, dim int) list of float64
     tokens := strpkg.Fields(lowered)
     for _, tok in tokens
         h := djb2Hash(tok)
-        idx := h % dim as uint32 as int
+        idx := (h % dim as uint32) as int
         v[idx] = v[idx] + 1.0
 
     # L2 normalize so cosine similarity behaves.

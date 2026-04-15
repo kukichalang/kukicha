@@ -3,9 +3,9 @@
 
 petiole main
 
-import "os"
 import "path/filepath"
 import "stdlib/db"
+import "stdlib/files"
 import "stdlib/json" as jsonpkg
 import "stdlib/sqlite"
 import "stdlib/string" as strpkg
@@ -13,7 +13,7 @@ import "stdlib/string" as strpkg
 # openDB opens (or creates) the SQLite database at the given path.
 func openDB(dbPath string) (db.Pool, error)
     dir := filepath.Dir(dbPath)
-    os.MkdirAll(dir, 0o755) onerr return
+    files.MkDirAll(dir) onerr return
     pool := sqlite.Open(dbPath) onerr return
     return pool, empty
 
@@ -23,15 +23,18 @@ func openDB(dbPath string) (db.Pool, error)
 # and the JSON fields summary/tags are merged into the existing data object,
 # preserving any observations already recorded.
 func upsertEntity(pool db.Pool, id string, etype string, name string, summary string, tags list of string) error
-    tagsJSON, err := jsonpkg.Marshal(tags)
-    if err isnt empty
-        return err
+    tagsJSON := jsonpkg.Marshal(tags) onerr return
 
-    # Initial JSON for a freshly-inserted row.
-    initialData := "{\"summary\":" + quoteJSONString(summary) + ",\"observations\":[],\"tags\":" + tagsJSON as string + "}"
+    # Initial JSON for a freshly-inserted row — build via jsonpkg.Marshal
+    # on a map so we never string-concatenate JSON by hand.
+    initialBytes := jsonpkg.Marshal(map of string to any{
+        "summary": summary,
+        "observations": empty list of any,
+        "tags": tags,
+    }) onerr return
 
     insertSQL := "INSERT INTO entities (id, type, name, data) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET type = excluded.type, name = excluded.name, data = json_set(json_set(entities.data, '$.summary', ?), '$.tags', json(?)), updated_at = datetime('now')"
-    db.Exec(pool, insertSQL, id, etype, name, initialData, summary, tagsJSON as string) onerr return
+    db.Exec(pool, insertSQL, id, etype, name, initialBytes as string, summary, tagsJSON as string) onerr return
     return empty
 
 # getEntity fetches an entity by id. Returns an error if no row matches.
@@ -97,9 +100,7 @@ func entityText(pool db.Pool, id string) (string, error)
     if ed.Summary isnt ""
         parts = append(parts, ed.Summary)
 
-    obs, err := listObservations(pool, id)
-    if err isnt empty
-        return "", err
+    obs := listObservations(pool, id) onerr return "", error "{error}"
     for _, o in obs
         if o.Text isnt ""
             parts = append(parts, o.Text)
@@ -139,14 +140,3 @@ func incomingContext(pool db.Pool, id string) (list of ContextRow, error)
     q := "SELECT r.rel AS rel, r.src AS other, e.name AS name, e.type AS type, COALESCE(e.data ->> '$.summary', '') AS summary FROM relations r JOIN entities e ON e.id = r.src WHERE r.dst = ? ORDER BY r.rel, r.src"
     result := db.Query(pool, q, id) |> db.ScanAll(empty list of ContextRow) onerr return
     return result.(list of ContextRow), empty
-
-# --- Helpers ---
-
-# quoteJSONString produces a JSON-safe string literal (including surrounding
-# quotes) from an arbitrary Go string. We use this to build small JSON
-# fragments inline without routing through a full marshal call.
-func quoteJSONString(s string) string
-    bytes, err := jsonpkg.Marshal(s)
-    if err isnt empty
-        return "\"\""
-    return bytes as string

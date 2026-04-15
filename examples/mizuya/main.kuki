@@ -127,9 +127,8 @@ func doUpsert(args cli.Args)
         errPrint("cannot store embedding: {error}")
         return
 
-    e, err := getEntity(pool, id)
-    if err isnt empty
-        errPrint("cannot fetch upserted entity: {err}")
+    e := getEntity(pool, id) onerr
+        errPrint("cannot fetch upserted entity: {error}")
         return
 
     if cli.IsJSON(args)
@@ -209,9 +208,8 @@ func doSearch(args cli.Args)
 
     defer db.Close(pool)
 
-    hits, err := ftsSearch(pool, query, limit)
-    if err isnt empty
-        errPrint("search failed: {err}")
+    hits := ftsSearch(pool, query, limit) onerr
+        errPrint("search failed: {error}")
         return
 
     if cli.IsJSON(args)
@@ -232,21 +230,20 @@ func doContext(args cli.Args)
 
     defer db.Close(pool)
 
-    e, err := getEntity(pool, id)
-    if err isnt empty
-        errPrint("entity not found: {err}")
+    e := getEntity(pool, id) onerr
+        errPrint("entity not found: {error}")
         return
-    outgoing, err := outgoingContext(pool, id)
-    if err isnt empty
-        errPrint("cannot read outgoing: {err}")
+
+    outgoing := outgoingContext(pool, id) onerr
+        errPrint("cannot read outgoing: {error}")
         return
-    incoming, err := incomingContext(pool, id)
-    if err isnt empty
-        errPrint("cannot read incoming: {err}")
+
+    incoming := incomingContext(pool, id) onerr
+        errPrint("cannot read incoming: {error}")
         return
-    obs, err := listObservations(pool, id)
-    if err isnt empty
-        errPrint("cannot read observations: {err}")
+
+    obs := listObservations(pool, id) onerr
+        errPrint("cannot read observations: {error}")
         return
 
     if cli.IsJSON(args)
@@ -286,9 +283,8 @@ func doSimilar(args cli.Args)
     else
         vec = hashEmbed(text, EmbedDim)
 
-    hits, err := similar(pool, vec, limit)
-    if err isnt empty
-        errPrint("similarity query failed: {err}")
+    hits := similar(pool, vec, limit) onerr
+        errPrint("similarity query failed: {error}")
         return
 
     if cli.IsJSON(args)
@@ -312,16 +308,11 @@ func doList(args cli.Args)
 
     defer db.Close(pool)
 
-    rows, err := listEntities(pool, etype, limit)
-    if err isnt empty
-        errPrint("list failed: {err}")
+    rows := listEntities(pool, etype, limit) onerr
+        errPrint("list failed: {error}")
         return
 
     if cli.IsJSON(args)
         printJSON(rows)
     else
-        if len(rows) equals 0
-            print(dim("  No entities."))
-            return
-        for e in rows
-            printEntityHeader(e)
+        printEntityList(rows)

@@ -5,7 +5,9 @@ petiole main
 import "fmt"
 import "os"
 import "stdlib/json" as jsonpkg
+import "stdlib/slice"
 import "stdlib/string" as strpkg
+import "stdlib/table"
 
 # --- ANSI color constants ---
 
@@ -53,34 +55,42 @@ func cyan(s string) string
 func printEntityHeader(e Entity)
     print("{bold(e.Id)}  {dim("(" + e.Type + ")")} {e.Name}")
 
+# printEntityList renders a list of entities as a plain-style table.
+func printEntityList(rows list of Entity)
+    if len(rows) equals 0
+        print(dim("  No entities."))
+        return
+    t := table.New(list of string{"id", "type", "name", "updated_at"})
+    for e in rows
+        t = t |> table.AddRow(list of string{e.Id, e.Type, truncate(e.Name, 40), e.UpdatedAt})
+    t |> table.Print()
+
 func printSearchHits(hits list of SearchHit)
     if len(hits) equals 0
         print(dim("  No matches."))
         return
+    t := table.New(list of string{"id", "type", "name", "summary"})
     for h in hits
-        id := strpkg.PadRight(h.Id, 16, " ")
-        typ := strpkg.PadRight("(" + h.Type + ")", 12, " ")
-        name := h.Name
-        if len(name) > 40
-            name = name[:37] + "..."
-        print("  {cyan(id)} {dim(typ)} {name}")
-        if h.Summary isnt ""
-            print("    {dim(h.Summary)}")
+        t = t
+            |> table.AddRow(list of string{h.Id, h.Type, truncate(h.Name, 40), truncate(h.Summary, 60)})
+    t |> table.Print()
 
 func printSimilarHits(hits list of SimilarHit)
     if len(hits) equals 0
         print(dim("  No embeddings available."))
         return
+    t := table.New(list of string{"id", "type", "distance", "name", "summary"})
     for h in hits
-        id := strpkg.PadRight(h.Id, 16, " ")
-        typ := strpkg.PadRight("(" + h.Type + ")", 12, " ")
-        distStr := fmt.Sprintf("d=%.4f", h.Distance)
-        name := h.Name
-        if len(name) > 40
-            name = name[:37] + "..."
-        print("  {cyan(id)} {dim(typ)} {yellow(distStr)}  {name}")
-        if h.Summary isnt ""
-            print("    {dim(h.Summary)}")
+        dist := fmt.Sprintf("%.4f", h.Distance)
+        t = t
+            |> table.AddRow(list of string{h.Id, h.Type, dist, truncate(h.Name, 40), truncate(h.Summary, 60)})
+    t |> table.Print()
+
+# truncate shortens s to n runes with a trailing ellipsis when needed.
+func truncate(s string, n int) string
+    if len(s) <= n
+        return s
+    return s[:n - 3] + "..."
 
 func printContext(e Entity, outgoing list of ContextRow, incoming list of ContextRow, obs list of ObsRow)
     printEntityHeader(e)
@@ -127,12 +137,8 @@ func errPrint(msg string)
 # parseTags splits a comma-separated tag string into a trimmed slice,
 # dropping empty entries.
 func parseTags(raw string) list of string
-    out := make(list of string, 0)
     if raw equals ""
-        return out
-    parts := strpkg.Split(raw, ",")
-    for _, p in parts
-        t := strpkg.TrimSpace(p)
-        if t isnt ""
-            out = append(out, t)
-    return out
+        return make(list of string, 0)
+    return strpkg.Split(raw, ",")
+        |> slice.Map((s string) => strpkg.TrimSpace(s))
+        |> slice.Filter((s string) => s isnt "")
