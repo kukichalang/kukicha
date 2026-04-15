@@ -1,0 +1,318 @@
+# mizuya — SQLite-backed knowledge graph with FTS5 + cosine similarity.
+#
+# A runnable Kukicha example that demonstrates:
+#   * stdlib/sqlite + stdlib/db for schema, CRUD, and JSON columns
+#   * native SQLite FTS5 (BM25 ranking, content= virtual tables, triggers)
+#   * sqlite.CreateFunction to register a pure-Kukicha cosine-distance UDF
+#   * a toy deterministic embedder so `similar` works with zero external deps
+#
+# Usage:
+#   kukicha run examples/mizuya/ -- init
+#   kukicha run examples/mizuya/ -- upsert --id kukicha --type project --name "Kukicha Language" --summary "Go superset with pipes and onerr" --tags lang,compiler
+#   kukicha run examples/mizuya/ -- upsert --id sqlite  --type tool    --name "SQLite"            --summary "Embedded SQL database" --tags db,embedded
+#   kukicha run examples/mizuya/ -- relate --src kukicha --rel uses --dst sqlite
+#   kukicha run examples/mizuya/ -- observe --id kukicha --text "Added pipe operator support"
+#   kukicha run examples/mizuya/ -- search --query "embedded database"
+#   kukicha run examples/mizuya/ -- context --id kukicha
+#   kukicha run examples/mizuya/ -- similar --text "fast database"
+
+petiole main
+
+import "stdlib/cli"
+import "stdlib/db"
+
+func main()
+    _ = cli.New("mizuya")
+        |> cli.Description("mizuya — SQLite-backed knowledge graph (FTS5 + cosine similarity)")
+        |> cli.GlobalFlag("db", "Database path", ".mizuya/mizuya.db")
+        |> cli.GlobalFlag("json", "JSON output", "false")
+        |> cli.Command("init", "Initialize a new mizuya database")
+        |> cli.CommandAction("init", doInit)
+        |> cli.Command("upsert", "Create or update an entity")
+        |> cli.CommandFlag("upsert", "id", "Entity id (slug)", "")
+        |> cli.CommandFlag("upsert", "type", "Entity type (project, tool, person, concept, config, org)", "concept")
+        |> cli.CommandFlag("upsert", "name", "Human-readable name", "")
+        |> cli.CommandFlag("upsert", "summary", "One-line summary", "")
+        |> cli.CommandFlag("upsert", "tags", "Comma-separated tags", "")
+        |> cli.CommandAction("upsert", doUpsert)
+        |> cli.Command("observe", "Append an observation to an entity")
+        |> cli.CommandFlag("observe", "id", "Entity id", "")
+        |> cli.CommandFlag("observe", "text", "Observation text", "")
+        |> cli.CommandFlag("observe", "source", "Observation source", "conversation")
+        |> cli.CommandAction("observe", doObserve)
+        |> cli.Command("relate", "Create a typed edge between two entities")
+        |> cli.CommandFlag("relate", "src", "Source entity id", "")
+        |> cli.CommandFlag("relate", "rel", "Relation label (uses, depends_on, part_of, ...)", "related_to")
+        |> cli.CommandFlag("relate", "dst", "Destination entity id", "")
+        |> cli.CommandAction("relate", doRelate)
+        |> cli.Command("search", "BM25 full-text search across entities")
+        |> cli.CommandFlag("search", "query", "FTS5 query", "")
+        |> cli.CommandFlag("search", "limit", "Max results", "10")
+        |> cli.CommandAction("search", doSearch)
+        |> cli.Command("context", "Show an entity with its 1-hop neighbors and observations")
+        |> cli.CommandFlag("context", "id", "Entity id", "")
+        |> cli.CommandAction("context", doContext)
+        |> cli.Command("similar", "Vector similarity search (cosine distance)")
+        |> cli.CommandFlag("similar", "id", "Use this entity's embedding as the query", "")
+        |> cli.CommandFlag("similar", "text", "Embed this text and use it as the query", "")
+        |> cli.CommandFlag("similar", "limit", "Max results", "5")
+        |> cli.CommandAction("similar", doSimilar)
+        |> cli.Command("list", "List entities (optionally filtered by --type)")
+        |> cli.CommandFlag("list", "type", "Filter by type", "")
+        |> cli.CommandFlag("list", "limit", "Max results", "50")
+        |> cli.CommandAction("list", doList)
+        |> cli.RunApp() onerr cli.Fatal("{error}")
+
+# --- Command handlers ---
+
+# openPool opens the database and registers the vector cosine UDF on the
+# single connection (sqlite.CreateFunction pins MaxOpenConns=1).
+func openPool(args cli.Args) (db.Pool, error)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr return
+    registerVecFunction(pool) onerr return
+    return pool, empty
+
+func doInit(args cli.Args)
+    dbPath := cli.GetString(args, "db")
+    pool := openDB(dbPath) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    initDB(pool) onerr
+        errPrint("cannot initialize schema: {error}")
+        return
+    registerVecFunction(pool) onerr
+        errPrint("cannot register cosine function: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(map of string to string{"status": "initialized", "db": dbPath})
+    else
+        print(green("Initialized mizuya database at {dbPath}"))
+
+func doUpsert(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+    name := cli.GetString(args, "name")
+    if name equals ""
+        errPrint("--name is required")
+        return
+    etype := cli.GetString(args, "type")
+    summary := cli.GetString(args, "summary")
+    tags := parseTags(cli.GetString(args, "tags"))
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    upsertEntity(pool, id, etype, name, summary, tags) onerr
+        errPrint("cannot upsert entity: {error}")
+        return
+
+    # Regenerate the embedding from the entity's current text corpus.
+    text, err := entityText(pool, id)
+    if err isnt empty
+        errPrint("cannot read entity text: {err}")
+        return
+    vec := hashEmbed(text, EmbedDim)
+    upsertEmbedding(pool, id, vec) onerr
+        errPrint("cannot store embedding: {error}")
+        return
+
+    e, err := getEntity(pool, id)
+    if err isnt empty
+        errPrint("cannot fetch upserted entity: {err}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(e)
+    else
+        print("{green("upserted")} {bold(id)}  {dim("(" + etype + ")")} {name}")
+
+func doObserve(args cli.Args)
+    id := cli.GetString(args, "id")
+    text := cli.GetString(args, "text")
+    if id equals "" or text equals ""
+        errPrint("--id and --text are required")
+        return
+    source := cli.GetString(args, "source")
+    if source equals ""
+        source = "conversation"
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    addObservation(pool, id, text, source) onerr
+        errPrint("cannot add observation: {error}")
+        return
+
+    # Re-embed: observations are part of the entity's text corpus.
+    corpus, err := entityText(pool, id)
+    if err isnt empty
+        errPrint("cannot read entity text: {err}")
+        return
+    upsertEmbedding(pool, id, hashEmbed(corpus, EmbedDim)) onerr
+        errPrint("cannot store embedding: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(map of string to string{"status": "observed", "id": id, "text": text})
+    else
+        print("{green("observed")} {bold(id)}  {dim(text)}")
+
+func doRelate(args cli.Args)
+    src := cli.GetString(args, "src")
+    rel := cli.GetString(args, "rel")
+    dst := cli.GetString(args, "dst")
+    if src equals "" or rel equals "" or dst equals ""
+        errPrint("--src, --rel, and --dst are required")
+        return
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    relate(pool, src, rel, dst) onerr
+        errPrint("cannot create relation: {error}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(map of string to string{"status": "related", "src": src, "rel": rel, "dst": dst})
+    else
+        print("{green("related")} {bold(src)} {dim("--" + rel + "->")} {bold(dst)}")
+
+func doSearch(args cli.Args)
+    query := cli.GetString(args, "query")
+    if query equals ""
+        errPrint("--query is required")
+        return
+    limit, err := cli.GetInt(args, "limit")
+    if err isnt empty
+        limit = 10
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    hits, err := ftsSearch(pool, query, limit)
+    if err isnt empty
+        errPrint("search failed: {err}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(hits)
+    else
+        print(bold("search:") + " {query}")
+        printSearchHits(hits)
+
+func doContext(args cli.Args)
+    id := cli.GetString(args, "id")
+    if id equals ""
+        errPrint("--id is required")
+        return
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    e, err := getEntity(pool, id)
+    if err isnt empty
+        errPrint("entity not found: {err}")
+        return
+    outgoing, err := outgoingContext(pool, id)
+    if err isnt empty
+        errPrint("cannot read outgoing: {err}")
+        return
+    incoming, err := incomingContext(pool, id)
+    if err isnt empty
+        errPrint("cannot read incoming: {err}")
+        return
+    obs, err := listObservations(pool, id)
+    if err isnt empty
+        errPrint("cannot read observations: {err}")
+        return
+
+    if cli.IsJSON(args)
+        payload := map of string to any{
+            "entity": e,
+            "outgoing": outgoing,
+            "incoming": incoming,
+            "observations": obs,
+        }
+        printJSON(payload)
+    else
+        printContext(e, outgoing, incoming, obs)
+
+func doSimilar(args cli.Args)
+    id := cli.GetString(args, "id")
+    text := cli.GetString(args, "text")
+    if id equals "" and text equals ""
+        errPrint("either --id or --text is required")
+        return
+    limit, err := cli.GetInt(args, "limit")
+    if err isnt empty
+        limit = 5
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    vec := make(list of float64, 0)
+    if id isnt ""
+        v, err := getEmbedding(pool, id)
+        if err isnt empty
+            errPrint("no embedding for {id}: {err}")
+            return
+        vec = v
+    else
+        vec = hashEmbed(text, EmbedDim)
+
+    hits, err := similar(pool, vec, limit)
+    if err isnt empty
+        errPrint("similarity query failed: {err}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(hits)
+    else
+        if id isnt ""
+            print(bold("similar to:") + " {id}")
+        else
+            print(bold("similar to text:") + " {text}")
+        printSimilarHits(hits)
+
+func doList(args cli.Args)
+    etype := cli.GetString(args, "type")
+    limit, err := cli.GetInt(args, "limit")
+    if err isnt empty
+        limit = 50
+
+    pool := openPool(args) onerr
+        errPrint("cannot open database: {error}")
+        return
+    defer db.Close(pool)
+
+    rows, err := listEntities(pool, etype, limit)
+    if err isnt empty
+        errPrint("list failed: {err}")
+        return
+
+    if cli.IsJSON(args)
+        printJSON(rows)
+    else
+        if len(rows) equals 0
+            print(dim("  No entities."))
+            return
+        for e in rows
+            printEntityHeader(e)

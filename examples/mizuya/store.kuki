@@ -1,0 +1,152 @@
+# mizuya — entity, relation, and observation storage.
+# All functions take a db.Pool and use the stdlib/db query + scan layer.
+
+petiole main
+
+import "os"
+import "path/filepath"
+import "stdlib/db"
+import "stdlib/json" as jsonpkg
+import "stdlib/sqlite"
+import "stdlib/string" as strpkg
+
+# openDB opens (or creates) the SQLite database at the given path.
+func openDB(dbPath string) (db.Pool, error)
+    dir := filepath.Dir(dbPath)
+    os.MkdirAll(dir, 0o755) onerr return
+    pool := sqlite.Open(dbPath) onerr return
+    return pool, empty
+
+# --- Entity CRUD ---
+
+# upsertEntity creates or updates an entity. On update, type/name are replaced
+# and the JSON fields summary/tags are merged into the existing data object,
+# preserving any observations already recorded.
+func upsertEntity(pool db.Pool, id string, etype string, name string, summary string, tags list of string) error
+    tagsJSON, err := jsonpkg.Marshal(tags)
+    if err isnt empty
+        return err
+
+    # Initial JSON for a freshly-inserted row.
+    initialData := "{\"summary\":" + quoteJSONString(summary) + ",\"observations\":[],\"tags\":" + (tagsJSON as string) + "}"
+
+    insertSQL := "INSERT INTO entities (id, type, name, data) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET type = excluded.type, name = excluded.name, data = json_set(json_set(entities.data, '$.summary', ?), '$.tags', json(?)), updated_at = datetime('now')"
+    db.Exec(pool, insertSQL, id, etype, name, initialData, summary, tagsJSON as string) onerr return
+    return empty
+
+# getEntity fetches an entity by id. Returns an error if no row matches.
+func getEntity(pool db.Pool, id string) (Entity, error)
+    q := "SELECT id, type, name, json(data) AS data, created_at, updated_at FROM entities WHERE id = ?"
+    result := db.Query(pool, q, id) |> db.ScanOne(empty Entity) onerr return
+    return result.(Entity), empty
+
+# deleteEntity removes an entity and (via ON DELETE CASCADE) its relations
+# and embedding row.
+func deleteEntity(pool db.Pool, id string) error
+    db.Exec(pool, "DELETE FROM entities WHERE id = ?", id) onerr return
+    return empty
+
+# listEntities returns all entities, optionally filtered by type.
+func listEntities(pool db.Pool, etype string, limit int) (list of Entity, error)
+    q := "SELECT id, type, name, json(data) AS data, created_at, updated_at FROM entities"
+    args := make(list of any, 0)
+    if etype isnt ""
+        q = q + " WHERE type = ?"
+        args = append(args, etype)
+    q = q + " ORDER BY updated_at DESC"
+    if limit > 0
+        q = q + " LIMIT ?"
+        args = append(args, limit)
+    result := db.Query(pool, q, many args) |> db.ScanAll(empty list of Entity) onerr return
+    return result.(list of Entity), empty
+
+# --- Observations (JSON-array append) ---
+
+# addObservation appends an observation object to the entity's
+# $.observations array using json_set with the $[#] "append" path.
+func addObservation(pool db.Pool, id string, text string, source string) error
+    exists, err := db.Exists(pool, "SELECT 1 FROM entities WHERE id = ?", id)
+    if err isnt empty
+        return err
+    if not exists
+        return error "entity not found: {id}"
+
+    q := "UPDATE entities SET data = json_set(data, '$.observations[#]', json_object('text', ?, 'source', ?, 'at', datetime('now'))), updated_at = datetime('now') WHERE id = ?"
+    db.Exec(pool, q, text, source, id) onerr return
+    return empty
+
+# listObservations returns the observation array for an entity,
+# newest first.
+func listObservations(pool db.Pool, id string) (list of ObsRow, error)
+    q := "SELECT obs.value ->> '$.text' AS text, obs.value ->> '$.source' AS source, obs.value ->> '$.at' AS at FROM entities e, json_each(e.data, '$.observations') obs WHERE e.id = ? ORDER BY obs.value ->> '$.at' DESC"
+    result := db.Query(pool, q, id) |> db.ScanAll(empty list of ObsRow) onerr return
+    return result.(list of ObsRow), empty
+
+# entityText assembles the concatenated text representation of an entity
+# (name + summary + observations), used as input to the toy embedder.
+func entityText(pool db.Pool, id string) (string, error)
+    e, err := getEntity(pool, id)
+    if err isnt empty
+        return "", err
+
+    parts := list of string{e.Name}
+
+    # Pull summary out of the stored JSON via typed unmarshal.
+    ed := entityData{}
+    jsonpkg.UnmarshalString(e.Data, reference of ed) onerr return
+    if ed.Summary isnt ""
+        parts = append(parts, ed.Summary)
+
+    obs, err := listObservations(pool, id)
+    if err isnt empty
+        return "", err
+    for _, o in obs
+        if o.Text isnt ""
+            parts = append(parts, o.Text)
+
+    return strpkg.Join(parts, " "), empty
+
+# --- Tags ---
+
+# addTag appends a string to the entity's $.tags JSON array.
+func addTag(pool db.Pool, id string, tag string) error
+    q := "UPDATE entities SET data = json_set(data, '$.tags[#]', ?), updated_at = datetime('now') WHERE id = ?"
+    db.Exec(pool, q, tag, id) onerr return
+    return empty
+
+# --- Relations ---
+
+# relate creates an edge src --rel--> dst. The primary key on
+# (src, rel, dst) prevents duplicates.
+func relate(pool db.Pool, src string, rel string, dst string) error
+    db.Exec(pool, "INSERT OR IGNORE INTO relations (src, rel, dst) VALUES (?, ?, ?)", src, rel, dst) onerr return
+    return empty
+
+# unrelate removes a specific edge.
+func unrelate(pool db.Pool, src string, rel string, dst string) error
+    db.Exec(pool, "DELETE FROM relations WHERE src = ? AND rel = ? AND dst = ?", src, rel, dst) onerr return
+    return empty
+
+# outgoingContext returns every neighbor reachable in one hop from id
+# along an outgoing edge.
+func outgoingContext(pool db.Pool, id string) (list of ContextRow, error)
+    q := "SELECT r.rel AS rel, r.dst AS other, e.name AS name, e.type AS type, COALESCE(e.data ->> '$.summary', '') AS summary FROM relations r JOIN entities e ON e.id = r.dst WHERE r.src = ? ORDER BY r.rel, r.dst"
+    result := db.Query(pool, q, id) |> db.ScanAll(empty list of ContextRow) onerr return
+    return result.(list of ContextRow), empty
+
+# incomingContext returns every entity that points to id in one hop.
+func incomingContext(pool db.Pool, id string) (list of ContextRow, error)
+    q := "SELECT r.rel AS rel, r.src AS other, e.name AS name, e.type AS type, COALESCE(e.data ->> '$.summary', '') AS summary FROM relations r JOIN entities e ON e.id = r.src WHERE r.dst = ? ORDER BY r.rel, r.src"
+    result := db.Query(pool, q, id) |> db.ScanAll(empty list of ContextRow) onerr return
+    return result.(list of ContextRow), empty
+
+# --- Helpers ---
+
+# quoteJSONString produces a JSON-safe string literal (including surrounding
+# quotes) from an arbitrary Go string. We use this to build small JSON
+# fragments inline without routing through a full marshal call.
+func quoteJSONString(s string) string
+    bytes, err := jsonpkg.Marshal(s)
+    if err isnt empty
+        return "\"\""
+    return bytes as string

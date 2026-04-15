@@ -1,0 +1,137 @@
+# mizuya — display formatting helpers
+
+petiole main
+
+import "fmt"
+import "os"
+import "stdlib/json" as jsonpkg
+import "stdlib/string" as strpkg
+
+# --- ANSI color constants ---
+
+const ansiReset = "\x1b[0m"
+
+const ansiBold = "\x1b[1m"
+
+const ansiDim = "\x1b[2m"
+
+const ansiRed = "\x1b[91m"
+
+const ansiGreen = "\x1b[32m"
+
+const ansiYellow = "\x1b[33m"
+
+const ansiBlue = "\x1b[34m"
+
+const ansiCyan = "\x1b[36m"
+
+# --- Color helpers ---
+
+func bold(s string) string
+    return "{ansiBold}{s}{ansiReset}"
+
+func dim(s string) string
+    return "{ansiDim}{s}{ansiReset}"
+
+func red(s string) string
+    return "{ansiRed}{s}{ansiReset}"
+
+func green(s string) string
+    return "{ansiGreen}{s}{ansiReset}"
+
+func yellow(s string) string
+    return "{ansiYellow}{s}{ansiReset}"
+
+func blue(s string) string
+    return "{ansiBlue}{s}{ansiReset}"
+
+func cyan(s string) string
+    return "{ansiCyan}{s}{ansiReset}"
+
+# --- Entity / search printing ---
+
+func printEntityHeader(e Entity)
+    print("{bold(e.Id)}  {dim("(" + e.Type + ")")} {e.Name}")
+
+func printSearchHits(hits list of SearchHit)
+    if len(hits) equals 0
+        print(dim("  No matches."))
+        return
+    for h in hits
+        id := strpkg.PadRight(h.Id, 16, " ")
+        typ := strpkg.PadRight("(" + h.Type + ")", 12, " ")
+        name := h.Name
+        if len(name) > 40
+            name = name[:37] + "..."
+        print("  {cyan(id)} {dim(typ)} {name}")
+        if h.Summary isnt ""
+            print("    {dim(h.Summary)}")
+
+func printSimilarHits(hits list of SimilarHit)
+    if len(hits) equals 0
+        print(dim("  No embeddings available."))
+        return
+    for h in hits
+        id := strpkg.PadRight(h.Id, 16, " ")
+        typ := strpkg.PadRight("(" + h.Type + ")", 12, " ")
+        distStr := fmt.Sprintf("d=%.4f", h.Distance)
+        name := h.Name
+        if len(name) > 40
+            name = name[:37] + "..."
+        print("  {cyan(id)} {dim(typ)} {yellow(distStr)}  {name}")
+        if h.Summary isnt ""
+            print("    {dim(h.Summary)}")
+
+func printContext(e Entity, outgoing list of ContextRow, incoming list of ContextRow, obs list of ObsRow)
+    printEntityHeader(e)
+    print("")
+    print(bold("data:"))
+    print("  {e.Data}")
+    print("")
+
+    if len(outgoing) > 0
+        print(bold("outgoing:"))
+        for r in outgoing
+            print("  {green("--" + r.Rel + "->")} {cyan(r.Other)} {dim("(" + r.Type + ") " + r.Name)}")
+            if r.Summary isnt ""
+                print("     {dim(r.Summary)}")
+    if len(incoming) > 0
+        if len(outgoing) > 0
+            print("")
+        print(bold("incoming:"))
+        for r in incoming
+            print("  {blue("<-" + r.Rel + "--")} {cyan(r.Other)} {dim("(" + r.Type + ") " + r.Name)}")
+            if r.Summary isnt ""
+                print("     {dim(r.Summary)}")
+
+    if len(obs) > 0
+        if len(outgoing) > 0 or len(incoming) > 0
+            print("")
+        print(bold("observations:"))
+        for o in obs
+            src := o.Source
+            if src equals ""
+                src = "conversation"
+            print("  {dim("[" + o.At + " " + src + "]")} {o.Text}")
+
+func printJSON(v any)
+    data := jsonpkg.MarshalPretty(v) onerr
+        fmt.Fprintln(os.Stderr, "json error: {error}")
+        return
+    fmt.Println(data as string)
+
+func errPrint(msg string)
+    fmt.Fprintln(os.Stderr, "{ansiRed}error:{ansiReset} {msg}")
+
+# parseTags splits a comma-separated tag string into a trimmed slice,
+# dropping empty entries.
+func parseTags(raw string) list of string
+    out := make(list of string, 0)
+    if raw equals ""
+        return out
+    parts := strpkg.Split(raw, ",")
+    for _, p in parts
+        t := strpkg.TrimSpace(p)
+        if t isnt ""
+            out = append(out, t)
+    return out
