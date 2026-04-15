@@ -78,11 +78,13 @@ func doInit(args cli.Args)
     pool := openDB(dbPath) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     initDB(pool) onerr
         errPrint("cannot initialize schema: {error}")
         return
+
     registerVecFunction(pool) onerr
         errPrint("cannot register cosine function: {error}")
         return
@@ -108,6 +110,7 @@ func doUpsert(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     upsertEntity(pool, id, etype, name, summary, tags) onerr
@@ -147,6 +150,7 @@ func doObserve(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     addObservation(pool, id, text, source) onerr
@@ -178,6 +182,7 @@ func doRelate(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     relate(pool, src, rel, dst) onerr
@@ -201,6 +206,7 @@ func doSearch(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     hits, err := ftsSearch(pool, query, limit)
@@ -223,6 +229,7 @@ func doContext(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     e, err := getEntity(pool, id)
@@ -266,6 +273,7 @@ func doSimilar(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     vec := make(list of float64, 0)
@@ -301,6 +309,7 @@ func doList(args cli.Args)
     pool := openPool(args) onerr
         errPrint("cannot open database: {error}")
         return
+
     defer db.Close(pool)
 
     rows, err := listEntities(pool, etype, limit)

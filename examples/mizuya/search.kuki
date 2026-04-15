@@ -66,6 +66,7 @@ func registerVecFunction(pool db.Pool) error
     sqlite.CreateFunctionFloat(pool, "vec_cosine_distance", 2, (args list of string) =>
         return cosineVec(args[0], args[1])
     ) onerr return
+
     return empty
 
 # cosineVec parses two JSON-encoded float64 arrays and returns the
@@ -89,7 +90,8 @@ func cosineVec(aJSON string, bJSON string) float64
         normB = normB + b[i] * b[i]
     if normA == 0.0 or normB == 0.0
         return 1.0
-    return 1.0 - dot / (math.Sqrt(normA) * math.Sqrt(normB))
+    denom := math.Sqrt(normA) * math.Sqrt(normB)
+    return 1.0 - dot / denom
 
 # --- Toy embedding ---
 
@@ -102,8 +104,8 @@ func hashEmbed(text string, dim int) list of float64
     lowered := strpkg.ToLower(text)
     tokens := strpkg.Fields(lowered)
     for _, tok in tokens
-        h := fnv1a32(tok)
-        idx := (h % (dim as uint32)) as int
+        h := djb2Hash(tok)
+        idx := h % dim as uint32 as int
         v[idx] = v[idx] + 1.0
 
     # L2 normalize so cosine similarity behaves.
@@ -117,11 +119,10 @@ func hashEmbed(text string, dim int) list of float64
         v[i] = v[i] / norm
     return v
 
-# fnv1a32 is a tiny FNV-1a hash. We don't need cryptographic strength —
-# we just need stable, well-distributed integers per token.
-func fnv1a32(s string) uint32
-    h := 2166136261 as uint32
+# djb2Hash is a simple DJB2 hash (h*33 + c). We don't need cryptographic
+# strength — just stable, well-distributed bucket indices per token.
+func djb2Hash(s string) uint32
+    h := 5381 as uint32
     for i from 0 to len(s)
-        h = h ^ (s[i] as uint32)
-        h = h * (16777619 as uint32)
+        h = h * 33 + s[i] as uint32
     return h
