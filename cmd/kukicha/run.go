@@ -14,15 +14,19 @@ func runMain(args []string) {
 	runFlags.SetOutput(os.Stderr)
 	target := runFlags.String("target", "", "Run target")
 	if err := runFlags.Parse(args); err != nil {
-		fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] <file.kuki> [args...]")
+		fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] <file.kuki|dir|module@version> [args...]")
 		os.Exit(1)
 	}
 	runArgs := runFlags.Args()
 	if len(runArgs) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] <file.kuki> [args...]")
+		fmt.Fprintln(os.Stderr, "Usage: kukicha run [--target <target>] <file.kuki|dir|module@version> [args...]")
 		os.Exit(1)
 	}
-	runCommand(runArgs[0], *target, runArgs[1:])
+	if isModulePath(runArgs[0]) {
+		runModuleCommand(runArgs[0], *target, runArgs[1:])
+	} else {
+		runCommand(runArgs[0], *target, runArgs[1:])
+	}
 }
 
 func runCommand(filename string, targetFlag string, scriptArgs []string) {

@@ -52,7 +52,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintln(os.Stderr, "  kukicha build [--target t] [--vulncheck] [--wasm] <file.kuki|dir>  Compile Kukicha to Go")
-	fmt.Fprintln(os.Stderr, "  kukicha run [--target t] <file.kuki|dir>   Transpile and execute Kukicha")
+	fmt.Fprintln(os.Stderr, "  kukicha run [--target t] <file.kuki|dir|module@version>   Transpile and execute Kukicha")
 	fmt.Fprintln(os.Stderr, "  kukicha check [--json] [--strict-onerr] <file.kuki|dir> [...]   Type check Kukicha")
 	fmt.Fprintln(os.Stderr, "  kukicha audit [--json] [--warn-only] [dir]  Check dependencies for vulnerabilities")
 	fmt.Fprintln(os.Stderr, "  kukicha fmt [options] <files>  Fix indentation and normalize style")
