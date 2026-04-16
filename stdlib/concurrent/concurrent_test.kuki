@@ -99,3 +99,15 @@ func TestMapPreservesOrder(t reference testing.T)
     test.AssertEqual(t, len(results), len(expected))
     for i, v in results
         test.AssertEqual(t, v, expected[i])
+
+# --- TestGo ---
+
+func TestGo(t reference testing.T)
+    done := false
+    wg := concurrent.Go(func()
+        done = true
+    )
+
+    wg.Wait()
+    if not done
+        t.Errorf("Go function should have executed before Wait returned")

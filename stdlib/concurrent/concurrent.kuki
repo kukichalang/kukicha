@@ -72,9 +72,13 @@ func MapWithLimit(items list of any, limit int, fn func(any) result) list of res
     wg.Wait()
     return results
 
-# Go runs a function in a new goroutine with WaitGroup tracking
-# Returns empty for now
-# Example: concurrent.Go(myFunc)
-# TODO: Return WaitGroup when supported
-func Go(fn func())
-    go fn()
+# Go runs a function in a new goroutine and returns a WaitGroup the caller can use to wait for it
+# Example: wg := concurrent.Go(myFunc); wg.Wait()
+func Go(fn func()) reference sync.WaitGroup
+    wg := sync.WaitGroup{}
+    wg.Add(1)
+    go
+        defer wg.Done()
+        fn()
+
+    return reference of wg
