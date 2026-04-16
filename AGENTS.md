@@ -2,7 +2,7 @@
 
 Kukicha is a strict superset of Go that adds pipes, `onerr`, enums,
 if-expressions, and readable operators on top of standard Go syntax.
-Current version: **0.1.9**
+Current version: **0.1.10**
 
 **When writing `.kuki` files in this repo, always use Kukicha syntax** —
 `and`/`or`/`not`, `equals`/`isnt`, `list of T`, `map of K to V`,

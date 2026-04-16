@@ -121,14 +121,10 @@ func Go(fn func()) *sync.WaitGroup {
 //line stdlib/concurrent/concurrent.kuki:78
 	wg := sync.WaitGroup{}
 //line stdlib/concurrent/concurrent.kuki:79
-	wg.Add(1)
+	wg.Go(func() {
 //line stdlib/concurrent/concurrent.kuki:80
-	go func() {
-//line stdlib/concurrent/concurrent.kuki:81
-		defer wg.Done()
-//line stdlib/concurrent/concurrent.kuki:82
 		fn()
-	}()
-//line stdlib/concurrent/concurrent.kuki:84
+	})
+//line stdlib/concurrent/concurrent.kuki:83
 	return &wg
 }

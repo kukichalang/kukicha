@@ -76,9 +76,8 @@ func MapWithLimit(items list of any, limit int, fn func(any) result) list of res
 # Example: wg := concurrent.Go(myFunc); wg.Wait()
 func Go(fn func()) reference sync.WaitGroup
     wg := sync.WaitGroup{}
-    wg.Add(1)
-    go
-        defer wg.Done()
+    wg.Go(() =>
         fn()
+    )
 
     return reference of wg
