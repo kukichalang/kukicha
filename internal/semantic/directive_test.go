@@ -217,6 +217,32 @@ func main()
 	}
 }
 
+func TestDeprecatedEnumWarning(t *testing.T) {
+	input := `# kuki:deprecated "Use NewStatus instead"
+enum OldStatus
+    Active = 1
+    Inactive = 2
+
+func main()
+    s := OldStatus.Active
+    print(s)
+`
+	_, warnings := analyzeInputWithFile(t, input, "test.kuki")
+	found := false
+	for _, w := range warnings {
+		if strings.Contains(w.Error(), "deprecated") && strings.Contains(w.Error(), "OldStatus") {
+			found = true
+			if !strings.Contains(w.Error(), "Use NewStatus instead") {
+				t.Errorf("expected deprecation message, got: %s", w)
+			}
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected deprecation warning for OldStatus enum usage, got warnings: %v", warnings)
+	}
+}
+
 func TestPanicsWarning(t *testing.T) {
 	input := `# kuki:panics "when negative"
 func squareRoot(n int) int
