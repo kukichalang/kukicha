@@ -5,184 +5,183 @@ package color
 import (
 	"fmt"
 	"os"
+	"strings"
+	"sync"
 )
 
-//line stdlib/color/color.kuki:20
-var colorEnabled bool
-
 //line stdlib/color/color.kuki:22
-var colorDetected bool
+var colorEnabled bool
 
 //line stdlib/color/color.kuki:24
 var colorOverridden bool
 
 //line stdlib/color/color.kuki:26
-func detectColor() {
-//line stdlib/color/color.kuki:27
-	if colorDetected || colorOverridden {
-//line stdlib/color/color.kuki:28
-		return
-	}
-//line stdlib/color/color.kuki:29
-	colorDetected = true
+var detectOnce sync.Once
+
 //line stdlib/color/color.kuki:31
-	if os.Getenv("FORCE_COLOR") != "" {
+func doDetect() {
 //line stdlib/color/color.kuki:32
-		colorEnabled = true
+	if colorOverridden {
 //line stdlib/color/color.kuki:33
 		return
 	}
 //line stdlib/color/color.kuki:35
-	if os.Getenv("NO_COLOR") != "" {
+	if os.Getenv("FORCE_COLOR") != "" {
 //line stdlib/color/color.kuki:36
-		colorEnabled = false
+		colorEnabled = true
 //line stdlib/color/color.kuki:37
 		return
 	}
 //line stdlib/color/color.kuki:39
-	info, err_1 := os.Stdout.Stat()
-//line stdlib/color/color.kuki:39
-	if err_1 != nil {
-//line stdlib/color/color.kuki:39
-		//line stdlib/color/color.kuki:40
+	if os.Getenv("NO_COLOR") != "" {
+//line stdlib/color/color.kuki:40
 		colorEnabled = false
-		//line stdlib/color/color.kuki:41
+//line stdlib/color/color.kuki:41
 		return
 	}
 //line stdlib/color/color.kuki:43
+	info, err_1 := os.Stdout.Stat()
+//line stdlib/color/color.kuki:43
+	if err_1 != nil {
+//line stdlib/color/color.kuki:43
+		//line stdlib/color/color.kuki:44
+		colorEnabled = false
+		//line stdlib/color/color.kuki:45
+		return
+	}
+//line stdlib/color/color.kuki:47
 	colorEnabled = ((info.Mode() & os.ModeCharDevice) != 0)
 }
 
-//line stdlib/color/color.kuki:47
+//line stdlib/color/color.kuki:52
 func Enabled() bool {
-//line stdlib/color/color.kuki:48
-	detectColor()
-//line stdlib/color/color.kuki:49
+//line stdlib/color/color.kuki:53
+	detectOnce.Do(doDetect)
+//line stdlib/color/color.kuki:54
 	return colorEnabled
 }
 
-//line stdlib/color/color.kuki:53
+//line stdlib/color/color.kuki:59
 func SetEnabled(enabled bool) {
-//line stdlib/color/color.kuki:54
+//line stdlib/color/color.kuki:60
 	colorOverridden = true
-//line stdlib/color/color.kuki:55
+//line stdlib/color/color.kuki:61
 	colorEnabled = enabled
 }
 
-//line stdlib/color/color.kuki:59
+//line stdlib/color/color.kuki:71
 func wrap(code string, s string) string {
-//line stdlib/color/color.kuki:60
+//line stdlib/color/color.kuki:72
 	if !Enabled() {
-//line stdlib/color/color.kuki:61
+//line stdlib/color/color.kuki:73
 		return s
 	}
-//line stdlib/color/color.kuki:62
-	return fmt.Sprintf("\x1b[%vm%v\x1b[0m", code, s)
+//line stdlib/color/color.kuki:74
+	reopen := fmt.Sprintf("\x1b[0m\x1b[%vm", code)
+//line stdlib/color/color.kuki:75
+	inner := strings.ReplaceAll(s, "\x1b[0m", reopen)
+//line stdlib/color/color.kuki:76
+	return fmt.Sprintf("\x1b[%vm%v\x1b[0m", code, inner)
 }
 
-//line stdlib/color/color.kuki:67
+//line stdlib/color/color.kuki:81
 func Bold(s string) string {
-//line stdlib/color/color.kuki:68
+//line stdlib/color/color.kuki:82
 	return wrap("1", s)
 }
 
-//line stdlib/color/color.kuki:71
+//line stdlib/color/color.kuki:85
 func Dim(s string) string {
-//line stdlib/color/color.kuki:72
+//line stdlib/color/color.kuki:86
 	return wrap("2", s)
 }
 
-//line stdlib/color/color.kuki:75
+//line stdlib/color/color.kuki:89
 func Italic(s string) string {
-//line stdlib/color/color.kuki:76
+//line stdlib/color/color.kuki:90
 	return wrap("3", s)
 }
 
-//line stdlib/color/color.kuki:79
+//line stdlib/color/color.kuki:93
 func Underline(s string) string {
-//line stdlib/color/color.kuki:80
+//line stdlib/color/color.kuki:94
 	return wrap("4", s)
 }
 
-//line stdlib/color/color.kuki:85
+//line stdlib/color/color.kuki:99
 func Red(s string) string {
-//line stdlib/color/color.kuki:86
+//line stdlib/color/color.kuki:100
 	return wrap("31", s)
 }
 
-//line stdlib/color/color.kuki:89
+//line stdlib/color/color.kuki:103
 func Green(s string) string {
-//line stdlib/color/color.kuki:90
+//line stdlib/color/color.kuki:104
 	return wrap("32", s)
 }
 
-//line stdlib/color/color.kuki:93
+//line stdlib/color/color.kuki:107
 func Yellow(s string) string {
-//line stdlib/color/color.kuki:94
+//line stdlib/color/color.kuki:108
 	return wrap("33", s)
 }
 
-//line stdlib/color/color.kuki:97
+//line stdlib/color/color.kuki:111
 func Blue(s string) string {
-//line stdlib/color/color.kuki:98
+//line stdlib/color/color.kuki:112
 	return wrap("34", s)
 }
 
-//line stdlib/color/color.kuki:101
+//line stdlib/color/color.kuki:115
 func Magenta(s string) string {
-//line stdlib/color/color.kuki:102
+//line stdlib/color/color.kuki:116
 	return wrap("35", s)
 }
 
-//line stdlib/color/color.kuki:105
+//line stdlib/color/color.kuki:119
 func Cyan(s string) string {
-//line stdlib/color/color.kuki:106
+//line stdlib/color/color.kuki:120
 	return wrap("36", s)
 }
 
-//line stdlib/color/color.kuki:109
+//line stdlib/color/color.kuki:123
 func Gray(s string) string {
-//line stdlib/color/color.kuki:110
+//line stdlib/color/color.kuki:124
 	return wrap("90", s)
 }
 
-//line stdlib/color/color.kuki:113
+//line stdlib/color/color.kuki:127
 func BrightRed(s string) string {
-//line stdlib/color/color.kuki:114
+//line stdlib/color/color.kuki:128
 	return wrap("91", s)
 }
 
-//line stdlib/color/color.kuki:119
-func Error(s string) string {
-//line stdlib/color/color.kuki:120
-	if !Enabled() {
-//line stdlib/color/color.kuki:121
-		return s
-	}
-//line stdlib/color/color.kuki:122
-	return fmt.Sprintf("\x1b[1;91m%v\x1b[0m", s)
-}
-
-//line stdlib/color/color.kuki:125
-func Warn(s string) string {
-//line stdlib/color/color.kuki:126
-	return Yellow(s)
-}
-
-//line stdlib/color/color.kuki:129
-func Success(s string) string {
-//line stdlib/color/color.kuki:130
-	return Green(s)
-}
-
 //line stdlib/color/color.kuki:133
-func Info(s string) string {
+func Error(s string) string {
 //line stdlib/color/color.kuki:134
-	return Cyan(s)
+	return wrap("1;91", s)
 }
 
 //line stdlib/color/color.kuki:137
-func Muted(s string) string {
+func Warn(s string) string {
 //line stdlib/color/color.kuki:138
+	return Yellow(s)
+}
+
+//line stdlib/color/color.kuki:141
+func Success(s string) string {
+//line stdlib/color/color.kuki:142
+	return Green(s)
+}
+
+//line stdlib/color/color.kuki:145
+func Info(s string) string {
+//line stdlib/color/color.kuki:146
+	return Cyan(s)
+}
+
+//line stdlib/color/color.kuki:149
+func Muted(s string) string {
+//line stdlib/color/color.kuki:150
 	return Dim(s)
 }

@@ -136,6 +136,25 @@ func TestSemanticDisabled(t reference testing.T)
             test.AssertEqual(t, tc.fn("hello"), "hello")
         )
 
+# --- TestNesting ---
+
+func TestNesting(t reference testing.T)
+    color.SetEnabled(true)
+
+    # Red wrapping a Bold value should keep red after Bold's reset
+    t.Run("inner reset re-opens outer style", (t reference testing.T) =>
+        inner := color.Bold("b")
+        got := color.Red(inner)
+        want := "\x1b[31m\x1b[1mb\x1b[0m\x1b[31m\x1b[0m"
+        test.AssertEqual(t, got, want)
+    )
+
+    t.Run("no inner reset is unchanged", (t reference testing.T) =>
+        got := color.Red("plain")
+        want := "\x1b[31mplain\x1b[0m"
+        test.AssertEqual(t, got, want)
+    )
+
 # --- TestSetEnabled ---
 
 func TestSetEnabled(t reference testing.T)

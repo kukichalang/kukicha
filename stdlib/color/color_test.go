@@ -148,17 +148,43 @@ func TestSemanticDisabled(t *testing.T) {
 }
 
 //line stdlib/color/color_test.kuki:141
-func TestSetEnabled(t *testing.T) {
+func TestNesting(t *testing.T) {
 //line stdlib/color/color_test.kuki:142
 	color.SetEnabled(true)
-//line stdlib/color/color_test.kuki:143
-	test.AssertTrue(t, color.Enabled())
 //line stdlib/color/color_test.kuki:145
-	color.SetEnabled(false)
+	t.Run("inner reset re-opens outer style", func(t *testing.T) {
 //line stdlib/color/color_test.kuki:146
-	test.AssertFalse(t, color.Enabled())
+		inner := color.Bold("b")
+//line stdlib/color/color_test.kuki:147
+		got := color.Red(inner)
 //line stdlib/color/color_test.kuki:148
-	color.SetEnabled(true)
+		want := "\x1b[31m\x1b[1mb\x1b[0m\x1b[31m\x1b[0m"
 //line stdlib/color/color_test.kuki:149
+		test.AssertEqual(t, got, want)
+	})
+//line stdlib/color/color_test.kuki:152
+	t.Run("no inner reset is unchanged", func(t *testing.T) {
+//line stdlib/color/color_test.kuki:153
+		got := color.Red("plain")
+//line stdlib/color/color_test.kuki:154
+		want := "\x1b[31mplain\x1b[0m"
+//line stdlib/color/color_test.kuki:155
+		test.AssertEqual(t, got, want)
+	})
+}
+
+//line stdlib/color/color_test.kuki:160
+func TestSetEnabled(t *testing.T) {
+//line stdlib/color/color_test.kuki:161
+	color.SetEnabled(true)
+//line stdlib/color/color_test.kuki:162
+	test.AssertTrue(t, color.Enabled())
+//line stdlib/color/color_test.kuki:164
+	color.SetEnabled(false)
+//line stdlib/color/color_test.kuki:165
+	test.AssertFalse(t, color.Enabled())
+//line stdlib/color/color_test.kuki:167
+	color.SetEnabled(true)
+//line stdlib/color/color_test.kuki:168
 	test.AssertTrue(t, color.Enabled())
 }

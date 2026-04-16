@@ -6,6 +6,7 @@
 #
 # This is the README hero example. See README.md for the Go-ergonomics pitch.
 
+import "stdlib/color"
 import "stdlib/concurrent"
 import "stdlib/fetch"
 import "stdlib/json" as jsonpkg
@@ -44,6 +45,7 @@ func main()
         |> slice.Filter(v => v.severity >= 4)
         |> sort.ByKey(v => -v.severity)
 
-    print("Needs attention:")
+    print(color.Bold("Needs attention:"))
     for v in urgent
-        print("  [P{v.severity}] {v.kind}  #{v.number}  {v.summary}")
+        tag := if v.severity >= 5 then color.BrightRed("[P{v.severity}]") else color.Yellow("[P{v.severity}]")
+        print("  {tag} {color.Dim(v.kind)}  #{v.number}  {v.summary}")

@@ -14,19 +14,23 @@
 petiole color
 
 import "os"
+import "strings"
+import "sync"
 
 # --- internal state ---
 
 variable colorEnabled bool
 
-variable colorDetected bool
-
 variable colorOverridden bool
 
-func detectColor()
-    if colorDetected or colorOverridden
+variable detectOnce sync.Once
+
+# doDetect runs exactly once via sync.Once to resolve the initial enabled state.
+# If SetEnabled was called first, colorOverridden is true and we leave
+# colorEnabled alone so the caller's override wins.
+func doDetect()
+    if colorOverridden
         return
-    colorDetected = true
     # FORCE_COLOR wins over everything
     if os.Getenv("FORCE_COLOR") isnt ""
         colorEnabled = true
@@ -44,22 +48,32 @@ func detectColor()
 
 # Enabled reports whether ANSI output should be emitted.
 # Honors NO_COLOR, FORCE_COLOR, and falls back to isatty on stdout.
+# Safe to call concurrently — detection runs exactly once.
 func Enabled() bool
-    detectColor()
+    detectOnce.Do(doDetect)
     return colorEnabled
 
 # SetEnabled forces the enabled/disabled state, overriding auto-detect.
 # Useful in tests or when the caller knows the output sink.
+# Call before any concurrent use of the package.
 func SetEnabled(enabled bool)
     colorOverridden = true
     colorEnabled = enabled
 
 # --- internal wrap helper ---
 
+# wrap returns s wrapped in the given SGR code(s), handling nesting.
+# When s contains inner resets (from a prior wrap call), we re-open our
+# code after each one so the outer style resumes correctly:
+#   Red("a " + Bold("b") + " c") keeps "c" red instead of losing color
+#   after Bold's inner \x1b[0m.
+# code may be a compound SGR sequence like "1;91" (bold bright red).
 func wrap(code string, s string) string
     if not Enabled()
         return s
-    return "\x1b[{code}m{s}\x1b[0m"
+    reopen := "\x1b[0m\x1b[{code}m"
+    inner := strings.ReplaceAll(s, "\x1b[0m", reopen)
+    return "\x1b[{code}m{inner}\x1b[0m"
 
 # --- Style wrappers ---
 
@@ -117,9 +131,7 @@ func BrightRed(s string) string
 
 # Error returns s in bold bright red — use for error messages.
 func Error(s string) string
-    if not Enabled()
-        return s
-    return "\x1b[1;91m{s}\x1b[0m"
+    return wrap("1;91", s)
 
 # Warn returns s in yellow — use for warning messages.
 func Warn(s string) string

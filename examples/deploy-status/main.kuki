@@ -3,6 +3,7 @@
 # Exhaustive switch ensures every state is handled
 
 import "fmt"
+import "stdlib/color"
 
 enum DeployStatus
     Queued
@@ -24,15 +25,15 @@ type Service
 func statusLine(svc Service) string
     return svc.status |> switch as v
         when Queued
-            return fmt.Sprintf("  %-12s  waiting", svc.name)
+            return fmt.Sprintf("  %-12s  %s", svc.name, color.Dim("waiting"))
         when Building
-            return fmt.Sprintf("  %-12s  building  logs: %s", svc.name, v.logURL)
+            return fmt.Sprintf("  %-12s  %s  logs: %s", svc.name, color.Yellow("building"), v.logURL)
         when Running
-            return fmt.Sprintf("  %-12s  running   %d/%d healthy", svc.name, v.healthy, v.replicas)
+            return fmt.Sprintf("  %-12s  %s   %d/%d healthy", svc.name, color.Green("running"), v.healthy, v.replicas)
         when Failed
-            return fmt.Sprintf("  %-12s  FAILED    %s (exit %d)", svc.name, v.reason, v.exitCode)
+            return fmt.Sprintf("  %-12s  %s    %s (exit %d)", svc.name, color.BrightRed("FAILED"), v.reason, v.exitCode)
         when RolledBack
-            return fmt.Sprintf("  %-12s  rolled back to %s", svc.name, v.previousVersion)
+            return fmt.Sprintf("  %-12s  %s to %s", svc.name, color.Yellow("rolled back"), v.previousVersion)
 
 func isHealthy(s DeployStatus) bool
     switch s as v
@@ -57,6 +58,6 @@ func main()
     print("\nHealth check:")
     for svc in services
         if isHealthy(svc.status)
-            fmt.Printf("  %s: ok\n", svc.name)
+            print("  {svc.name}: {color.Green("ok")}")
         else
-            fmt.Printf("  %s: not ready\n", svc.name)
+            print("  {svc.name}: {color.Dim("not ready")}")
