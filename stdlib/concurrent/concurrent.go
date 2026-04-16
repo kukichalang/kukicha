@@ -129,6 +129,6 @@ func Go(fn func()) *sync.WaitGroup {
 //line stdlib/concurrent/concurrent.kuki:82
 		fn()
 	}()
-//line stdlib/concurrent/concurrent.kuki:83
+//line stdlib/concurrent/concurrent.kuki:84
 	return &wg
 }

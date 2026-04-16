@@ -129,11 +129,11 @@ func TestGo(t *testing.T) {
 //line stdlib/concurrent/concurrent_test.kuki:108
 		done = true
 	})
-//line stdlib/concurrent/concurrent_test.kuki:110
-	wg.Wait()
 //line stdlib/concurrent/concurrent_test.kuki:111
-	if !done {
+	wg.Wait()
 //line stdlib/concurrent/concurrent_test.kuki:112
+	if !done {
+//line stdlib/concurrent/concurrent_test.kuki:113
 		t.Errorf("Go function should have executed before Wait returned")
 	}
 }
