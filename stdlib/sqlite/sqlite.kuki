@@ -284,6 +284,33 @@ func CreateFunctionInt(pool db.Pool, name string, nArgs int, fn func(list of str
 func CreateFunctionBool(pool db.Pool, name string, nArgs int, fn func(list of string) bool) error
     return registerScalarFunction(pool, name, nArgs, makeScalarFuncBool(fn))
 
+# CreateBlobFunction registers a custom scalar SQL function whose arguments
+# are received as raw byte slices (BLOBs) and returns a BLOB result.
+# Use this when your function operates on binary data rather than text.
+# Sets MaxOpenConns(1) to ensure the function is available for all queries.
+# Example:
+#   sqlite.CreateBlobFunction(pool, "xor_bytes", 2, (args list of list of byte) =>
+#       a, b := args[0], args[1]
+#       result := make(list of byte, len(a))
+#       for i from 0 to len(a)
+#           result[i] = a[i] ^ b[i]
+#       return result
+#   ) onerr panic "{error}"
+func CreateBlobFunction(pool db.Pool, name string, nArgs int, fn func(list of list of byte) list of byte) error
+    return registerScalarFunction(pool, name, nArgs, makeScalarFuncBlob(fn))
+
+# CreateBlobFunctionFloat registers a custom scalar SQL function whose arguments
+# are received as raw byte slices (BLOBs) and returns a float64 value (SQLite REAL).
+# Ideal for vector distance metrics where arguments are binary-encoded vectors
+# and the result is a numeric distance.
+# Sets MaxOpenConns(1) to ensure the function is available for all queries.
+# Example:
+#   sqlite.CreateBlobFunctionFloat(pool, "vec_cosine_distance", 2, (args list of list of byte) =>
+#       return cosineDistance(args[0], args[1])
+#   ) onerr panic "{error}"
+func CreateBlobFunctionFloat(pool db.Pool, name string, nArgs int, fn func(list of list of byte) float64) error
+    return registerScalarFunction(pool, name, nArgs, makeScalarFuncBlobFloat(fn))
+
 # registerScalarFunction is the shared registration core for all CreateFunction*
 # variants. Sets MaxOpenConns(1) so the registered function is visible to every
 # subsequent query on this pool.
@@ -321,6 +348,20 @@ func makeScalarFuncBool(fn func(list of string) bool) sqlite3.ScalarFunction
         for i, arg in args
             strArgs[i] = arg.Text()
         ctx.ResultBool(fn(strArgs))
+
+func makeScalarFuncBlob(fn func(list of list of byte) list of byte) sqlite3.ScalarFunction
+    return func(ctx sqlite3.Context, many args sqlite3.Value)
+        blobArgs := make(list of list of byte, len(args))
+        for i, arg in args
+            blobArgs[i] = arg.Blob(empty)
+        ctx.ResultBlob(fn(blobArgs))
+
+func makeScalarFuncBlobFloat(fn func(list of list of byte) float64) sqlite3.ScalarFunction
+    return func(ctx sqlite3.Context, many args sqlite3.Value)
+        blobArgs := make(list of list of byte, len(args))
+        for i, arg in args
+            blobArgs[i] = arg.Blob(empty)
+        ctx.ResultFloat(fn(blobArgs))
 
 # ============================================================================
 # Dump

@@ -154,7 +154,7 @@ func TestSetPragmaInvalidValue(t reference testing.T)
     err3 := sqlite.SetPragma(pool, "cache_size", "")
     test.AssertError(t, err3)
 
-    # valid values should still work
+    # Valid values should still work
     err4 := sqlite.SetPragma(pool, "cache_size", "-64000")
     test.AssertNoError(t, err4)
 
@@ -447,6 +447,72 @@ func TestCreateFunctionBool(t reference testing.T)
 
             count := db.Count(pool, "SELECT COUNT(*) FROM vals WHERE is_nonempty(v)") onerr panic "count: {error}"
             test.AssertEqual(t, count, tc.wantCount)
+        )
+
+# --- TestCreateBlobFunction ---
+type CreateBlobFunctionCase
+    name string
+    input string
+    want string
+
+func TestCreateBlobFunction(t reference testing.T)
+    cases := list of CreateBlobFunctionCase{
+        {name: "reverse bytes", input: "010203", want: "030201"},
+        {name: "single byte", input: "FF", want: "FF"},
+    }
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            reverseFn := func(args list of list of byte) list of byte
+                b := args[0]
+                out := make(list of byte, len(b))
+                for i from 0 to len(b)
+                    out[i] = b[len(b) - 1 - i]
+                return out
+
+            sqlite.CreateBlobFunction(pool, "reverse_blob", 1, reverseFn) onerr panic "create function: {error}"
+
+            rawDB := db.RawDB(pool)
+            row := rawDB.QueryRow(fmt.Sprintf("SELECT hex(reverse_blob(X'%s'))", tc.input))
+            result := ""
+            row.Scan(reference of result) onerr panic "scan: {error}"
+            test.AssertEqual(t, result, tc.want)
+        )
+
+# --- TestCreateBlobFunctionFloat ---
+type CreateBlobFunctionFloatCase
+    name string
+    input string
+    want float64
+
+func TestCreateBlobFunctionFloat(t reference testing.T)
+    cases := list of CreateBlobFunctionFloatCase{
+        {name: "sum of bytes", input: "010203", want: 6.0},
+        {name: "single byte", input: "0A", want: 10.0},
+        {name: "empty blob", input: "", want: 0.0},
+    }
+
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            pool := sqlite.OpenMemory() onerr panic "open: {error}"
+            defer db.Close(pool)
+
+            sumFn := func(args list of list of byte) float64
+                total := 0.0
+                for _, b in args[0]
+                    total = total + b as float64
+                return total
+
+            sqlite.CreateBlobFunctionFloat(pool, "blob_sum", 1, sumFn) onerr panic "create function: {error}"
+
+            rawDB := db.RawDB(pool)
+            row := rawDB.QueryRow(fmt.Sprintf("SELECT blob_sum(X'%s')", tc.input))
+            result := 0.0
+            row.Scan(reference of result) onerr panic "scan: {error}"
+            test.AssertEqual(t, result, tc.want)
         )
 
 # --- TestDump ---

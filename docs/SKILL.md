@@ -556,7 +556,7 @@ users := db.Query(pool, "SELECT id, name FROM users WHERE active = $1", true)
     |> db.ScanAll(list of User{}) onerr panic "{error}"
 ```
 
-**sqlite** — SQLite convenience (WAL, foreign keys, busy timeout by default): `Open`, `OpenMemory`, `OpenWith`, `Pragma`, `Tables`, `TableExists`, `BatchExec`, `Backup`, `Dump`
+**sqlite** — SQLite convenience (WAL, foreign keys, busy timeout by default): `Open`, `OpenMemory`, `OpenWith`, `Pragma`, `Tables`, `TableExists`, `BatchExec`, `Backup`, `Dump`, `CreateFunction`, `CreateFunctionFloat`, `CreateFunctionInt`, `CreateFunctionBool`, `CreateBlobFunction`, `CreateBlobFunctionFloat`
 
 ```kukicha
 pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
