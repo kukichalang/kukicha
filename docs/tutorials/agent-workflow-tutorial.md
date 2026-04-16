@@ -371,16 +371,18 @@ The compiler enforces:
 kukicha pack dns-tool.kuki
 ```
 
-This produces a self-contained directory:
+This produces a self-contained directory following the [agentskills.io spec](https://agentskills.io/specification):
 
 ```
-dns_lookup/
-├── SKILL.md              # YAML manifest with function names, param types, defaults
+skills/dns-lookup/
+├── SKILL.md                 # YAML frontmatter + markdown body
 └── scripts/
-    └── dns_lookup        # compiled MCP server binary
+    └── dns-lookup.kuki      # source copy; agent runs via `kukicha run`
 ```
 
-The generated `SKILL.md` is a machine-readable manifest — not hand-written docs. Orchestrators read it to learn what the tool can do without running it.
+The frontmatter holds only spec-recognized fields (`name`, `description`, optional `metadata.version`); the markdown body explains how to invoke the skill and lists any exported functions.
+
+`kukicha pack` ships source, not binaries — agents run `kukicha run scripts/dns-lookup.kuki [args]` at invocation time, sidestepping cross-compilation. Pass a directory to `pack` to bundle a multi-file skill; the whole tree lands under `scripts/<name>/`.
 
 ### Discover skills at runtime
 

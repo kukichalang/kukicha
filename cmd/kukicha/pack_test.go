@@ -25,21 +25,84 @@ func TestGenerateSkillMD_ProducesParseableYAML(t *testing.T) {
 		},
 	}
 
-	out := generateSkillMD(skill, functions)
-	if !strings.HasPrefix(out, "---\n") || !strings.HasSuffix(out, "---\n") {
-		t.Fatalf("expected frontmatter delimiters, got: %q", out)
+	skillName := toKebabCase(skill.Name.Value)
+	out := generateSkillMD(skill, functions, skillName, "kukicha run scripts/"+skillName+".kuki [args]")
+	if !strings.HasPrefix(out, "---\n") {
+		t.Fatalf("expected frontmatter opener, got: %q", out[:min(40, len(out))])
 	}
 
-	content := strings.TrimPrefix(out, "---\n")
-	content = strings.TrimSuffix(content, "---\n")
+	// Split frontmatter from body. After the opening "---\n", find the
+	// next "---\n" line which closes the frontmatter.
+	rest := strings.TrimPrefix(out, "---\n")
+	frontmatter, body, ok := strings.Cut(rest, "---\n")
+	if !ok {
+		t.Fatalf("expected frontmatter closer '---', got: %q", out)
+	}
 
 	var parsed map[string]any
-	if err := yaml.Unmarshal([]byte(content), &parsed); err != nil {
-		t.Fatalf("generated YAML should be parseable: %v\n%s", err, out)
+	if err := yaml.Unmarshal([]byte(frontmatter), &parsed); err != nil {
+		t.Fatalf("generated YAML should be parseable: %v\n%s", err, frontmatter)
 	}
 
-	if parsed["name"] != "hello_skill" {
-		t.Fatalf("unexpected name: %#v", parsed["name"])
+	if parsed["name"] != "hello-skill" {
+		t.Fatalf("unexpected kebab-case name: %#v", parsed["name"])
+	}
+
+	// version belongs under metadata, not at the top level.
+	if _, topLevel := parsed["version"]; topLevel {
+		t.Fatalf("version must live under metadata, not top-level frontmatter")
+	}
+	meta, ok := parsed["metadata"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected metadata map, got: %#v", parsed["metadata"])
+	}
+	if meta["version"] != "1.2.3" {
+		t.Fatalf("expected metadata.version=1.2.3, got: %#v", meta["version"])
+	}
+
+	// Body should include invocation instructions pointing at kukicha run.
+	if !strings.Contains(body, "kukicha run scripts/hello-skill.kuki") {
+		t.Fatalf("body missing `kukicha run` invocation:\n%s", body)
+	}
+	if !strings.Contains(body, "# HelloSkill") {
+		t.Fatalf("body missing H1 title:\n%s", body)
+	}
+	if !strings.Contains(body, "## Exposed functions") {
+		t.Fatalf("body missing functions section:\n%s", body)
+	}
+	if !strings.Contains(body, "**DoThing**") {
+		t.Fatalf("body missing DoThing listing:\n%s", body)
+	}
+}
+
+func TestGenerateSkillMD_NoVersion_OmitsMetadata(t *testing.T) {
+	skill := &ast.SkillDecl{
+		Name:        &ast.Identifier{Value: "Plain"},
+		Description: "A plain skill.",
+	}
+	out := generateSkillMD(skill, nil, "plain", "kukicha run scripts/plain.kuki [args]")
+
+	// When version is empty, metadata should not be emitted at all.
+	if strings.Contains(out, "metadata:") {
+		t.Fatalf("expected no metadata block when version is empty, got:\n%s", out)
+	}
+}
+
+func TestToKebabCase(t *testing.T) {
+	cases := []struct {
+		in, want string
+	}{
+		{"HelloSkill", "hello-skill"},
+		{"HTTPClient", "http-client"},
+		{"Mizuya", "mizuya"},
+		{"McpSandbox", "mcp-sandbox"},
+		{"A", "a"},
+		{"ABCDef", "abc-def"},
+	}
+	for _, tc := range cases {
+		if got := toKebabCase(tc.in); got != tc.want {
+			t.Errorf("toKebabCase(%q) = %q, want %q", tc.in, got, tc.want)
+		}
 	}
 }
 

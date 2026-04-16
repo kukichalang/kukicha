@@ -49,6 +49,13 @@ func (a *Analyzer) checkSkillDecl() {
 		a.error(skill.Name.Pos(), fmt.Sprintf("skill name '%s' must be exported (start with uppercase letter)", skill.Name.Value))
 	}
 
+	// The agentskills.io spec caps the derived (kebab-case) name at 64 chars.
+	if skill.Name != nil {
+		if derived := skillKebabName(skill.Name.Value); len(derived) > 64 {
+			a.error(skill.Name.Pos(), fmt.Sprintf("skill name '%s' is too long (derived name '%s' is %d chars; max 64 per agentskills.io)", skill.Name.Value, derived, len(derived)))
+		}
+	}
+
 	// Skill requires petiole (skills are packages, not main programs)
 	if a.program.PetioleDecl == nil {
 		a.error(skill.Pos(), "skill declaration requires a petiole declaration (skills are packages)")
@@ -59,12 +66,42 @@ func (a *Analyzer) checkSkillDecl() {
 		a.error(skill.Pos(), "skill should have a description (skills should be self-documenting)")
 	}
 
+	// The agentskills.io spec caps description at 1024 chars.
+	if n := len(skill.Description); n > 1024 {
+		a.error(skill.Pos(), fmt.Sprintf("skill description is too long (%d chars; max 1024 per agentskills.io)", n))
+	}
+
 	// Basic semver validation if version is provided
 	if skill.Version != "" {
 		if !isBasicSemver(skill.Version) {
 			a.error(skill.Pos(), fmt.Sprintf("skill version '%s' should follow semver format (e.g., '1.0.0')", skill.Version))
 		}
 	}
+}
+
+// skillKebabName converts a Kukicha identifier to the kebab-case form used
+// as the SKILL.md `name` field. Kept in sync with cmd/kukicha/pack.go's
+// toKebabCase — acronym-aware ("HTTPClient" → "http-client").
+func skillKebabName(s string) string {
+	runes := []rune(s)
+	var out []rune
+	for i, r := range runes {
+		if r >= 'A' && r <= 'Z' {
+			if i > 0 {
+				prev := runes[i-1]
+				prevLower := prev >= 'a' && prev <= 'z'
+				prevUpper := prev >= 'A' && prev <= 'Z'
+				nextLower := i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z'
+				if prevLower || (prevUpper && nextLower) {
+					out = append(out, '-')
+				}
+			}
+			out = append(out, r+('a'-'A'))
+		} else {
+			out = append(out, r)
+		}
+	}
+	return string(out)
 }
 
 // isBasicSemver performs a basic check that a version string looks semver-like
