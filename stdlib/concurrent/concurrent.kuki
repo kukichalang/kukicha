@@ -80,4 +80,5 @@ func Go(fn func()) reference sync.WaitGroup
     go
         defer wg.Done()
         fn()
+
     return reference of wg

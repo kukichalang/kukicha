@@ -107,6 +107,7 @@ func TestGo(t reference testing.T)
     wg := concurrent.Go(func()
         done = true
     )
+
     wg.Wait()
     if not done
         t.Errorf("Go function should have executed before Wait returned")
