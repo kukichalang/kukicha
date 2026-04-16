@@ -116,8 +116,19 @@ func MapWithLimit[T any, R any](items []T, limit int, fn func(T) R) []R {
 	return results
 }
 
+//line stdlib/concurrent/concurrent.kuki:77
+func Go(fn func()) *sync.WaitGroup {
+//line stdlib/concurrent/concurrent.kuki:78
+	wg := sync.WaitGroup{}
 //line stdlib/concurrent/concurrent.kuki:79
-func Go(fn func()) {
+	wg.Add(1)
 //line stdlib/concurrent/concurrent.kuki:80
-	go fn()
+	go func() {
+//line stdlib/concurrent/concurrent.kuki:81
+		defer wg.Done()
+//line stdlib/concurrent/concurrent.kuki:82
+		fn()
+	}()
+//line stdlib/concurrent/concurrent.kuki:83
+	return &wg
 }

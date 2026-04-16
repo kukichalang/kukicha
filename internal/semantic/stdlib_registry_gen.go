@@ -51,6 +51,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"color.Underline":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"s"}},
 	"color.Warn":                      {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"s"}},
 	"color.Yellow":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"s"}},
+	"concurrent.Go":                   {Count: 1, Types: []goStdlibType{{Kind: TypeKindReference}}, ParamNames: []string{"fn"}},
 	"concurrent.Map":                  {Count: 1, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindNamed, Name: "result"}}}, ParamNames: []string{"items", "fn"}, ParamFuncParams: map[int][]goStdlibType{1: {{Kind: TypeKindNamed, Name: "any"}}}, ParamFuncReturns: map[int][]goStdlibType{1: {{Kind: TypeKindNamed, Name: "result"}}}},
 	"concurrent.MapWithLimit":         {Count: 1, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindNamed, Name: "result"}}}, ParamNames: []string{"items", "limit", "fn"}, ParamFuncParams: map[int][]goStdlibType{2: {{Kind: TypeKindNamed, Name: "any"}}}, ParamFuncReturns: map[int][]goStdlibType{2: {{Kind: TypeKindNamed, Name: "result"}}}},
 	"container.APIVersion":            {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "container.Config"}}, ParamNames: []string{"cfg", "version"}},

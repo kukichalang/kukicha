@@ -119,3 +119,21 @@ func TestMapPreservesOrder(t *testing.T) {
 		test.AssertEqual(t, v, expected[i])
 	}
 }
+
+//line stdlib/concurrent/concurrent_test.kuki:105
+func TestGo(t *testing.T) {
+//line stdlib/concurrent/concurrent_test.kuki:106
+	done := false
+//line stdlib/concurrent/concurrent_test.kuki:107
+	wg := concurrent.Go(func() {
+//line stdlib/concurrent/concurrent_test.kuki:108
+		done = true
+	})
+//line stdlib/concurrent/concurrent_test.kuki:110
+	wg.Wait()
+//line stdlib/concurrent/concurrent_test.kuki:111
+	if !done {
+//line stdlib/concurrent/concurrent_test.kuki:112
+		t.Errorf("Go function should have executed before Wait returned")
+	}
+}
