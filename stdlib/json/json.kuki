@@ -56,7 +56,7 @@ func WithPrefix(enc Encoder, prefix string) Encoder
 # Example: response |> json.NewEncoder() |> json.Encode(todo) onerr return
 func Encode(enc Encoder, value any) error
     encoder := json.NewEncoder(enc.writer)
-    if enc.indent != "" or enc.prefix != ""
+    if enc.indent isnt "" or enc.prefix isnt ""
         encoder.SetIndent(enc.prefix, enc.indent)
     return encoder.Encode(value)
 
@@ -120,7 +120,7 @@ func UnmarshalRead(reader io.Reader, target any) error
 # Example: result |> json.WriteOutput(_) onerr panic "{error}"
 func WriteOutput(v any) error
     bytes, err := json.Marshal(v)
-    if err != empty
+    if err isnt empty
         return err
     _, err = fmt.Fprintln(os.Stdout, bytes as string)
     return err

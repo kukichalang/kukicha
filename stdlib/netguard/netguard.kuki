@@ -122,7 +122,7 @@ func DialContext(g Guard, ctx context.Context, network string, addr string) (net
     dialer.Control = func(controlNetwork string, controlAddress string, c syscall.RawConn) error
         connHost, _, _ := net.SplitHostPort(controlAddress)
         connIP := net.ParseIP(connHost)
-        if connIP != empty and not checkIP(g, connIP)
+        if connIP isnt empty and not checkIP(g, connIP)
             return error "netguard: connection to {connHost} blocked by policy"
         return empty
 

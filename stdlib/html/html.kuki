@@ -62,7 +62,7 @@ func String(f Fragment) string
 
 # IsEmpty returns true if the Fragment has no content.
 func IsEmpty(f Fragment) bool
-    return f.content == ""
+    return f.content equals ""
 
 # Join combines multiple Fragments into one in order.
 # Example: page := html.Join(nav, hero, cards, footer)

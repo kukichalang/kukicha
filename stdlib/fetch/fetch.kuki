@@ -119,13 +119,13 @@ func Retry(req Request, maxAttempts int, delayMs int) Request
 # doOnce performs a single HTTP attempt with no retry logic
 func doOnce(req Request) (reference http.Response, error)
     client := http.Client{}
-    if req.transport != empty
+    if req.transport isnt empty
         client.Transport = req.transport
     client.Timeout = time.Duration(req.timeoutNs)
 
     # Create HTTP request with optional body
     bodyData := empty
-    if req.body != empty
+    if req.body isnt empty
         # Check if body is already a string (form data) or needs JSON marshaling
         req.body |> switch as bodyStr
             when string
@@ -142,9 +142,9 @@ func doOnce(req Request) (reference http.Response, error)
         httpReq.Header.Set(name, value)
 
     # Set Content-Type if body is provided and not already set
-    if req.body != empty
+    if req.body isnt empty
         contentType := httpReq.Header.Get("Content-Type")
-        if contentType == ""
+        if contentType equals ""
             httpReq.Header.Set("Content-Type", "application/json")
 
     resp := client.Do(httpReq) onerr return
@@ -167,9 +167,9 @@ func Do(req Request) (reference http.Response, error)
     lastErr := error "no attempts made"
     for attempt from 0 to cfg.MaxAttempts
         resp, err := doOnce(req)
-        if err == empty
+        if err equals empty
             # Success or non-retryable status: return immediately
-            if resp.StatusCode != 429 and resp.StatusCode != 503
+            if resp.StatusCode isnt 429 and resp.StatusCode isnt 503
                 return resp, empty
             # Retryable status (429/503): close body, record error, sleep and retry
             resp.Body.Close()
@@ -183,7 +183,7 @@ func Do(req Request) (reference http.Response, error)
 
 # createHTTPRequest wraps http.NewRequest with conditional body reader
 func createHTTPRequest(method string, url string, bodyData any) (reference http.Request, error)
-    if bodyData != empty
+    if bodyData isnt empty
         bodyBytes := bodyData.(list of byte)
         req, err := http.NewRequest(method, url, bytes.NewReader(bodyBytes))
         return req, err
@@ -371,7 +371,7 @@ func SessionDo(s Session, req Request) (reference http.Response, error)
             req.headers[name] = value
 
     # Use session timeout if request doesn't have custom timeout
-    if req.timeoutNs == 30000000000
+    if req.timeoutNs equals 30000000000
         req.timeoutNs = s.timeoutNs
 
     # Set client timeout
@@ -379,7 +379,7 @@ func SessionDo(s Session, req Request) (reference http.Response, error)
 
     # Create HTTP request
     bodyData := empty
-    if req.body != empty
+    if req.body isnt empty
         # Check if body is already a string (form data) or needs JSON marshaling
         req.body |> switch as bodyStr
             when string
@@ -393,9 +393,9 @@ func SessionDo(s Session, req Request) (reference http.Response, error)
         httpReq.Header.Set(name, value)
 
     # Set Content-Type if body is provided and not already set
-    if req.body != empty
+    if req.body isnt empty
         contentType := httpReq.Header.Get("Content-Type")
-        if contentType == ""
+        if contentType equals ""
             httpReq.Header.Set("Content-Type", "application/json")
 
     return s.client.Do(httpReq)

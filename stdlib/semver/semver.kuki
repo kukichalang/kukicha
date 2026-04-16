@@ -33,7 +33,7 @@ func Parse(tag string) (Version, error)
         raw = raw |> string.TrimPrefix("v")
 
     parts := raw |> string.Split(".")
-    if len(parts) != 3
+    if len(parts) isnt 3
         return {}, error "invalid semver: {tag}"
 
     major := cast.Atoi(parts[0]) onerr return {}, error "invalid semver: {tag}"
@@ -71,20 +71,20 @@ func Format(v Version) string
 # Example: if semver.Valid("v1.0.0")
 func Valid(tag string) bool
     _, err := Parse(tag)
-    return err == empty
+    return err equals empty
 
 # Compare returns -1, 0, or 1 comparing two versions
 # Example: semver.Compare(a, b)
 func Compare(a Version, b Version) int
-    if a.major != b.major
+    if a.major isnt b.major
         if a.major > b.major
             return 1
         return -1
-    if a.minor != b.minor
+    if a.minor isnt b.minor
         if a.minor > b.minor
             return 1
         return -1
-    if a.patch != b.patch
+    if a.patch isnt b.patch
         if a.patch > b.patch
             return 1
         return -1

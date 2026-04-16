@@ -237,7 +237,7 @@ func EventTime(event ContainerEvent) string
 func containerLogs(cli reference client.Client, containerID string, tail string) (string, error)
     bg := ctxpkg.Background()
     opts := dockercontainer.LogsOptions{ShowStdout: true, ShowStderr: true}
-    if tail != ""
+    if tail isnt ""
         opts.Tail = tail
     reader := cli.ContainerLogs(ctxpkg.Value(bg), containerID, opts) onerr explain "container logs"
     defer reader.Close()
@@ -276,11 +276,11 @@ func Inspect(engine Engine, containerID string) (ContainerInfo, error)
     info := engine.cli.ContainerInspect(ctxpkg.Value(bg), containerID) onerr explain "container inspect"
 
     names := make(list of string, 0)
-    if info.Name != ""
+    if info.Name isnt ""
         names = append(names, string.TrimPrefix(info.Name, "/"))
     status := ""
     state := ""
-    if info.State != empty
+    if info.State isnt empty
         status = info.State.Status
         state = info.State.Status
     return {id: info.ID, image: info.Config.Image, status: status, state: state, names: names}, empty
@@ -307,7 +307,7 @@ func Exec(engine Engine, containerID string, cmd list of string, many handles ct
     combined := stdout.String()
     if stderr.Len() > 0
         combined = combined + stderr.String()
-    if inspectResult.ExitCode != 0
+    if inspectResult.ExitCode isnt 0
         return combined, error "container exec exit {inspectResult.ExitCode}"
     return combined, empty
 
@@ -328,7 +328,7 @@ func WaitCtx(engine Engine, h ctxpkg.Handle, containerID string) (int64, error)
     waitCh, errCh := engine.cli.ContainerWait(goCtx, containerID, dockercontainer.WaitConditionNotRunning)
     select
         when err := receive from errCh
-            if err == empty
+            if err equals empty
                 return -1, error "container wait: unknown wait error"
             return -1, error "container wait: {err}"
         when res := receive from waitCh
@@ -340,7 +340,7 @@ func WaitCtx(engine Engine, h ctxpkg.Handle, containerID string) (int64, error)
 func convertEvent(msg dockerevents.Message) ContainerEvent
     ts := time.Unix(msg.Time, 0).UTC().Format(time.RFC3339)
     actor := msg.Actor.ID
-    if name, ok := msg.Actor.Attributes["name"]; ok and name != ""
+    if name, ok := msg.Actor.Attributes["name"]; ok and name isnt ""
         actor = name
     return {
         id: msg.ID,
@@ -360,7 +360,7 @@ func eventsWithContext(engine Engine, h ctxpkg.Handle) (list of ContainerEvent, 
             when receive from goCtx.Done()
                 return events, empty
             when err := receive from errCh
-                if err == empty or goCtx.Err() != empty
+                if err equals empty or goCtx.Err() isnt empty
                     return events, empty
                 return events, error "container events: {err}"
             when msg, ok := receive from msgCh
@@ -400,7 +400,7 @@ func Pull(engine Engine, ref string, many handles ctxpkg.Handle) (string, error)
 
         if string.HasPrefix(msg.Status, "Digest:")
             digest = string.TrimPrefix(msg.Status, "Digest: ")
-    if digest == ""
+    if digest equals ""
         digest = ref
     return digest, empty
 
@@ -426,7 +426,7 @@ func PullAuth(engine Engine, ref string, auth Auth) (string, error)
 
         if string.HasPrefix(msg.Status, "Digest:")
             digest = string.TrimPrefix(msg.Status, "Digest: ")
-    if digest == ""
+    if digest equals ""
         digest = ref
     return digest, empty
 
@@ -456,11 +456,11 @@ func loadDockerAuth(serverAddress string) (string, string, string, error)
                 break
     if not ok
         return "", "", "", error "container auth: no credentials found for {serverAddress}"
-    if authEntry.Auth == ""
+    if authEntry.Auth equals ""
         return "", "", "", error "container auth: empty credentials for {serverAddress}"
     decoded := base64.StdEncoding.DecodeString(authEntry.Auth) onerr explain "container auth decode"
     parts := string.SplitN(decoded as string, ":", 2)
-    if len(parts) != 2
+    if len(parts) isnt 2
         return "", "", "", error "container auth: invalid credential format for {serverAddress}"
     return parts[0], parts[1], serverAddress, empty
 
@@ -476,7 +476,7 @@ func LoginFromConfig(server string) (Auth, error)
 # Always enables API version negotiation.
 func newClient(host string) (reference client.Client, error)
     opts := list of client.Opt{client.FromEnv, client.WithAPIVersionNegotiation()}
-    if host != ""
+    if host isnt ""
         opts = append(opts, client.WithHost(host))
     cli := client.NewClientWithOpts(many opts) onerr explain "container connect"
     return cli, empty
@@ -492,7 +492,7 @@ func Connect() (Engine, error)
     host := ""
     for p in socketPaths
         _, statErr := os.Stat(p)
-        if statErr == empty
+        if statErr equals empty
             host = "unix://" + p
             break
     cli := newClient(host) onerr return
@@ -506,9 +506,9 @@ func ConnectRemote(host string) (Engine, error)
 # Open creates an Engine from the builder configuration.
 func Open(cfg Config) (Engine, error)
     opts := list of client.Opt{client.FromEnv, client.WithAPIVersionNegotiation()}
-    if cfg.host != ""
+    if cfg.host isnt ""
         opts = append(opts, client.WithHost(cfg.host))
-    if cfg.apiVersion != ""
+    if cfg.apiVersion isnt ""
         opts = append(opts, client.WithVersion(cfg.apiVersion))
     cli := client.NewClientWithOpts(many opts) onerr explain "container open"
     return {cli: cli}, empty
@@ -520,30 +520,30 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
     tw := tar.NewWriter(reference of buf)
     absContextPath := filepath.Abs(contextPath) onerr explain "container build"
     walkErr := filepath.WalkDir(absContextPath, func(walkPath string, d os.DirEntry, err error) error
-        if err != empty
+        if err isnt empty
             return err
-        if d.IsDir() and d.Name() == ".git"
+        if d.IsDir() and d.Name() equals ".git"
             return filepath.SkipDir
 
-        if d.Type() == os.ModeSymlink
+        if d.Type() equals os.ModeSymlink
             return empty
         relPath, relErr := filepath.Rel(absContextPath, walkPath)
-        if relErr != empty
+        if relErr isnt empty
             return relErr
         if d.IsDir()
             return empty
         info, infoErr := d.Info()
-        if infoErr != empty
+        if infoErr isnt empty
             return infoErr
         header, headerErr := tar.FileInfoHeader(info, "")
-        if headerErr != empty
+        if headerErr isnt empty
             return headerErr
         header.Name = relPath
         writeErr := tw.WriteHeader(header)
-        if writeErr != empty
+        if writeErr isnt empty
             return writeErr
         f, openErr := os.Open(walkPath)
-        if openErr != empty
+        if openErr isnt empty
             return openErr
         defer f.Close()
         _, copyErr := io.Copy(tw, f)
@@ -552,7 +552,7 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
 
     # Skip symlinks to prevent including files outside the build context
 
-    if walkErr != empty
+    if walkErr isnt empty
         return "", "", error "container build context: {walkErr}"
     tw.Close() onerr explain "container build tar"
     buildOpts := dockertypes.ImageBuildOptions{Tags: list of string{tag}, Remove: true, Dockerfile: "Dockerfile"}
@@ -568,9 +568,9 @@ func buildImage(cli reference client.Client, contextPath string, tag string) (st
         output.WriteString("\n")
         msg := buildStreamMsg{}
         json.Unmarshal(scanner.Bytes(), reference of msg) onerr continue
-        if msg.Error != ""
+        if msg.Error isnt ""
             return "", output.String(), error "container build: {msg.Error}"
-        if msg.Aux.ID != ""
+        if msg.Aux.ID isnt ""
             imageID = msg.Aux.ID
     scanner.Err() onerr explain "container build stream"
     return imageID, output.String(), empty
@@ -586,13 +586,13 @@ func extractTar(reader io.Reader, destPath string) error
     cleanDest := filepath.Clean(destPath)
     for true
         header, err := tr.Next()
-        if err == io.EOF
+        if err equals io.EOF
             break
-        if err != empty
+        if err isnt empty
             return err
         cleanName := filepath.Clean(header.Name)
         target := filepath.Join(destPath, cleanName)
-        if not string.HasPrefix(target, cleanDest + "\sep") and filepath.Clean(target) != cleanDest
+        if not string.HasPrefix(target, cleanDest + "\sep") and filepath.Clean(target) isnt cleanDest
             return error "invalid archive path: {header.Name}"
         switch header.Typeflag
             when tar.TypeDir
@@ -618,20 +618,20 @@ func createTarFromPath(sourcePath string) (io.Reader, error)
     # Use Lstat to detect symlinks at the top level
     info := os.Lstat(absSourcePath) onerr explain "container copy to stat"
 
-    if info.Mode().Type() == os.ModeSymlink
+    if info.Mode().Type() equals os.ModeSymlink
         return empty, error "container copy to: source path is a symlink: {absSourcePath}"
     buf := bytes.Buffer{}
     tw := tar.NewWriter(reference of buf)
     if info.IsDir()
         filepath.WalkDir(absSourcePath, func(walkPath string, d os.DirEntry, err error) error
-            if err != empty
+            if err isnt empty
                 return err
 
-            if d.Type() == os.ModeSymlink
+            if d.Type() equals os.ModeSymlink
                 return empty
             fi := d.Info() onerr return
 
-            if fi.Mode().Type() == os.ModeSymlink
+            if fi.Mode().Type() equals os.ModeSymlink
                 return empty
 
             rel := filepath.Rel(filepath.Dir(absSourcePath), walkPath) onerr return

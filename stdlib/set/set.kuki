@@ -64,7 +64,7 @@ func Len(s map of any2 to bool) int
 # IsEmpty returns true if the set has no elements
 # Example: if set.IsEmpty(s) ...
 func IsEmpty(s map of any2 to bool) bool
-    return len(s) == 0
+    return len(s) equals 0
 
 # ToSlice converts the set to a slice of its elements
 # Order is non-deterministic (map iteration order)

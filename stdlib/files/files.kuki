@@ -119,7 +119,7 @@ func List(path string) (list of string, error)
 func ListRecursive(path string) (list of string, error)
     result := make(list of string, 0)
     filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error
-        if err != empty
+        if err isnt empty
             return err
         if not info.IsDir()
             result = append(result, filePath)
@@ -249,7 +249,7 @@ func Watch(pattern string, callback func(string))
 
     # Initial scan to populate baseline
     matches := filepath.Glob(pattern) onerr empty
-    if matches != empty
+    if matches isnt empty
         for match in matches
             info := os.Stat(match) onerr
                 continue
@@ -271,7 +271,7 @@ func Watch(pattern string, callback func(string))
             # Check for zero value (implies new/not found)
             lastModTime := lastModified[match]
 
-            if lastModTime == 0
+            if lastModTime equals 0
                 # New file found
                 lastModified[match] = currentModTime
                 callback(match)

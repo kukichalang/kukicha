@@ -17,7 +17,7 @@ import "unicode"
 # Returns an error if the string is empty or contains only whitespace
 # Example: name := input |> validate.NotEmpty() onerr return
 func NotEmpty(s string) (string, error)
-    if string.TrimSpace(s) == ""
+    if string.TrimSpace(s) equals ""
         return "", error "value cannot be empty"
     return s, empty
 
@@ -38,7 +38,7 @@ func MaxLength(s string, n int) (string, error)
 # Length checks that a string has exactly n characters
 # Example: code |> validate.Length(6) onerr return
 func Length(s string, n int) (string, error)
-    if len(s) != n
+    if len(s) isnt n
         return s, error "value must be exactly {n} characters"
     return s, empty
 
@@ -73,7 +73,7 @@ func Email(s string) (string, error)
 # Example: website |> validate.URL() onerr return
 func URL(s string) (string, error)
     parsed := url.Parse(s) onerr return s, error "invalid URL: {error}"
-    if parsed.Scheme == "" or parsed.Host == ""
+    if parsed.Scheme equals "" or parsed.Host equals ""
         return s, error "URL must have scheme and host"
     return s, empty
 
@@ -163,7 +163,7 @@ func NonNegative(n int) (int, error)
 # NonZero checks that a number is not zero
 # Example: divisor |> validate.NonZero() onerr return
 func NonZero(n int) (int, error)
-    if n == 0
+    if n equals 0
         return n, error "value cannot be zero"
     return n, empty
 
@@ -231,9 +231,9 @@ func ParseFloat(s string) (float64, error)
 # Example: enabled := input |> validate.ParseBool() onerr return
 func ParseBool(s string) (bool, error)
     lower := string.ToLower(string.TrimSpace(s))
-    if lower == "true" or lower == "1" or lower == "yes" or lower == "on"
+    if lower equals "true" or lower equals "1" or lower equals "yes" or lower equals "on"
         return true, empty
-    if lower == "false" or lower == "0" or lower == "no" or lower == "off"
+    if lower equals "false" or lower equals "0" or lower equals "no" or lower equals "off"
         return false, empty
     return false, error "invalid boolean: {s}"
 
@@ -242,7 +242,7 @@ func ParseBool(s string) (bool, error)
 # NotEmptyList checks that a list has at least one element
 # Example: items |> validate.NotEmptyList() onerr return
 func NotEmptyList(items list of any) (list of any, error)
-    if len(items) == 0
+    if len(items) equals 0
         return items, error "list cannot be empty"
     return items, empty
 
@@ -266,14 +266,14 @@ func ListMaxLength(items list of any, n int) (list of any, error)
 # Example: email |> validate.WithMessage(validate.Email(), "Please enter a valid email")
 # Note: This is a pattern for creating custom error validators
 func WithMessage(value string, err error, message string) (string, error)
-    if err != empty
+    if err isnt empty
         return value, error "{message}"
     return value, empty
 
 # Require is an alias for NotEmpty with a custom field name
 # Example: validate.Require(name, "name") onerr return
 func Require(s string, fieldName string) (string, error)
-    if string.TrimSpace(s) == ""
+    if string.TrimSpace(s) equals ""
         return "", error "{fieldName} is required"
     return s, empty
 
@@ -291,7 +291,7 @@ func NoHTML(s string) (string, error)
 # Rejects empty strings, ".", "..", and strings containing '/', '\', '..' or null bytes
 # Example: filename |> validate.SafeFilename() onerr return
 func SafeFilename(s string) (string, error)
-    if s == "" or s == "." or s == ".."
+    if s equals "" or s equals "." or s equals ".."
         return s, error "unsafe filename"
     if string.Contains(s, "/") or string.Contains(s, "\\") or string.Contains(s, "..") or string.Contains(s, "\x00")
         return s, error "filename contains unsafe characters"

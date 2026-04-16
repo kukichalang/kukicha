@@ -13,7 +13,7 @@ import "strconv"
 # It optionally prints a prompt if provided
 # Trims leading and trailing whitespace from the result
 func ReadLine(prompt string) (string, error)
-    if prompt != ""
+    if prompt isnt ""
         fmt.Print(prompt)
 
     reader := bufio.NewReader(os.Stdin)
@@ -33,7 +33,7 @@ func Prompt(prompt string) string
 func Confirm(prompt string) (bool, error)
     answer := ReadLine("{prompt} [y/N]: ") onerr explain "confirm prompt"
     lower := string.ToLower(string.TrimSpace(answer))
-    return lower == "y" or lower == "yes", empty
+    return lower equals "y" or lower equals "yes", empty
 
 # Choose presents a numbered list of options and returns the 0-based index of the selection.
 # Returns an error if the user cancels (q/Q/empty) or enters an invalid number.
@@ -42,7 +42,7 @@ func Confirm(prompt string) (bool, error)
 #   i := input.Choose("Select repo:", repos) onerr return
 #   print("You chose: {repos[i]}")
 func Choose(prompt string, options list of string) (int, error)
-    if len(options) == 0
+    if len(options) equals 0
         return -1, error "no options provided"
 
     print(prompt)
@@ -54,7 +54,7 @@ func Choose(prompt string, options list of string) (int, error)
     raw := ReadLine("Enter number (or q to quit): ") onerr explain "choose prompt"
     trimmed := string.TrimSpace(raw)
 
-    if trimmed == "" or trimmed == "q" or trimmed == "Q"
+    if trimmed equals "" or trimmed equals "q" or trimmed equals "Q"
         return -1, error "cancelled"
 
     val := strconv.Atoi(trimmed) onerr return -1, error "invalid selection: {trimmed}"

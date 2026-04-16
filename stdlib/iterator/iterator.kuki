@@ -76,7 +76,7 @@ func Chunk(seq iter.Seq, n int) iter.SeqSlice
         chunk := make(list of any, 0)
         for item in seq
             chunk = append(chunk, item)
-            if len(chunk) == n
+            if len(chunk) equals n
                 if not yield(chunk)
                     return
                 chunk = make(list of any, 0)

@@ -78,10 +78,10 @@ func Tool(server reference mcp.Server, name string, description string, schema a
         args := make(map of string to any)
         if len(req.Params.Arguments) > 0
             unmarshalErr := json.Unmarshal(req.Params.Arguments, reference of args)
-            if unmarshalErr != empty
+            if unmarshalErr isnt empty
                 return empty, unmarshalErr
         res, handlerErr := handler(args)
-        if handlerErr != empty
+        if handlerErr isnt empty
             return reference of mcp.CallToolResult{
                 Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}},
                 IsError: true,
@@ -136,11 +136,11 @@ func ToolWithSampling(server reference mcp.Server, name string, description stri
         args := make(map of string to any)
         if len(req.Params.Arguments) > 0
             unmarshalErr := json.Unmarshal(req.Params.Arguments, reference of args)
-            if unmarshalErr != empty
+            if unmarshalErr isnt empty
                 return empty, unmarshalErr
         ss := reference of ServerSession{inner: req.Session}
         res, handlerErr := handler(ctx, ss, args)
-        if handlerErr != empty
+        if handlerErr isnt empty
             return reference of mcp.CallToolResult{
                 Content: list of mcp.Content{reference of mcp.TextContent{Text: handlerErr.Error()}},
                 IsError: true,
@@ -255,7 +255,7 @@ func CallTool on s reference ClientSession(ctx context.Context, params reference
             when reference mcp.ResourceLink
                 parts = append(parts, "[resource: {v.URI}]")
             when reference mcp.EmbeddedResource
-                if v.Resource != empty and v.Resource.Text != ""
+                if v.Resource isnt empty and v.Resource.Text isnt ""
                     parts = append(parts, v.Resource.Text)
                 else
                     data, _ := json.Marshal(c)

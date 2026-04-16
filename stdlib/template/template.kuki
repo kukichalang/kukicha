@@ -81,7 +81,7 @@ func HTMLRenderSimple(tmplStr string, data map of string to any) (string, error)
 # Must wraps a template execution result and panics on error
 # Useful for templates that should always work
 func Must(result string, err error) string
-    if err != empty
+    if err isnt empty
         panic err
     return result
 

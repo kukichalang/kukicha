@@ -516,7 +516,7 @@ func CompleteWithSystem(model string, systemPrompt string, prompt string) (strin
 # Returns the content of the first choice, or empty string if none
 # Example: text := llm.GetContent(completion)
 func GetContent(comp Completion) string
-    if len(comp.Choices) == 0
+    if len(comp.Choices) equals 0
         return ""
     return comp.Choices[0].Message.Content
 
@@ -524,7 +524,7 @@ func GetContent(comp Completion) string
 # Returns the tool calls from the first choice, or empty list if none
 # Example: calls := llm.GetToolCalls(completion)
 func GetToolCalls(comp Completion) list of ToolCall
-    if len(comp.Choices) == 0
+    if len(comp.Choices) equals 0
         return empty list of ToolCall
     return comp.Choices[0].Message.ToolCalls
 
@@ -536,29 +536,29 @@ func HasToolCalls(comp Completion) bool
 
 # Internal: resolve API key from explicit setting or environment
 func resolveAPIKey(c Client) string
-    if c.apiKey != ""
+    if c.apiKey isnt ""
         return c.apiKey
 
     # Try provider-specific environment variables
-    if c.provider == "openai"
+    if c.provider equals "openai"
         key := env.GetOr("OPENAI_API_KEY", "")
         return key
-    if c.provider == "anthropic"
+    if c.provider equals "anthropic"
         key := env.GetOr("ANTHROPIC_API_KEY", "")
         return key
-    if c.provider == "mistral"
+    if c.provider equals "mistral"
         key := env.GetOr("MISTRAL_API_KEY", "")
         return key
-    if c.provider == "groq"
+    if c.provider equals "groq"
         key := env.GetOr("GROQ_API_KEY", "")
         return key
-    if c.provider == "together"
+    if c.provider equals "together"
         key := env.GetOr("TOGETHER_API_KEY", "")
         return key
-    if c.provider == "deepseek"
+    if c.provider equals "deepseek"
         key := env.GetOr("DEEPSEEK_API_KEY", "")
         return key
-    if c.provider == "xai"
+    if c.provider equals "xai"
         key := env.GetOr("XAI_API_KEY", "")
         return key
 
@@ -568,38 +568,38 @@ func resolveAPIKey(c Client) string
 
 # Internal: resolve the base URL for the provider
 func resolveBaseURL(c Client) string
-    if c.baseURL != ""
+    if c.baseURL isnt ""
         return c.baseURL
 
     # Default provider endpoints
-    if c.provider == "openai"
+    if c.provider equals "openai"
         return "https://api.openai.com"
-    if c.provider == "anthropic"
+    if c.provider equals "anthropic"
         return "https://api.anthropic.com"
-    if c.provider == "mistral"
+    if c.provider equals "mistral"
         return "https://api.mistral.ai"
-    if c.provider == "groq"
+    if c.provider equals "groq"
         return "https://api.groq.com/openai"
-    if c.provider == "together"
+    if c.provider equals "together"
         return "https://api.together.xyz"
-    if c.provider == "deepseek"
+    if c.provider equals "deepseek"
         return "https://api.deepseek.com"
-    if c.provider == "xai"
+    if c.provider equals "xai"
         return "https://api.x.ai"
-    if c.provider == "ollama"
+    if c.provider equals "ollama"
         return "http://localhost:11434"
-    if c.provider == "fastflowlm" or c.provider == "flm"
+    if c.provider equals "fastflowlm" or c.provider equals "flm"
         return "http://localhost:52625"
 
     # Check env var override before defaulting to gateway
     envURL := env.GetOr("LLM_BASE_URL", "")
-    if envURL != ""
+    if envURL isnt ""
         return envURL
     return "http://localhost:8000"
 
 # Internal: resolve the chat completions path
 func resolvePath(c Client) string
-    if c.path != ""
+    if c.path isnt ""
         return c.path
     return "/v1/chat/completions"
 
@@ -609,31 +609,31 @@ func buildRequest(c Client) CompletionRequest
     req.Model = c.model
     req.Messages = c.messages
 
-    if c.temperature != 0.0
+    if c.temperature isnt 0.0
         req.Temperature = c.temperature
-    if c.maxTokens != 0
+    if c.maxTokens isnt 0
         req.MaxTokens = c.maxTokens
-    if c.topP != 0.0
+    if c.topP isnt 0.0
         req.TopP = c.topP
-    if c.n != 0
+    if c.n isnt 0
         req.N = c.n
-    if c.seed != 0
+    if c.seed isnt 0
         req.Seed = c.seed
-    if c.presencePenalty != 0.0
+    if c.presencePenalty isnt 0.0
         req.PresencePenalty = c.presencePenalty
-    if c.frequencyPenalty != 0.0
+    if c.frequencyPenalty isnt 0.0
         req.FrequencyPenalty = c.frequencyPenalty
-    if c.user != ""
+    if c.user isnt ""
         req.User = c.user
     if len(c.stop) > 0
         req.Stop = c.stop
     if len(c.tools) > 0
         req.Tools = c.tools
-    if c.toolChoice != empty
+    if c.toolChoice isnt empty
         req.ToolChoice = c.toolChoice
-    if c.responseFormat != empty
+    if c.responseFormat isnt empty
         req.ResponseFormat = c.responseFormat
-    if c.streamHandler != empty
+    if c.streamHandler isnt empty
         req.Stream = true
 
     return req
@@ -645,7 +645,7 @@ func execute(c Client) (string, error)
 
 # Internal: execute a completion and return the full response
 func executeRaw(c Client) (Completion, error)
-    if c.streamHandler != empty
+    if c.streamHandler isnt empty
         return executeStreamRaw(c)
 
     baseURL := resolveBaseURL(c)
@@ -659,7 +659,7 @@ func executeRaw(c Client) (Completion, error)
         |> fetch.Header("Content-Type", "application/json")
         |> fetch.Body(body)
 
-    if apiKey != ""
+    if apiKey isnt ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
 
     if c.retryMaxAttempts > 1
@@ -697,7 +697,7 @@ func executeStreamRaw(c Client) (Completion, error)
         |> fetch.Header("Accept", "text/event-stream")
         |> fetch.Body(body)
 
-    if apiKey != ""
+    if apiKey isnt ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
 
     resp := fetch.Do(req) onerr return
@@ -716,11 +716,11 @@ func executeStreamRaw(c Client) (Completion, error)
         line := scanner.Text()
 
         # Skip empty lines and comments
-        if line == "" or string.HasPrefix(line, ":")
+        if line equals "" or string.HasPrefix(line, ":")
             continue
 
         # Check for end of stream
-        if line == "data: [DONE]"
+        if line equals "data: [DONE]"
             break
 
         # Parse SSE data lines
@@ -732,7 +732,7 @@ func executeStreamRaw(c Client) (Completion, error)
 
             if len(chunk.Choices) > 0
                 delta := chunk.Choices[0].Delta
-                if delta.Content != ""
+                if delta.Content isnt ""
                     fullContent = fullContent + delta.Content
                     c.streamHandler(delta.Content)
 
@@ -740,13 +740,13 @@ func executeStreamRaw(c Client) (Completion, error)
                     for _, tcDelta in delta.ToolCalls
                         idx := tcDelta.Index
                         call := callsMap[idx]
-                        if tcDelta.ID != ""
+                        if tcDelta.ID isnt ""
                             call.ID = tcDelta.ID
-                        if tcDelta.Type != ""
+                        if tcDelta.Type isnt ""
                             call.Type = tcDelta.Type
-                        if tcDelta.Function.Name != ""
+                        if tcDelta.Function.Name isnt ""
                             call.Function.Name = call.Function.Name + tcDelta.Function.Name
-                        if tcDelta.Function.Arguments != ""
+                        if tcDelta.Function.Arguments isnt ""
                             call.Function.Arguments = call.Function.Arguments + tcDelta.Function.Arguments
                         callsMap[idx] = call
 
@@ -1208,13 +1208,13 @@ func RespondWithInstructions(model string, instructions string, prompt string) (
 # Example: text := llm.GetResponseText(resp)
 func GetResponseText(resp Response) string
     for _, item in resp.Output
-        if item.Type == "message"
+        if item.Type equals "message"
             for _, content in item.Content
                 content |> switch as contentMap
                     when map of string to any
                         contentMap["type"] |> switch as contentTypeStr
                             when string
-                                if contentTypeStr == "output_text"
+                                if contentTypeStr equals "output_text"
                                     contentMap["text"] |> switch as textStr
                                         when string
                                             return textStr
@@ -1227,7 +1227,7 @@ func GetResponseText(resp Response) string
 func GetFunctionCalls(resp Response) list of OutputItem
     calls := empty list of OutputItem
     for _, item in resp.Output
-        if item.Type == "function_call"
+        if item.Type equals "function_call"
             calls = append(calls, item)
     return calls
 
@@ -1239,59 +1239,59 @@ func HasFunctionCalls(resp Response) bool
 
 # Internal: resolve API key for ResponseClient
 func rResolveAPIKey(c ResponseClient) string
-    if c.apiKey != ""
+    if c.apiKey isnt ""
         return c.apiKey
 
-    if c.provider == "openai"
+    if c.provider equals "openai"
         return env.GetOr("OPENAI_API_KEY", "")
-    if c.provider == "anthropic"
+    if c.provider equals "anthropic"
         return env.GetOr("ANTHROPIC_API_KEY", "")
-    if c.provider == "mistral"
+    if c.provider equals "mistral"
         return env.GetOr("MISTRAL_API_KEY", "")
-    if c.provider == "groq"
+    if c.provider equals "groq"
         return env.GetOr("GROQ_API_KEY", "")
-    if c.provider == "together"
+    if c.provider equals "together"
         return env.GetOr("TOGETHER_API_KEY", "")
-    if c.provider == "deepseek"
+    if c.provider equals "deepseek"
         return env.GetOr("DEEPSEEK_API_KEY", "")
-    if c.provider == "xai"
+    if c.provider equals "xai"
         return env.GetOr("XAI_API_KEY", "")
 
     return env.GetOr("LLM_API_KEY", "")
 
 # Internal: resolve base URL for ResponseClient
 func rResolveBaseURL(c ResponseClient) string
-    if c.baseURL != ""
+    if c.baseURL isnt ""
         return c.baseURL
 
-    if c.provider == "openai"
+    if c.provider equals "openai"
         return "https://api.openai.com"
-    if c.provider == "anthropic"
+    if c.provider equals "anthropic"
         return "https://api.anthropic.com"
-    if c.provider == "mistral"
+    if c.provider equals "mistral"
         return "https://api.mistral.ai"
-    if c.provider == "groq"
+    if c.provider equals "groq"
         return "https://api.groq.com/openai"
-    if c.provider == "together"
+    if c.provider equals "together"
         return "https://api.together.xyz"
-    if c.provider == "deepseek"
+    if c.provider equals "deepseek"
         return "https://api.deepseek.com"
-    if c.provider == "xai"
+    if c.provider equals "xai"
         return "https://api.x.ai"
-    if c.provider == "ollama"
+    if c.provider equals "ollama"
         return "http://localhost:11434"
-    if c.provider == "fastflowlm" or c.provider == "flm"
+    if c.provider equals "fastflowlm" or c.provider equals "flm"
         return "http://localhost:52625"
 
     # Check env var override before defaulting to gateway
     envURL := env.GetOr("LLM_BASE_URL", "")
-    if envURL != ""
+    if envURL isnt ""
         return envURL
     return "http://localhost:8000"
 
 # Internal: resolve the responses path
 func rResolvePath(c ResponseClient) string
-    if c.path != ""
+    if c.path isnt ""
         return c.path
     return "/v1/responses"
 
@@ -1301,39 +1301,39 @@ func rBuildRequest(c ResponseClient) ResponseRequest
     req.Model = c.model
 
     # Input can be a string (for single user message) or array of items
-    if len(c.input) == 1 and c.input[0].Type == "message" and c.input[0].Role == "user"
+    if len(c.input) equals 1 and c.input[0].Type equals "message" and c.input[0].Role equals "user"
         # Single user message - can pass content directly as string
         req.Input = c.input
     else
         req.Input = c.input
 
-    if c.instructions != ""
+    if c.instructions isnt ""
         req.Instructions = c.instructions
-    if c.previousResponseID != ""
+    if c.previousResponseID isnt ""
         req.PreviousResponseID = c.previousResponseID
-    if c.temperature != 0.0
+    if c.temperature isnt 0.0
         req.Temperature = c.temperature
-    if c.topP != 0.0
+    if c.topP isnt 0.0
         req.TopP = c.topP
-    if c.maxOutputTokens != 0
+    if c.maxOutputTokens isnt 0
         req.MaxOutputTokens = c.maxOutputTokens
-    if c.presencePenalty != 0.0
+    if c.presencePenalty isnt 0.0
         req.PresencePenalty = c.presencePenalty
-    if c.frequencyPenalty != 0.0
+    if c.frequencyPenalty isnt 0.0
         req.FrequencyPenalty = c.frequencyPenalty
     if len(c.tools) > 0
         req.Tools = c.tools
-    if c.toolChoice != empty
+    if c.toolChoice isnt empty
         req.ToolChoice = c.toolChoice
     if c.store
         req.Store = true
-    if c.truncation != ""
+    if c.truncation isnt ""
         req.Truncation = c.truncation
     if len(c.metadata) > 0
         req.Metadata = c.metadata
-    if c.textFormat != empty
+    if c.textFormat isnt empty
         req.Text = c.textFormat
-    if c.streamHandler != empty or c.eventHandler != empty
+    if c.streamHandler isnt empty or c.eventHandler isnt empty
         req.Stream = true
 
     return req
@@ -1345,7 +1345,7 @@ func rExecute(c ResponseClient) (string, error)
 
 # Internal: execute an OpenResponses request and return the full Response
 func rExecuteRaw(c ResponseClient) (Response, error)
-    if c.streamHandler != empty or c.eventHandler != empty
+    if c.streamHandler isnt empty or c.eventHandler isnt empty
         return rExecuteStreamRaw(c)
 
     baseURL := rResolveBaseURL(c)
@@ -1359,7 +1359,7 @@ func rExecuteRaw(c ResponseClient) (Response, error)
         |> fetch.Header("Content-Type", "application/json")
         |> fetch.Body(body)
 
-    if apiKey != ""
+    if apiKey isnt ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
 
     if c.retryMaxAttempts > 1
@@ -1397,7 +1397,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
         |> fetch.Header("Accept", "text/event-stream")
         |> fetch.Body(body)
 
-    if apiKey != ""
+    if apiKey isnt ""
         req = fetch.Header(req, "Authorization", "Bearer {apiKey}")
 
     resp := fetch.Do(req) onerr return
@@ -1417,11 +1417,11 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
         line := scanner.Text()
 
         # Skip empty lines and comments
-        if line == "" or string.HasPrefix(line, ":")
+        if line equals "" or string.HasPrefix(line, ":")
             continue
 
         # Check for end of stream
-        if line == "data: [DONE]"
+        if line equals "data: [DONE]"
             break
 
         # Parse SSE data lines
@@ -1432,31 +1432,31 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
                 continue
 
             # Forward event to event handler if set
-            if c.eventHandler != empty
+            if c.eventHandler isnt empty
                 c.eventHandler(evt)
 
             # Handle text deltas for the stream handler
-            if evt.Type == "response.output_text.delta"
-                if evt.Delta != ""
+            if evt.Type equals "response.output_text.delta"
+                if evt.Delta isnt ""
                     fullContent = fullContent + evt.Delta
-                    if c.streamHandler != empty
+                    if c.streamHandler isnt empty
                         c.streamHandler(evt.Delta)
 
             # Handle function call deltas
-            if evt.Type == "response.function_call.delta" or evt.Type == "response.function_call_arguments.delta"
+            if evt.Type equals "response.function_call.delta" or evt.Type equals "response.function_call_arguments.delta"
                 idx := evt.OutputIndex
                 call := callsMap[idx]
                 call.Type = "function_call"
-                if evt.ItemID != ""
+                if evt.ItemID isnt ""
                     call.ID = evt.ItemID
-                if evt.Name != ""
+                if evt.Name isnt ""
                     call.Name = call.Name + evt.Name
-                if evt.Arguments != ""
+                if evt.Arguments isnt ""
                     call.Arguments = call.Arguments + evt.Arguments
                 callsMap[idx] = call
 
             # Handle error events
-            if evt.Type == "error"
+            if evt.Type equals "error"
                 return {}, error evt.Message
 
     scanner.Err() onerr return {}, error "{error}"
@@ -1470,7 +1470,7 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
             output = append(output, callsMap[i])
 
     # Add text message as well if we have content
-    if fullContent != ""
+    if fullContent isnt ""
         msgPart := map of string to any{"type": "output_text", "text": fullContent}
         output = append(output, OutputItem{Type: "message", Role: "assistant", Content: list of any{msgPart}})
 
@@ -1876,7 +1876,7 @@ func AnthropicCompleteWithSystem(model string, system string, prompt string) (st
 func GetAnthropicText(resp AnthropicResponse) string
     result := ""
     for _, block in resp.Content
-        if block.Type == "text"
+        if block.Type equals "text"
             result = result + block.Text
     return result
 
@@ -1887,7 +1887,7 @@ func GetAnthropicText(resp AnthropicResponse) string
 func GetThinking(resp AnthropicResponse) string
     result := ""
     for _, block in resp.Content
-        if block.Type == "thinking"
+        if block.Type equals "thinking"
             result = result + block.Thinking
     return result
 
@@ -1897,30 +1897,30 @@ func GetThinking(resp AnthropicResponse) string
 func GetToolUses(resp AnthropicResponse) list of ContentBlock
     uses := empty list of ContentBlock
     for _, block in resp.Content
-        if block.Type == "tool_use"
+        if block.Type equals "tool_use"
             uses = append(uses, block)
     return uses
 
 # HasToolUses returns true if the response contains tool use blocks
 # Example: if llm.HasToolUses(resp) ...
 func HasToolUses(resp AnthropicResponse) bool
-    return resp.StopReason == "tool_use"
+    return resp.StopReason equals "tool_use"
 
 # Internal: resolve API key for MessagesClient
 func mResolveAPIKey(c MessagesClient) string
-    if c.apiKey != ""
+    if c.apiKey isnt ""
         return c.apiKey
     return env.GetOr("ANTHROPIC_API_KEY", "")
 
 # Internal: resolve base URL for MessagesClient
 func mResolveBaseURL(c MessagesClient) string
-    if c.baseURL != ""
+    if c.baseURL isnt ""
         return c.baseURL
     return "https://api.anthropic.com"
 
 # Internal: resolve the messages path
 func mResolvePath(c MessagesClient) string
-    if c.path != ""
+    if c.path isnt ""
         return c.path
     return "/v1/messages"
 
@@ -1931,38 +1931,38 @@ func mBuildRequest(c MessagesClient) MessagesRequest
     req.Messages = c.messages
     req.MaxTokens = c.maxTokens
 
-    if c.system != ""
+    if c.system isnt ""
         req.System = c.system
-    if c.temperature != 0.0
+    if c.temperature isnt 0.0
         req.Temperature = c.temperature
-    if c.topP != 0.0
+    if c.topP isnt 0.0
         req.TopP = c.topP
-    if c.topK != 0
+    if c.topK isnt 0
         req.TopK = c.topK
     if len(c.stopSequences) > 0
         req.StopSequences = c.stopSequences
     if len(c.tools) > 0
         req.Tools = c.tools
-    if c.toolChoice != empty
+    if c.toolChoice isnt empty
         req.ToolChoice = c.toolChoice
-    if c.metadata != empty
+    if c.metadata isnt empty
         req.Metadata = c.metadata
-    if c.thinking != empty
+    if c.thinking isnt empty
         req.Thinking = c.thinking
-    if c.effort != ""
+    if c.effort isnt ""
         req.Effort = c.effort
-    if c.outputConfig != empty
+    if c.outputConfig isnt empty
         req.OutputConfig = c.outputConfig
-    if c.inferenceGeo != ""
+    if c.inferenceGeo isnt ""
         req.InferenceGeo = c.inferenceGeo
-    if c.streamHandler != empty or c.eventHandler != empty
+    if c.streamHandler isnt empty or c.eventHandler isnt empty
         req.Stream = true
 
     return req
 
 # Internal: execute an Anthropic Messages request and return just the text
 func mExecute(c MessagesClient) (string, error)
-    if c.streamHandler != empty or c.eventHandler != empty
+    if c.streamHandler isnt empty or c.eventHandler isnt empty
         return mExecuteStream(c)
 
     resp := mExecuteRaw(c) onerr return
@@ -1982,7 +1982,7 @@ func mExecuteRaw(c MessagesClient) (AnthropicResponse, error)
         |> fetch.Header("Content-Type", "application/json")
         |> fetch.Header("anthropic-version", c.apiVersion)
 
-    if apiKey != ""
+    if apiKey isnt ""
         req = fetch.Header(req, "x-api-key", apiKey)
 
     req = fetch.Body(req, body)
@@ -2022,7 +2022,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
         |> fetch.Header("Accept", "text/event-stream")
         |> fetch.Header("anthropic-version", c.apiVersion)
 
-    if apiKey != ""
+    if apiKey isnt ""
         req = fetch.Header(req, "x-api-key", apiKey)
 
     req = fetch.Body(req, body)
@@ -2043,7 +2043,7 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
         line := scanner.Text()
 
         # Skip empty lines, event type lines, and comments
-        if line == "" or string.HasPrefix(line, "event:") or string.HasPrefix(line, ":")
+        if line equals "" or string.HasPrefix(line, "event:") or string.HasPrefix(line, ":")
             continue
 
         # Parse data lines
@@ -2054,31 +2054,31 @@ func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error)
                 continue
 
             # Forward event to event handler if set
-            if c.eventHandler != empty
+            if c.eventHandler isnt empty
                 c.eventHandler(evt)
 
             # Handle content_block_start
-            if evt.Type == "content_block_start"
+            if evt.Type equals "content_block_start"
                 idx := evt.Index
                 contentBlocks[idx] = evt.ContentBlock
 
             # Handle content_block_delta
-            if evt.Type == "content_block_delta"
+            if evt.Type equals "content_block_delta"
                 idx := evt.Index
                 block := contentBlocks[idx]
-                if evt.Delta.Type == "text_delta"
+                if evt.Delta.Type equals "text_delta"
                     block.Type = "text"
                     block.Text = block.Text + evt.Delta.Text
-                    if c.streamHandler != empty
+                    if c.streamHandler isnt empty
                         c.streamHandler(evt.Delta.Text)
-                if evt.Delta.Type == "input_json_delta"
+                if evt.Delta.Type equals "input_json_delta"
                     block.Type = "tool_use"
                     inputAccum[idx] = inputAccum[idx] + evt.Delta.PartialJSON
                     block.Input = inputAccum[idx]
                 contentBlocks[idx] = block
 
             # Handle error events
-            if evt.Type == "error"
+            if evt.Type equals "error"
                 return {}, error "Anthropic streaming error"
 
     scanner.Err() onerr return {}, error "{error}"

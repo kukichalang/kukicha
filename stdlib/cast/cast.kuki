@@ -79,9 +79,9 @@ func SmartBool(value any) (bool, error)
         when bool
             return v, empty
         when int
-            return v != 0, empty
+            return v isnt 0, empty
         when float64
-            return v != 0.0, empty
+            return v isnt 0.0, empty
         when string
             b, err := strconv.ParseBool(v)
             return b, err
@@ -91,7 +91,7 @@ func SmartBool(value any) (bool, error)
 # SmartString converts an untyped value to string.
 # Never returns an error; uses fmt.Sprintf("%v") as a fallback.
 func SmartString(value any) (string, error)
-    if value == empty
+    if value equals empty
         return "", empty
     result := value |> switch as v
         when string

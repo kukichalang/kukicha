@@ -55,7 +55,7 @@ func Reverse(items list of any) list of any
 # Preserves the order of first occurrence
 # Note: Elements must be comparable
 func Unique(items list of any2) list of any2
-    if len(items) == 0
+    if len(items) equals 0
         return items
 
     seen := make(map of any2 to bool)
@@ -169,7 +169,7 @@ func SortBy(items list of any, key func(any) ordered) list of any
 # Example: item := slice.Get(items, 5) onerr return
 func Get(items list of any, index int) (any, error)
     length := len(items)
-    if length == 0
+    if length equals 0
         return empty, error "slice is empty"
 
     # Handle negative indexing
@@ -188,7 +188,7 @@ func Get(items list of any, index int) (any, error)
 # Example: item := slice.GetOr(items, 5, defaultItem)
 func GetOr(items list of any, index int, defaultValue any) any
     length := len(items)
-    if length == 0
+    if length equals 0
         return defaultValue
 
     # Handle negative indexing
@@ -204,7 +204,7 @@ func GetOr(items list of any, index int, defaultValue any) any
 # FirstOne returns the first element, or an error if empty
 # Example: first := slice.FirstOne(items) onerr return
 func FirstOne(items list of any) (any, error)
-    if len(items) == 0
+    if len(items) equals 0
         return empty, error "slice is empty"
     return items[0], empty
 
@@ -212,14 +212,14 @@ func FirstOne(items list of any) (any, error)
 # Never fails - always returns a valid value
 # Example: first := slice.FirstOr(items, defaultItem)
 func FirstOr(items list of any, defaultValue any) any
-    if len(items) == 0
+    if len(items) equals 0
         return defaultValue
     return items[0]
 
 # LastOne returns the last element, or an error if empty
 # Example: last := slice.LastOne(items) onerr return
 func LastOne(items list of any) (any, error)
-    if len(items) == 0
+    if len(items) equals 0
         return empty, error "slice is empty"
     return items[len(items) - 1], empty
 
@@ -227,7 +227,7 @@ func LastOne(items list of any) (any, error)
 # Never fails - always returns a valid value
 # Example: last := slice.LastOr(items, defaultItem)
 func LastOr(items list of any, defaultValue any) any
-    if len(items) == 0
+    if len(items) equals 0
         return defaultValue
     return items[len(items) - 1]
 
@@ -260,7 +260,7 @@ func FindIndex(items list of any, predicate func(any) bool) int
 # FindLast returns the last element matching the predicate, or error if not found
 # Example: user := slice.FindLast(users, func(u) { return u.Active }) onerr return
 func FindLast(items list of any, predicate func(any) bool) (any, error)
-    if len(items) == 0
+    if len(items) equals 0
         return empty, error "no matching element found"
     for i from len(items) - 1 through 0
         if predicate(items[i])
@@ -270,7 +270,7 @@ func FindLast(items list of any, predicate func(any) bool) (any, error)
 # FindLastOr returns the last element matching the predicate, or defaultValue if not found
 # Example: user := slice.FindLastOr(users, func(u) { return u.Active }, defaultUser)
 func FindLastOr(items list of any, predicate func(any) bool, defaultValue any) any
-    if len(items) == 0
+    if len(items) equals 0
         return defaultValue
     for i from len(items) - 1 through 0
         if predicate(items[i])
@@ -280,7 +280,7 @@ func FindLastOr(items list of any, predicate func(any) bool, defaultValue any) a
 # IsEmpty returns true if the slice is empty
 # Example: if slice.IsEmpty(items) ...
 func IsEmpty(items list of any) bool
-    return len(items) == 0
+    return len(items) equals 0
 
 # IsNotEmpty returns true if the slice is not empty
 # Example: if slice.IsNotEmpty(items) ...
@@ -291,7 +291,7 @@ func IsNotEmpty(items list of any) bool
 # Does not modify the original slice
 # Example: last, rest := slice.Pop(items) onerr return
 func Pop(items list of any) (any, list of any, error)
-    if len(items) == 0
+    if len(items) equals 0
         return empty, items, error "cannot pop from empty slice"
     return items[len(items) - 1], items[:len(items) - 1], empty
 
@@ -299,6 +299,6 @@ func Pop(items list of any) (any, list of any, error)
 # Does not modify the original slice
 # Example: first, rest := slice.Shift(items) onerr return
 func Shift(items list of any) (any, list of any, error)
-    if len(items) == 0
+    if len(items) equals 0
         return empty, items, error "cannot shift from empty slice"
     return items[0], items[1:], empty

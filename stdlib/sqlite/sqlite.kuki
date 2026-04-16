@@ -114,7 +114,7 @@ func IntegrityCheck(pool db.Pool) error
     row := rawDB.QueryRow("PRAGMA integrity_check")
     result := ""
     row.Scan(reference of result) onerr return
-    if result != "ok"
+    if result isnt "ok"
         return error "sqlite.IntegrityCheck: {result}"
     return empty
 
@@ -178,7 +178,7 @@ func DropNotNull(pool db.Pool, table string, column string) error
 func AddCheck(pool db.Pool, table string, expr string) error
     if not isValidPragmaName(table)
         return error "sqlite.AddCheck: invalid table name"
-    if len(expr) == 0
+    if len(expr) equals 0
         return error "sqlite.AddCheck: empty check expression"
     rawDB := db.RawDB(pool)
     _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s ADD CHECK (%s)", quoteIdentifier(table), expr))
@@ -388,7 +388,7 @@ func Dump(pool db.Pool) (string, error)
     tables := Tables(pool) onerr return
     for _, table in tables
         dumpErr := dumpTable(rawDB, reference of b, table)
-        if dumpErr != empty
+        if dumpErr isnt empty
             return "", dumpErr
 
     return b.String(), empty
@@ -438,25 +438,25 @@ func makeRegisterFuncCallback(name string, nArgs int, sfn sqlite3.ScalarFunction
 
 # isValidPragmaName checks that a pragma name contains only safe characters.
 func isValidPragmaName(name string) bool
-    if len(name) == 0
+    if len(name) equals 0
         return false
     for _, r in name
-        if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r != 95
+        if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r isnt 95
             return false
     return true
 
 # isValidPragmaValue checks that a pragma value is a safe literal:
 # integers (possibly negative), or simple identifiers (letters/digits/underscores).
 func isValidPragmaValue(value string) bool
-    if len(value) == 0
+    if len(value) equals 0
         return false
     v := value
-    if v[0] == 45
+    if v[0] equals 45
         v = v[1:]
-        if len(v) == 0
+        if len(v) equals 0
             return false
     for _, r in v
-        if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r != 95
+        if not unicode.IsLetter(r) and not unicode.IsDigit(r) and r isnt 95
             return false
     return true
 
@@ -466,7 +466,7 @@ func quoteIdentifier(name string) string
 
 # formatSQLValue formats a Go value as a SQL literal for INSERT statements.
 func formatSQLValue(v any) string
-    if v == empty
+    if v equals empty
         return "NULL"
     if i, ok := v.(int64); ok
         return fmt.Sprintf("%d", i)

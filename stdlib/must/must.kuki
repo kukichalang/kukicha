@@ -12,27 +12,27 @@ import "stdlib/cast"
 import "stdlib/env"
 
 func Do(value any, err error) any
-    if err != empty
+    if err isnt empty
         panic "must: {err}"
     return value
 
 # DoMsg executes a function and panics with a custom message if there's an error
 # Example: config := must.DoMsg(loadConfig(), "failed to load configuration")
 func DoMsg(value any, err error, message string) any
-    if err != empty
+    if err isnt empty
         panic "{message}: {err}"
     return value
 
 # Ok panics if the error is not nil (useful when you don't need the value)
 # Example: must.Ok(os.MkdirAll(path, 0755))
 func Ok(err error)
-    if err != empty
+    if err isnt empty
         panic "must: {err}"
 
 # OkMsg panics with a custom message if the error is not nil
 # Example: must.OkMsg(os.Chdir(dir), "failed to change directory")
 func OkMsg(err error, message string)
-    if err != empty
+    if err isnt empty
         panic "{message}: {err}"
 
 # Environment Variable Helpers
@@ -41,7 +41,7 @@ func OkMsg(err error, message string)
 # Example: apiKey := must.Env("API_KEY")
 func Env(key string) string
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         panic "must: environment variable {key} is required but not set"
     return value
 
@@ -50,7 +50,7 @@ func Env(key string) string
 # Example: port := must.EnvOr("PORT", "8080")
 func EnvOr(key string, defaultValue string) string
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         return defaultValue
     return value
 
@@ -58,7 +58,7 @@ func EnvOr(key string, defaultValue string) string
 # Example: port := must.EnvInt("PORT")
 func EnvInt(key string) int
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         panic "must: environment variable {key} is required but not set"
     val := cast.Atoi(value) onerr panic "must: environment variable {key} must be a valid integer"
     return val
@@ -68,7 +68,7 @@ func EnvInt(key string) int
 # Example: port := must.EnvIntOr("PORT", 8080)
 func EnvIntOr(key string, defaultValue int) int
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         return defaultValue
     val := cast.Atoi(value) onerr panic "must: environment variable {key} must be a valid integer"
     return val
@@ -78,7 +78,7 @@ func EnvIntOr(key string, defaultValue int) int
 # Example: debug := must.EnvBool("DEBUG")
 func EnvBool(key string) bool
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         panic "must: environment variable {key} is required but not set"
     val := env.ParseBool(value) onerr panic "must: environment variable {key} must be a valid boolean"
     return val
@@ -88,7 +88,7 @@ func EnvBool(key string) bool
 # Example: debug := must.EnvBoolOr("DEBUG", false)
 func EnvBoolOr(key string, defaultValue bool) bool
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         return defaultValue
     val := env.ParseBool(value) onerr panic "must: environment variable {key} must be a valid boolean"
     return val
@@ -98,7 +98,7 @@ func EnvBoolOr(key string, defaultValue bool) bool
 # Example: hosts := must.EnvList("ALLOWED_HOSTS", ",")
 func EnvList(key string, separator string) list of string
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         panic "must: environment variable {key} is required but not set"
     return env.SplitAndTrim(value, separator)
 
@@ -106,7 +106,7 @@ func EnvList(key string, separator string) list of string
 # Example: hosts := must.EnvListOr("ALLOWED_HOSTS", ",", empty list of string)
 func EnvListOr(key string, separator string, defaultValue list of string) list of string
     value := env.GetOr(key, "")
-    if value == ""
+    if value equals ""
         return defaultValue
     return env.SplitAndTrim(value, separator)
 
@@ -128,12 +128,12 @@ func False(condition bool, message string)
 # NotEmpty panics if the string is empty
 # Example: must.NotEmpty(config.APIKey, "API key")
 func NotEmpty(s string, name string)
-    if s == ""
+    if s equals ""
         panic "{name} cannot be empty"
 
 # NotNil panics if the value is nil
 # Note: Due to Go's interface nil semantics, this may not catch typed nils
 # Example: must.NotNil(handler, "handler")
 func NotNil(value any, name string)
-    if value == empty
+    if value equals empty
         panic "{name} cannot be nil"

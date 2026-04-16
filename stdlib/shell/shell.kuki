@@ -31,7 +31,7 @@ type Result
 # kuki:security "shell"
 func Run(cmd string) (string, error)
     fields := string.Fields(cmd)
-    if len(fields) == 0
+    if len(fields) equals 0
         return "", error "empty command"
     return Output(fields[0], many fields[1:])
 
@@ -80,7 +80,7 @@ func Execute(cmd Command) Result
         execCmd = exec.CommandContext(ctxpkg.Value(h), cmd.name, many cmd.args)
 
     # Set working directory if specified
-    if cmd.dir != ""
+    if cmd.dir isnt ""
         execCmd.Dir = cmd.dir
 
     # Add environment variables
@@ -106,7 +106,7 @@ func Execute(cmd Command) Result
 
 # getExitCode extracts the exit code from an error
 func getExitCode(err error) int
-    if err == empty
+    if err equals empty
         return 0
     code := err |> switch as exitErr
         when reference exec.ExitError
@@ -142,7 +142,7 @@ func Preview(cmd Command) string
 # Success returns true if the command succeeded (exit code 0)
 # Example: if shell.Success(result) ...
 func Success(result Result) bool
-    return result.exitCode == 0 and result.err == empty
+    return result.exitCode equals 0 and result.err equals empty
 
 # GetOutput returns the stdout as bytes
 # Example: output := shell.GetOutput(result)
@@ -166,7 +166,7 @@ func ExitCode(result Result) int
 # Example: if shell.Which("git") ...
 func Which(name string) bool
     _, err := exec.LookPath(name)
-    return err == empty
+    return err equals empty
 
 # Getenv returns the value of an environment variable
 # Example: home := shell.Getenv("HOME")

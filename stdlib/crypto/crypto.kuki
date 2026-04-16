@@ -50,7 +50,7 @@ func HMACBytes(key list of byte, data list of byte) list of byte
 func RandomToken(length int) (string, error)
     b := make(list of byte, length)
     _, error := rand.Read(b)
-    if error != empty
+    if error isnt empty
         return "", fmt.Errorf("crypto.RandomToken: %w", error)
     return hex.EncodeToString(b), empty
 
@@ -59,7 +59,7 @@ func RandomToken(length int) (string, error)
 func RandomBytes(n int) (list of byte, error)
     b := make(list of byte, n)
     _, error := rand.Read(b)
-    if error != empty
+    if error isnt empty
         return empty, fmt.Errorf("crypto.RandomBytes: %w", error)
     return b, empty
 

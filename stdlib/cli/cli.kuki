@@ -93,7 +93,7 @@ func Command(app App, name string, desc string) App
 # Example: app |> cli.CommandFlag("list", "csv", "CSV output", "false")
 func CommandFlag(app App, cmd string, name string, desc string, defaultValue string) App
     for i from 0 to len(app.subcommands)
-        if app.subcommands[i].name == cmd
+        if app.subcommands[i].name equals cmd
             app.subcommands[i].flags = append(app.subcommands[i].flags, FlagDef{name: name, description: desc, defaultValue: defaultValue})
             return app
     return app
@@ -102,7 +102,7 @@ func CommandFlag(app App, cmd string, name string, desc string, defaultValue str
 # Example: app |> cli.CommandAction("list", doList)
 func CommandAction(app App, cmd string, handler func(Args)) App
     for i from 0 to len(app.subcommands)
-        if app.subcommands[i].name == cmd
+        if app.subcommands[i].name equals cmd
             app.subcommands[i].action = handler
             return app
     return app
@@ -163,11 +163,11 @@ func runFlat(app App) error
 
     # Set default values for flags not provided
     for flagDef in app.flags
-        if values[flagDef.name] == ""
+        if values[flagDef.name] equals ""
             values[flagDef.name] = flagDef.defaultValue
 
     # Call the action handler
-    if app.action != empty
+    if app.action isnt empty
         parsedArgs := Args{values: values}
         app.action(parsedArgs)
         return empty
@@ -179,7 +179,7 @@ func runFlat(app App) error
 func runWithSubcommands(app App) error
     args := os.Args
 
-    if len(args) < 2 or args[1] == "-h" or args[1] == "--help"
+    if len(args) < 2 or args[1] equals "-h" or args[1] equals "--help"
         printHelp(app)
         return empty
 
@@ -188,10 +188,10 @@ func runWithSubcommands(app App) error
     # Find the matching subcommand
     cmdIndex := -1
     for i from 0 to len(app.subcommands)
-        if app.subcommands[i].name == cmdName
+        if app.subcommands[i].name equals cmdName
             cmdIndex = i
 
-    if cmdIndex == -1
+    if cmdIndex equals -1
         fmt.Fprintln(os.Stderr, "Unknown command: {cmdName}")
         fmt.Fprintln(os.Stderr, "")
         printHelp(app)
@@ -200,7 +200,7 @@ func runWithSubcommands(app App) error
     cmd := app.subcommands[cmdIndex]
 
     # Check for subcommand-level help
-    if len(args) > 2 and (args[2] == "-h" or args[2] == "--help")
+    if len(args) > 2 and (args[2] equals "-h" or args[2] equals "--help")
         printCommandHelp(app, cmd)
         return empty
 
@@ -229,15 +229,15 @@ func runWithSubcommands(app App) error
 
     # Set defaults for global flags
     for flagDef in app.globalFlags
-        if values[flagDef.name] == ""
+        if values[flagDef.name] equals ""
             values[flagDef.name] = flagDef.defaultValue
 
     # Set defaults for command-specific flags
     for flagDef in cmd.flags
-        if values[flagDef.name] == ""
+        if values[flagDef.name] equals ""
             values[flagDef.name] = flagDef.defaultValue
 
-    if cmd.action == empty
+    if cmd.action equals empty
         return error "no action defined for command: {cmdName}"
 
     parsedArgs := Args{values: values}
@@ -247,7 +247,7 @@ func runWithSubcommands(app App) error
 # --- Internal: help text generation ---
 
 func printHelp(app App)
-    if app.description != ""
+    if app.description isnt ""
         print(app.description)
         print("")
 
@@ -263,7 +263,7 @@ func printHelp(app App)
         print("Global Flags:")
         for flag in app.globalFlags
             label := string.PadRight("--{flag.name}", 20)
-            if flag.defaultValue != ""
+            if flag.defaultValue isnt ""
                 print("  {label}{flag.description} (default: {flag.defaultValue})")
             else
                 print("  {label}{flag.description}")
@@ -275,7 +275,7 @@ func printCommandHelp(app App, cmd SubcommandDef)
     print("Usage:")
     print("  {app.name} {cmd.name} [flags]")
     print("")
-    if cmd.description != ""
+    if cmd.description isnt ""
         print(cmd.description)
         print("")
 
@@ -284,14 +284,14 @@ func printCommandHelp(app App, cmd SubcommandDef)
 
     for flag in app.globalFlags
         label := string.PadRight("--{flag.name}", 20)
-        if flag.defaultValue != ""
+        if flag.defaultValue isnt ""
             print("  {label}{flag.description} (default: {flag.defaultValue})")
         else
             print("  {label}{flag.description}")
 
     for flag in cmd.flags
         label := string.PadRight("--{flag.name}", 20)
-        if flag.defaultValue != ""
+        if flag.defaultValue isnt ""
             print("  {label}{flag.description} (default: {flag.defaultValue})")
         else
             print("  {label}{flag.description}")
@@ -324,7 +324,7 @@ func GetString(args Args, name string) string
 # Example: verbose := cli.GetBool(args, "verbose")
 func GetBool(args Args, name string) bool
     val := args.values[name]
-    return val == "true" or val == "1" or val == "yes"
+    return val equals "true" or val equals "1" or val equals "yes"
 
 # IsJSON returns true if the --json global flag was passed.
 # Shorthand for cli.GetBool(args, "json").
@@ -336,7 +336,7 @@ func IsJSON(args Args) bool
 # Example: count := cli.GetInt(args, "count")
 func GetInt(args Args, name string) (int, error)
     strVal := args.values[name]
-    if strVal == ""
+    if strVal equals ""
         return 0, error "argument {name} not found"
 
     return cast.Atoi(strVal)

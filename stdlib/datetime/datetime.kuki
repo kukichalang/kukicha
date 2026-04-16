@@ -194,7 +194,7 @@ func IsSameDay(t1 time.Time, t2 time.Time) bool
     y2 := t2.Year()
     m2 := t2.Month()
     d2 := t2.Day()
-    return y1 == y2 and m1 == m2 and d1 == d2
+    return y1 equals y2 and m1 equals m2 and d1 equals d2
 
 # IsToday returns true if the time is today
 # Example: if datetime.IsToday(event) ...
@@ -322,31 +322,31 @@ func InLocation(t time.Time, location string) (time.Time, error)
 
 # Internal helper to convert format names to Go layouts
 func getLayout(format string) string
-    if format == "iso8601" or format == "ISO8601"
+    if format equals "iso8601" or format equals "ISO8601"
         return "2006-01-02T15:04:05Z07:00"
-    if format == "rfc3339" or format == "RFC3339"
+    if format equals "rfc3339" or format equals "RFC3339"
         return time.RFC3339
-    if format == "rfc3339nano" or format == "RFC3339Nano"
+    if format equals "rfc3339nano" or format equals "RFC3339Nano"
         return time.RFC3339Nano
-    if format == "date"
+    if format equals "date"
         return "2006-01-02"
-    if format == "time"
+    if format equals "time"
         return "15:04:05"
-    if format == "datetime"
+    if format equals "datetime"
         return "2006-01-02 15:04:05"
-    if format == "dateTimeT"
+    if format equals "dateTimeT"
         return "2006-01-02T15:04:05"
-    if format == "kitchen"
+    if format equals "kitchen"
         return time.Kitchen
-    if format == "stamp"
+    if format equals "stamp"
         return time.Stamp
-    if format == "rfc822"
+    if format equals "rfc822"
         return time.RFC822
-    if format == "rfc1123"
+    if format equals "rfc1123"
         return time.RFC1123
-    if format == "ansic"
+    if format equals "ansic"
         return time.ANSIC
-    if format == "unixdate"
+    if format equals "unixdate"
         return time.UnixDate
     # If not a named format, assume it's a custom layout
     return format

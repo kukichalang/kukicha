@@ -47,7 +47,7 @@ func Sleep(cfg Config, attempt int)
 
 # calculateDelay returns the delay in milliseconds for a given attempt
 func calculateDelay(cfg Config, attempt int) int
-    if cfg.Strategy == 0
+    if cfg.Strategy equals 0
         return cfg.InitialDelay
 
     # Exponential backoff: InitialDelay * 2^attempt

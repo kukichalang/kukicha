@@ -180,12 +180,12 @@ func Transaction(pool Pool, fn func(Tx) error) error
     tx := Tx{tx: sqlTx}
 
     defer
-        if r := recover; r != empty
+        if r := recover; r isnt empty
             sqlTx.Rollback()
             panic r
 
     err := fn(tx)
-    if err != empty
+    if err isnt empty
         sqlTx.Rollback()
         return err
 
@@ -196,25 +196,25 @@ func Transaction(pool Pool, fn func(Tx) error) error
 # Example: db.TransactionWith(pool, db.TxOptions{isolationLevel: "serializable"}, fn) onerr panic "{error}"
 func TransactionWith(pool Pool, opts TxOptions, fn func(Tx) error) error
     txOpts := sql.TxOptions{ReadOnly: opts.readOnly}
-    if opts.isolationLevel == "read_uncommitted"
+    if opts.isolationLevel equals "read_uncommitted"
         txOpts.Isolation = sql.LevelReadUncommitted
-    else if opts.isolationLevel == "read_committed"
+    else if opts.isolationLevel equals "read_committed"
         txOpts.Isolation = sql.LevelReadCommitted
-    else if opts.isolationLevel == "repeatable_read"
+    else if opts.isolationLevel equals "repeatable_read"
         txOpts.Isolation = sql.LevelRepeatableRead
-    else if opts.isolationLevel == "serializable"
+    else if opts.isolationLevel equals "serializable"
         txOpts.Isolation = sql.LevelSerializable
 
     sqlTx := pool.conn.BeginTx(context.Background(), reference of txOpts) onerr return
     tx := Tx{tx: sqlTx}
 
     defer
-        if r := recover; r != empty
+        if r := recover; r isnt empty
             sqlTx.Rollback()
             panic r
 
     err := fn(tx)
-    if err != empty
+    if err isnt empty
         sqlTx.Rollback()
         return err
 
@@ -263,8 +263,8 @@ func Count(pool Pool, query string, many args any) (int64, error)
 func Exists(pool Pool, query string, many args any) (bool, error)
     row := pool.conn.QueryRow(query, many args)
     dummy := 0
-    if err := row.Scan(reference of dummy); err != empty
-        if err == sql.ErrNoRows
+    if err := row.Scan(reference of dummy); err isnt empty
+        if err equals sql.ErrNoRows
             return false, empty
         return false, err
     return true, empty
@@ -293,7 +293,7 @@ type nullSafeField
     target reflect.Value
 
 func Scan on s reference nullSafeField(value any) error
-    if value == empty
+    if value equals empty
         # NULL: leave target at zero value
         return empty
     # Convert the scanned value to the target type
@@ -302,7 +302,7 @@ func Scan on s reference nullSafeField(value any) error
         s.target.Set(src.Convert(s.target.Type()))
     else
         # Fallback: try fmt.Sprintf for string targets
-        if s.target.Kind() == reflect.String
+        if s.target.Kind() equals reflect.String
             s.target.SetString(fmt.Sprintf("%v", value))
         else
             return error "db: cannot convert {src.Type()} to {s.target.Type()}"
@@ -325,7 +325,7 @@ func structScanners(elem reflect.Value, elemType reflect.Type, columns list of s
 
         # Check json tag (from Kukicha "as" syntax)
         tag := field.Tag.Get("json")
-        if tag != "" and tag != "-"
+        if tag isnt "" and tag isnt "-"
             parts := strpkg.Split(tag, ",")
             tagMap[parts[0]] = i
 

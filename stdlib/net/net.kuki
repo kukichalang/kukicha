@@ -67,7 +67,7 @@ func IsMulticast(ip net.IP) bool
 # IsNil reports whether ip is nil/empty (invalid or unset).
 # Use this to check if ParseIP returned a valid result.
 func IsNil(ip net.IP) bool
-    return ip == empty
+    return ip equals empty
 
 # IPString returns the string form of the IP address ip.
 func IPString(ip net.IP) string

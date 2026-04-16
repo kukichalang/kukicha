@@ -93,7 +93,7 @@ func List(r Root, path string) (list of string, error)
 # Exists checks if a file or directory exists within the sandbox.
 func Exists(r Root, path string) bool
     _, err := r.root.Stat(path)
-    return err == empty
+    return err equals empty
 
 # IsDir checks if a path is a directory within the sandbox.
 func IsDir(r Root, path string) bool

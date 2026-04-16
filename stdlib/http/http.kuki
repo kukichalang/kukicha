@@ -184,7 +184,7 @@ func GetQueryParam(r reference http.Request, key string) string
 # Example: page := http.GetQueryParamOr(r, "page", "1")
 func GetQueryParamOr(r reference http.Request, key string, defaultValue string) string
     value := r.URL.Query().Get(key)
-    if value == ""
+    if value equals ""
         return defaultValue
     return value
 
@@ -193,7 +193,7 @@ func GetQueryParamOr(r reference http.Request, key string, defaultValue string) 
 # Example: page := http.GetQueryInt(r, "page") onerr return http.JSONBadRequest(w, "invalid page")
 func GetQueryInt(r reference http.Request, key string) (int, error)
     value := r.URL.Query().Get(key)
-    if value == ""
+    if value equals ""
         return 0, error "query parameter '{key}' is required"
     val := cast.Atoi(value) onerr return 0, error "query parameter '{key}' must be an integer"
     return val, empty
@@ -203,7 +203,7 @@ func GetQueryInt(r reference http.Request, key string) (int, error)
 # Example: page := http.GetQueryIntOr(r, "page", 1)
 func GetQueryIntOr(r reference http.Request, key string, defaultValue int) int
     value := r.URL.Query().Get(key)
-    if value == ""
+    if value equals ""
         return defaultValue
     val := cast.Atoi(value) onerr return defaultValue
     return val
@@ -214,7 +214,7 @@ func GetQueryIntOr(r reference http.Request, key string, defaultValue int) int
 # Example: verbose := http.GetQueryBool(r, "verbose") onerr return http.JSONBadRequest(w, "invalid verbose flag")
 func GetQueryBool(r reference http.Request, key string) (bool, error)
     value := r.URL.Query().Get(key)
-    if value == ""
+    if value equals ""
         return false, error "query parameter '{key}' is required"
     val := validate.ParseBool(value) onerr return false, error "query parameter '{key}' must be a boolean"
     return val, empty
@@ -224,7 +224,7 @@ func GetQueryBool(r reference http.Request, key string) (bool, error)
 # Example: verbose := http.GetQueryBoolOr(r, "verbose", false)
 func GetQueryBoolOr(r reference http.Request, key string, defaultValue bool) bool
     value := r.URL.Query().Get(key)
-    if value == ""
+    if value equals ""
         return defaultValue
     val := validate.ParseBool(value) onerr return defaultValue
     return val
@@ -238,7 +238,7 @@ func GetHeader(r reference http.Request, key string) string
 # Example: contentType := http.GetHeaderOr(r, "Content-Type", "application/json")
 func GetHeaderOr(r reference http.Request, key string, defaultValue string) string
     value := r.Header.Get(key)
-    if value == ""
+    if value equals ""
         return defaultValue
     return value
 
@@ -268,7 +268,7 @@ func RedirectPermanent(w http.ResponseWriter, r reference http.Request, url stri
 # Example: http.SafeRedirect(w, r, returnURL, "example.com", "api.example.com") onerr return
 func SafeRedirect(w http.ResponseWriter, r reference http.Request, redirectURL string, many allowedHosts string) error
     parsed := url.Parse(redirectURL) onerr return
-    if parsed.Host == ""
+    if parsed.Host equals ""
         # Relative URL — always safe
         http.Redirect(w, r, redirectURL, 302)
         return empty
@@ -338,27 +338,27 @@ func SetSecureHeaders(w http.ResponseWriter)
 # IsGet returns true if the request method is GET
 # Example: if http.IsGet(r) ...
 func IsGet(r reference http.Request) bool
-    return r.Method == "GET"
+    return r.Method equals "GET"
 
 # IsPost returns true if the request method is POST
 # Example: if http.IsPost(r) ...
 func IsPost(r reference http.Request) bool
-    return r.Method == "POST"
+    return r.Method equals "POST"
 
 # IsPut returns true if the request method is PUT
 # Example: if http.IsPut(r) ...
 func IsPut(r reference http.Request) bool
-    return r.Method == "PUT"
+    return r.Method equals "PUT"
 
 # IsDelete returns true if the request method is DELETE
 # Example: if http.IsDelete(r) ...
 func IsDelete(r reference http.Request) bool
-    return r.Method == "DELETE"
+    return r.Method equals "DELETE"
 
 # IsPatch returns true if the request method is PATCH
 # Example: if http.IsPatch(r) ...
 func IsPatch(r reference http.Request) bool
-    return r.Method == "PATCH"
+    return r.Method equals "PATCH"
 
 # MethodNotAllowed sends a 405 Method Not Allowed response
 # Sets the Allow header with permitted methods

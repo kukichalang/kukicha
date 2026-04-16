@@ -159,11 +159,11 @@ func Len(s string) int
 
 # IsEmpty checks if the string is empty
 func IsEmpty(s string) bool
-    return len(s) == 0
+    return len(s) equals 0
 
 # IsBlank checks if the string is empty or contains only whitespace
 func IsBlank(s string) bool
-    return len(strings.TrimSpace(s)) == 0
+    return len(strings.TrimSpace(s)) equals 0
 
 # Lines splits a string into lines (by newline characters)
 func Lines(s string) list of string
