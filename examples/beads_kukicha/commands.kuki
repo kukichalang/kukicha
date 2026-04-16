@@ -6,6 +6,7 @@ petiole main
 import "fmt"
 import "os"
 import "stdlib/cli"
+import "stdlib/color"
 import "stdlib/db"
 import "stdlib/string" as strpkg
 
@@ -25,7 +26,7 @@ func doInit(args cli.Args)
     if cli.IsJSON(args)
         printJSON(map of string to string{"status": "initialized", "db": dbPath})
     else
-        print(green("Initialized beads database at {dbPath}"))
+        print(color.Green("Initialized beads database at {dbPath}"))
 
 # doCreate creates a new issue.
 func doCreate(args cli.Args)
@@ -73,7 +74,7 @@ func doCreate(args cli.Args)
     if cli.IsJSON(args)
         printJSON(issue)
     else
-        print("{green("Created")} {bold(issue.Id)}  {issue.Title}")
+        print("{color.Green("Created")} {color.Bold(issue.Id)}  {issue.Title}")
 
 # doList lists issues with optional filters.
 func doList(args cli.Args)
@@ -141,7 +142,7 @@ func doShow(args cli.Args)
 
     if len(deps) > 0
         print("")
-        print("  {bold("Dependencies:")}")
+        print("  {color.Bold("Dependencies:")}")
         for d in deps
             if d.IssueId equals id
                 print("    depends on {d.DependsOnId} ({depTypeName(d.DepType)})")
@@ -154,12 +155,12 @@ func doShow(args cli.Args)
 
     if len(comments) > 0
         print("")
-        print("  {bold("Comments:")}")
+        print("  {color.Bold("Comments:")}")
         for c in comments
             author := c.Author
             if author equals ""
                 author = "anonymous"
-            print("    {dim(timeAgo(c.CreatedAt))} {dim("by")} {author}")
+            print("    {color.Dim(timeAgo(c.CreatedAt))} {color.Dim("by")} {author}")
             print("      {c.Body}")
 
 # doUpdate updates fields on an issue.
@@ -217,7 +218,7 @@ func doUpdate(args cli.Args)
 
         printJSON(issue)
     else
-        print(green("Updated {id}"))
+        print(color.Green("Updated {id}"))
 
 # doClose closes an issue.
 func doClose(args cli.Args)
@@ -244,7 +245,7 @@ func doClose(args cli.Args)
 
         printJSON(issue)
     else
-        print(green("Closed {id}"))
+        print(color.Green("Closed {id}"))
 
 # doReopen reopens a closed issue.
 func doReopen(args cli.Args)
@@ -271,7 +272,7 @@ func doReopen(args cli.Args)
 
         printJSON(issue)
     else
-        print(green("Reopened {id}"))
+        print(color.Green("Reopened {id}"))
 
 # doDelete deletes an issue permanently.
 func doDelete(args cli.Args)
@@ -294,7 +295,7 @@ func doDelete(args cli.Args)
     if cli.IsJSON(args)
         printJSON(map of string to string{"deleted": id})
     else
-        print(green("Deleted {id}"))
+        print(color.Green("Deleted {id}"))
 
 # doReady lists issues ready to work on (open + not blocked).
 func doReady(args cli.Args)
@@ -312,7 +313,7 @@ func doReady(args cli.Args)
     if cli.IsJSON(args)
         printJSON(issues)
     else
-        print(bold("Ready to work on:"))
+        print(color.Bold("Ready to work on:"))
         printIssueList(issues)
 
 # doBlocked lists issues that are blocked.
@@ -333,13 +334,13 @@ func doBlocked(args cli.Args)
         return
 
     if len(blocked) equals 0
-        print(dim("  No blocked issues."))
+        print(color.Dim("  No blocked issues."))
         return
 
-    print(bold("Blocked issues:"))
+    print(color.Bold("Blocked issues:"))
     for b in blocked
-        print("  {bold(b.IssueId)} {b.Title}")
-        print("    blocked by {dim(b.BlockerId)} {dim(b.BlockerTitle)}")
+        print("  {color.Bold(b.IssueId)} {b.Title}")
+        print("    blocked by {color.Dim(b.BlockerId)} {color.Dim(b.BlockerTitle)}")
 
 # doDep handles dep add/remove/list subcommands.
 func doDep(args cli.Args)
@@ -373,7 +374,7 @@ func doDep(args cli.Args)
             errPrint("cannot add dependency: {error}")
             return
 
-        print(green("Added dependency: {issueId} depends on {dependsOn}"))
+        print(color.Green("Added dependency: {issueId} depends on {dependsOn}"))
         return
 
     if sub equals "remove"
@@ -386,7 +387,7 @@ func doDep(args cli.Args)
             errPrint("cannot remove dependency: {error}")
             return
 
-        print(green("Removed dependency"))
+        print(color.Green("Removed dependency"))
         return
 
     if sub equals "list"
@@ -402,7 +403,7 @@ func doDep(args cli.Args)
             printJSON(deps)
             return
         if len(deps) equals 0
-            print(dim("  No dependencies."))
+            print(color.Dim("  No dependencies."))
             return
         for d in deps
             if d.IssueId equals issueId
@@ -439,7 +440,7 @@ func doLabel(args cli.Args)
             errPrint("cannot add label: {error}")
             return
 
-        print(green("Added label '{label}' to {id}"))
+        print(color.Green("Added label '{label}' to {id}"))
         return
 
     if sub equals "remove"
@@ -447,7 +448,7 @@ func doLabel(args cli.Args)
             errPrint("cannot remove label: {error}")
             return
 
-        print(green("Removed label '{label}' from {id}"))
+        print(color.Green("Removed label '{label}' from {id}"))
         return
 
     errPrint("unknown label subcommand: {sub}")
@@ -478,7 +479,7 @@ func doComment(args cli.Args)
             errPrint("cannot add comment: {error}")
             return
 
-        print(green("Comment added to {issueId}"))
+        print(color.Green("Comment added to {issueId}"))
         return
 
     if sub equals "list"
@@ -494,13 +495,13 @@ func doComment(args cli.Args)
             printJSON(comments)
             return
         if len(comments) equals 0
-            print(dim("  No comments."))
+            print(color.Dim("  No comments."))
             return
         for c in comments
             author := c.Author
             if author equals ""
                 author = "anonymous"
-            print("  {dim(timeAgo(c.CreatedAt))} {dim("by")} {author}")
+            print("  {color.Dim(timeAgo(c.CreatedAt))} {color.Dim("by")} {author}")
             print("    {c.Body}")
         return
 
@@ -527,7 +528,7 @@ func doSearch(args cli.Args)
     if cli.IsJSON(args)
         printJSON(issues)
     else
-        print(bold("Search results for \"{query}\":"))
+        print(color.Bold("Search results for \"{query}\":"))
         printIssueList(issues)
 
 # doStats shows aggregate statistics.
@@ -565,7 +566,7 @@ func doStats(args cli.Args)
         printJSON(result)
         return
 
-    print(bold("Issue Statistics"))
+    print(color.Bold("Issue Statistics"))
     print("  total: {total}")
     print("")
 
@@ -573,7 +574,7 @@ func doStats(args cli.Args)
         errPrint("{error}")
         return
 
-    print("  {bold("By status:")}")
+    print("  {color.Bold("By status:")}")
     for s in statusStats
         print("    {strpkg.PadRight(s.Label, 14, " ")} {s.Count}")
 
@@ -582,7 +583,7 @@ func doStats(args cli.Args)
         errPrint("{error}")
         return
 
-    print("  {bold("By priority:")}")
+    print("  {color.Bold("By priority:")}")
     for p in priStats
         print("    {strpkg.PadRight(p.Label, 14, " ")} {p.Count}")
 
@@ -591,6 +592,6 @@ func doStats(args cli.Args)
         errPrint("{error}")
         return
 
-    print("  {bold("By type:")}")
+    print("  {color.Bold("By type:")}")
     for t in typeStats
         print("    {strpkg.PadRight(t.Label, 14, " ")} {t.Count}")

@@ -4,53 +4,11 @@ petiole main
 
 import "fmt"
 import "os"
+import "stdlib/color"
 import "stdlib/datetime"
 import "stdlib/json" as jsonpkg
 import "stdlib/string" as strpkg
 import "time"
-
-# --- ANSI color constants ---
-
-const ansiReset = "\x1b[0m"
-
-const ansiBold = "\x1b[1m"
-
-const ansiDim = "\x1b[2m"
-
-const ansiRed = "\x1b[91m"
-
-const ansiGreen = "\x1b[32m"
-
-const ansiYellow = "\x1b[33m"
-
-const ansiBlue = "\x1b[34m"
-
-const ansiCyan = "\x1b[36m"
-
-const ansiBoldRed = "\x1b[1;91m"
-
-# --- Color helpers ---
-
-func bold(s string) string
-    return "{ansiBold}{s}{ansiReset}"
-
-func dim(s string) string
-    return "{ansiDim}{s}{ansiReset}"
-
-func red(s string) string
-    return "{ansiRed}{s}{ansiReset}"
-
-func green(s string) string
-    return "{ansiGreen}{s}{ansiReset}"
-
-func yellow(s string) string
-    return "{ansiYellow}{s}{ansiReset}"
-
-func blue(s string) string
-    return "{ansiBlue}{s}{ansiReset}"
-
-func cyan(s string) string
-    return "{ansiCyan}{s}{ansiReset}"
 
 # --- Enum name converters ---
 
@@ -68,13 +26,13 @@ func statusName(s int) string
 func statusColor(s int) string
     name := statusName(s)
     if s equals StatusOpen
-        return green(name)
+        return color.Green(name)
     if s equals StatusInProgress
-        return cyan(name)
+        return color.Cyan(name)
     if s equals StatusBlocked
-        return red(name)
+        return color.Red(name)
     if s equals StatusClosed
-        return dim(name)
+        return color.Dim(name)
     return name
 
 func stringToStatus(s string) int
@@ -104,15 +62,15 @@ func priorityName(p int) string
 func priorityColor(p int) string
     name := priorityName(p)
     if p equals PriorityCritical
-        return "{ansiBoldRed}{name}{ansiReset}"
+        return color.Error(name)
     if p equals PriorityHigh
-        return red(name)
+        return color.Red(name)
     if p equals PriorityMedium
-        return yellow(name)
+        return color.Yellow(name)
     if p equals PriorityLow
-        return blue(name)
+        return color.Blue(name)
     if p equals PriorityBacklog
-        return dim(name)
+        return color.Dim(name)
     return name
 
 func stringToPriority(s string) int
@@ -198,7 +156,7 @@ func timeAgo(iso string) string
 # --- Display helpers ---
 
 func printIssue(issue Issue)
-    print("{bold(issue.Id)}  {issue.Title}")
+    print("{color.Bold(issue.Id)}  {issue.Title}")
     print("  status:   {statusColor(issue.Status)}")
     print("  priority: {priorityColor(issue.Priority)}")
     print("  type:     {typeName(issue.IssueType)}")
@@ -208,12 +166,12 @@ func printIssue(issue Issue)
         print("  labels:   {issue.Labels}")
     if issue.Description isnt ""
         print("  desc:     {issue.Description}")
-    print("  created:  {timeAgo(issue.CreatedAt)} {dim("({issue.CreatedAt})")}")
+    print("  created:  {timeAgo(issue.CreatedAt)} {color.Dim("({issue.CreatedAt})")}")
     if issue.UpdatedAt isnt issue.CreatedAt
         print("  updated:  {timeAgo(issue.UpdatedAt)}")
     if issue.ClosedAt isnt ""
         print("  closed:   {timeAgo(issue.ClosedAt)}")
-    print("  hash:     {dim(issue.ContentHash[:16])}")
+    print("  hash:     {color.Dim(issue.ContentHash[:16])}")
 
 func printIssueRow(issue Issue)
     id := strpkg.PadRight(issue.Id, 14, " ")
@@ -222,14 +180,14 @@ func printIssueRow(issue Issue)
     title := issue.Title
     if len(title) > 50
         title = title[:47] + "..."
-    print("  {dim(id)} {statusColor(issue.Status)} {priorityColor(issue.Priority)} {dim(typ)} {dim(age)} {title}")
+    print("  {color.Dim(id)} {statusColor(issue.Status)} {priorityColor(issue.Priority)} {color.Dim(typ)} {color.Dim(age)} {title}")
 
 func printIssueList(issues list of Issue)
     if len(issues) equals 0
-        print(dim("  No issues found."))
+        print(color.Dim("  No issues found."))
         return
     header := strpkg.PadRight("  ID", 16, " ") + strpkg.PadRight("STATUS", 14, " ") + strpkg.PadRight("PRI", 12, " ") + strpkg.PadRight("TYPE", 11, " ") + strpkg.PadRight("AGE", 12, " ") + "TITLE"
-    print(dim(header))
+    print(color.Dim(header))
     for issue in issues
         printIssueRow(issue)
 
@@ -241,4 +199,4 @@ func printJSON(v any)
     fmt.Println(data as string)
 
 func errPrint(msg string)
-    fmt.Fprintln(os.Stderr, "{ansiRed}error:{ansiReset} {msg}")
+    fmt.Fprintln(os.Stderr, "{color.Red("error:")} {msg}")

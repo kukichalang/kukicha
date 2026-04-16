@@ -1,0 +1,138 @@
+# Kukicha Standard Library - ANSI Terminal Colors
+# Pure-ANSI color and style wrappers for CLI output.
+# Honors the NO_COLOR convention (https://no-color.org) and FORCE_COLOR override.
+#
+# Examples:
+#   print(color.Bold("hello"))
+#   print(color.Red("error: something went wrong"))
+#   print(color.Error("fatal: disk full"))
+#
+#   # Disable colors in tests
+#   color.SetEnabled(false)
+#   result := color.Red("x")   # returns "x" unchanged
+
+petiole color
+
+import "os"
+
+# --- internal state ---
+
+variable colorEnabled bool
+
+variable colorDetected bool
+
+variable colorOverridden bool
+
+func detectColor()
+    if colorDetected or colorOverridden
+        return
+    colorDetected = true
+    # FORCE_COLOR wins over everything
+    if os.Getenv("FORCE_COLOR") isnt ""
+        colorEnabled = true
+        return
+    # NO_COLOR disables (https://no-color.org)
+    if os.Getenv("NO_COLOR") isnt ""
+        colorEnabled = false
+        return
+    # Fall back to isatty check on stdout
+    info := os.Stdout.Stat() onerr
+        colorEnabled = false
+        return
+
+    colorEnabled = (info.Mode() & os.ModeCharDevice) isnt 0
+
+# Enabled reports whether ANSI output should be emitted.
+# Honors NO_COLOR, FORCE_COLOR, and falls back to isatty on stdout.
+func Enabled() bool
+    detectColor()
+    return colorEnabled
+
+# SetEnabled forces the enabled/disabled state, overriding auto-detect.
+# Useful in tests or when the caller knows the output sink.
+func SetEnabled(enabled bool)
+    colorOverridden = true
+    colorEnabled = enabled
+
+# --- internal wrap helper ---
+
+func wrap(code string, s string) string
+    if not Enabled()
+        return s
+    return "\x1b[{code}m{s}\x1b[0m"
+
+# --- Style wrappers ---
+
+# Bold returns s wrapped in bold ANSI codes, or s unchanged when disabled.
+func Bold(s string) string
+    return wrap("1", s)
+
+# Dim returns s wrapped in dim/faint ANSI codes, or s unchanged when disabled.
+func Dim(s string) string
+    return wrap("2", s)
+
+# Italic returns s wrapped in italic ANSI codes, or s unchanged when disabled.
+func Italic(s string) string
+    return wrap("3", s)
+
+# Underline returns s wrapped in underline ANSI codes, or s unchanged when disabled.
+func Underline(s string) string
+    return wrap("4", s)
+
+# --- Foreground colors ---
+
+# Red returns s in red (SGR 31).
+func Red(s string) string
+    return wrap("31", s)
+
+# Green returns s in green (SGR 32).
+func Green(s string) string
+    return wrap("32", s)
+
+# Yellow returns s in yellow (SGR 33).
+func Yellow(s string) string
+    return wrap("33", s)
+
+# Blue returns s in blue (SGR 34).
+func Blue(s string) string
+    return wrap("34", s)
+
+# Magenta returns s in magenta (SGR 35).
+func Magenta(s string) string
+    return wrap("35", s)
+
+# Cyan returns s in cyan (SGR 36).
+func Cyan(s string) string
+    return wrap("36", s)
+
+# Gray returns s in bright black / gray (SGR 90).
+func Gray(s string) string
+    return wrap("90", s)
+
+# BrightRed returns s in bright red (SGR 91).
+func BrightRed(s string) string
+    return wrap("91", s)
+
+# --- Semantic helpers ---
+
+# Error returns s in bold bright red — use for error messages.
+func Error(s string) string
+    if not Enabled()
+        return s
+    return "\x1b[1;91m{s}\x1b[0m"
+
+# Warn returns s in yellow — use for warning messages.
+func Warn(s string) string
+    return Yellow(s)
+
+# Success returns s in green — use for success messages.
+func Success(s string) string
+    return Green(s)
+
+# Info returns s in cyan — use for informational messages.
+func Info(s string) string
+    return Cyan(s)
+
+# Muted returns s in dim — use for secondary/less-important text.
+func Muted(s string) string
+    return Dim(s)

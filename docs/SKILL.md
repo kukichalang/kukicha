@@ -520,6 +520,15 @@ data := loadConfig() onerr cli.Fatal("config error: {error}")
 
 **table** — Terminal tables: `New`, `AddRow`, `Print`, `PrintWithStyle` (`"plain"`, `"box"`, `"markdown"`)
 
+**color** — ANSI terminal colors: `Bold`, `Dim`, `Red`, `Green`, `Yellow`, `Blue`, `Cyan`, `Gray`, `BrightRed`, `Error`, `Warn`, `Success`, `Info`, `Muted`, `Enabled`, `SetEnabled`
+
+```kukicha
+print(color.Bold("Title"))
+print(color.Red("error: something went wrong"))
+print(color.Success("All tests passed"))
+color.SetEnabled(false)  # disable in tests
+```
+
 **env** — Typed env vars with onerr: `Get`, `GetOr`, `GetInt`, `GetBool`, `Set`, `All`
 
 **must** — Panic-on-error startup: `Env`, `EnvOr`, `EnvInt`, `EnvIntOr`, `True`, `NotEmpty`

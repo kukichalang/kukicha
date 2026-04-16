@@ -1,0 +1,149 @@
+# Tests for Kukicha Standard Library - Color Package
+
+petiole color_test
+
+import "stdlib/color"
+import "stdlib/test"
+import "testing"
+
+# --- TestBoldEnabled ---
+
+type BoldCase
+    name string
+    input string
+    want string
+
+func TestBoldEnabled(t reference testing.T)
+    color.SetEnabled(true)
+    cases := list of BoldCase{
+        {name: "simple", input: "hello", want: "\x1b[1mhello\x1b[0m"},
+        {name: "empty", input: "", want: "\x1b[1m\x1b[0m"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            test.AssertEqual(t, color.Bold(tc.input), tc.want)
+        )
+
+# --- TestStylesEnabled ---
+
+type StyleCase
+    name string
+    fn func(string) string
+    code string
+
+func TestStylesEnabled(t reference testing.T)
+    color.SetEnabled(true)
+    cases := list of StyleCase{
+        {name: "Bold", fn: color.Bold, code: "1"},
+        {name: "Dim", fn: color.Dim, code: "2"},
+        {name: "Italic", fn: color.Italic, code: "3"},
+        {name: "Underline", fn: color.Underline, code: "4"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            got := tc.fn("x")
+            want := "\x1b[{tc.code}mx\x1b[0m"
+            test.AssertEqual(t, got, want)
+        )
+
+# --- TestColorsEnabled ---
+
+type ColorCase
+    name string
+    fn func(string) string
+    code string
+
+func TestColorsEnabled(t reference testing.T)
+    color.SetEnabled(true)
+    cases := list of ColorCase{
+        {name: "Red", fn: color.Red, code: "31"},
+        {name: "Green", fn: color.Green, code: "32"},
+        {name: "Yellow", fn: color.Yellow, code: "33"},
+        {name: "Blue", fn: color.Blue, code: "34"},
+        {name: "Magenta", fn: color.Magenta, code: "35"},
+        {name: "Cyan", fn: color.Cyan, code: "36"},
+        {name: "Gray", fn: color.Gray, code: "90"},
+        {name: "BrightRed", fn: color.BrightRed, code: "91"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            got := tc.fn("x")
+            want := "\x1b[{tc.code}mx\x1b[0m"
+            test.AssertEqual(t, got, want)
+        )
+
+# --- TestDisabled ---
+
+type DisabledCase
+    name string
+    fn func(string) string
+
+func TestDisabled(t reference testing.T)
+    color.SetEnabled(false)
+    cases := list of DisabledCase{
+        {name: "Bold", fn: color.Bold},
+        {name: "Dim", fn: color.Dim},
+        {name: "Italic", fn: color.Italic},
+        {name: "Underline", fn: color.Underline},
+        {name: "Red", fn: color.Red},
+        {name: "Green", fn: color.Green},
+        {name: "Yellow", fn: color.Yellow},
+        {name: "Blue", fn: color.Blue},
+        {name: "Magenta", fn: color.Magenta},
+        {name: "Cyan", fn: color.Cyan},
+        {name: "Gray", fn: color.Gray},
+        {name: "BrightRed", fn: color.BrightRed},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            test.AssertEqual(t, tc.fn("hello"), "hello")
+        )
+
+# --- TestSemanticHelpers ---
+
+type SemanticCase
+    name string
+    fn func(string) string
+    want string
+
+func TestSemanticHelpers(t reference testing.T)
+    color.SetEnabled(true)
+    cases := list of SemanticCase{
+        {name: "Error", fn: color.Error, want: "\x1b[1;91mtest\x1b[0m"},
+        {name: "Warn", fn: color.Warn, want: "\x1b[33mtest\x1b[0m"},
+        {name: "Success", fn: color.Success, want: "\x1b[32mtest\x1b[0m"},
+        {name: "Info", fn: color.Info, want: "\x1b[36mtest\x1b[0m"},
+        {name: "Muted", fn: color.Muted, want: "\x1b[2mtest\x1b[0m"},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            test.AssertEqual(t, tc.fn("test"), tc.want)
+        )
+
+# --- TestSemanticDisabled ---
+
+func TestSemanticDisabled(t reference testing.T)
+    color.SetEnabled(false)
+    cases := list of DisabledCase{
+        {name: "Error", fn: color.Error},
+        {name: "Warn", fn: color.Warn},
+        {name: "Success", fn: color.Success},
+        {name: "Info", fn: color.Info},
+        {name: "Muted", fn: color.Muted},
+    }
+    for tc in cases
+        t.Run(tc.name, (t reference testing.T) =>
+            test.AssertEqual(t, tc.fn("hello"), "hello")
+        )
+
+# --- TestSetEnabled ---
+
+func TestSetEnabled(t reference testing.T)
+    color.SetEnabled(true)
+    test.AssertTrue(t, color.Enabled())
+
+    color.SetEnabled(false)
+    test.AssertFalse(t, color.Enabled())
+
+    color.SetEnabled(true)
+    test.AssertTrue(t, color.Enabled())
