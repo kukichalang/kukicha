@@ -7,13 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
 // isModulePath returns true if arg looks like a Go module path with a version
 // suffix (e.g. "github.com/foo/cmd@latest"). It returns false for local paths
-// like "./app", "/abs/path", "file.kuki", or "myapp/".
+// like "./app", "/abs/path", "file.kuki", "myapp/", or any path that exists
+// on disk.
 func isModulePath(arg string) bool {
 	if !strings.Contains(arg, "@") {
 		return false
@@ -28,6 +28,10 @@ func isModulePath(arg string) bool {
 	// If it contains @ and doesn't look like a local path, treat it as a module path
 	atIdx := strings.LastIndex(arg, "@")
 	if atIdx == 0 || atIdx == len(arg)-1 {
+		return false
+	}
+	// If the arg exists on disk, treat it as a local path (e.g. a dir named "foo@v1").
+	if _, err := os.Stat(arg); err == nil {
 		return false
 	}
 	return true
@@ -54,7 +58,8 @@ func parseModulePath(arg string) (modulePath, version string, err error) {
 
 // modDownloadResult holds the parsed output of `go mod download -json`.
 type modDownloadResult struct {
-	Dir string `json:"Dir"`
+	Dir   string `json:"Dir"`
+	Error string `json:"Error"`
 }
 
 // downloadModule downloads a Go module at the specified version using
@@ -63,49 +68,24 @@ func downloadModule(modulePath, version string) (string, error) {
 	arg := modulePath + "@" + version
 	cmd := exec.Command("go", "mod", "download", "-json", arg)
 	cmd.Env = os.Environ()
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("downloading module %s: %s", arg, strings.TrimSpace(string(out)))
-	}
+	// Run outside the CWD to avoid interference from any local go.mod.
+	cmd.Dir = os.TempDir()
+	out, _ := cmd.CombinedOutput()
 	var result modDownloadResult
 	if err := json.Unmarshal(out, &result); err != nil {
-		return "", fmt.Errorf("parsing go mod download output: %w", err)
+		return "", fmt.Errorf("downloading module %s: %s", arg, strings.TrimSpace(string(out)))
+	}
+	if result.Error != "" {
+		msg := fmt.Sprintf("downloading module %s: %s", arg, result.Error)
+		if strings.Contains(modulePath, "/") && strings.Count(modulePath, "/") >= 2 {
+			msg += "\n(if this is a subpackage path, kukicha run only supports module roots; try the parent module)"
+		}
+		return "", fmt.Errorf("%s", msg)
 	}
 	if result.Dir == "" {
 		return "", fmt.Errorf("go mod download returned empty Dir for %s", arg)
 	}
 	return result.Dir, nil
-}
-
-// findKukiFiles walks root recursively and returns all .kuki files (excluding
-// *_test.kuki and files in hidden directories like .git). Returns an error if
-// no .kuki files are found.
-func findKukiFiles(root string) ([]string, error) {
-	var files []string
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			if strings.HasPrefix(d.Name(), ".") && path != root {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		name := d.Name()
-		if strings.HasSuffix(name, ".kuki") && !strings.HasSuffix(name, "_test.kuki") {
-			files = append(files, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("walking module directory: %w", err)
-	}
-	if len(files) == 0 {
-		return nil, fmt.Errorf("no .kuki files found in module directory %s", root)
-	}
-	sort.Strings(files)
-	return files, nil
 }
 
 // copyModuleFiles copies all files from srcDir to dstDir, preserving directory
@@ -157,6 +137,22 @@ func setupModuleWorkspace(cacheDir string) (string, func(), error) {
 	return workspaceDir, cleanup, nil
 }
 
+// detectMultipleMains returns paths of all .kuki files that contain a
+// "func main(" declaration. Used as a pre-flight check before compilation.
+func detectMultipleMains(files []string) []string {
+	var mains []string
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(data), "func main(") {
+			mains = append(mains, f)
+		}
+	}
+	return mains
+}
+
 // runModuleCommand handles `kukicha run github.com/foo/cmd@latest`.
 // It downloads the module, sets up a temp workspace, and delegates to
 // runCommand which uses the existing compile+run pipeline.
@@ -173,19 +169,24 @@ func runModuleCommand(moduleArg, targetFlag string, scriptArgs []string) {
 		os.Exit(1)
 	}
 
-	kukiFiles, err := findKukiFiles(cacheDir)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-	_ = kukiFiles
-
 	workspaceDir, cleanup, err := setupModuleWorkspace(cacheDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 	defer cleanup()
+
+	kukiFiles, err := resolveKukiFilesRecursive(workspaceDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: module %s: %v\n", moduleArg, err)
+		os.Exit(1)
+	}
+
+	if mains := detectMultipleMains(kukiFiles); len(mains) > 1 {
+		fmt.Fprintf(os.Stderr, "Error: module %s contains multiple commands (%s).\nkukicha run only supports single-command modules.\n",
+			moduleArg, strings.Join(mains, ", "))
+		os.Exit(1)
+	}
 
 	runCommand(workspaceDir, targetFlag, scriptArgs)
 }
