@@ -27,6 +27,11 @@ go.work
 # Extracted stdlib (created by kukicha init)
 .kukicha/
 
+# Transpiled Go output from .kuki examples
+examples/mcp_server.go
+examples/stem-panic/main.go
+examples/gh-semver-release/main.go
+
 # Temporary test files
 test_*.kuki
 test_*.go
