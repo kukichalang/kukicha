@@ -1,9 +1,119 @@
 # target: mcp
-# Example: MCP server with filesystem sandboxing
-# All file operations are confined to the sandbox directory
+# Sandboxed filesystem skill: read / write / list / mcp subcommands.
+# All file operations are confined to a sandbox root (default /tmp/workspace).
+#
+# Pack this file with:
+#     kukicha pack examples/mcp_sandbox.kuki
+#
+# Agents invoke via:
+#     kukicha run scripts/mcp-sandbox.kuki read --path foo.txt
+#     kukicha run scripts/mcp-sandbox.kuki write --path foo.txt --content "hello"
+#     kukicha run scripts/mcp-sandbox.kuki list --path .
+#     kukicha run scripts/mcp-sandbox.kuki mcp               # long-running MCP server
+#
+# All subcommands accept --root <dir> to override the default sandbox root.
 
+petiole main
+
+skill McpSandbox
+    description: "Read, write, and list files inside a sandbox root. All paths are confined to the sandbox — attempts to escape via .. or absolute paths are rejected. Use when an agent needs filesystem access scoped to a single working directory."
+    version: "1.0.0"
+
+import "stdlib/cli"
 import "stdlib/mcp"
 import "stdlib/sandbox"
+
+const defaultRoot = "/tmp/workspace"
+
+func main()
+    _ = cli.New("mcp-sandbox")
+        |> cli.Description("Sandboxed file I/O with optional MCP server mode")
+        |> cli.GlobalFlag("root", "Sandbox root directory", defaultRoot)
+        |> cli.Command("read", "Read a file from the sandbox")
+        |> cli.CommandFlag("read", "path", "File path relative to sandbox root", "")
+        |> cli.CommandAction("read", a => doRead(a))
+        |> cli.Command("write", "Write a file to the sandbox")
+        |> cli.CommandFlag("write", "path", "File path relative to sandbox root", "")
+        |> cli.CommandFlag("write", "content", "File contents to write", "")
+        |> cli.CommandAction("write", a => doWrite(a))
+        |> cli.Command("list", "List files in a sandbox directory")
+        |> cli.CommandFlag("list", "path", "Directory path relative to sandbox root", ".")
+        |> cli.CommandAction("list", a => doList(a))
+        |> cli.Command("mcp", "Start as an MCP stdio server (long-running)")
+        |> cli.CommandAction("mcp", a => doMCP(a))
+        |> cli.RunApp() onerr cli.Fatal("{error}")
+
+func openSandbox(args cli.Args) sandbox.Root
+    root := cli.GetString(args, "root")
+    if root equals ""
+        root = defaultRoot
+    box := sandbox.New(root) onerr cli.Fatal("failed to create sandbox at {root}: {error}")
+    return box
+
+func doRead(args cli.Args)
+    box := openSandbox(args)
+    defer sandbox.Close(box)
+
+    path := cli.GetString(args, "path")
+    data := sandbox.ReadString(box, path) onerr cli.Fatal("read failed: {error}")
+    print(data)
+
+func doWrite(args cli.Args)
+    box := openSandbox(args)
+    defer sandbox.Close(box)
+
+    path := cli.GetString(args, "path")
+    content := cli.GetString(args, "content")
+    sandbox.WriteString(box, content, path) onerr cli.Fatal("write failed: {error}")
+    print("wrote {path}")
+
+func doList(args cli.Args)
+    box := openSandbox(args)
+    defer sandbox.Close(box)
+
+    path := cli.GetString(args, "path")
+    if path equals ""
+        path = "."
+    names := sandbox.List(box, path) onerr cli.Fatal("list failed: {error}")
+    for _, name in names
+        print(name)
+
+func doMCP(args cli.Args)
+    box := openSandbox(args)
+    defer sandbox.Close(box)
+
+    server := mcp.New("mcp-sandbox", "1.0.0")
+
+    readProps := list of mcp.SchemaProperty{mcp.Prop("path", "string", "File path relative to sandbox root")}
+    readSchema := mcp.Schema(readProps)
+    readSchema = mcp.Required(readSchema, list of string{"path"}).(map of string to any)
+
+    server |> mcp.Tool("read_file", "Read a file from the sandbox", readSchema, func(args map of string to any) (any, error)
+        return readFileTool(box, args)
+    )
+
+    writeProps := list of mcp.SchemaProperty{
+        mcp.Prop("path", "string", "File path relative to sandbox root"),
+        mcp.Prop("content", "string", "File content to write"),
+    }
+    writeSchema := mcp.Schema(writeProps)
+    writeSchema = mcp.Required(writeSchema, list of string{"path", "content"}).(map of string to any)
+
+    server |> mcp.Tool("write_file", "Write a file to the sandbox", writeSchema, func(args map of string to any) (any, error)
+        return writeFileTool(box, args)
+    )
+
+    listProps := list of mcp.SchemaProperty{
+        mcp.Prop("path", "string", "Directory path relative to sandbox root"),
+    }
+    listSchema := mcp.Schema(listProps)
+
+    server |> mcp.Tool("list_files", "List files in the sandbox", listSchema, func(args map of string to any) (any, error)
+        return listFilesTool(box, args)
+    )
+
+    print("Sandboxed MCP Server starting (root: {sandbox.Path(box)})")
+    mcp.Serve(server) onerr cli.Fatal("server failed: {error}")
 
 func readFileTool(box sandbox.Root, args map of string to any) (any, error)
     path := args["path"].(string)
@@ -28,47 +138,3 @@ func listFilesTool(box sandbox.Root, args map of string to any) (any, error)
     if listErr isnt empty
         return mcp.ErrorResult(listErr.Error()), empty
     return names as any, empty
-
-func main()
-    # Create a sandbox rooted at /tmp/workspace
-    box := sandbox.New("/tmp/workspace") onerr
-        print("Failed to create sandbox: {error}")
-        return
-
-    defer sandbox.Close(box)
-
-    server := mcp.New("Sandboxed File Server", "1.0.0")
-
-    # read_file tool
-    readProps := list of mcp.SchemaProperty{mcp.Prop("path", "string", "File path relative to sandbox root")}
-    readSchema := mcp.Schema(readProps)
-    readSchema = mcp.Required(readSchema, list of string{"path"}).(map of string to any)
-
-    server |> mcp.Tool("read_file", "Read a file from the sandbox", readSchema, func(args map of string to any) (any, error)
-        return readFileTool(box, args)
-    )
-
-    # write_file tool
-    writeProps := list of mcp.SchemaProperty{
-        mcp.Prop("path", "string", "File path relative to sandbox root"),
-        mcp.Prop("content", "string", "File content to write"),
-    }
-    writeSchema := mcp.Schema(writeProps)
-    writeSchema = mcp.Required(writeSchema, list of string{"path", "content"}).(map of string to any)
-
-    server |> mcp.Tool("write_file", "Write a file to the sandbox", writeSchema, func(args map of string to any) (any, error)
-        return writeFileTool(box, args)
-    )
-
-    # list_files tool
-    listProps := list of mcp.SchemaProperty{
-        mcp.Prop("path", "string", "Directory path relative to sandbox root"),
-    }
-    listSchema := mcp.Schema(listProps)
-
-    server |> mcp.Tool("list_files", "List files in the sandbox", listSchema, func(args map of string to any) (any, error)
-        return listFilesTool(box, args)
-    )
-
-    print("Sandboxed MCP Server starting (root: {sandbox.Path(box)})")
-    mcp.Serve(server) onerr panic "Server failed"

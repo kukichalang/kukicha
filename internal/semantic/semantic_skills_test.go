@@ -107,3 +107,53 @@ skill MySkill
 		t.Fatalf("expected 'should follow semver' error, got: %v", result.Errors)
 	}
 }
+
+func TestSkillDeclDescriptionTooLong(t *testing.T) {
+	longDesc := strings.Repeat("x", 1025)
+	input := "petiole myskill\n\nskill MySkill\n    description: \"" + longDesc + "\"\n"
+
+	result := analyzeSourceResult(t, input)
+
+	found := false
+	for _, e := range result.Errors {
+		if strings.Contains(e.Error(), "description is too long") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected 'description is too long' error, got: %v", result.Errors)
+	}
+}
+
+func TestSkillDeclDescriptionAtLimit(t *testing.T) {
+	desc := strings.Repeat("x", 1024)
+	input := "petiole myskill\n\nskill MySkill\n    description: \"" + desc + "\"\n"
+
+	result := analyzeSourceResult(t, input)
+
+	for _, e := range result.Errors {
+		if strings.Contains(e.Error(), "description is too long") {
+			t.Fatalf("1024-char description should be allowed, got: %v", e)
+		}
+	}
+}
+
+func TestSkillDeclNameTooLong(t *testing.T) {
+	// 65 chars after kebab-casing: lowercase so each letter maps 1:1.
+	longName := strings.ToUpper(string(rune('A'))) + strings.Repeat("x", 64)
+	input := "petiole myskill\n\nskill " + longName + "\n    description: \"ok\"\n"
+
+	result := analyzeSourceResult(t, input)
+
+	found := false
+	for _, e := range result.Errors {
+		if strings.Contains(e.Error(), "name") && strings.Contains(e.Error(), "too long") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected 'name ... too long' error, got: %v", result.Errors)
+	}
+}

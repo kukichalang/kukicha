@@ -20,7 +20,7 @@ The primary `kukicha` binary. Subcommands:
 | `check` | `check.go` | Parse + semantic analysis only (no codegen). Accepts multiple targets. Flags: `--strict-onerr`, `--json` |
 | `fmt` | `fmt.go` | Format `.kuki` files (tabs→spaces, trailing whitespace, brace conversion). Flags: `-w`, `--check` |
 | `brew` | `brew.go` | Convert `.kuki` to standalone Go (no header, no `//line`). Flags: `--stdout`, `--remove-kuki` |
-| `pack` | `pack.go` | Package a skill declaration into a directory with `SKILL.md` + compiled binary |
+| `pack` | `pack.go` | Package a skill declaration into an agentskills.io-compliant directory: `SKILL.md` + `scripts/<name>.kuki` source (no binary). Accepts a single file or a directory. |
 | `audit` | `audit.go` | Run `govulncheck` against project dependencies. Flags: `--json`, `--warn-only` |
 | `init` | `init.go` | Initialize a Kukicha project (`go mod init`, extract stdlib, update AGENTS.md) |
 | `version` | `main.go` | Print version from `internal/version/version.go` |

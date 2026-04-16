@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"unicode"
 
@@ -18,7 +15,7 @@ import (
 func packMain(args []string) {
 	packFlags := flag.NewFlagSet("pack", flag.ContinueOnError)
 	packFlags.SetOutput(os.Stderr)
-	outputDir := packFlags.String("output", "", "Output directory")
+	outputDir := packFlags.String("output", "", "Output directory (default: skills/<skill-name>/ next to source)")
 	if err := packFlags.Parse(args); err != nil {
 		fmt.Fprintln(os.Stderr, "Usage: kukicha pack [--output <dir>] <skill.kuki>")
 		os.Exit(1)
@@ -31,26 +28,53 @@ func packMain(args []string) {
 	packCommand(packArgs[0], *outputDir)
 }
 
+// packCommand produces an agentskills.io-compliant skill directory.
+//
+// Single-file input produces:
+//
+//	<output>/
+//	├── SKILL.md            # YAML frontmatter + markdown body
+//	└── scripts/
+//	    └── <name>.kuki     # verbatim source copy
+//
+// Directory input copies every .kuki file under the input (excluding tests)
+// into scripts/<name>/, preserving relative paths, so multi-file projects
+// remain runnable via `kukicha run scripts/<name>/`.
+//
+// Agents invoke via the command shown in SKILL.md — matching the
+// "ship source, not binaries" pattern recommended by the spec.
 func packCommand(filename string, outputDir string) {
 	cr := compile(filename, "", "mcp", false)
 
-	// Validate skill declaration exists
 	if cr.program.SkillDecl == nil {
-		fmt.Fprintln(os.Stderr, "Error: no skill declaration found in file")
+		fmt.Fprintln(os.Stderr, "Error: no skill declaration found in source")
 		os.Exit(1)
 	}
 	skill := cr.program.SkillDecl
+	skillName := toKebabCase(skill.Name.Value)
 
-	// Determine output directory
+	// Detect whether the source is a file or a directory.
+	info, err := os.Stat(cr.absFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error stat-ing source: %v\n", err)
+		os.Exit(1)
+	}
+	srcIsDir := info.IsDir()
+
+	// Default output: skills/<skill-name>/ next to the source.
 	if outputDir == "" {
-		outputDir = filepath.Join(filepath.Dir(cr.absFile), toSnakeCase(skill.Name.Value))
+		outputDir = filepath.Join(filepath.Dir(cr.absFile), "skills", skillName)
 	}
 
-	// Extract function schemas from AST and generate SKILL.md
-	functions := extractFunctionSchemas(cr.program)
-	skillMD := generateSkillMD(skill, functions)
+	// Build invocation string for the SKILL.md body.
+	invocation := fmt.Sprintf("kukicha run scripts/%s.kuki [args]", skillName)
+	if srcIsDir {
+		invocation = fmt.Sprintf("kukicha run scripts/%s/ [args]", skillName)
+	}
 
-	// Create output directory structure
+	functions := extractFunctionSchemas(cr.program)
+	skillMD := generateSkillMD(skill, functions, skillName, invocation)
+
 	scriptsDir := filepath.Join(outputDir, "scripts")
 	if err := os.MkdirAll(scriptsDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output directory: %v\n", err)
@@ -65,41 +89,62 @@ func packCommand(filename string, outputDir string) {
 	}
 	fmt.Printf("Generated %s\n", skillMDPath)
 
-	// Write Go file for building
-	goFile := strings.TrimSuffix(cr.absFile, ".kuki") + ".go"
-	if err := os.WriteFile(goFile, cr.formatted, 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing Go file: %v\n", err)
-		os.Exit(1)
-	}
-
-	ensureStdlibIfNeeded(cr.goCode, cr.projectDir)
-
-	// Build binary into scripts/
-	binaryName := toSnakeCase(skill.Name.Value)
-	targetOS := os.Getenv("GOOS")
-	if targetOS == "" {
-		targetOS = runtime.GOOS
-	}
-	if targetOS == "windows" {
-		binaryName += ".exe"
-	}
-	binaryPath := filepath.Join(scriptsDir, binaryName)
-	cmd := exec.Command("go", "build", "-o", binaryPath, goFile)
-	cmd.Dir = cr.projectDir
-	cmd.Env = os.Environ()
-	cmd.Stdout = os.Stdout
-	var stderrBuf bytes.Buffer
-	cmd.Stderr = &stderrBuf
-	if err := cmd.Run(); err != nil {
-		if stderrBuf.Len() > 0 {
-			os.Stderr.Write(rewriteGoErrors(stderrBuf.Bytes(), goFile, cr.absFile))
+	// Copy source(s) into scripts/.
+	if srcIsDir {
+		destRoot := filepath.Join(scriptsDir, skillName)
+		if err := copyKukiTree(cr.absFile, destRoot); err != nil {
+			fmt.Fprintf(os.Stderr, "Error copying source tree: %v\n", err)
+			os.Exit(1)
 		}
-		fmt.Fprintf(os.Stderr, "Error building binary: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("Copied source tree: %s\n", destRoot)
+	} else {
+		sourceBytes, err := os.ReadFile(cr.absFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading source: %v\n", err)
+			os.Exit(1)
+		}
+		scriptPath := filepath.Join(scriptsDir, skillName+".kuki")
+		if err := os.WriteFile(scriptPath, sourceBytes, 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing script: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Copied source: %s\n", scriptPath)
 	}
 
-	fmt.Printf("Built binary: %s\n", binaryPath)
 	fmt.Printf("Skill packed successfully in %s\n", outputDir)
+}
+
+// copyKukiTree walks src and copies every non-test .kuki file into dst,
+// preserving relative paths. Other files are ignored — only Kukicha source
+// matters for the runnable skill.
+func copyKukiTree(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if filepath.Ext(path) != ".kuki" {
+			return nil
+		}
+		if strings.HasSuffix(info.Name(), "_test.kuki") {
+			return nil
+		}
+		rel, relErr := filepath.Rel(src, path)
+		if relErr != nil {
+			return relErr
+		}
+		target := filepath.Join(dst, rel)
+		if mkErr := os.MkdirAll(filepath.Dir(target), 0755); mkErr != nil {
+			return mkErr
+		}
+		data, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+		return os.WriteFile(target, data, 0644)
+	})
 }
 
 // FunctionSchema holds extracted metadata for a function declaration
@@ -167,52 +212,64 @@ func extractFunctionSchemas(program *ast.Program) []FunctionSchema {
 	return schemas
 }
 
-func generateSkillMD(skill *ast.SkillDecl, functions []FunctionSchema) string {
-	type yamlParam struct {
-		Type    string `yaml:"type"`
-		Default any    `yaml:"default,omitempty"`
-	}
-	type yamlFunction struct {
-		Name        string               `yaml:"name"`
-		Description string               `yaml:"description,omitempty"`
-		Parameters  map[string]yamlParam `yaml:"parameters,omitempty"`
-	}
+// generateSkillMD emits an agentskills.io-compliant SKILL.md: YAML
+// frontmatter with only the spec-recognized fields, plus a markdown body
+// that tells the agent how to invoke the skill.
+func generateSkillMD(skill *ast.SkillDecl, functions []FunctionSchema, skillName, invocation string) string {
 	type yamlSkill struct {
-		Name        string         `yaml:"name"`
-		Description string         `yaml:"description,omitempty"`
-		Version     string         `yaml:"version,omitempty"`
-		Functions   []yamlFunction `yaml:"functions,omitempty"`
+		Name        string            `yaml:"name"`
+		Description string            `yaml:"description"`
+		Metadata    map[string]string `yaml:"metadata,omitempty"`
 	}
 
 	doc := yamlSkill{
-		Name:        toSnakeCase(skill.Name.Value),
+		Name:        skillName,
 		Description: skill.Description,
-		Version:     skill.Version,
 	}
-
-	for _, fn := range functions {
-		yfn := yamlFunction{
-			Name:        fn.Name,
-			Description: fn.Description,
-		}
-		if len(fn.Parameters) > 0 {
-			yfn.Parameters = make(map[string]yamlParam, len(fn.Parameters))
-			for _, p := range fn.Parameters {
-				yp := yamlParam{Type: p.Type}
-				if p.HasDefault {
-					yp.Default = p.Default
-				}
-				yfn.Parameters[p.Name] = yp
-			}
-		}
-		doc.Functions = append(doc.Functions, yfn)
+	if skill.Version != "" {
+		doc.Metadata = map[string]string{"version": skill.Version}
 	}
 
 	out, err := yaml.Marshal(doc)
 	if err != nil {
-		return "---\nname: " + toSnakeCase(skill.Name.Value) + "\n---\n"
+		return "---\nname: " + skillName + "\n---\n"
 	}
-	return "---\n" + string(out) + "---\n"
+
+	var body strings.Builder
+	body.WriteString("---\n")
+	body.Write(out)
+	body.WriteString("---\n\n")
+
+	// Markdown body: title, description, invocation instructions.
+	body.WriteString("# ")
+	body.WriteString(skill.Name.Value)
+	body.WriteString("\n\n")
+	if skill.Description != "" {
+		body.WriteString(skill.Description)
+		body.WriteString("\n\n")
+	}
+	body.WriteString("## Usage\n\n")
+	body.WriteString("Run this skill with:\n\n")
+	body.WriteString("```bash\n")
+	body.WriteString(invocation)
+	body.WriteString("\n```\n")
+
+	if len(functions) > 0 {
+		body.WriteString("\n## Exposed functions\n\n")
+		for _, fn := range functions {
+			paramParts := make([]string, 0, len(fn.Parameters))
+			for _, p := range fn.Parameters {
+				paramParts = append(paramParts, fmt.Sprintf("%s: %s", p.Name, p.Type))
+			}
+			returnPart := ""
+			if len(fn.Returns) > 0 {
+				returnPart = " → " + strings.Join(fn.Returns, ", ")
+			}
+			fmt.Fprintf(&body, "- **%s**(%s)%s\n", fn.Name, strings.Join(paramParts, ", "), returnPart)
+		}
+	}
+
+	return body.String()
 }
 
 // typeToJSONSchemaType maps Kukicha/Go type annotations to JSON Schema types
@@ -285,21 +342,19 @@ func defaultValueToYAML(expr ast.Expression) (any, bool) {
 	return nil, false
 }
 
-// toSnakeCase converts PascalCase to snake_case, handling consecutive
-// uppercase letters (acronyms) correctly: "HTTPClient" → "http_client".
-func toSnakeCase(s string) string {
+// toKebabCase converts PascalCase to kebab-case per the agentskills.io
+// `name` field rules: lowercase alphanumerics and hyphens only, no leading
+// or trailing hyphens, no consecutive hyphens. Handles acronyms the same
+// way snake_case does ("HTTPClient" → "http-client").
+func toKebabCase(s string) string {
 	runes := []rune(s)
 	var result strings.Builder
 	for i, r := range runes {
 		if unicode.IsUpper(r) {
 			if i > 0 {
 				prev := runes[i-1]
-				// Insert underscore before an uppercase letter when:
-				// - previous char is lowercase (e.g., "tC" in "getClient")
-				// - previous char is uppercase AND next char is lowercase
-				//   (e.g., "PC" in "HTTPClient" at the 'C' of "Client")
 				if unicode.IsLower(prev) || (unicode.IsUpper(prev) && i+1 < len(runes) && unicode.IsLower(runes[i+1])) {
-					result.WriteByte('_')
+					result.WriteByte('-')
 				}
 			}
 			result.WriteRune(unicode.ToLower(r))

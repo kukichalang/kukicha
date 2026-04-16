@@ -663,7 +663,22 @@ skill WeatherService
 # ... MCP server implementation
 ```
 
-`kukicha pack weather.kuki` produces a directory with `SKILL.md` manifest + compiled binary. Discover at runtime:
+`kukicha pack weather.kuki` produces an [agentskills.io](https://agentskills.io/specification)-compliant directory:
+
+```
+skills/weather-service/
+├── SKILL.md                    # frontmatter (name, description, metadata) + markdown body
+└── scripts/
+    └── weather-service.kuki    # source copy — no binary compilation
+```
+
+Agents invoke the skill by running the source at call time (no cross-compilation):
+
+```bash
+kukicha run scripts/weather-service.kuki <args>
+```
+
+Pass a directory to pack multi-file skills; all `.kuki` files (except tests) are copied under `scripts/<name>/`. Discover at runtime:
 
 ```kukicha
 tools := skills.Discover("./tools") onerr panic "{error}"
