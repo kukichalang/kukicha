@@ -9,7 +9,7 @@ KUKI_SOURCES := $(wildcard stdlib/*/*.kuki)
 KUKI_MAIN := $(filter-out %_test.kuki stdlib/game/game.kuki stdlib/infer/infer.kuki stdlib/ort/ort.kuki stdlib/webinfer/webinfer.kuki,$(KUKI_SOURCES))
 KUKI_TESTS := $(filter %_test.kuki,$(KUKI_SOURCES))
 
-.PHONY: all build lsp blend generate generate-tests genstdlibregistry gengostdlib test lint vet modernize check-generate check-test-staleness check-main-staleness fmt-check clean install-lsp install-hooks build-wasm
+.PHONY: all build lsp blend generate generate-tests genstdlibregistry gengostdlib test lint vet modernize check-generate check-test-staleness check-main-staleness fmt fmt-check clean install-lsp install-hooks build-wasm
 
 all: build lsp
 
@@ -118,6 +118,11 @@ check-generate: generate
 		exit 1; \
 	fi
 	@echo "Generated files are up to date."
+
+# Format all .kuki files in stdlib/ and examples/ in place
+fmt: build
+	@echo "Formatting .kuki files..."
+	@$(KUKICHA) fmt -w stdlib/ examples/
 
 # Check that all .kuki files are properly formatted (for CI)
 fmt-check: build

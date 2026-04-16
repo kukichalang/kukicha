@@ -1,32 +1,44 @@
 # CLAUDE.md
 
-Kukicha is a **strict superset of Go** that adds pipes, `onerr`, enums,
+Kukicha is a strict superset of Go that adds pipes, `onerr`, enums,
 if-expressions, and readable operators on top of standard Go syntax.
-In our stdlib and examples we prefer kukicha to go, but all valid Go is valid Kukicha. Current version: **0.1.9**
+Current version: **0.1.9**
+
+**When writing `.kuki` files in this repo, always use Kukicha syntax** —
+`and`/`or`/`not`, `equals`/`isnt`, `list of T`, `map of K to V`,
+`reference T`, `empty`, 4-space indentation, `onerr`, pipes, enums, and the
+`stdlib/*` packages. All valid Go also compiles, but falling back to raw Go
+forms in `.kuki` files is a bug in the writing style — we dogfood Kukicha
+everywhere. Only reach for a Go-style construct when Kukicha has no
+equivalent (e.g. `dereference ptr`, lambdas `(x T) => expr`, `go` blocks,
+enum variants — these have no Go alternative and must be written the
+Kukicha way).
 
 ## Kukicha vs Go Syntax
 
-| Go | Kukicha | Both accepted? |
-|----|---------|----------------|
-| `&&`, `\|\|`, `!` | `and`, `or`, `not` | Yes |
-| `[]string` | `list of string` (or `[]string`) | Yes |
-| `map[string]int` | `map of string to int` (or `map[string]int`) | Yes |
-| `*User` | `reference User` (or `*User`) | Yes |
-| `&user` | `reference of user` (or `&user`) | Yes |
-| `*ptr` | `dereference ptr` | |
-| `nil` | `empty` (or `nil`) | Yes |
-| `{ }` braces | 4-space indentation | Yes |
-| `==` | `equals` (or `==`) | Yes |
-| `!=` | `isnt` (or `!=`) | Yes |
-| `func (t T) Method()` | `func Method on t T` | Yes |
-| `func(x T) T { return expr }` | `(x T) => expr` | |
-| `go func() { ... }()` | `go` + indented block | |
-| `const (StatusOK = 200; ...)` | `enum Status` with `OK = 200` | |
-| (no sum types) | `enum Shape` with `Circle` / `Point` (variant enum) | |
-| `if _, ok := v.(Circle); ok` | `if v is Circle as c` (variant case check) | |
-| (no ternary) | `if COND then EXPR else EXPR` (if-expression) | |
-| `T{field: val}` or `[]T{e1, e2}` (always) | `{field: val}` / `{e1, e2}` when type is inferrable | |
-| `type X = pkg.T` (transparent alias) | `type X = pkg.T` | Yes |
+Kukicha forms on the left are the ones to write. The Go column shows what
+they transpile to — **do not** use it as a menu of "also valid" choices.
+
+| Kukicha (write this) | Go equivalent (avoid in `.kuki` files) |
+|----------------------|----------------------------------------|
+| `and`, `or`, `not` | `&&`, `\|\|`, `!` |
+| `equals`, `isnt` | `==`, `!=` |
+| `empty` | `nil` |
+| `list of string` | `[]string` |
+| `map of string to int` | `map[string]int` |
+| `reference User` | `*User` |
+| `reference of user` | `&user` |
+| `dereference ptr` | `*ptr` (no Go-style form accepted) |
+| 4-space indentation | `{ }` braces |
+| `func Method on t T` | `func (t T) Method()` |
+| `(x T) => expr` | `func(x T) T { return expr }` (no Go-style form accepted) |
+| `go` + indented block | `go func() { ... }()` (no Go-style form accepted) |
+| `enum Status` with `OK = 200` | `const (StatusOK = 200; ...)` |
+| `enum Shape` with `Circle` / `Point` (variant enum) | (Go has no sum types — use the Kukicha form) |
+| `if v is Circle as c` | `if _, ok := v.(Circle); ok` |
+| `if COND then EXPR else EXPR` (if-expression) | (Go has no ternary — use the Kukicha form) |
+| `{field: val}` / `{e1, e2}` when type is inferrable | `T{field: val}` / `[]T{e1, e2}` (always) |
+| `type X = pkg.T` (transparent alias) | `type X = pkg.T` |
 
 ## Keyword Aliases (English-Friendly Forms)
 
@@ -65,6 +77,7 @@ make test                 # Run all tests
 make lint                 # Run golangci-lint (errcheck, unused, staticcheck, etc.)
 make vet                  # Run go vet on everything including stdlib
 make modernize            # Check for outdated Go patterns (go fix -diff)
+make fmt                  # Format all .kuki files in stdlib/ and examples/ in place
 make fmt-check            # Check all .kuki files are formatted (CI gate)
 make generate             # Regenerate stdlib_registry_gen.go + all stdlib .go files
 make genstdlibregistry    # Regenerate only internal/semantic/stdlib_registry_gen.go
@@ -131,15 +144,16 @@ import "github.com/jackc/pgx/v5" as pgx  # external package with alias
 
 ## Critical Rules
 
-1. **Always validate** - Run `kukicha check` before committing `.kuki` changes
-2. Use red/green TDD when adding new features. Update existing tests when required.
-3. **4-space indentation only** — tabs are not allowed in Kukicha
-4. **Explicit function signatures** — parameters and return types must be declared
-5. **Test with `make test`** — run the full test suite
-6. **Lint with `make lint`** — catch unused code, unchecked errors, and other issues
-7. **Vet with `make vet`** — catch bugs in stdlib that golangci-lint excludes
-8. **Modernize with `make modernize`** — ensure generated Go uses current patterns
-9. **After adding a stdlib function or enum**, run `make genstdlibregistry`
+1. **Write Kukicha, not Go, in `.kuki` files** — use `and`/`or`/`not`, `equals`/`isnt`, `list of T`, `map of K to V`, `reference T`, `empty`, `onerr`, pipes. Reviewers reject PRs that leave `&&`, `==`, `[]T`, `*T`, `nil`, etc. in `.kuki` source when a Kukicha form exists.
+2. **Always validate** — run `kukicha check` before committing `.kuki` changes
+3. Use red/green TDD when adding new features. Update existing tests when required.
+4. **4-space indentation only** — tabs are not allowed in Kukicha
+5. **Explicit function signatures** — parameters and return types must be declared
+6. **Test with `make test`** — run the full test suite
+7. **Lint with `make lint`** — catch unused code, unchecked errors, and other issues
+8. **Vet with `make vet`** — catch bugs in stdlib that golangci-lint excludes
+9. **Modernize with `make modernize`** — ensure generated Go uses current patterns
+10. **After adding a stdlib function or enum**, run `make genstdlibregistry`
 
 ## Skills
 

@@ -26,8 +26,8 @@ Run: `kukicha run hello.kuki` · Build: `kukicha build hello.kuki`
 
 ### Syntax Reference
 
-| Kukicha (preferred) | Go equivalent |
-|---------------------|---------------|
+| Kukicha (write this) | Go equivalent (avoid in `.kuki` files) |
+|----------------------|----------------------------------------|
 | `and`, `or`, `not` | `&&`, `\|\|`, `!` |
 | `equals`, `isnt` | `==`, `!=` |
 | `empty` | `nil` |
@@ -381,10 +381,13 @@ kukicha build file.kuki        # compile to binary
 kukicha build myapp/           # build directory
 kukicha build --wasm file.kuki # WebAssembly output
 kukicha fmt -w file.kuki       # format in place
+kukicha fmt --check dir/       # check formatting (CI / pre-commit gate)
 kukicha brew file.kuki         # convert .kuki to standalone Go
 kukicha pack skill.kuki        # package skill with SKILL.md + binary
 kukicha audit                  # vulnerability check
 ```
+
+Run `kukicha fmt -w` before committing; CI should run `kukicha fmt --check`.
 
 ---
 
