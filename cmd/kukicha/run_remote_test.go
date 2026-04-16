@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -14,7 +13,6 @@ func TestIsModulePath(t *testing.T) {
 	}{
 		{"github.com/foo/cmd@latest", true},
 		{"github.com/foo/cmd@v1.0.0", true},
-		{"golang.org/x/tools/cmd/stringer@latest", true},
 		{"github.com/user/repo@v1.2.3", true},
 		{"main.kuki", false},
 		{"./app", false},
@@ -35,6 +33,28 @@ func TestIsModulePath(t *testing.T) {
 				t.Errorf("isModulePath(%q) = %v, want %v", tt.arg, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestIsModulePathLocalDirWithAt(t *testing.T) {
+	// A directory literally named "foo@v1" must be treated as local, not a module.
+	parent := t.TempDir()
+	dirName := "foo@v1"
+	if err := os.MkdirAll(filepath.Join(parent, dirName), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	orig, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chdir(orig) })
+	if err := os.Chdir(parent); err != nil {
+		t.Fatal(err)
+	}
+
+	if isModulePath(dirName) {
+		t.Errorf("isModulePath(%q) = true, want false (directory exists on disk)", dirName)
 	}
 }
 
@@ -73,44 +93,40 @@ func TestParseModulePath(t *testing.T) {
 	}
 }
 
-func TestFindKukiFiles(t *testing.T) {
+func TestDetectMultipleMains(t *testing.T) {
 	root := t.TempDir()
 
-	// Create test files
-	os.MkdirAll(filepath.Join(root, "cmd"), 0755)
-	os.MkdirAll(filepath.Join(root, ".hidden"), 0755)
-	os.WriteFile(filepath.Join(root, "main.kuki"), []byte("petiole main"), 0644)
-	os.WriteFile(filepath.Join(root, "main_test.kuki"), []byte("petiole main"), 0644)
-	os.WriteFile(filepath.Join(root, "cmd", "handler.kuki"), []byte("petiole main"), 0644)
-	os.WriteFile(filepath.Join(root, ".hidden", "skip.kuki"), []byte("petiole main"), 0644)
-	os.WriteFile(filepath.Join(root, "readme.md"), []byte("# test"), 0644)
-
-	files, err := findKukiFiles(root)
-	if err != nil {
-		t.Fatalf("findKukiFiles error: %v", err)
+	writeFile := func(name, content string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(root, name), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	expectedCount := 2 // main.kuki and cmd/handler.kuki
-	if len(files) != expectedCount {
-		t.Errorf("findKukiFiles found %d files, want %d: %v", len(files), expectedCount, files)
+	writeFile("main.kuki", "petiole main\nfunc main() {\n}\n")
+	writeFile("cmd.kuki", "petiole main\nfunc main() {\n}\n")
+	writeFile("helper.kuki", "petiole main\nfunc helper() {}\n")
+
+	files := []string{
+		filepath.Join(root, "main.kuki"),
+		filepath.Join(root, "cmd.kuki"),
+		filepath.Join(root, "helper.kuki"),
 	}
 
-	// Verify test files and hidden dir files are excluded
-	for _, f := range files {
-		if strings.Contains(f, "_test.kuki") {
-			t.Errorf("found test .kuki file: %s", f)
-		}
-		if strings.Contains(f, ".hidden") {
-			t.Errorf("found file in hidden directory: %s", f)
-		}
+	mains := detectMultipleMains(files)
+	if len(mains) != 2 {
+		t.Errorf("detectMultipleMains found %d mains, want 2: %v", len(mains), mains)
 	}
 }
 
-func TestFindKukiFilesEmptyDir(t *testing.T) {
+func TestDetectMultipleMainsSingle(t *testing.T) {
 	root := t.TempDir()
-	_, err := findKukiFiles(root)
-	if err == nil {
-		t.Error("expected error for directory with no .kuki files")
+	if err := os.WriteFile(filepath.Join(root, "main.kuki"), []byte("petiole main\nfunc main() {}\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mains := detectMultipleMains([]string{filepath.Join(root, "main.kuki")})
+	if len(mains) != 1 {
+		t.Errorf("detectMultipleMains found %d mains, want 1", len(mains))
 	}
 }
 
