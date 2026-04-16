@@ -177,6 +177,20 @@ func Retry(n int) bool
         print(i)
 `,
 		},
+		{
+			name: "comment between lambda-closing parens",
+			source: `import "testing"
+
+func TestNesting(t reference testing.T)
+    t.Run("first", (t reference testing.T) =>
+        x := 1
+    )
+    # This comment sits between two lambda-ending calls
+    t.Run("second", (t reference testing.T) =>
+        y := 2
+    )
+`,
+		},
 	}
 
 	opts := DefaultOptions()

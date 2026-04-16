@@ -162,29 +162,29 @@ func TestNesting(t *testing.T) {
 //line stdlib/color/color_test.kuki:149
 		test.AssertEqual(t, got, want)
 	})
-//line stdlib/color/color_test.kuki:152
-	t.Run("no inner reset is unchanged", func(t *testing.T) {
 //line stdlib/color/color_test.kuki:153
-		got := color.Red("plain")
+	t.Run("no inner reset is unchanged", func(t *testing.T) {
 //line stdlib/color/color_test.kuki:154
-		want := "\x1b[31mplain\x1b[0m"
+		got := color.Red("plain")
 //line stdlib/color/color_test.kuki:155
+		want := "\x1b[31mplain\x1b[0m"
+//line stdlib/color/color_test.kuki:156
 		test.AssertEqual(t, got, want)
 	})
 }
 
-//line stdlib/color/color_test.kuki:160
-func TestSetEnabled(t *testing.T) {
 //line stdlib/color/color_test.kuki:161
-	color.SetEnabled(true)
+func TestSetEnabled(t *testing.T) {
 //line stdlib/color/color_test.kuki:162
-	test.AssertTrue(t, color.Enabled())
-//line stdlib/color/color_test.kuki:164
-	color.SetEnabled(false)
-//line stdlib/color/color_test.kuki:165
-	test.AssertFalse(t, color.Enabled())
-//line stdlib/color/color_test.kuki:167
 	color.SetEnabled(true)
+//line stdlib/color/color_test.kuki:163
+	test.AssertTrue(t, color.Enabled())
+//line stdlib/color/color_test.kuki:165
+	color.SetEnabled(false)
+//line stdlib/color/color_test.kuki:166
+	test.AssertFalse(t, color.Enabled())
 //line stdlib/color/color_test.kuki:168
+	color.SetEnabled(true)
+//line stdlib/color/color_test.kuki:169
 	test.AssertTrue(t, color.Enabled())
 }

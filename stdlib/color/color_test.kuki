@@ -149,6 +149,7 @@ func TestNesting(t reference testing.T)
         test.AssertEqual(t, got, want)
     )
 
+    # Verify plain strings without nested resets work normally
     t.Run("no inner reset is unchanged", (t reference testing.T) =>
         got := color.Red("plain")
         want := "\x1b[31mplain\x1b[0m"

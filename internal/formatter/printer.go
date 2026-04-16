@@ -585,6 +585,56 @@ func maxExprLine(expr ast.Expression) int {
 		if line > openLine {
 			line++
 		}
+	case *ast.ArrowLambda:
+		if e.Body != nil {
+			if bl := maxExprLine(e.Body); bl > line {
+				line = bl
+			}
+		}
+		if e.Block != nil && len(e.Block.Statements) > 0 {
+			last := e.Block.Statements[len(e.Block.Statements)-1]
+			if endLine := maxStmtLine(last); endLine > line {
+				line = endLine
+			}
+		}
+	case *ast.FunctionLiteral:
+		if e.Body != nil && len(e.Body.Statements) > 0 {
+			last := e.Body.Statements[len(e.Body.Statements)-1]
+			if endLine := maxStmtLine(last); endLine > line {
+				line = endLine
+			}
+		}
+	}
+	return line
+}
+
+// maxStmtLine returns the maximum source line number occupied by a statement,
+// accounting for multi-line expressions in assignments, returns, etc.
+func maxStmtLine(stmt ast.Statement) int {
+	line := stmt.Pos().Line
+	switch s := stmt.(type) {
+	case *ast.VarDeclStmt:
+		for _, v := range s.Values {
+			if vl := maxExprLine(v); vl > line {
+				line = vl
+			}
+		}
+	case *ast.AssignStmt:
+		for _, v := range s.Values {
+			if vl := maxExprLine(v); vl > line {
+				line = vl
+			}
+		}
+	case *ast.ExpressionStmt:
+		if el := maxExprLine(s.Expression); el > line {
+			line = el
+		}
+	case *ast.ReturnStmt:
+		for _, v := range s.Values {
+			if vl := maxExprLine(v); vl > line {
+				line = vl
+			}
+		}
 	}
 	return line
 }
