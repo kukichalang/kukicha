@@ -405,6 +405,8 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"json.MarshalWrite":               {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"writer", "value"}},
 	"json.NewDecoder":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "json.Decoder"}}, ParamNames: []string{"reader"}},
 	"json.NewEncoder":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "json.Encoder"}}, ParamNames: []string{"writer"}},
+	"json.Parse":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data", "sample"}},
+	"json.ParseString":                {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data", "sample"}},
 	"json.Unmarshal":                  {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data", "target"}},
 	"json.UnmarshalRead":              {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"reader", "target"}},
 	"json.UnmarshalString":            {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data", "target"}},

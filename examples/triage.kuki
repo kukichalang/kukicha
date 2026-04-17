@@ -31,8 +31,8 @@ func triage(i Issue) Verdict
         |> llm.System(`Classify GitHub issues. Reply JSON: {severity:1-5, kind, summary}`)
         |> llm.Ask("{i.title}\n\n{i.body}") onerr return {}
 
-    v := Verdict{number: i.number}
-    jsonpkg.UnmarshalString(reply, reference of v) onerr return {}
+    v := reply |> jsonpkg.ParseString(empty Verdict) onerr return {}
+    v.number = i.number
     return v
 
 func main()

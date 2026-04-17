@@ -207,3 +207,24 @@ func TestUnmarshalInvalidJSON(t reference testing.T)
             err := json.Unmarshal(invalid, reference of result)
             test.AssertError(t, err)
         )
+
+# --- TestParseStringSample ---
+func TestParseStringSample(t reference testing.T)
+    raw := `{"name": "Judy", "age": 27}`
+    p, err := json.ParseString(raw, empty Person)
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, p.Name, "Judy")
+    test.AssertEqual(t, p.Age, 27)
+
+# --- TestParseSample ---
+func TestParseSample(t reference testing.T)
+    raw := `{"name": "Karl", "age": 51}` as list of byte
+    p, err := json.Parse(raw, empty Person)
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, p.Name, "Karl")
+    test.AssertEqual(t, p.Age, 51)
+
+# --- TestParseInvalidJSON ---
+func TestParseInvalidJSON(t reference testing.T)
+    _, err := json.ParseString("not valid json", empty Person)
+    test.AssertError(t, err)

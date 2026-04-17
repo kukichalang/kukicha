@@ -168,3 +168,28 @@ func DecodeRead[T any](reader io.Reader, sample T) (T, error) {
 //line stdlib/json/json.kuki:135
 	return data, nil
 }
+
+//line stdlib/json/json.kuki:140
+func Parse[T any](data []byte, sample T) (T, error) {
+//line stdlib/json/json.kuki:141
+	out := sample
+//line stdlib/json/json.kuki:142
+//line stdlib/json/json.kuki:142
+	err_2 := json.Unmarshal(data, &out)
+//line stdlib/json/json.kuki:142
+	if err_2 != nil {
+//line stdlib/json/json.kuki:142
+		err_2 = fmt.Errorf("failed to parse json: %w", err_2)
+		var _zero0 T
+//line stdlib/json/json.kuki:142
+		return _zero0, err_2
+	}
+//line stdlib/json/json.kuki:143
+	return out, nil
+}
+
+//line stdlib/json/json.kuki:148
+func ParseString[T any](data string, sample T) (T, error) {
+//line stdlib/json/json.kuki:149
+	return Parse([]byte(data), sample)
+}

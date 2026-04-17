@@ -133,3 +133,17 @@ func DecodeRead(reader io.Reader, sample any) (any, error)
     decoder := json.NewDecoder(reader)
     decoder.Decode(reference of data) onerr explain "failed to decode json"
     return data, empty
+
+# Parse unmarshals JSON bytes into a typed value using the sample pattern.
+# Pass a typed empty value to drive type inference — no pre-declared variable needed.
+# Example: cfg := data |> json.Parse(empty Config) onerr return
+func Parse(data list of byte, sample any) (any, error)
+    out := sample
+    json.Unmarshal(data, reference of out) onerr explain "failed to parse json"
+    return out, empty
+
+# ParseString unmarshals a JSON string into a typed value using the sample pattern.
+# Pass a typed empty value to drive type inference — no pre-declared variable needed.
+# Example: v := reply |> json.ParseString(empty Verdict) onerr return
+func ParseString(data string, sample any) (any, error)
+    return Parse(data as list of byte, sample)

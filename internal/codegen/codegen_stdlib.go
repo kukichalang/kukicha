@@ -269,9 +269,18 @@ func (g *Generator) inferFetchTypeParameters(decl *ast.FunctionDecl) []*TypePara
 }
 
 // inferJSONTypeParameters infers type parameters for selected stdlib/json helpers.
-// DecodeRead uses placeholders to produce: func DecodeRead[T any](reader io.Reader, sample T) (T, error)
+// DecodeRead / Parse / ParseString use placeholders to produce:
+//
+//	func DecodeRead[T any](reader io.Reader, sample T) (T, error)
+//	func Parse[T any](data []byte, sample T) (T, error)
+//	func ParseString[T any](data string, sample T) (T, error)
 func (g *Generator) inferJSONTypeParameters(decl *ast.FunctionDecl) []*TypeParameter {
-	if decl.Name == nil || decl.Name.Value != "DecodeRead" {
+	if decl.Name == nil {
+		return nil
+	}
+	switch decl.Name.Value {
+	case "DecodeRead", "Parse", "ParseString":
+	default:
 		return nil
 	}
 

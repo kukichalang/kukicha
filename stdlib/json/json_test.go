@@ -344,3 +344,39 @@ func TestUnmarshalInvalidJSON(t *testing.T) {
 		})
 	}
 }
+
+//line stdlib/json/json_test.kuki:212
+func TestParseStringSample(t *testing.T) {
+//line stdlib/json/json_test.kuki:213
+	raw := `{"name": "Judy", "age": 27}`
+//line stdlib/json/json_test.kuki:214
+	p, err := json.ParseString(raw, *new(Person))
+//line stdlib/json/json_test.kuki:215
+	test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:216
+	test.AssertEqual(t, p.Name, "Judy")
+//line stdlib/json/json_test.kuki:217
+	test.AssertEqual(t, p.Age, 27)
+}
+
+//line stdlib/json/json_test.kuki:220
+func TestParseSample(t *testing.T) {
+//line stdlib/json/json_test.kuki:221
+	raw := []byte(`{"name": "Karl", "age": 51}`)
+//line stdlib/json/json_test.kuki:222
+	p, err := json.Parse(raw, *new(Person))
+//line stdlib/json/json_test.kuki:223
+	test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:224
+	test.AssertEqual(t, p.Name, "Karl")
+//line stdlib/json/json_test.kuki:225
+	test.AssertEqual(t, p.Age, 51)
+}
+
+//line stdlib/json/json_test.kuki:228
+func TestParseInvalidJSON(t *testing.T) {
+//line stdlib/json/json_test.kuki:229
+	_, err := json.ParseString("not valid json", *new(Person))
+//line stdlib/json/json_test.kuki:230
+	test.AssertError(t, err)
+}
