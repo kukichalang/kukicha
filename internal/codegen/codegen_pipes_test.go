@@ -280,6 +280,28 @@ func Run(url string)
 		"expected step 2 comment for fetch.CheckStatus")
 }
 
+func TestOnErrPipeValueFallbackAssignsTarget(t *testing.T) {
+	// Regression: `b := "data" |> Risky() onerr "default"` used to emit an
+	// empty handler body because the target name wasn't threaded into the
+	// generateOnErrHandler names slice when the final step wrote directly
+	// to the target variable.
+	input := `func Risky(input string) (string, error)
+    return "", error "oops"
+
+func Run() string
+    b := "data" |> Risky() onerr "default"
+    return b
+`
+	output := generateAnalyzedSource(t, input)
+
+	mustContainPattern(t, output,
+		`b, err_\d+ := Risky\("data"\)`,
+		"expected target-name optimization: b declared inline")
+	if !strings.Contains(output, `b = "default"`) {
+		t.Errorf("expected onerr value fallback to assign to target b, got:\n%s", output)
+	}
+}
+
 func TestNestedOnErrCodegen(t *testing.T) {
 	// An onerr block body that contains another statement with onerr.
 	// Both onerr handlers should resolve {error} to their own error variable.

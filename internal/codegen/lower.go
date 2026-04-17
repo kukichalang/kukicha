@@ -298,7 +298,11 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 		l.recordVar(tempVar, base)
 		addStepComment(block, base)
 		block.Add(&ir.Assign{Names: []string{tempVar, errVar}, Expr: current, Walrus: true, Pos: posOf(base)})
-		handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
+		handlerNames := names
+		if len(handlerNames) == 0 && tempVar == targetName && targetName != "" {
+			handlerNames = []string{targetName}
+		}
+		handlerBlock := l.lowerOnErrHandler(clause, handlerNames, errVar)
 		block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock, Pos: cp})
 		current = tempVar
 	}
@@ -320,7 +324,11 @@ func (l *Lowerer) lowerOnErrPipeChain(pipe *ast.PipeExpr, clause *ast.OnErrClaus
 			l.recordVar(next, step)
 			addStepComment(block, step)
 			block.Add(&ir.Assign{Names: []string{next, errVar}, Expr: callExpr, Walrus: true, Pos: sp})
-			handlerBlock := l.lowerOnErrHandler(clause, names, errVar)
+			handlerNames := names
+			if len(handlerNames) == 0 && next == targetName && targetName != "" {
+				handlerNames = []string{targetName}
+			}
+			handlerBlock := l.lowerOnErrHandler(clause, handlerNames, errVar)
 			block.Add(&ir.IfErrCheck{ErrVar: errVar, Body: handlerBlock, Pos: cp})
 			current = next
 		} else if l.gen.isErrorOnlyReturn(step) {
