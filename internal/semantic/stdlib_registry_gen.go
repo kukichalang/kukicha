@@ -549,7 +549,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"mcp.NewClientWithSampling":       {Count: 1, Types: []goStdlibType{{Kind: TypeKindReference}}, ParamNames: []string{"name", "version", "handler"}},
 	"mcp.NewClientWithSamplingTools":  {Count: 1, Types: []goStdlibType{{Kind: TypeKindReference}}, ParamNames: []string{"name", "version", "handler"}},
 	"mcp.Prop":                        {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "mcp.SchemaProperty"}}, ParamNames: []string{"name", "typ", "description"}},
-	"mcp.Required":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}}, ParamNames: []string{"schema", "names"}},
+	"mcp.Required":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindMap, KeyType: &goStdlibType{Kind: TypeKindString}, ValueType: &goStdlibType{Kind: TypeKindNamed, Name: "any"}}}, ParamNames: []string{"schema", "names"}},
 	"mcp.Schema":                      {Count: 1, Types: []goStdlibType{{Kind: TypeKindMap, KeyType: &goStdlibType{Kind: TypeKindString}, ValueType: &goStdlibType{Kind: TypeKindNamed, Name: "any"}}}, ParamNames: []string{"props"}},
 	"mcp.Serve":                       {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"server"}},
 	"mcp.TextResult":                  {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}}, ParamNames: []string{"text"}},

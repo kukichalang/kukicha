@@ -45,15 +45,11 @@ func Schema(props list of SchemaProperty) map of string to any
 
     return map of string to any{"type": "object", "properties": properties}
 
-# Required adds a list of required property names to a schema
-func Required(schema any, names list of string) any
-    result := schema
-    schema |> switch as s
-        when map of string to any
-            s["required"] = names
-            result = s
-
-    return result
+# Required adds a list of required property names to a schema.
+# Typically chained after Schema(): mcp.Schema(props) |> mcp.Required(list of string{"a"})
+func Required(schema map of string to any, names list of string) map of string to any
+    schema["required"] = names
+    return schema
 
 # TextResult creates a successful tool result containing the given text.
 # Useful for returning strings directly to the AI.

@@ -1,6 +1,6 @@
-import "stdlib/cast"
 # target: mcp
 
+import "stdlib/cast"
 import "stdlib/mcp"
 
 # A tool that adds two numbers, demonstrating smart type conversion
@@ -23,8 +23,7 @@ func main()
         mcp.Prop("a", "number", "The first number"),
         mcp.Prop("b", "number", "The second number"),
     }
-    addSchema := mcp.Schema(props)
-    addSchema = mcp.Required(addSchema, list of string{"a", "b"}).(map of string to any)
+    addSchema := mcp.Schema(props) |> mcp.Required(list of string{"a", "b"})
 
     # Register the tool
     server |> mcp.Tool("add", "Add two numbers", addSchema, add)

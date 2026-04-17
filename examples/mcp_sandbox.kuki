@@ -84,8 +84,7 @@ func doMCP(args cli.Args)
     server := mcp.New("mcp-sandbox", "1.0.0")
 
     readProps := list of mcp.SchemaProperty{mcp.Prop("path", "string", "File path relative to sandbox root")}
-    readSchema := mcp.Schema(readProps)
-    readSchema = mcp.Required(readSchema, list of string{"path"}).(map of string to any)
+    readSchema := mcp.Schema(readProps) |> mcp.Required(list of string{"path"})
 
     server |> mcp.Tool("read_file", "Read a file from the sandbox", readSchema, func(args map of string to any) (any, error)
         return readFileTool(box, args)
@@ -95,8 +94,7 @@ func doMCP(args cli.Args)
         mcp.Prop("path", "string", "File path relative to sandbox root"),
         mcp.Prop("content", "string", "File content to write"),
     }
-    writeSchema := mcp.Schema(writeProps)
-    writeSchema = mcp.Required(writeSchema, list of string{"path", "content"}).(map of string to any)
+    writeSchema := mcp.Schema(writeProps) |> mcp.Required(list of string{"path", "content"})
 
     server |> mcp.Tool("write_file", "Write a file to the sandbox", writeSchema, func(args map of string to any) (any, error)
         return writeFileTool(box, args)
