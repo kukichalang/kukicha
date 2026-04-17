@@ -366,6 +366,37 @@ func PrintActiveUsers(users list of string)
 	}
 }
 
+func TestPipedStdlibDefaultParamFill(t *testing.T) {
+	// Piped calls to stdlib functions with default parameters must fill in
+	// the defaults just like direct calls do.
+	input := `import "stdlib/string"
+
+func Run(s string) string
+    return s |> string.PadRight(10)
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, `PadRight(s, 10, " ")`) {
+		t.Errorf("expected piped stdlib call to fill default param, got:\n%s", output)
+	}
+}
+
+func TestPipedStdlibDefaultParamFillAliased(t *testing.T) {
+	// Same as above, but with a user-defined package alias. The codegen
+	// must resolve the alias back to the canonical stdlib name before
+	// looking up default values.
+	input := `import "stdlib/string" as strpkg
+
+func Run(s string) string
+    return s |> strpkg.PadRight(10)
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, `PadRight(s, 10, " ")`) {
+		t.Errorf("expected piped aliased stdlib call to fill default param, got:\n%s", output)
+	}
+}
+
 func TestBarePkgFuncPipeTarget(t *testing.T) {
 	// A bare pkg.Func (no parens) as the pipe terminator should call the
 	// function with the piped value as its single argument — just like a

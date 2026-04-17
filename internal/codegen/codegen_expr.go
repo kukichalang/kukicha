@@ -1010,6 +1010,21 @@ func (g *Generator) generateFieldAccessExpr(expr *ast.FieldAccessExpr) string {
 	return fmt.Sprintf("%s.%s", object, field)
 }
 
+// resolveImportAlias maps a local package identifier (as it appears in source)
+// back to its canonical stdlib package name. For user-aliased imports like
+// `import "stdlib/string" as stringpkg`, this returns "string"; otherwise it
+// returns the identifier unchanged.
+func (g *Generator) resolveImportAlias(localName string) string {
+	for _, imp := range g.program.Imports {
+		if imp.Alias == nil || imp.Alias.Value != localName {
+			continue
+		}
+		path := strings.Trim(imp.Path.Value, "\"")
+		return extractPkgName(path)
+	}
+	return localName
+}
+
 // fillStdlibDefaults appends missing trailing default values from the stdlib
 // registry to args. goName is the Go-aliased function name (e.g., "kukistring.PadRight").
 // exprNode is the AST node used to extract the original Kukicha package name.
@@ -1022,12 +1037,16 @@ func (g *Generator) fillStdlibDefaults(goName string, exprNode ast.Expression, a
 		switch n := exprNode.(type) {
 		case *ast.MethodCallExpr:
 			if objID, ok := n.Object.(*ast.Identifier); ok {
-				kukichaName = objID.Value + "." + n.Method.Value
+				kukichaName = g.resolveImportAlias(objID.Value) + "." + n.Method.Value
 			}
 		case *ast.CallExpr:
 			if mc, ok := n.Function.(*ast.MethodCallExpr); ok {
 				if objID, ok := mc.Object.(*ast.Identifier); ok {
-					kukichaName = objID.Value + "." + mc.Method.Value
+					kukichaName = g.resolveImportAlias(objID.Value) + "." + mc.Method.Value
+				}
+			} else if fa, ok := n.Function.(*ast.FieldAccessExpr); ok {
+				if objID, ok := fa.Object.(*ast.Identifier); ok {
+					kukichaName = g.resolveImportAlias(objID.Value) + "." + fa.Field.Value
 				}
 			}
 		}

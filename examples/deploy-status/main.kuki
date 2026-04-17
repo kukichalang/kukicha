@@ -2,8 +2,8 @@
 # Each deploy state carries different data — no more nullable fields
 # Exhaustive switch ensures every state is handled
 
-import "fmt"
 import "stdlib/color"
+import "stdlib/string"
 
 enum DeployStatus
     Queued
@@ -23,17 +23,18 @@ type Service
     status DeployStatus
 
 func statusLine(svc Service) string
+    name := svc.name |> string.PadRight(12)
     return svc.status |> switch as v
         when Queued
-            return fmt.Sprintf("  %-12s  %s", svc.name, color.Dim("waiting"))
+            return "  {name}  {color.Dim("waiting")}"
         when Building
-            return fmt.Sprintf("  %-12s  %s  logs: %s", svc.name, color.Yellow("building"), v.logURL)
+            return "  {name}  {color.Yellow("building")}  logs: {v.logURL}"
         when Running
-            return fmt.Sprintf("  %-12s  %s   %d/%d healthy", svc.name, color.Green("running"), v.healthy, v.replicas)
+            return "  {name}  {color.Green("running")}   {v.healthy}/{v.replicas} healthy"
         when Failed
-            return fmt.Sprintf("  %-12s  %s    %s (exit %d)", svc.name, color.BrightRed("FAILED"), v.reason, v.exitCode)
+            return "  {name}  {color.BrightRed("FAILED")}    {v.reason} (exit {v.exitCode})"
         when RolledBack
-            return fmt.Sprintf("  %-12s  %s to %s", svc.name, color.Yellow("rolled back"), v.previousVersion)
+            return "  {name}  {color.Yellow("rolled back")} to {v.previousVersion}"
 
 func isHealthy(s DeployStatus) bool
     switch s as v
