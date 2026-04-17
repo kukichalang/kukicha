@@ -802,6 +802,34 @@ func (p *Printer) printOnErrBlock(clause *ast.OnErrClause) {
 	p.output.WriteString(p.onErrSuffix(clause) + "\n")
 }
 
+// hasOnErrPipedSwitch returns true when the onerr handler is itself a
+// PipedSwitchExpr — i.e., the pattern:  x := expr onerr default |> switch
+// The switch body cannot be rendered inline, so callers must use
+// printOnErrPipedSwitch instead of onErrSuffix / printOnErrBlock.
+func hasOnErrPipedSwitch(clause *ast.OnErrClause) bool {
+	if clause == nil {
+		return false
+	}
+	_, ok := clause.Handler.(*ast.PipedSwitchExpr)
+	return ok
+}
+
+// printOnErrPipedSwitch prints statements of the form:
+//
+//	{prefix} onerr {default} |> switch
+//	    when ...
+//	    otherwise ...
+//
+// where prefix is the already-serialised left-hand side (e.g. "x := a |> b").
+func (p *Printer) printOnErrPipedSwitch(prefix string, clause *ast.OnErrClause) {
+	ps := clause.Handler.(*ast.PipedSwitchExpr)
+	onerr := " onerr "
+	if clause.Alias != "" {
+		onerr = " onerr as " + clause.Alias + " "
+	}
+	p.printPipedSwitchWithPrefix(prefix+onerr, ps, nil)
+}
+
 // hasBlockOnErr returns true if the onerr clause has a block handler.
 func hasBlockOnErr(clause *ast.OnErrClause) bool {
 	if clause == nil {
@@ -852,7 +880,9 @@ func (p *Printer) printVarDeclStmt(stmt *ast.VarDeclStmt) {
 		values[i] = p.exprToString(v)
 	}
 	line := fmt.Sprintf("%s := %s", strings.Join(names, ", "), strings.Join(values, ", "))
-	if hasBlockOnErr(stmt.OnErr) {
+	if hasOnErrPipedSwitch(stmt.OnErr) {
+		p.printOnErrPipedSwitch(line, stmt.OnErr)
+	} else if hasBlockOnErr(stmt.OnErr) {
 		p.write(p.indent())
 		p.output.WriteString(line)
 		p.printOnErrBlock(stmt.OnErr)
@@ -886,7 +916,9 @@ func (p *Printer) printAssignStmt(stmt *ast.AssignStmt) {
 		op = "="
 	}
 	line := fmt.Sprintf("%s %s %s", strings.Join(targets, ", "), op, strings.Join(values, ", "))
-	if hasBlockOnErr(stmt.OnErr) {
+	if hasOnErrPipedSwitch(stmt.OnErr) {
+		p.printOnErrPipedSwitch(line, stmt.OnErr)
+	} else if hasBlockOnErr(stmt.OnErr) {
 		p.write(p.indent())
 		p.output.WriteString(line)
 		p.printOnErrBlock(stmt.OnErr)
@@ -904,7 +936,9 @@ func (p *Printer) printExpressionStmt(s *ast.ExpressionStmt) {
 		return
 	}
 	line := p.exprToString(s.Expression)
-	if hasBlockOnErr(s.OnErr) {
+	if hasOnErrPipedSwitch(s.OnErr) {
+		p.printOnErrPipedSwitch(line, s.OnErr)
+	} else if hasBlockOnErr(s.OnErr) {
 		p.write(p.indent())
 		p.output.WriteString(line)
 		p.printOnErrBlock(s.OnErr)
