@@ -110,6 +110,16 @@ func (p *PrinterWithComments) Print(program *ast.Program) string {
 	if program.SkillDecl != nil {
 		p.printLeadingComments(program.SkillDecl)
 		p.writeLine(fmt.Sprintf("skill %s", program.SkillDecl.Name.Value))
+		if program.SkillDecl.Description != "" || program.SkillDecl.Version != "" {
+			p.indentLevel++
+			if program.SkillDecl.Description != "" {
+				p.writeLine(fmt.Sprintf("description: %q", program.SkillDecl.Description))
+			}
+			if program.SkillDecl.Version != "" {
+				p.writeLine(fmt.Sprintf("version: %q", program.SkillDecl.Version))
+			}
+			p.indentLevel--
+		}
 		p.printTrailingComment(program.SkillDecl)
 		p.writeLine("")
 	}

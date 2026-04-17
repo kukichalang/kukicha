@@ -40,6 +40,16 @@ func (p *Printer) Print(program *ast.Program) string {
 	// Print skill declaration if present
 	if program.SkillDecl != nil {
 		p.writeLine(fmt.Sprintf("skill %s", program.SkillDecl.Name.Value))
+		if program.SkillDecl.Description != "" || program.SkillDecl.Version != "" {
+			p.indentLevel++
+			if program.SkillDecl.Description != "" {
+				p.writeLine(fmt.Sprintf("description: %q", program.SkillDecl.Description))
+			}
+			if program.SkillDecl.Version != "" {
+				p.writeLine(fmt.Sprintf("version: %q", program.SkillDecl.Version))
+			}
+			p.indentLevel--
+		}
 		p.writeLine("")
 	}
 
