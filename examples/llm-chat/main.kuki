@@ -193,10 +193,9 @@ func main()
     # 12. OpenResponses with event handler
     # ──────────────────────────────────────
     print("--- OpenResponses: Event handler ---")
-    ignored13, err13 := llm.NewResponse("openai:gpt-4o")
+    _, err13 := llm.NewResponse("openai:gpt-4o")
         |> llm.RStreamEvents(printResponseEvent)
         |> llm.RAsk("Count to five")
-    _ = ignored13
     if err13 isnt empty
         print("Error: {err13}")
     print("")
@@ -222,7 +221,7 @@ func main()
     # 14. Quick Anthropic completion
     # ──────────────────────────────────────
     print("--- Anthropic: Quick completion ---")
-    aReply, err15 := llm.AnthropicComplete("claude-opus-4-6", "What is Kukicha tea in one sentence?")
+    aReply, err15 := llm.AnthropicComplete("claude-opus-4-7", "What is Kukicha tea in one sentence?")
     if err15 isnt empty
         print("Error: {err15}")
     else
@@ -232,7 +231,7 @@ func main()
     # 15. Anthropic with system prompt
     # ──────────────────────────────────────
     print("--- Anthropic: With system prompt ---")
-    aAnswer, err16 := llm.NewMessages("claude-opus-4-6")
+    aAnswer, err16 := llm.NewMessages("claude-opus-4-7")
         |> llm.MSystem("You are a concise assistant. Reply in one sentence.")
         |> llm.MTemperature(0.3)
         |> llm.MMaxTokens(100)
@@ -246,7 +245,7 @@ func main()
     # 16. Anthropic adaptive thinking (Claude 4.6+)
     # ──────────────────────────────────────
     print("--- Anthropic: Adaptive thinking ---")
-    thinkResp, err16b := llm.NewMessages("claude-opus-4-6")
+    thinkResp, err16b := llm.NewMessages("claude-opus-4-7")
         |> llm.MAdaptiveThinking
         |> llm.MEffort("high")
         |> llm.MMaxTokens(16000)
@@ -267,7 +266,7 @@ func main()
     # Note: Prefilling assistant messages is not supported on Claude 4.6+
     # ──────────────────────────────────────
     print("--- Anthropic: Multi-turn ---")
-    aMulti, err17 := llm.NewMessages("claude-opus-4-6")
+    aMulti, err17 := llm.NewMessages("claude-opus-4-7")
         |> llm.MSystem("You are a friendly tutor.")
         |> llm.MMaxTokens(500)
         |> llm.MUser("What is a goroutine?")
@@ -283,7 +282,7 @@ func main()
     # 18. Anthropic streaming
     # ──────────────────────────────────────
     print("--- Anthropic: Streaming ---")
-    aStreamed, err18 := llm.NewMessages("claude-opus-4-6")
+    aStreamed, err18 := llm.NewMessages("claude-opus-4-7")
         |> llm.MMaxTokens(200)
         |> llm.MTemperature(0.9)
         |> llm.MStream(printChunk)
@@ -298,7 +297,7 @@ func main()
     # 19. Anthropic full response with usage
     # ──────────────────────────────────────
     print("--- Anthropic: Full response ---")
-    aResp, err19 := llm.NewMessages("claude-opus-4-6")
+    aResp, err19 := llm.NewMessages("claude-opus-4-7")
         |> llm.MMaxTokens(200)
         |> llm.MUser("Say hello in three languages")
         |> llm.MSendRaw
@@ -315,11 +314,10 @@ func main()
     # 20. Anthropic with event handler
     # ──────────────────────────────────────
     print("--- Anthropic: Event handler ---")
-    ignored20, err20 := llm.NewMessages("claude-opus-4-6")
+    _, err20 := llm.NewMessages("claude-opus-4-7")
         |> llm.MMaxTokens(200)
         |> llm.MStreamEvents(printAnthropicEvent)
         |> llm.MAsk("Count to five")
-    _ = ignored20
     if err20 isnt empty
         print("Error: {err20}")
     print("")
@@ -327,7 +325,7 @@ func main()
     # 21. Anthropic with custom endpoint (e.g., Dartmouth)
     # ──────────────────────────────────────
     print("--- Anthropic: Custom endpoint ---")
-    dartmouthReply, err21 := llm.NewMessages("claude-opus-4-6")
+    dartmouthReply, err21 := llm.NewMessages("claude-opus-4-7")
         |> llm.MBaseURL("https://chat.dartmouth.edu")
         |> llm.MPath("/api/messages")
         |> llm.MAPIKey("your-dartmouth-key")

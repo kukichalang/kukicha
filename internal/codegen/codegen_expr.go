@@ -793,9 +793,17 @@ func (g *Generator) generatePipeExpr(expr *ast.PipeExpr) string {
 		isVariadic = method.Variadic
 	} else if field, ok := expr.Right.(*ast.FieldAccessExpr); ok {
 		if field.Object == nil {
+			// Shorthand .Field form — treat as field access on the piped value.
 			return leftExpr + "." + field.Field.Value
 		}
-		return g.generateFieldAccessExpr(field)
+		// Bare pkg.Func pipe target (no parens) — call it with the piped
+		// value as the single argument, mirroring the bare-Identifier case.
+		// e.g., builder |> llm.Send  →  llm.Send(builder)
+		objStr := g.exprToString(field.Object)
+		if alias, ok := g.pkgAliases[objStr]; ok {
+			objStr = alias
+		}
+		return fmt.Sprintf("%s.%s(%s)", objStr, field.Field.Value, leftExpr)
 	} else if id, ok := expr.Right.(*ast.Identifier); ok {
 		// Bare identifier on right side of pipe: treat as function call with piped value
 		// e.g., data |> print  →  fmt.Println(data)

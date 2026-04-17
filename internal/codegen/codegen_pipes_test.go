@@ -366,6 +366,22 @@ func PrintActiveUsers(users list of string)
 	}
 }
 
+func TestBarePkgFuncPipeTarget(t *testing.T) {
+	// A bare pkg.Func (no parens) as the pipe terminator should call the
+	// function with the piped value as its single argument — just like a
+	// bare identifier pipe target.
+	input := `import "strings"
+
+func Run(s string) string
+    return s |> strings.ToUpper
+`
+	output := generateSource(t, input)
+
+	if !strings.Contains(output, "strings.ToUpper(s)") {
+		t.Errorf("expected bare pkg.Func pipe target to be called with piped value, got:\n%s", output)
+	}
+}
+
 func TestPipeAwareIteratorsTypedReducerLambda(t *testing.T) {
 	input := `import "stdlib/iterator"
 
