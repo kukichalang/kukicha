@@ -283,7 +283,7 @@ function main()
         return
 
     # 4. Commit
-    shell.Run("git", "commit", "-m", message) onerr
+    shell.Output("git", "commit", "-m", message) onerr
         print("Commit failed: {error}")
         return
 

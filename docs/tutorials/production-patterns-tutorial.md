@@ -218,42 +218,32 @@ function Close on d Database()
 ```kukicha
 # InsertLink creates a new link in the database
 function InsertLink on d Database(code string, url string) (Link, error)
-    db.Exec(d.pool,
-        "INSERT INTO links (code, url) VALUES (?, ?)", code, url) onerr return
-
+    db.Exec(d.pool, "INSERT INTO links (code, url) VALUES (?, ?)", code, url) onerr return
     return d.GetLink(code)
 
 # GetLink retrieves a link by its code
 function GetLink on d Database(code string) (Link, error)
-    result := db.Query(d.pool,
-        "SELECT code, url, clicks, created_at FROM links WHERE code = ?", code)
-        |> db.ScanAll(list of Link{})
-        onerr return
-    links := result.(list of Link)
-    if len(links) == 0
+    sql := "SELECT code, url, clicks, created_at FROM links WHERE code = ?"
+    result := db.Query(d.pool, sql, code) |> db.ScanAll(empty list of Link) onerr return
+    links := result as list of Link
+    if len(links) equals 0
         return {}, error "link not found: {code}"
     return links[0], empty
 
 # GetAllLinks returns all links, newest first
 function GetAllLinks on d Database() (list of Link, error)
-    result := db.Query(d.pool,
-        "SELECT code, url, clicks, created_at FROM links ORDER BY created_at DESC")
-        |> db.ScanAll(list of Link{})
-        onerr return
-    return result.(list of Link), empty
+    sql := "SELECT code, url, clicks, created_at FROM links ORDER BY created_at DESC"
+    result := db.Query(d.pool, sql) |> db.ScanAll(empty list of Link) onerr return
+    return result as list of Link, empty
 
 # IncrementClicks adds 1 to the click counter (called on every redirect)
 function IncrementClicks on d Database(code string) error
-    db.Exec(d.pool,
-        "UPDATE links SET clicks = clicks + 1 WHERE code = ?", code)
-        onerr explain "failed to increment clicks"
+    db.Exec(d.pool, "UPDATE links SET clicks = clicks + 1 WHERE code = ?", code) onerr explain "failed to increment clicks"
     return empty
 
 # DeleteLink removes a link by its code
 function DeleteLink on d Database(code string) error
-    db.Exec(d.pool,
-        "DELETE FROM links WHERE code = ?", code)
-        onerr explain "failed to delete link"
+    db.Exec(d.pool, "DELETE FROM links WHERE code = ?", code) onerr explain "failed to delete link"
     return empty
 ```
 
@@ -483,7 +473,6 @@ Let's compare the web tutorial version with this production version:
 | **Validation** | Manual string checks | `stdlib/validate` (URL, NotEmpty) |
 | **Config** | Hardcoded | Environment variables (`PORT`, `DATABASE_URL`) |
 | **Errors** | Manual JSON encoding | `stdlib/http` helpers |
-| **Optional/Result values** | Not modeled explicitly | `stdlib/result` (`Some`/`None`, `Ok`/`Err`) |
 | **HTTP retries** | Single attempt only | `stdlib/retry` config + manual retry loop |
 | **Lifecycle** | `LinkStore` struct | `NewServer()` constructor, `defer Close()` |
 
@@ -605,48 +594,6 @@ function HandleRequest(w http.ResponseWriter, r reference http.Request)
     page := httphelper.GetQueryIntOr(r, "page", 1)
     search := httphelper.GetQueryParam(r, "q")
 ```
-
-### Rust-Style Optionals with `result`
-
-```kukicha
-import "stdlib/result"
-
-# Pattern 1: Optional for nullable cache lookups
-function FindCachedUser(id string) result.Optional
-    user, exists := userCache[id]
-    if not exists
-        return result.None()
-    return result.Some(user)
-
-# Usage
-opt := FindCachedUser(id)
-if result.IsSome(opt)
-    user := result.Unwrap(opt)
-    print("Found: {user}")
-```
-
-```kukicha
-# Pattern 2: Result for operations that can fail
-function FetchLinkResult on s reference Server(code string) result.Result
-    link := s.db.GetLink(code) onerr return result.Err(error)
-    return result.Ok(link)
-
-# Usage with Match for clean dispatch
-result.Match(
-    s.FetchLinkResult(code),
-    (link any) => httphelper.JSON(w, link),
-    (cause error) => httphelper.JSONNotFound(w, "Link not found")
-)
-```
-
-```kukicha
-# Pattern 3: AndThen for chaining fallible steps
-s.FetchLinkResult(code)
-    |> result.AndThen((link any) => ValidateLinkResult(link))
-    |> result.UnwrapOrResult(Link{})
-```
-
-Use `result` when you want success/failure as a first-class value you can return, pass, or store, instead of only using multiple return values.
 
 ### Error Context with `errors`
 
