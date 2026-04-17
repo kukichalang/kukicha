@@ -234,9 +234,18 @@ func (g *Generator) typeParamsFromClass(class string) []*TypeParameter {
 }
 
 // inferFetchTypeParameters infers type parameters for selected stdlib/fetch helpers.
-// Json uses placeholders to produce: func Json[T any](resp *http.Response, sample T) (T, error)
+// Json / GetJson / PostJson use placeholders to produce:
+//
+//	func Json[T any](resp *http.Response, sample T) (T, error)
+//	func GetJson[T any](url string, sample T) (T, error)
+//	func PostJson[T any](url string, body any, sample T) (T, error)
 func (g *Generator) inferFetchTypeParameters(decl *ast.FunctionDecl) []*TypeParameter {
-	if decl.Name == nil || decl.Name.Value != "Json" {
+	if decl.Name == nil {
+		return nil
+	}
+	switch decl.Name.Value {
+	case "Json", "GetJson", "PostJson":
+	default:
 		return nil
 	}
 

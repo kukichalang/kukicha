@@ -94,6 +94,33 @@ func TestJsonArray(t reference testing.T)
             test.AssertEqual(t, data[1].Count, 2)
         )
 
+# --- TestGetJson ---
+func TestGetJson(t reference testing.T)
+    jsonBytes := `{"message":"typed","count":7}` as list of byte
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r reference http.Request)
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        w.Write(jsonBytes)
+    ))
+
+    defer server.Close()
+
+    data, err := fetch.GetJson(server.URL, empty TestData)
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, data.Message, "typed")
+    test.AssertEqual(t, data.Count, 7)
+
+# --- TestGetJsonError ---
+func TestGetJsonError(t reference testing.T)
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r reference http.Request)
+        http.Error(w, "nope", http.StatusInternalServerError)
+    ))
+
+    defer server.Close()
+
+    _, err := fetch.GetJson(server.URL, empty TestData)
+    test.AssertError(t, err)
+
 # --- TestDecode ---
 type DecodeCase
     name string

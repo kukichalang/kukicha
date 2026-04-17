@@ -223,6 +223,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"fetch.DownloadTo":                {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"resp", "box", "path"}},
 	"fetch.FormData":                  {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "fetch.Request"}}, ParamNames: []string{"req", "data"}},
 	"fetch.Get":                       {Count: 2, Types: []goStdlibType{{Kind: TypeKindReference}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"url"}},
+	"fetch.GetJson":                   {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"url", "sample"}},
 	"fetch.Header":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "fetch.Request"}}, ParamNames: []string{"req", "name", "value"}},
 	"fetch.Json":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"resp", "sample"}},
 	"fetch.MaxBodySize":               {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "fetch.Request"}}, ParamNames: []string{"req", "limit"}},

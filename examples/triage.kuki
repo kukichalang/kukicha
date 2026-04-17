@@ -36,9 +36,8 @@ func triage(i Issue) Verdict
     return v
 
 func main()
-    issues := fetch.Get("https://api.github.com/repos/golang/go/issues?per_page=20")
-        |> fetch.CheckStatus()
-        |> fetch.Json(empty list of Issue) onerr panic "github: {error}"
+    url := "https://api.github.com/repos/golang/go/issues?per_page=20"
+    issues := fetch.GetJson(url, empty list of Issue) onerr panic "github: {error}"
 
     urgent := issues
         |> concurrent.MapWithLimit(4, triage)

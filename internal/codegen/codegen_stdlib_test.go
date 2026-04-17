@@ -181,6 +181,36 @@ func Json(resp reference http.Response, sample any) (any, error)
 	}
 }
 
+func TestFetchGetJsonGenerics(t *testing.T) {
+	input := `petiole fetch
+
+func GetJson(url string, sample any) (any, error)
+    data := sample
+    return data, empty
+`
+
+	p, err := parser.New(input, "stdlib/fetch/fetch.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	gen.SetSourceFile("stdlib/fetch/fetch.kuki")
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "func GetJson[T any](url string, sample T) (T, error)") {
+		t.Errorf("expected fetch.GetJson generic signature, got: %s", output)
+	}
+}
+
 func TestJSONDecodeReadGenerics(t *testing.T) {
 	input := `petiole json
 

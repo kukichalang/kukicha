@@ -252,6 +252,13 @@ func Json(resp reference http.Response, sample any) (any, error)
     json.UnmarshalRead(resp.Body, reference of data) onerr explain "failed to decode response json"
     return data, empty
 
+# GetJson GETs a URL, checks the status, and decodes the body as typed JSON.
+# Pass a typed empty value as the second argument to drive inference.
+# Example: issues := fetch.GetJson(url, list of Issue) onerr panic "{error}"
+func GetJson(url string, sample any) (any, error)
+    resp := Get(url) |> CheckStatus() onerr explain "GET request failed"
+    return Json(resp, sample)
+
 # Decode reads the response body and unmarshals JSON into a typed target
 # Target must be a pointer (use "reference of" in Kukicha)
 # Example:
