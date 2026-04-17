@@ -187,4 +187,4 @@ bricks[i]                                # Access by index
 
 ## What's next?
 
-Want to see a larger game built with Kukicha? Check out [Stem Panic](../../../examples/stem-panic/) — a tapper-style tea processing game that uses multiple lanes, game states, levels, and the `|>` pipe as a gameplay mechanic. It builds on all the concepts from these tutorials.
+Want to see a larger game built with Kukicha? Check out [Stem Panic](https://github.com/kukichalang/game/examples/stem-panic/) — a tapper-style tea processing game that uses multiple lanes, game states, levels, and the `|>` pipe as a gameplay mechanic. It builds on all the concepts from these tutorials.
