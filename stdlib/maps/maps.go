@@ -9,136 +9,136 @@ import (
 	"sort"
 )
 
-//line stdlib/maps/maps.kuki:13
-func Keys(m map[any]any) []any {
-//line stdlib/maps/maps.kuki:14
-	keys := make([]any, 0, len(m))
-//line stdlib/maps/maps.kuki:15
-	for k := range m {
 //line stdlib/maps/maps.kuki:16
+func Keys[T any, K comparable](m map[K]T) []K {
+//line stdlib/maps/maps.kuki:17
+	keys := make([]K, 0, len(m))
+//line stdlib/maps/maps.kuki:18
+	for k := range m {
+//line stdlib/maps/maps.kuki:19
 		keys = append(keys, k)
 	}
-//line stdlib/maps/maps.kuki:17
+//line stdlib/maps/maps.kuki:20
 	return keys
 }
 
-//line stdlib/maps/maps.kuki:21
-func Values(m map[any]any) []any {
-//line stdlib/maps/maps.kuki:22
-	values := make([]any, 0, len(m))
-//line stdlib/maps/maps.kuki:23
-	for _, v := range m {
 //line stdlib/maps/maps.kuki:24
+func Values[T any, K comparable](m map[K]T) []T {
+//line stdlib/maps/maps.kuki:25
+	values := make([]T, 0, len(m))
+//line stdlib/maps/maps.kuki:26
+	for _, v := range m {
+//line stdlib/maps/maps.kuki:27
 		values = append(values, v)
 	}
-//line stdlib/maps/maps.kuki:25
+//line stdlib/maps/maps.kuki:28
 	return values
 }
 
-//line stdlib/maps/maps.kuki:28
-func Contains(m map[any]any, key any) bool {
-//line stdlib/maps/maps.kuki:29
+//line stdlib/maps/maps.kuki:31
+func Contains[T any, K comparable](m map[K]T, key K) bool {
+//line stdlib/maps/maps.kuki:32
 	_, ok := m[key]
-//line stdlib/maps/maps.kuki:30
-	return ok
-}
-
 //line stdlib/maps/maps.kuki:33
-func Has(m map[any]any, key any) bool {
-//line stdlib/maps/maps.kuki:34
-	_, ok := m[key]
-//line stdlib/maps/maps.kuki:35
 	return ok
 }
 
-//line stdlib/maps/maps.kuki:39
-func Merge(base map[any]any, overlay map[any]any) map[any]any {
-//line stdlib/maps/maps.kuki:40
-	result := make(map[any]any, (len(base) + len(overlay)))
-//line stdlib/maps/maps.kuki:41
-	gomaps.Copy(result, base)
+//line stdlib/maps/maps.kuki:36
+func Has[T any, K comparable](m map[K]T, key K) bool {
+//line stdlib/maps/maps.kuki:37
+	_, ok := m[key]
+//line stdlib/maps/maps.kuki:38
+	return ok
+}
+
 //line stdlib/maps/maps.kuki:42
-	gomaps.Copy(result, overlay)
+func Merge[T any, K comparable](base map[K]T, overlay map[K]T) map[K]T {
 //line stdlib/maps/maps.kuki:43
+	result := make(map[K]T, (len(base) + len(overlay)))
+//line stdlib/maps/maps.kuki:44
+	gomaps.Copy(result, base)
+//line stdlib/maps/maps.kuki:45
+	gomaps.Copy(result, overlay)
+//line stdlib/maps/maps.kuki:46
 	return result
 }
 
-//line stdlib/maps/maps.kuki:49
-func SortedKeys(m map[any]any) []string {
-//line stdlib/maps/maps.kuki:50
-	keys := make([]string, 0, len(m))
-//line stdlib/maps/maps.kuki:51
-	for k := range m {
 //line stdlib/maps/maps.kuki:52
+func SortedKeys[T any, K comparable](m map[K]T) []string {
+//line stdlib/maps/maps.kuki:53
+	keys := make([]string, 0, len(m))
+//line stdlib/maps/maps.kuki:54
+	for k := range m {
+//line stdlib/maps/maps.kuki:55
 		keys = append(keys, fmt.Sprint(k))
 	}
-//line stdlib/maps/maps.kuki:53
+//line stdlib/maps/maps.kuki:56
 	sort.Strings(keys)
-//line stdlib/maps/maps.kuki:54
+//line stdlib/maps/maps.kuki:57
 	return keys
 }
 
-//line stdlib/maps/maps.kuki:59
-func Filter(m map[any]any, predicate func(any, any) bool) map[any]any {
-//line stdlib/maps/maps.kuki:60
-	result := make(map[any]any)
-//line stdlib/maps/maps.kuki:61
-	for k, v := range m {
 //line stdlib/maps/maps.kuki:62
-		if predicate(k, v) {
+func Filter[T any, K comparable](m map[K]T, predicate func(K, T) bool) map[K]T {
 //line stdlib/maps/maps.kuki:63
+	result := make(map[K]T)
+//line stdlib/maps/maps.kuki:64
+	for k, v := range m {
+//line stdlib/maps/maps.kuki:65
+		if predicate(k, v) {
+//line stdlib/maps/maps.kuki:66
 			result[k] = v
 		}
 	}
-//line stdlib/maps/maps.kuki:64
+//line stdlib/maps/maps.kuki:67
 	return result
 }
 
-//line stdlib/maps/maps.kuki:68
-func MapValues(m map[any]any, fn func(any) any) map[any]any {
-//line stdlib/maps/maps.kuki:69
-	out := make(map[any]any, len(m))
-//line stdlib/maps/maps.kuki:70
-	for k, v := range m {
 //line stdlib/maps/maps.kuki:71
+func MapValues[T any, K comparable](m map[K]T, fn func(T) T) map[K]T {
+//line stdlib/maps/maps.kuki:72
+	out := make(map[K]T, len(m))
+//line stdlib/maps/maps.kuki:73
+	for k, v := range m {
+//line stdlib/maps/maps.kuki:74
 		out[k] = fn(v)
 	}
-//line stdlib/maps/maps.kuki:72
+//line stdlib/maps/maps.kuki:75
 	return out
 }
 
-//line stdlib/maps/maps.kuki:77
-func Pick(m map[any]any, keys []any) map[any]any {
-//line stdlib/maps/maps.kuki:78
-	result := make(map[any]any)
-//line stdlib/maps/maps.kuki:79
-	for _, key := range keys {
 //line stdlib/maps/maps.kuki:80
-		v, ok := m[key]
+func Pick[T any, K comparable](m map[K]T, keys []K) map[K]T {
 //line stdlib/maps/maps.kuki:81
-		if ok {
+	result := make(map[K]T)
 //line stdlib/maps/maps.kuki:82
+	for _, key := range keys {
+//line stdlib/maps/maps.kuki:83
+		v, ok := m[key]
+//line stdlib/maps/maps.kuki:84
+		if ok {
+//line stdlib/maps/maps.kuki:85
 			result[key] = v
 		}
 	}
-//line stdlib/maps/maps.kuki:83
+//line stdlib/maps/maps.kuki:86
 	return result
 }
 
-//line stdlib/maps/maps.kuki:87
-func Omit(m map[any]any, keys []any) map[any]any {
-//line stdlib/maps/maps.kuki:88
-	excluded := set.From(keys)
-//line stdlib/maps/maps.kuki:89
-	result := make(map[any]any)
 //line stdlib/maps/maps.kuki:90
-	for k, v := range m {
+func Omit[T any, K comparable](m map[K]T, keys []K) map[K]T {
 //line stdlib/maps/maps.kuki:91
-		if !set.Contains(excluded, k) {
+	excluded := set.From(keys)
 //line stdlib/maps/maps.kuki:92
+	result := make(map[K]T)
+//line stdlib/maps/maps.kuki:93
+	for k, v := range m {
+//line stdlib/maps/maps.kuki:94
+		if !set.Contains(excluded, k) {
+//line stdlib/maps/maps.kuki:95
 			result[k] = v
 		}
 	}
-//line stdlib/maps/maps.kuki:93
+//line stdlib/maps/maps.kuki:96
 	return result
 }

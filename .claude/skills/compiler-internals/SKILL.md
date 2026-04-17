@@ -675,13 +675,17 @@ Three inference cases handled in `semantic_calls.go`:
 
 ### Generics via placeholders
 
-When generating stdlib code (`isStdlibIter`, or per-function for `stdlib/slice`, `stdlib/sort`, `stdlib/concurrent`), the generator detects `any`/`any2`/`ordered`/`result` placeholders in type annotations and:
+When generating stdlib code (`isStdlibIter`, or per-function for `stdlib/slice`, `stdlib/sort`, `stdlib/concurrent`, `stdlib/set`, `stdlib/maps`), the generator detects `any`/`any2`/`ordered`/`result` placeholders in type annotations and:
 1. Builds a `placeholderMap` mapping placeholder → Go type param name (`T`, `K`, `R`)
 2. Emits `[T any, K comparable]`, `[T any, K cmp.Ordered]`, or `[T any, R any]` on the function signature
 3. Substitutes placeholders throughout parameter and return types
 4. `exprToString` returns `*new(T)` as intermediate marker for bare `empty` in generic return position; `replaceGenericZeroExprs` rewrites these to `var _zeroN T; return _zeroN`
 
 The generic classification (`T`, `K`, `TK`, `O`, `TO`, `TR`) is auto-derived from placeholder usage in `.kuki` function signatures and stored in `generatedSliceGenericClass`. Application code never sees this.
+
+Which packages get generic inference is gated by an allowlist in `cmd/genstdlibregistry/main.go` (currently: `slice`, `sort`, `concurrent`, `set`, `maps`) plus per-function opt-ins in `isStdlib*` helpers in `internal/codegen/codegen_stdlib.go`. Adding a package requires both: register it in the allowlist so `generatedSliceGenericClass` picks up classifications, and add `isStdlibXxx` + `inferXxxTypeParameters` wired into `generateFunctionDecl`.
+
+**Placeholder compatibility in semantic analysis:** `typesCompatible` in `internal/semantic/semantic_types.go` treats placeholder types (`any2`, `ordered`, `result`) as universally compatible at call sites — they exist only inside stdlib signatures and are resolved to concrete types during generic instantiation, so enforcing strict matching against user types at the call site would produce spurious errors (e.g., `string` vs `any2` on a map key argument).
 
 ### Error expression codegen (`codegen_expr.go`)
 

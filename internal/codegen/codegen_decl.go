@@ -307,6 +307,12 @@ func (g *Generator) generateFunctionDecl(decl *ast.FunctionDecl) {
 		for _, tp := range typeParams {
 			g.placeholderMap[tp.Placeholder] = tp.Name
 		}
+	} else if g.isStdlibMaps() {
+		// Generate type parameters for stdlib/maps functions
+		typeParams = g.inferMapsTypeParameters(decl)
+		for _, tp := range typeParams {
+			g.placeholderMap[tp.Placeholder] = tp.Name
+		}
 	}
 
 	// Generate function signature

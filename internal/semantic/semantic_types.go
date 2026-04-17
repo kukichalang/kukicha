@@ -252,6 +252,13 @@ func (a *Analyzer) typesCompatible(t1, t2 *TypeInfo) bool {
 		return true
 	}
 
+	// Generic placeholders (any2, ordered, result) accept any type at call sites.
+	// These only appear in stdlib signatures and are resolved to concrete types
+	// during generic instantiation in codegen.
+	if isPlaceholderType(t1) || isPlaceholderType(t2) {
+		return true
+	}
+
 	// error interface accepts structs and named types (we defer implementation check to Go compiler)
 	if t1.Kind == TypeKindNamed && t1.Name == "error" {
 		if t2.Kind == TypeKindStruct || t2.Kind == TypeKindNamed || t2.Kind == TypeKindReference {

@@ -175,6 +175,17 @@ func (g *Generator) inferSetTypeParameters(decl *ast.FunctionDecl) []*TypeParame
 	return g.typeParamsFromClass(class)
 }
 
+// isStdlibMaps checks if we're generating code in stdlib/maps.
+func (g *Generator) isStdlibMaps() bool {
+	return strings.Contains(g.sourceFile, "stdlib/maps/") || strings.Contains(g.sourceFile, "stdlib\\maps\\")
+}
+
+// inferMapsTypeParameters infers type parameters for stdlib/maps functions.
+func (g *Generator) inferMapsTypeParameters(decl *ast.FunctionDecl) []*TypeParameter {
+	class := semantic.GetSliceGenericClass("maps." + decl.Name.Value)
+	return g.typeParamsFromClass(class)
+}
+
 // inferSliceTypeParameters infers type parameters for stdlib/slice functions
 // using the generated registry (generatedSliceGenericClass) which classifies
 // each function by its placeholder usage:
