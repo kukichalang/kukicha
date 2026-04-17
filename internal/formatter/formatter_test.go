@@ -581,3 +581,18 @@ func TestFormatTypeCastOperandParens(t *testing.T) {
 		})
 	}
 }
+
+// TestFormatBacktickRawStringWithBrace guards against a preprocessor bug
+// where `{` inside a backtick raw string was misread as a Go-style block
+// opener, corrupting indentation for the rest of the file.
+func TestFormatBacktickRawStringWithBrace(t *testing.T) {
+	source := "func f() string\n" +
+		"    q := `query($x: String) {\n" +
+		"    user(login: $x) {\n" +
+		"        name\n" +
+		"    }\n" +
+		"}\n" +
+		"`\n" +
+		"    return q\n"
+	assertFormatted(t, source, source)
+}

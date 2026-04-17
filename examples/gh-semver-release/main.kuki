@@ -8,6 +8,7 @@
 petiole main
 
 skill GhSemverRelease
+    description: "Create GitHub releases with auto-bumped semver tags; list/release/pick subcommands."
 
 import "os"
 import "stdlib/cli"
@@ -54,6 +55,16 @@ type ReleaseResult
 
 # ── Helpers ───────────────────────────────────────────────────
 
+# emitErrorAndExit prints a machine-readable JSON error in --json mode or
+# a human-readable "Error: ..." line otherwise, then exits with code 1.
+# Designed for use in onerr handlers and upfront validation checks.
+func emitErrorAndExit(jsonOut bool, msg string)
+    if jsonOut
+        _ = jsonpkg.WriteOutput(map of string to string{"error": msg})
+    else
+        cli.Error("Error: {msg}")
+    os.Exit(1)
+
 # nextTag computes the next semver tag from the current one, falling back to initialTag
 func nextTag(current string, bump string, initialTag string) (string, error)
     if current equals ""
@@ -79,9 +90,38 @@ func highestSemverTag(repo string) (string, error)
 func listReposWhereICommitted(org string) (list of string, error)
     me := git.CurrentUser() onerr return empty list of string, error "failed to get current user: {error}"
 
-    query := "query($login: String!, $endCursor: String) {\n    user(login: $login) {\n        repositoriesContributedTo(\n            contributionTypes: [COMMIT]\n            includeUserRepositories: true\n            first: 100\n            after: $endCursor\n        ) {\n            nodes {\n                nameWithOwner\n                viewerPermission\n                isArchived\n                isDisabled\n            }\n            pageInfo {\n                hasNextPage\n                endCursor\n            }\n        }\n    }\n}\n"
+    query := `query($login: String!, $endCursor: String) {
+    user(login: $login) {
+        repositoriesContributedTo(
+            contributionTypes: [COMMIT]
+            includeUserRepositories: true
+            first: 100
+            after: $endCursor
+        ) {
+            nodes {
+                nameWithOwner
+                viewerPermission
+                isArchived
+                isDisabled
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+}
+`
 
-    jqFilter := ".data.user.repositoriesContributedTo.nodes[]\n| select(.isArchived == false and .isDisabled == false)\n| select(\n    .viewerPermission == \"ADMIN\" or\n    .viewerPermission == \"MAINTAIN\" or\n    .viewerPermission == \"WRITE\"\n  )\n| .nameWithOwner\n"
+    jqFilter := `.data.user.repositoriesContributedTo.nodes[]
+| select(.isArchived == false and .isDisabled == false)
+| select(
+    .viewerPermission == "ADMIN" or
+    .viewerPermission == "MAINTAIN" or
+    .viewerPermission == "WRITE"
+  )
+| .nameWithOwner
+`
 
     raw := shell.Output("gh", "api", "graphql", "--paginate", "-f", "login={me}", "-f", "query={query}", "--jq", jqFilter) onerr return empty list of string, error "failed to list repos: {error}"
 
@@ -117,12 +157,7 @@ func doList(args cli.Args, initialTag string)
     csv := cli.GetBool(args, "csv")
     jsonOut := cli.IsJSON(args)
 
-    repos := listReposWhereICommitted(org) onerr
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
-        else
-            cli.Error("Error: {error}")
-        os.Exit(1)
+    repos := listReposWhereICommitted(org) onerr emitErrorAndExit(jsonOut, "{error}")
 
     # Fetch tags in parallel (at most 4 concurrent GitHub API calls)
     entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
@@ -164,38 +199,19 @@ func doRelease(args cli.Args, initialTag string)
     generateNotes := env.GetBoolOrDefault(GenerateNotesEnv, true)
 
     if repo equals ""
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "release requires --repo OWNER/REPO"})
-            os.Exit(1)
-        cli.Fatal("release requires --repo OWNER/REPO")
+        emitErrorAndExit(jsonOut, "release requires --repo OWNER/REPO")
 
     if org isnt "" and not (repo |> string.HasPrefix("{org}/"))
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "repo '{repo}' is not under org '{org}'"})
-            os.Exit(1)
-        cli.Fatal("Repo '{repo}' is not under org '{org}'")
+        emitErrorAndExit(jsonOut, "repo '{repo}' is not under org '{org}'")
 
     # Verify repo exists
     repoOk := git.RepoExists(repo) onerr false
     if not repoOk
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "failed to access repo: {repo}"})
-            os.Exit(1)
-        cli.Fatal("Failed to access repo: {repo}")
+        emitErrorAndExit(jsonOut, "failed to access repo: {repo}")
 
-    current := highestSemverTag(repo) onerr
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
-        else
-            cli.Error("Error: {error}")
-        os.Exit(1)
+    current := highestSemverTag(repo) onerr emitErrorAndExit(jsonOut, "{error}")
 
-    next := nextTag(current, bump, initialTag) onerr
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
-        else
-            cli.Error("Error: {error}")
-        os.Exit(1)
+    next := nextTag(current, bump, initialTag) onerr emitErrorAndExit(jsonOut, "{error}")
 
     exists := git.ReleaseExists(repo, next) onerr false
     if exists
@@ -207,12 +223,7 @@ func doRelease(args cli.Args, initialTag string)
         print("  tag:  {next}")
         return
 
-    branch := git.DefaultBranch(repo) onerr
-        if jsonOut
-            _ = jsonpkg.WriteOutput(map of string to string{"error": "{error}"})
-        else
-            cli.Error("Error: {error}")
-        os.Exit(1)
+    branch := git.DefaultBranch(repo) onerr emitErrorAndExit(jsonOut, "{error}")
 
     tagAlreadyExists := git.TagExists(repo, next) onerr false
 

@@ -38,8 +38,27 @@ func (p *Preprocessor) Process() string {
 	var result []string
 
 	indentLevel := 0
+	inBacktick := false
 
 	for i, line := range lines {
+		btCount := strings.Count(line, "`")
+		if inBacktick {
+			// Inside a multi-line raw string — preserve the line verbatim.
+			result = append(result, line)
+			if btCount%2 == 1 {
+				inBacktick = false
+			}
+			continue
+		}
+		if btCount%2 == 1 {
+			// Line opens (or closes) a raw string. Preserve verbatim rather
+			// than trying to split the line around the backtick; Kukicha code
+			// rarely mixes a block-opening `{` with a raw-string opener.
+			result = append(result, line)
+			inBacktick = true
+			continue
+		}
+
 		processed := p.processLine(line, &indentLevel, i, lines)
 		if processed != "" || (i < len(lines)-1) { // Keep empty lines except trailing
 			result = append(result, processed)
@@ -64,6 +83,7 @@ func (p *Preprocessor) hasGoStyleBraces(source string) bool {
 	lines := strings.SplitSeq(source, "\n")
 
 	inTripleQuote := false
+	inBacktick := false
 	for line := range lines {
 		trimmed := strings.TrimSpace(line)
 
@@ -76,6 +96,22 @@ func (p *Preprocessor) hasGoStyleBraces(source string) bool {
 			continue
 		}
 		if inTripleQuote {
+			continue
+		}
+
+		// Track multi-line backtick raw strings. Raw strings have no escape
+		// mechanism, so an odd count of backticks toggles the state. Lines
+		// inside a raw string must not be inspected for block braces —
+		// the content is opaque source text (e.g. a GraphQL query with `{`).
+		btCount := strings.Count(trimmed, "`")
+		if inBacktick {
+			if btCount%2 == 1 {
+				inBacktick = false
+			}
+			continue
+		}
+		if btCount%2 == 1 {
+			inBacktick = true
 			continue
 		}
 
