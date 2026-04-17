@@ -14,7 +14,7 @@ Each package lives in `stdlib/<name>/` with:
 | Package | Purpose | Key Functions |
 |---------|---------|---------------|
 | `stdlib/cast` | Smart type coercion (any → scalar) | SmartInt, SmartFloat64, SmartBool, SmartString, Atoi, ParseFloat |
-| `stdlib/cli` | CLI argument parsing with subcommands | New, Description, Arg, AddFlag, Action, RunApp, Command, CommandFlag, CommandAction, GlobalFlag, CommandName, GetString, GetBool, GetInt, NewArgs, IsJSON, Error, Warn, Fatal |
+| `stdlib/cli` | CLI argument parsing with subcommands | New, Description, Arg, AddFlag, Action, RunApp, Command, CommandFlag, CommandAction, GlobalFlag, CommandName, GetString, GetBool, GetInt, NewArgs, IsJSON, Error, Warn, Fatal, Info, Success |
 | `stdlib/color` | ANSI terminal colors and styles | Enabled, SetEnabled, Bold, Dim, Italic, Underline, Red, Green, Yellow, Blue, Magenta, Cyan, Gray, BrightRed, Error, Warn, Success, Info, Muted |
 | `stdlib/concurrent` | Parallel execution and concurrent map | Parallel, ParallelWithLimit, Map, MapWithLimit, Go |
 | `stdlib/container` | Docker/Podman client via Docker SDK | Connect, ConnectRemote, New/Host/APIVersion/Open, ListContainers, ListImages, Pull, PullAuth, LoginFromConfig, Run, Stop, Remove, Build, Logs, LogsTail, Inspect, Wait/WaitCtx, Exec, Events/EventsCtx, CopyFrom, CopyTo |

@@ -10,143 +10,166 @@ import (
 	"github.com/kukichalang/kukicha/stdlib/slice"
 )
 
-//line examples/feature_sampler.kuki:6
+//line examples/feature_sampler.kuki:13
 func Do(f func(string)) {
-//line examples/feature_sampler.kuki:7
+//line examples/feature_sampler.kuki:14
 	f("hello")
 }
 
-//line examples/feature_sampler.kuki:9
+//line examples/feature_sampler.kuki:16
 func Risky(input string) (string, error) {
-//line examples/feature_sampler.kuki:10
+//line examples/feature_sampler.kuki:17
 	return "", errors.New("oops")
 }
 
-//line examples/feature_sampler.kuki:12
-func TestFeatures() {
-//line examples/feature_sampler.kuki:14
-	users := []string{"alice", "bob", "charlie"}
-//line examples/feature_sampler.kuki:15
-	active := slice.Filter(users, func(u string) bool { return (u != "bob") })
-//line examples/feature_sampler.kuki:17
-	fmt.Println("Filtered users:")
-//line examples/feature_sampler.kuki:18
-	for _, user := range active {
 //line examples/feature_sampler.kuki:19
+func TestFeatures() {
+//line examples/feature_sampler.kuki:21
+	users := []string{"alice", "bob", "charlie"}
+//line examples/feature_sampler.kuki:22
+	active := slice.Filter(users, func(u string) bool { return (u != "bob") })
+//line examples/feature_sampler.kuki:24
+	fmt.Println("Filtered users:")
+//line examples/feature_sampler.kuki:25
+	for _, user := range active {
+//line examples/feature_sampler.kuki:26
 		fmt.Println(user)
 	}
-//line examples/feature_sampler.kuki:21
-	fmt.Println("\nCallback with explicit param:")
-//line examples/feature_sampler.kuki:25
-	Do(func(s string) {
-//line examples/feature_sampler.kuki:24
-		fmt.Println((s + " world!"))
-	})
 //line examples/feature_sampler.kuki:28
+	fmt.Println("\nCallback with explicit param:")
+//line examples/feature_sampler.kuki:32
+	Do(func(s string) {
+//line examples/feature_sampler.kuki:31
+		fmt.Println(fmt.Sprintf("%v world!", s))
+	})
+//line examples/feature_sampler.kuki:35
 	fmt.Println("\nSelect an action:")
-//line examples/feature_sampler.kuki:29
+//line examples/feature_sampler.kuki:36
 	switch "hover" {
 	case "click":
-//line examples/feature_sampler.kuki:31
+//line examples/feature_sampler.kuki:38
 		fmt.Println("Action: clicked")
 	case "hover":
-//line examples/feature_sampler.kuki:33
+//line examples/feature_sampler.kuki:40
 		fmt.Println("Action: hovered")
 	default:
-//line examples/feature_sampler.kuki:35
+//line examples/feature_sampler.kuki:42
 		fmt.Println("Action: unknown")
 	}
-//line examples/feature_sampler.kuki:38
+//line examples/feature_sampler.kuki:45
 	fmt.Println("\nIterating over piped filter:")
-//line examples/feature_sampler.kuki:39
+//line examples/feature_sampler.kuki:46
 	for _, user := range slice.Filter(users, func(u string) bool { return (u == "bob") }) {
-//line examples/feature_sampler.kuki:40
+//line examples/feature_sampler.kuki:47
 		fmt.Println(fmt.Sprintf("Found %v", user))
 	}
-//line examples/feature_sampler.kuki:43
+//line examples/feature_sampler.kuki:50
 	fmt.Println("\nTesting onerr in pipes:")
-//line examples/feature_sampler.kuki:44
+//line examples/feature_sampler.kuki:51
 	// pipe step 1: Risky(...)
-//line examples/feature_sampler.kuki:44
+//line examples/feature_sampler.kuki:51
 	res, err_2 := Risky("data")
-//line examples/feature_sampler.kuki:44
+//line examples/feature_sampler.kuki:51
 	if err_2 != nil {
-//line examples/feature_sampler.kuki:44
-
+//line examples/feature_sampler.kuki:51
+		res = "default"
 	}
-//line examples/feature_sampler.kuki:45
+//line examples/feature_sampler.kuki:52
 	fmt.Println(fmt.Sprintf("Result: %v", res))
-//line examples/feature_sampler.kuki:48
+//line examples/feature_sampler.kuki:55
 	fmt.Println("\nTesting block-style onerr:")
-//line examples/feature_sampler.kuki:49
+//line examples/feature_sampler.kuki:56
 	// pipe step 1: Risky(...)
-//line examples/feature_sampler.kuki:49
+//line examples/feature_sampler.kuki:56
 	pipe_3, err_4 := Risky("")
-//line examples/feature_sampler.kuki:49
+//line examples/feature_sampler.kuki:56
 	if err_4 != nil {
-//line examples/feature_sampler.kuki:49
-		//line examples/feature_sampler.kuki:50
+//line examples/feature_sampler.kuki:56
+		//line examples/feature_sampler.kuki:57
 		fmt.Println(fmt.Sprintf("Caught expected error: %v", err_4))
 	}
 	_ = pipe_3
-//line examples/feature_sampler.kuki:53
+//line examples/feature_sampler.kuki:60
 	fmt.Println("\nTesting piped switch with onerr:")
-//line examples/feature_sampler.kuki:54
+//line examples/feature_sampler.kuki:61
 	// pipe step 1: Risky(...)
-//line examples/feature_sampler.kuki:54
+//line examples/feature_sampler.kuki:61
 	res2, err_6 := Risky("error")
-//line examples/feature_sampler.kuki:54
+//line examples/feature_sampler.kuki:61
 	if err_6 != nil {
-//line examples/feature_sampler.kuki:54
-
+//line examples/feature_sampler.kuki:61
+		res2 = func() string {
+			switch "default" {
+			case "default":
+				//line examples/feature_sampler.kuki:63
+				fmt.Println("Switched on default value")
+				//line examples/feature_sampler.kuki:64
+				return "default"
+			default:
+				//line examples/feature_sampler.kuki:66
+				fmt.Println("Switched on something else")
+				//line examples/feature_sampler.kuki:67
+				return "other"
+			}
+		}()
 	}
-//line examples/feature_sampler.kuki:62
-	fmt.Println(fmt.Sprintf("Piped Switch Result: %v", res2))
-//line examples/feature_sampler.kuki:65
-	fmt.Println("\nSet operations:")
-//line examples/feature_sampler.kuki:66
-	admins := set.From([]string{"alice", "bob"})
-//line examples/feature_sampler.kuki:67
-	oncall := set.From([]string{"bob", "charlie"})
 //line examples/feature_sampler.kuki:69
-	overlap := set.Intersect(admins, oncall)
-//line examples/feature_sampler.kuki:70
-	fmt.Println(fmt.Sprintf("Admin + oncall overlap: %v", set.ToSlice(overlap)))
+	fmt.Println(fmt.Sprintf("Piped Switch Result: %v", res2))
 //line examples/feature_sampler.kuki:72
-	allPeople := set.Union(admins, oncall)
+	fmt.Println("\nSet operations:")
 //line examples/feature_sampler.kuki:73
-	fmt.Println(fmt.Sprintf("All people: %v", set.ToSlice(allPeople)))
-//line examples/feature_sampler.kuki:75
-	adminsOnly := set.Difference(admins, oncall)
+	admins := set.From([]string{"alice", "bob"})
+//line examples/feature_sampler.kuki:74
+	oncall := set.From([]string{"bob", "charlie"})
 //line examples/feature_sampler.kuki:76
-	fmt.Println(fmt.Sprintf("Admins not on call: %v", set.ToSlice(adminsOnly)))
-//line examples/feature_sampler.kuki:78
-	if set.Contains(oncall, "charlie") {
+	overlap := set.Intersect(admins, oncall)
+//line examples/feature_sampler.kuki:77
+	fmt.Println(fmt.Sprintf("Admin + oncall overlap: %v", set.ToSlice(overlap)))
 //line examples/feature_sampler.kuki:79
+	allPeople := set.Union(admins, oncall)
+//line examples/feature_sampler.kuki:80
+	fmt.Println(fmt.Sprintf("All people: %v", set.ToSlice(allPeople)))
+//line examples/feature_sampler.kuki:82
+	adminsOnly := set.Difference(admins, oncall)
+//line examples/feature_sampler.kuki:83
+	fmt.Println(fmt.Sprintf("Admins not on call: %v", set.ToSlice(adminsOnly)))
+//line examples/feature_sampler.kuki:85
+	if set.Contains(oncall, "charlie") {
+//line examples/feature_sampler.kuki:86
 		fmt.Println("Charlie is on call")
 	}
-//line examples/feature_sampler.kuki:82
+//line examples/feature_sampler.kuki:89
 	fmt.Println("\nMap utilities:")
-//line examples/feature_sampler.kuki:83
-	config := map[any]any{any("host"): any("db.example.com"), any("port"): any(5432), any("password"): any("hunter2"), any("sslmode"): any("require")}
 //line examples/feature_sampler.kuki:90
-	safe := maps.Omit(config, []any{any("password")})
-//line examples/feature_sampler.kuki:91
-	fmt.Println("Safe config (password omitted):")
-//line examples/feature_sampler.kuki:92
-	for _, k := range maps.SortedKeys(safe) {
-//line examples/feature_sampler.kuki:93
-		fmt.Printf("  %s = %v\n", k, safe[k])
-	}
-//line examples/feature_sampler.kuki:95
-	connInfo := maps.Pick(config, []any{any("host"), any("port")})
-//line examples/feature_sampler.kuki:96
-	fmt.Println("Connection info:")
+	config := map[any]any{"host": "db.example.com", "port": 5432, "password": "hunter2", "sslmode": "require"}
 //line examples/feature_sampler.kuki:97
-	for _, k := range maps.SortedKeys(connInfo) {
+	safe := maps.Omit(config, []any{"password"})
 //line examples/feature_sampler.kuki:98
-		fmt.Printf("  %s = %v\n", k, connInfo[k])
-	}
+	fmt.Println("Safe config (password omitted):")
+//line examples/feature_sampler.kuki:99
+	for _, k := range maps.SortedKeys(safe) {
 //line examples/feature_sampler.kuki:100
+		v := safe[k]
+//line examples/feature_sampler.kuki:101
+		fmt.Println(fmt.Sprintf("  %v = %v", k, v))
+	}
+//line examples/feature_sampler.kuki:103
+	connInfo := maps.Pick(config, []any{"host", "port"})
+//line examples/feature_sampler.kuki:104
+	fmt.Println("Connection info:")
+//line examples/feature_sampler.kuki:105
+	for _, k := range maps.SortedKeys(connInfo) {
+//line examples/feature_sampler.kuki:106
+		v := connInfo[k]
+//line examples/feature_sampler.kuki:107
+		fmt.Println(fmt.Sprintf("  %v = %v", k, v))
+	}
+//line examples/feature_sampler.kuki:109
 	fmt.Println("\nDone!")
+}
+
+//line examples/feature_sampler.kuki:111
+func main() {
+//line examples/feature_sampler.kuki:112
+	TestFeatures()
 }

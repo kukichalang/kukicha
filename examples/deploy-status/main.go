@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"github.com/kukichalang/kukicha/stdlib/color"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 )
 
 //line examples/deploy-status/main.kuki:8
@@ -49,61 +50,63 @@ type Service struct {
 //line examples/deploy-status/main.kuki:25
 func statusLine(svc Service) string {
 //line examples/deploy-status/main.kuki:26
+	name := kukistring.PadRight(svc.name, 12, " ")
+//line examples/deploy-status/main.kuki:27
 	return func() string {
 		switch v := svc.status.(type) {
 		case Queued:
-//line examples/deploy-status/main.kuki:28
-			return fmt.Sprintf("  %-12s  %s", svc.name, color.Dim("waiting"))
+//line examples/deploy-status/main.kuki:29
+			return fmt.Sprintf("  %v  %v", name, color.Dim("waiting"))
 		case Building:
-//line examples/deploy-status/main.kuki:30
-			return fmt.Sprintf("  %-12s  %s  logs: %s", svc.name, color.Yellow("building"), v.logURL)
+//line examples/deploy-status/main.kuki:31
+			return fmt.Sprintf("  %v  %v  logs: %v", name, color.Yellow("building"), v.logURL)
 		case Running:
-//line examples/deploy-status/main.kuki:32
-			return fmt.Sprintf("  %-12s  %s   %d/%d healthy", svc.name, color.Green("running"), v.healthy, v.replicas)
+//line examples/deploy-status/main.kuki:33
+			return fmt.Sprintf("  %v  %v   %v/%v healthy", name, color.Green("running"), v.healthy, v.replicas)
 		case Failed:
-//line examples/deploy-status/main.kuki:34
-			return fmt.Sprintf("  %-12s  %s    %s (exit %d)", svc.name, color.BrightRed("FAILED"), v.reason, v.exitCode)
+//line examples/deploy-status/main.kuki:35
+			return fmt.Sprintf("  %v  %v    %v (exit %v)", name, color.BrightRed("FAILED"), v.reason, v.exitCode)
 		case RolledBack:
-//line examples/deploy-status/main.kuki:36
-			return fmt.Sprintf("  %-12s  %s to %s", svc.name, color.Yellow("rolled back"), v.previousVersion)
+//line examples/deploy-status/main.kuki:37
+			return fmt.Sprintf("  %v  %v to %v", name, color.Yellow("rolled back"), v.previousVersion)
 		}
 		panic("unreachable")
 	}()
 }
 
-//line examples/deploy-status/main.kuki:38
-func isHealthy(s DeployStatus) bool {
 //line examples/deploy-status/main.kuki:39
+func isHealthy(s DeployStatus) bool {
+//line examples/deploy-status/main.kuki:40
 	switch v := s.(type) {
 	case Running:
-//line examples/deploy-status/main.kuki:41
+//line examples/deploy-status/main.kuki:42
 		return (v.healthy == v.replicas)
 	}
-//line examples/deploy-status/main.kuki:43
+//line examples/deploy-status/main.kuki:44
 	return false
 }
 
-//line examples/deploy-status/main.kuki:45
-func main() {
 //line examples/deploy-status/main.kuki:46
+func main() {
+//line examples/deploy-status/main.kuki:47
 	services := []Service{Service{name: "api", status: Running{replicas: 3, healthy: 3}}, Service{name: "worker", status: Building{logURL: "https://ci.example.com/builds/1847"}}, Service{name: "web", status: Failed{reason: "OOMKilled", exitCode: 137}}, Service{name: "cron", status: RolledBack{previousVersion: "v2.3.1"}}, Service{name: "ingester", status: Queued{}}}
-//line examples/deploy-status/main.kuki:54
-	fmt.Println("Deploy status:")
 //line examples/deploy-status/main.kuki:55
-	for _, svc := range services {
+	fmt.Println("Deploy status:")
 //line examples/deploy-status/main.kuki:56
+	for _, svc := range services {
+//line examples/deploy-status/main.kuki:57
 		fmt.Println(statusLine(svc))
 	}
-//line examples/deploy-status/main.kuki:58
-	fmt.Println("\nHealth check:")
 //line examples/deploy-status/main.kuki:59
-	for _, svc := range services {
+	fmt.Println("\nHealth check:")
 //line examples/deploy-status/main.kuki:60
-		if isHealthy(svc.status) {
+	for _, svc := range services {
 //line examples/deploy-status/main.kuki:61
+		if isHealthy(svc.status) {
+//line examples/deploy-status/main.kuki:62
 			fmt.Println(fmt.Sprintf("  %v: %v", svc.name, color.Green("ok")))
 		} else {
-//line examples/deploy-status/main.kuki:63
+//line examples/deploy-status/main.kuki:64
 			fmt.Println(fmt.Sprintf("  %v: %v", svc.name, color.Dim("not ready")))
 		}
 	}

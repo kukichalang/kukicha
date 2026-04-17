@@ -453,43 +453,55 @@ func Warn(msg string) {
 	fmt.Fprintln(os.Stderr, fmt.Sprintf("warning: %v", msg))
 }
 
+//line stdlib/cli/cli.kuki:311
+func Info(msg string) {
 //line stdlib/cli/cli.kuki:312
+	fmt.Println(msg)
+}
+
+//line stdlib/cli/cli.kuki:317
+func Success(msg string) {
+//line stdlib/cli/cli.kuki:318
+	fmt.Println(msg)
+}
+
+//line stdlib/cli/cli.kuki:323
 func Fatal(msg string) {
-//line stdlib/cli/cli.kuki:313
+//line stdlib/cli/cli.kuki:324
 	fmt.Fprintln(os.Stderr, msg)
-//line stdlib/cli/cli.kuki:314
+//line stdlib/cli/cli.kuki:325
 	os.Exit(1)
 }
 
-//line stdlib/cli/cli.kuki:320
+//line stdlib/cli/cli.kuki:331
 func GetString(args Args, name string) string {
-//line stdlib/cli/cli.kuki:321
+//line stdlib/cli/cli.kuki:332
 	return args.values[name]
 }
 
-//line stdlib/cli/cli.kuki:325
+//line stdlib/cli/cli.kuki:336
 func GetBool(args Args, name string) bool {
-//line stdlib/cli/cli.kuki:326
+//line stdlib/cli/cli.kuki:337
 	val := args.values[name]
-//line stdlib/cli/cli.kuki:327
+//line stdlib/cli/cli.kuki:338
 	return (((val == "true") || (val == "1")) || (val == "yes"))
 }
 
-//line stdlib/cli/cli.kuki:332
+//line stdlib/cli/cli.kuki:343
 func IsJSON(args Args) bool {
-//line stdlib/cli/cli.kuki:333
+//line stdlib/cli/cli.kuki:344
 	return GetBool(args, "json")
 }
 
-//line stdlib/cli/cli.kuki:337
+//line stdlib/cli/cli.kuki:348
 func GetInt(args Args, name string) (int, error) {
-//line stdlib/cli/cli.kuki:338
+//line stdlib/cli/cli.kuki:349
 	strVal := args.values[name]
-//line stdlib/cli/cli.kuki:339
+//line stdlib/cli/cli.kuki:350
 	if strVal == "" {
-//line stdlib/cli/cli.kuki:340
+//line stdlib/cli/cli.kuki:351
 		return 0, fmt.Errorf("argument %v not found", name)
 	}
-//line stdlib/cli/cli.kuki:342
+//line stdlib/cli/cli.kuki:353
 	return cast.Atoi(strVal)
 }

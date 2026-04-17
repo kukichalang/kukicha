@@ -158,82 +158,82 @@ func TestGetJson(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:103
 		w.Write(jsonBytes)
 	}))
-//line stdlib/fetch/fetch_test.kuki:105
+//line stdlib/fetch/fetch_test.kuki:106
 	defer server.Close()
-//line stdlib/fetch/fetch_test.kuki:107
-	data, err := fetch.GetJson(server.URL, *new(TestData))
 //line stdlib/fetch/fetch_test.kuki:108
-	test.AssertNoError(t, err)
+	data, err := fetch.GetJson(server.URL, *new(TestData))
 //line stdlib/fetch/fetch_test.kuki:109
-	test.AssertEqual(t, data.Message, "typed")
+	test.AssertNoError(t, err)
 //line stdlib/fetch/fetch_test.kuki:110
+	test.AssertEqual(t, data.Message, "typed")
+//line stdlib/fetch/fetch_test.kuki:111
 	test.AssertEqual(t, data.Count, 7)
 }
 
-//line stdlib/fetch/fetch_test.kuki:113
-func TestGetJsonError(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:114
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func TestGetJsonError(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:115
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line stdlib/fetch/fetch_test.kuki:116
 		http.Error(w, "nope", http.StatusInternalServerError)
 	}))
-//line stdlib/fetch/fetch_test.kuki:117
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:119
+	defer server.Close()
+//line stdlib/fetch/fetch_test.kuki:121
 	_, err := fetch.GetJson(server.URL, *new(TestData))
-//line stdlib/fetch/fetch_test.kuki:120
+//line stdlib/fetch/fetch_test.kuki:122
 	test.AssertError(t, err)
 }
 
-//line stdlib/fetch/fetch_test.kuki:123
+//line stdlib/fetch/fetch_test.kuki:125
 type DecodeCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:126
+//line stdlib/fetch/fetch_test.kuki:128
 func TestDecode(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:127
-	testData := []TestData{TestData{Message: "typed", Count: 7}, TestData{Message: "decode", Count: 9}}
 //line stdlib/fetch/fetch_test.kuki:129
-	jsonBytes, _ := json.Marshal(testData)
-//line stdlib/fetch/fetch_test.kuki:130
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testData := []TestData{TestData{Message: "typed", Count: 7}, TestData{Message: "decode", Count: 9}}
 //line stdlib/fetch/fetch_test.kuki:131
-		w.Header().Set("Content-Type", "application/json")
+	jsonBytes, _ := json.Marshal(testData)
 //line stdlib/fetch/fetch_test.kuki:132
-		w.WriteHeader(http.StatusOK)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:133
+		w.Header().Set("Content-Type", "application/json")
+//line stdlib/fetch/fetch_test.kuki:134
+		w.WriteHeader(http.StatusOK)
+//line stdlib/fetch/fetch_test.kuki:135
 		w.Write(jsonBytes)
 	}))
-//line stdlib/fetch/fetch_test.kuki:136
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:138
-	cases := []DecodeCase{DecodeCase{name: "decode into reference"}}
+	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:140
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:141
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []DecodeCase{DecodeCase{name: "decode into reference"}}
 //line stdlib/fetch/fetch_test.kuki:142
-			resp, err := fetch.Get(server.URL)
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:143
-			test.AssertNoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:144
-			decoded := []TestData{}
+			resp, err := fetch.Get(server.URL)
 //line stdlib/fetch/fetch_test.kuki:145
-			decodeErr := fetch.Decode(resp, &decoded)
+			test.AssertNoError(t, err)
 //line stdlib/fetch/fetch_test.kuki:146
-			test.AssertNoError(t, decodeErr)
+			decoded := []TestData{}
 //line stdlib/fetch/fetch_test.kuki:147
-			test.AssertEqual(t, len(decoded), 2)
+			decodeErr := fetch.Decode(resp, &decoded)
 //line stdlib/fetch/fetch_test.kuki:148
-			test.AssertEqual(t, decoded[0].Message, "typed")
+			test.AssertNoError(t, decodeErr)
 //line stdlib/fetch/fetch_test.kuki:149
+			test.AssertEqual(t, len(decoded), 2)
+//line stdlib/fetch/fetch_test.kuki:150
+			test.AssertEqual(t, decoded[0].Message, "typed")
+//line stdlib/fetch/fetch_test.kuki:151
 			test.AssertEqual(t, decoded[1].Count, 9)
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:153
+//line stdlib/fetch/fetch_test.kuki:155
 type URLTemplateCase struct {
 	name    string
 	tmpl    string
@@ -242,33 +242,33 @@ type URLTemplateCase struct {
 	wantErr bool
 }
 
-//line stdlib/fetch/fetch_test.kuki:160
+//line stdlib/fetch/fetch_test.kuki:162
 func TestURLTemplate(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:161
-	tmpl := "https://api.example.com/users/{username}/repos/{repo}"
 //line stdlib/fetch/fetch_test.kuki:163
+	tmpl := "https://api.example.com/users/{username}/repos/{repo}"
+//line stdlib/fetch/fetch_test.kuki:165
 	cases := []URLTemplateCase{URLTemplateCase{name: "success with encoding", tmpl: tmpl, args: map[string]string{"username": "acme/dev team", "repo": "hello world"}, want: "https://api.example.com/users/acme%2Fdev%20team/repos/hello%20world", wantErr: false}, URLTemplateCase{name: "missing placeholder", tmpl: tmpl, args: map[string]string{"username": "golang"}, want: "", wantErr: true}}
-//line stdlib/fetch/fetch_test.kuki:180
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:181
-		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:182
-			builtURL, err := fetch.URLTemplate(tc.tmpl, tc.args)
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:183
-			if tc.wantErr {
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:184
+			builtURL, err := fetch.URLTemplate(tc.tmpl, tc.args)
+//line stdlib/fetch/fetch_test.kuki:185
+			if tc.wantErr {
+//line stdlib/fetch/fetch_test.kuki:186
 				test.AssertError(t, err)
 			} else {
-//line stdlib/fetch/fetch_test.kuki:186
+//line stdlib/fetch/fetch_test.kuki:188
 				test.AssertNoError(t, err)
-//line stdlib/fetch/fetch_test.kuki:187
+//line stdlib/fetch/fetch_test.kuki:189
 				test.AssertEqual(t, builtURL, tc.want)
 			}
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:191
+//line stdlib/fetch/fetch_test.kuki:193
 type URLWithQueryCase struct {
 	name  string
 	url   string
@@ -277,345 +277,345 @@ type URLWithQueryCase struct {
 	want2 string
 }
 
-//line stdlib/fetch/fetch_test.kuki:198
+//line stdlib/fetch/fetch_test.kuki:200
 func TestURLWithQuery(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:199
+//line stdlib/fetch/fetch_test.kuki:201
 	cases := []URLWithQueryCase{URLWithQueryCase{name: "encode multiple params", url: "https://api.example.com/search", query: map[string]string{"q": "go lang", "sort": "stars desc"}, want1: "https://api.example.com/search?q=go+lang&sort=stars+desc", want2: "https://api.example.com/search?sort=stars+desc&q=go+lang"}}
-//line stdlib/fetch/fetch_test.kuki:209
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:210
-		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:211
-			builtURL, err := fetch.URLWithQuery(tc.url, tc.query)
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:212
-			test.AssertNoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:213
-			if (builtURL != tc.want1) && (builtURL != tc.want2) {
+			builtURL, err := fetch.URLWithQuery(tc.url, tc.query)
 //line stdlib/fetch/fetch_test.kuki:214
+			test.AssertNoError(t, err)
+//line stdlib/fetch/fetch_test.kuki:215
+			if (builtURL != tc.want1) && (builtURL != tc.want2) {
+//line stdlib/fetch/fetch_test.kuki:216
 				t.Errorf("Unexpected query URL: %v", builtURL)
 			}
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:218
+//line stdlib/fetch/fetch_test.kuki:220
 type TextCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:221
-func TestText(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:222
-	expectedText := "Hello, Kukicha!"
 //line stdlib/fetch/fetch_test.kuki:223
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func TestText(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:224
-		w.WriteHeader(http.StatusOK)
+	expectedText := "Hello, Kukicha!"
 //line stdlib/fetch/fetch_test.kuki:225
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line stdlib/fetch/fetch_test.kuki:226
+		w.WriteHeader(http.StatusOK)
+//line stdlib/fetch/fetch_test.kuki:227
 		w.Write([]byte(expectedText))
 	}))
-//line stdlib/fetch/fetch_test.kuki:228
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:230
-	cases := []TextCase{TextCase{name: "read as text"}}
+	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:232
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:233
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []TextCase{TextCase{name: "read as text"}}
 //line stdlib/fetch/fetch_test.kuki:234
-			resp, err := fetch.Get(server.URL)
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:235
-			test.AssertNoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:236
-			text, textErr := fetch.Text(resp)
+			resp, err := fetch.Get(server.URL)
 //line stdlib/fetch/fetch_test.kuki:237
-			test.AssertNoError(t, textErr)
+			test.AssertNoError(t, err)
 //line stdlib/fetch/fetch_test.kuki:238
+			text, textErr := fetch.Text(resp)
+//line stdlib/fetch/fetch_test.kuki:239
+			test.AssertNoError(t, textErr)
+//line stdlib/fetch/fetch_test.kuki:240
 			test.AssertEqual(t, text, expectedText)
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:242
+//line stdlib/fetch/fetch_test.kuki:244
 type PostCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:245
-func TestPost(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:246
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:247
-		test.AssertEqual(t, r.Method, "POST")
+func TestPost(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:248
-		w.WriteHeader(http.StatusCreated)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:249
+		test.AssertEqual(t, r.Method, "POST")
+//line stdlib/fetch/fetch_test.kuki:250
+		w.WriteHeader(http.StatusCreated)
+//line stdlib/fetch/fetch_test.kuki:251
 		w.Write([]byte("created"))
 	}))
-//line stdlib/fetch/fetch_test.kuki:252
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:254
-	cases := []PostCase{PostCase{name: "post object"}}
+	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:256
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:257
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []PostCase{PostCase{name: "post object"}}
 //line stdlib/fetch/fetch_test.kuki:258
-			postData := PostData{Name: "test", Value: 123}
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:259
-			resp, err := fetch.Post(postData, server.URL)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:260
-			test.AssertNoError(t, err)
+			postData := PostData{Name: "test", Value: 123}
 //line stdlib/fetch/fetch_test.kuki:261
-			test.AssertEqual(t, resp.StatusCode, http.StatusCreated)
+			resp, err := fetch.Post(postData, server.URL)
 //line stdlib/fetch/fetch_test.kuki:262
+			test.AssertNoError(t, err)
+//line stdlib/fetch/fetch_test.kuki:263
+			test.AssertEqual(t, resp.StatusCode, http.StatusCreated)
+//line stdlib/fetch/fetch_test.kuki:264
 			resp.Body.Close()
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:266
+//line stdlib/fetch/fetch_test.kuki:268
 type CheckStatusCase struct {
 	name    string
 	code    int
 	wantErr bool
 }
 
-//line stdlib/fetch/fetch_test.kuki:271
-func TestCheckStatus(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:272
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:273
-		if r.URL.Path == "/ok" {
+func TestCheckStatus(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:274
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line stdlib/fetch/fetch_test.kuki:275
+		if r.URL.Path == "/ok" {
+//line stdlib/fetch/fetch_test.kuki:276
 			w.WriteHeader(http.StatusOK)
 		} else {
-//line stdlib/fetch/fetch_test.kuki:276
+//line stdlib/fetch/fetch_test.kuki:278
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
-//line stdlib/fetch/fetch_test.kuki:279
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:281
+	defer server.Close()
+//line stdlib/fetch/fetch_test.kuki:283
 	cases := []CheckStatusCase{CheckStatusCase{name: "success status", code: 200, wantErr: false}, CheckStatusCase{name: "error status", code: 404, wantErr: true}}
-//line stdlib/fetch/fetch_test.kuki:286
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:287
-		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:288
-			path := "/ok"
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:289
-			if tc.wantErr {
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:290
+			path := "/ok"
+//line stdlib/fetch/fetch_test.kuki:291
+			if tc.wantErr {
+//line stdlib/fetch/fetch_test.kuki:292
 				path = "/notfound"
 			}
-//line stdlib/fetch/fetch_test.kuki:291
+//line stdlib/fetch/fetch_test.kuki:293
 			resp, err := fetch.Get((server.URL + path))
-//line stdlib/fetch/fetch_test.kuki:292
-			test.AssertNoError(t, err)
 //line stdlib/fetch/fetch_test.kuki:294
-			checkedResp, checkErr := fetch.CheckStatus(resp)
-//line stdlib/fetch/fetch_test.kuki:295
-			if tc.wantErr {
+			test.AssertNoError(t, err)
 //line stdlib/fetch/fetch_test.kuki:296
+			checkedResp, checkErr := fetch.CheckStatus(resp)
+//line stdlib/fetch/fetch_test.kuki:297
+			if tc.wantErr {
+//line stdlib/fetch/fetch_test.kuki:298
 				test.AssertError(t, checkErr)
 			} else {
-//line stdlib/fetch/fetch_test.kuki:298
-				test.AssertNoError(t, checkErr)
-//line stdlib/fetch/fetch_test.kuki:299
-				if checkedResp == nil {
 //line stdlib/fetch/fetch_test.kuki:300
+				test.AssertNoError(t, checkErr)
+//line stdlib/fetch/fetch_test.kuki:301
+				if checkedResp == nil {
+//line stdlib/fetch/fetch_test.kuki:302
 					t.Error("Expected non-nil response")
 				}
-//line stdlib/fetch/fetch_test.kuki:301
+//line stdlib/fetch/fetch_test.kuki:303
 				checkedResp.Body.Close()
 			}
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:305
+//line stdlib/fetch/fetch_test.kuki:307
 type RequestBuilderCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:308
-func TestRequestBuilder(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:309
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:310
-		test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer test-token")
+func TestRequestBuilder(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:311
-		w.WriteHeader(http.StatusOK)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:312
+		test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer test-token")
+//line stdlib/fetch/fetch_test.kuki:313
+		w.WriteHeader(http.StatusOK)
+//line stdlib/fetch/fetch_test.kuki:314
 		w.Write([]byte("authorized"))
 	}))
-//line stdlib/fetch/fetch_test.kuki:315
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:317
-	cases := []RequestBuilderCase{RequestBuilderCase{name: "builder properties"}}
+	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:319
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:320
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []RequestBuilderCase{RequestBuilderCase{name: "builder properties"}}
 //line stdlib/fetch/fetch_test.kuki:321
-			req := fetch.Header(fetch.New(server.URL), "Authorization", "Bearer test-token")
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:322
-			resp, err := fetch.Do(req)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:323
-			test.AssertNoError(t, err)
+			req := fetch.Header(fetch.New(server.URL), "Authorization", "Bearer test-token")
 //line stdlib/fetch/fetch_test.kuki:324
-			test.AssertEqual(t, resp.StatusCode, http.StatusOK)
+			resp, err := fetch.Do(req)
 //line stdlib/fetch/fetch_test.kuki:325
+			test.AssertNoError(t, err)
+//line stdlib/fetch/fetch_test.kuki:326
+			test.AssertEqual(t, resp.StatusCode, http.StatusOK)
+//line stdlib/fetch/fetch_test.kuki:327
 			resp.Body.Close()
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:329
+//line stdlib/fetch/fetch_test.kuki:331
 type AuthHelpersCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:332
+//line stdlib/fetch/fetch_test.kuki:334
 func TestAuthHelpers(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:333
-	cases := []AuthHelpersCase{AuthHelpersCase{name: "auth headers"}}
 //line stdlib/fetch/fetch_test.kuki:335
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:336
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []AuthHelpersCase{AuthHelpersCase{name: "auth headers"}}
 //line stdlib/fetch/fetch_test.kuki:337
-			serverBearer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:338
-				test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer my-token")
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:339
+			serverBearer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line stdlib/fetch/fetch_test.kuki:340
+				test.AssertEqual(t, r.Header.Get("Authorization"), "Bearer my-token")
+//line stdlib/fetch/fetch_test.kuki:341
 				w.WriteHeader(http.StatusOK)
 			}))
-//line stdlib/fetch/fetch_test.kuki:342
-			defer serverBearer.Close()
 //line stdlib/fetch/fetch_test.kuki:344
-			reqBearer := fetch.BearerAuth(fetch.New(serverBearer.URL), "my-token")
-//line stdlib/fetch/fetch_test.kuki:345
-			respBearer, errBearer := fetch.Do(reqBearer)
+			defer serverBearer.Close()
 //line stdlib/fetch/fetch_test.kuki:346
-			test.AssertNoError(t, errBearer)
+			reqBearer := fetch.BearerAuth(fetch.New(serverBearer.URL), "my-token")
 //line stdlib/fetch/fetch_test.kuki:347
-			respBearer.Body.Close()
+			respBearer, errBearer := fetch.Do(reqBearer)
+//line stdlib/fetch/fetch_test.kuki:348
+			test.AssertNoError(t, errBearer)
 //line stdlib/fetch/fetch_test.kuki:349
-			serverBasic := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//line stdlib/fetch/fetch_test.kuki:350
-				test.AssertEqual(t, r.Header.Get("Authorization"), "Basic dXNlcjpwYXNz")
+			respBearer.Body.Close()
 //line stdlib/fetch/fetch_test.kuki:351
+			serverBasic := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line stdlib/fetch/fetch_test.kuki:352
+				test.AssertEqual(t, r.Header.Get("Authorization"), "Basic dXNlcjpwYXNz")
+//line stdlib/fetch/fetch_test.kuki:353
 				w.WriteHeader(http.StatusOK)
 			}))
-//line stdlib/fetch/fetch_test.kuki:354
-			defer serverBasic.Close()
 //line stdlib/fetch/fetch_test.kuki:356
-			reqBasic := fetch.BasicAuth(fetch.New(serverBasic.URL), "user", "pass")
-//line stdlib/fetch/fetch_test.kuki:357
-			respBasic, errBasic := fetch.Do(reqBasic)
+			defer serverBasic.Close()
 //line stdlib/fetch/fetch_test.kuki:358
-			test.AssertNoError(t, errBasic)
+			reqBasic := fetch.BasicAuth(fetch.New(serverBasic.URL), "user", "pass")
 //line stdlib/fetch/fetch_test.kuki:359
+			respBasic, errBasic := fetch.Do(reqBasic)
+//line stdlib/fetch/fetch_test.kuki:360
+			test.AssertNoError(t, errBasic)
+//line stdlib/fetch/fetch_test.kuki:361
 			respBasic.Body.Close()
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:363
+//line stdlib/fetch/fetch_test.kuki:365
 type FormDataCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:366
-func TestFormData(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:367
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:368
-		test.AssertEqual(t, r.Header.Get("Content-Type"), "application/x-www-form-urlencoded")
+func TestFormData(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:369
-		r.ParseForm()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:370
-		test.AssertEqual(t, r.Form.Get("key"), "value")
+		test.AssertEqual(t, r.Header.Get("Content-Type"), "application/x-www-form-urlencoded")
 //line stdlib/fetch/fetch_test.kuki:371
+		r.ParseForm()
+//line stdlib/fetch/fetch_test.kuki:372
+		test.AssertEqual(t, r.Form.Get("key"), "value")
+//line stdlib/fetch/fetch_test.kuki:373
 		w.WriteHeader(http.StatusOK)
 	}))
-//line stdlib/fetch/fetch_test.kuki:374
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:376
-	cases := []FormDataCase{FormDataCase{name: "post form data"}}
+	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:378
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:379
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []FormDataCase{FormDataCase{name: "post form data"}}
 //line stdlib/fetch/fetch_test.kuki:380
-			data := map[string]string{"key": "value"}
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:381
-			req := fetch.Method(fetch.FormData(fetch.New(server.URL), data), "POST")
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:382
-			resp, err := fetch.Do(req)
+			data := map[string]string{"key": "value"}
 //line stdlib/fetch/fetch_test.kuki:383
-			test.AssertNoError(t, err)
+			req := fetch.Method(fetch.FormData(fetch.New(server.URL), data), "POST")
 //line stdlib/fetch/fetch_test.kuki:384
+			resp, err := fetch.Do(req)
+//line stdlib/fetch/fetch_test.kuki:385
+			test.AssertNoError(t, err)
+//line stdlib/fetch/fetch_test.kuki:386
 			resp.Body.Close()
 		})
 	}
 }
 
-//line stdlib/fetch/fetch_test.kuki:388
+//line stdlib/fetch/fetch_test.kuki:390
 type SessionCase struct {
 	name string
 }
 
-//line stdlib/fetch/fetch_test.kuki:391
-func TestSession(t *testing.T) {
-//line stdlib/fetch/fetch_test.kuki:392
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:393
-		cookie, err := r.Cookie("session_id")
+func TestSession(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:394
-		if err == nil {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 //line stdlib/fetch/fetch_test.kuki:395
-			test.AssertEqual(t, cookie.Value, "12345")
+		cookie, err := r.Cookie("session_id")
 //line stdlib/fetch/fetch_test.kuki:396
-			w.WriteHeader(http.StatusOK)
+		if err == nil {
 //line stdlib/fetch/fetch_test.kuki:397
+			test.AssertEqual(t, cookie.Value, "12345")
+//line stdlib/fetch/fetch_test.kuki:398
+			w.WriteHeader(http.StatusOK)
+//line stdlib/fetch/fetch_test.kuki:399
 			w.Write([]byte("logged in"))
 		} else {
-//line stdlib/fetch/fetch_test.kuki:399
-			http.SetCookie(w, &http.Cookie{Name: "session_id", Value: "12345"})
-//line stdlib/fetch/fetch_test.kuki:400
-			w.WriteHeader(http.StatusOK)
 //line stdlib/fetch/fetch_test.kuki:401
+			http.SetCookie(w, &http.Cookie{Name: "session_id", Value: "12345"})
+//line stdlib/fetch/fetch_test.kuki:402
+			w.WriteHeader(http.StatusOK)
+//line stdlib/fetch/fetch_test.kuki:403
 			w.Write([]byte("cookie set"))
 		}
 	}))
-//line stdlib/fetch/fetch_test.kuki:404
-	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:406
-	cases := []SessionCase{SessionCase{name: "persist cookies"}}
+	defer server.Close()
 //line stdlib/fetch/fetch_test.kuki:408
-	for _, tc := range cases {
-//line stdlib/fetch/fetch_test.kuki:409
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []SessionCase{SessionCase{name: "persist cookies"}}
 //line stdlib/fetch/fetch_test.kuki:410
-			session := fetch.NewSession()
+	for _, tc := range cases {
 //line stdlib/fetch/fetch_test.kuki:411
-			resp1, err1 := fetch.SessionGet(session, server.URL)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/fetch/fetch_test.kuki:412
-			test.AssertNoError(t, err1)
+			session := fetch.NewSession()
 //line stdlib/fetch/fetch_test.kuki:413
-			resp1.Body.Close()
+			resp1, err1 := fetch.SessionGet(session, server.URL)
+//line stdlib/fetch/fetch_test.kuki:414
+			test.AssertNoError(t, err1)
 //line stdlib/fetch/fetch_test.kuki:415
-			resp2, err2 := fetch.SessionGet(session, server.URL)
-//line stdlib/fetch/fetch_test.kuki:416
-			test.AssertNoError(t, err2)
+			resp1.Body.Close()
 //line stdlib/fetch/fetch_test.kuki:417
-			text, errText := fetch.Text(resp2)
+			resp2, err2 := fetch.SessionGet(session, server.URL)
 //line stdlib/fetch/fetch_test.kuki:418
-			test.AssertNoError(t, errText)
+			test.AssertNoError(t, err2)
 //line stdlib/fetch/fetch_test.kuki:419
+			text, errText := fetch.Text(resp2)
+//line stdlib/fetch/fetch_test.kuki:420
+			test.AssertNoError(t, errText)
+//line stdlib/fetch/fetch_test.kuki:421
 			test.AssertEqual(t, text, "logged in")
 		})
 	}

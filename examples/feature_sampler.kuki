@@ -1,4 +1,11 @@
-import "fmt"
+# feature_sampler.kuki — a whirlwind tour of Kukicha features.
+#
+# Covers: slice filtering, callbacks, piped switch, pipe-aware iterators,
+# pipeline onerr (expression + block form), piped switch with onerr,
+# set operations, and map utilities.
+#
+# Usage: kukicha run examples/feature_sampler.kuki
+
 import "stdlib/maps"
 import "stdlib/set"
 import "stdlib/slice"
@@ -21,7 +28,7 @@ func TestFeatures()
     print("\nCallback with explicit param:")
 
     Do(s =>
-        print(s + " world!")
+        print("{s} world!")
     )
 
     # 2. Piped Control Flow (switch)
@@ -81,20 +88,25 @@ func TestFeatures()
     # 7. Map utilities — filter, pick, omit
     print("\nMap utilities:")
     config := map of any to any{
-        "host" as any: "db.example.com" as any,
-        "port" as any: 5432 as any,
-        "password" as any: "hunter2" as any,
-        "sslmode" as any: "require" as any,
+        "host": "db.example.com",
+        "port": 5432,
+        "password": "hunter2",
+        "sslmode": "require",
     }
 
-    safe := maps.Omit(config, list of any{"password" as any})
+    safe := maps.Omit(config, list of any{"password"})
     print("Safe config (password omitted):")
     for k in maps.SortedKeys(safe)
-        fmt.Printf("  %s = %v\n", k, safe[k])
+        v := safe[k]
+        print("  {k} = {v}")
 
-    connInfo := maps.Pick(config, list of any{"host" as any, "port" as any})
+    connInfo := maps.Pick(config, list of any{"host", "port"})
     print("Connection info:")
     for k in maps.SortedKeys(connInfo)
-        fmt.Printf("  %s = %v\n", k, connInfo[k])
+        v := connInfo[k]
+        print("  {k} = {v}")
 
     print("\nDone!")
+
+func main()
+    TestFeatures()

@@ -306,6 +306,17 @@ func Error(msg string)
 func Warn(msg string)
     fmt.Fprintln(os.Stderr, "warning: {msg}")
 
+# Info prints a message to stdout. Use for progress updates in CLIs.
+# Example: cli.Info("Step 1 · loading config...")
+func Info(msg string)
+    fmt.Println(msg)
+
+# Success prints a message to stdout. Conventionally used to announce a
+# successful outcome; separate from Info so callers can theme later.
+# Example: cli.Success("deployed in {elapsed}")
+func Success(msg string)
+    fmt.Println(msg)
+
 # Fatal prints a message to stderr and exits with code 1.
 # Designed for use in onerr handlers for unrecoverable CLI errors.
 # Example: result := doThing() onerr cli.Fatal("failed: {error}")
