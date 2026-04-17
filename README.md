@@ -1,6 +1,6 @@
 # Kukicha
 
-**Brewed from Go.** A language you can skim. Readable Kukicha forms while you're learning; plain Go when you're fluent — same file, same compiler. The stdlib stays skimmable either way. Ships as a single binary.
+**Brewed from Go.** Readable Kukicha forms while you're learning; plain Go when you're fluent — same file, same compiler. The stdlib stays understandable either way. Ships as a single binary.
 
 **[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](.claude/skills/stdlib/SKILL.md)
 
@@ -127,13 +127,13 @@ kukicha run hello.kuki
 * **Compile-time security checks** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects before you ship
 * **42+ batteries-included stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [more](.claude/skills/stdlib/SKILL.md)
 * **Ships as Go** — single binary, cross-compile, WASM, full Go ecosystem
-* **No lock-in** — `kukicha brew file.kuki` converts any file back to standard Go; existing `.go` files compile as `.kuki` unchanged
+* `kukicha brew file.kuki` converts any file back to standard Go; existing `.go` files compile as `.kuki` unchanged
 
 ---
 
 ## Starting from Go
 
-Already have a Go codebase? You don't have to rewrite anything — Kukicha can suggest idioms incrementally or convert files on request.
+Already have a Go codebase? You don't have to rewrite anything, Kukicha can suggest idioms incrementally or convert files on request.
 
 ```
 # See what your Go code looks like with Kukicha idioms
