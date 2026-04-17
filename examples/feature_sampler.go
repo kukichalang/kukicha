@@ -92,67 +92,76 @@ func TestFeatures() {
 //line examples/feature_sampler.kuki:53
 	fmt.Println("\nTesting piped switch with onerr:")
 //line examples/feature_sampler.kuki:54
+	// pipe step 1: Risky(...)
+//line examples/feature_sampler.kuki:54
+	risky2, err_6 := Risky("error")
+//line examples/feature_sampler.kuki:54
+	if err_6 != nil {
+//line examples/feature_sampler.kuki:54
+
+	}
+//line examples/feature_sampler.kuki:55
 	res2 := func() string {
-		switch Risky("error") {
+		switch risky2 {
 		case "default":
-//line examples/feature_sampler.kuki:56
-			fmt.Println("Switched on default value")
 //line examples/feature_sampler.kuki:57
+			fmt.Println("Switched on default value")
+//line examples/feature_sampler.kuki:58
 			return "default"
 		default:
-//line examples/feature_sampler.kuki:59
-			fmt.Println("Switched on something else")
 //line examples/feature_sampler.kuki:60
+			fmt.Println("Switched on something else")
+//line examples/feature_sampler.kuki:61
 			return "other"
 		}
 	}()
-//line examples/feature_sampler.kuki:62
+//line examples/feature_sampler.kuki:63
 	fmt.Println(fmt.Sprintf("Piped Switch Result: %v", res2))
-//line examples/feature_sampler.kuki:65
-	fmt.Println("\nSet operations:")
 //line examples/feature_sampler.kuki:66
-	admins := set.From([]string{"alice", "bob"})
+	fmt.Println("\nSet operations:")
 //line examples/feature_sampler.kuki:67
+	admins := set.From([]string{"alice", "bob"})
+//line examples/feature_sampler.kuki:68
 	oncall := set.From([]string{"bob", "charlie"})
-//line examples/feature_sampler.kuki:69
-	overlap := set.Intersect(admins, oncall)
 //line examples/feature_sampler.kuki:70
+	overlap := set.Intersect(admins, oncall)
+//line examples/feature_sampler.kuki:71
 	fmt.Println(fmt.Sprintf("Admin + oncall overlap: %v", set.ToSlice(overlap)))
-//line examples/feature_sampler.kuki:72
-	allPeople := set.Union(admins, oncall)
 //line examples/feature_sampler.kuki:73
+	allPeople := set.Union(admins, oncall)
+//line examples/feature_sampler.kuki:74
 	fmt.Println(fmt.Sprintf("All people: %v", set.ToSlice(allPeople)))
-//line examples/feature_sampler.kuki:75
-	adminsOnly := set.Difference(admins, oncall)
 //line examples/feature_sampler.kuki:76
+	adminsOnly := set.Difference(admins, oncall)
+//line examples/feature_sampler.kuki:77
 	fmt.Println(fmt.Sprintf("Admins not on call: %v", set.ToSlice(adminsOnly)))
-//line examples/feature_sampler.kuki:78
-	if set.Contains(oncall, "charlie") {
 //line examples/feature_sampler.kuki:79
+	if set.Contains(oncall, "charlie") {
+//line examples/feature_sampler.kuki:80
 		fmt.Println("Charlie is on call")
 	}
-//line examples/feature_sampler.kuki:82
-	fmt.Println("\nMap utilities:")
 //line examples/feature_sampler.kuki:83
+	fmt.Println("\nMap utilities:")
+//line examples/feature_sampler.kuki:84
 	config := map[any]any{any("host"): any("db.example.com"), any("port"): any(5432), any("password"): any("hunter2"), any("sslmode"): any("require")}
-//line examples/feature_sampler.kuki:90
-	safe := maps.Omit(config, []any{any("password")})
 //line examples/feature_sampler.kuki:91
-	fmt.Println("Safe config (password omitted):")
+	safe := maps.Omit(config, []any{any("password")})
 //line examples/feature_sampler.kuki:92
-	for _, k := range maps.SortedKeys(safe) {
+	fmt.Println("Safe config (password omitted):")
 //line examples/feature_sampler.kuki:93
+	for _, k := range maps.SortedKeys(safe) {
+//line examples/feature_sampler.kuki:94
 		fmt.Printf("  %s = %v\n", k, safe[k])
 	}
-//line examples/feature_sampler.kuki:95
-	connInfo := maps.Pick(config, []any{any("host"), any("port")})
 //line examples/feature_sampler.kuki:96
-	fmt.Println("Connection info:")
+	connInfo := maps.Pick(config, []any{any("host"), any("port")})
 //line examples/feature_sampler.kuki:97
-	for _, k := range maps.SortedKeys(connInfo) {
+	fmt.Println("Connection info:")
 //line examples/feature_sampler.kuki:98
+	for _, k := range maps.SortedKeys(connInfo) {
+//line examples/feature_sampler.kuki:99
 		fmt.Printf("  %s = %v\n", k, connInfo[k])
 	}
-//line examples/feature_sampler.kuki:100
+//line examples/feature_sampler.kuki:101
 	fmt.Println("\nDone!")
 }

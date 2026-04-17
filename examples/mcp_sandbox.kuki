@@ -15,7 +15,8 @@
 
 petiole main
 
-skill McpSandbox ("Sandboxed filesystem skill: read, write, list, and MCP server mode.")
+skill McpSandbox
+    description: "Sandboxed filesystem skill: read, write, list, and MCP server mode."
 
 import "stdlib/cli"
 import "stdlib/mcp"

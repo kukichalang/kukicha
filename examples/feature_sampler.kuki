@@ -51,7 +51,8 @@ func TestFeatures()
 
     # 5. Piped Switch with onerr
     print("\nTesting piped switch with onerr:")
-    res2 := "error" |> Risky() |> switch
+    risky2 := "error" |> Risky() onerr "default"
+    res2 := risky2 |> switch
         when "default"
             print("Switched on default value")
             return "default"

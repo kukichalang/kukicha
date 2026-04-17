@@ -54,8 +54,9 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Stash the generated changelog, switch to latest main, then apply
+          # Save the generated changelog, reset working tree, switch to latest main, then apply
           cp CHANGELOG.md /tmp/CHANGELOG.md
+          git checkout -- CHANGELOG.md
           git checkout main
           git pull origin main
           cp /tmp/CHANGELOG.md CHANGELOG.md
