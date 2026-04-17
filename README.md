@@ -1,6 +1,6 @@
 # Kukicha
 
-Brewed from what Go leaves on the table. Kukicha is a **strict superset of Go** — rename `.go` to `.kuki` and it compiles unchanged. Then blend in pipes, `onerr`, enums, if-expressions, readable operators. One feature at a time, or all at once. `kukicha brew` gives you standard Go back whenever you want it.
+**Brewed from Go.** A language you can skim. Readable Kukicha forms while you're learning; plain Go when you're fluent — same file, same compiler. The stdlib stays skimmable either way. Ships as a single binary.
 
 **[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](.claude/skills/stdlib/SKILL.md)
 
@@ -55,9 +55,32 @@ func main()
         print("  [P{v.severity}] {v.kind}  #{v.number}  {v.summary}")
 ```
 
-`fetch.Json(list of Issue)` handles HTTP→JSON decode with a typed target. The pipeline-level `onerr` catches network, status, and decode failures in one place. `concurrent.MapWithLimit` runs the LLM calls four at a time — no goroutine or errgroup bookkeeping. The rest is `Filter` and `sort.ByKey` chained on the result. Every `err != nil` you'd write in Go is absorbed by `onerr`.
+You can read this top-to-bottom without knowing the language: fetch issues, classify four at a time, filter the severe ones, sort, print. The stdlib names carry the weight — `fetch.Json`, `slice.Filter`, `concurrent.MapWithLimit`, `sort.ByKey` — and `onerr` keeps error handling out of the flow. A Go developer can write the same program in plain Go — `[]Issue`, `&v`, `!= nil`, closures — and Kukicha will compile it unchanged.
 
-All valid Go is still valid Kukicha, rename `.go` to `.kuki` and it compiles unchanged. 
+---
+
+## Two tiers, one stdlib
+
+Kukicha is a strict superset of Go: the language you graduate *into* is Go itself. The Kukicha tier gives you scannable forms while you're learning; the Go tier is waiting whenever you're ready. Pick the one that fits — or mix them in the same file.
+
+| Concept | Kukicha form | Go form |
+| --- | --- | --- |
+| **Booleans** | `and`, `or`, `not` | `&&`, `\|\|`, `!` |
+| **Comparison** | `equals`, `isnt` | `==`, `!=` |
+| **Lists** | `list of string` | `[]string` |
+| **Maps** | `map of string to int` | `map[string]int` |
+| **Pointers** | `reference User`, `reference of user` | `*User`, `&user` |
+| **Nil** | `empty` | `nil` |
+| **Errors** | `onerr return` | `if err != nil { return err }` |
+| **Pipes** | `x \|> h() \|> g() \|> f()` | `f(g(h(x)))` |
+| **If-expression** | `x := if cond then a else b` | *(no Go equivalent)* |
+| **Enums** | `enum Status` with named variants | `const` + `iota` |
+| **Lambdas** | `(x int) => x * 2` | `func(x int) int { return x*2 }` |
+| **Interpolation** | `"hi {name}"` | `fmt.Sprintf("hi %s", name)` |
+
+The Kukicha forms are syntactic sugar; the Go forms are the Go they desugar to. Every `.go` file is valid `.kuki` unchanged, and every `.kuki` file transpiles to standard Go before compilation.
+
+What stays constant across both tiers is the [stdlib](.claude/skills/stdlib/SKILL.md) — `fetch`, `slice`, `sort`, `llm`, `mcp`, `concurrent`, `html`, `crypto`, `shell`, and 30+ more. `fetch.Get(...) |> fetch.Json(...) onerr ...` reads the same whether the surrounding code is `list of string` or `[]string`.
 
 ---
 
@@ -66,7 +89,7 @@ All valid Go is still valid Kukicha, rename `.go` to `.kuki` and it compiles unc
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.10
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.11
 mkdir myapp && cd myapp
 kukicha init
 ```
@@ -85,7 +108,32 @@ function main()
 kukicha run hello.kuki
 ```
 
-### Adopt gradually
+### Commands
+
+| Command | What it does |
+| --- | --- |
+| `kukicha check file.kuki` | Validate syntax without compiling |
+| `kukicha run file.kuki` | Compile and run immediately |
+| `kukicha build file.kuki` | Compile to a standalone binary |
+| `kukicha fmt -w file.kuki` | Format in place |
+| `kukicha brew file.kuki` | Convert back to standalone Go |
+| `kukicha-blend file.go` | Suggest Kukicha idioms for Go code |
+
+---
+
+## Why bother
+
+* **Skimmable at every skill level** — beginners read the Kukicha forms, Go developers write plain Go, both call the same readable stdlib
+* **Compile-time security checks** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects before you ship
+* **42+ batteries-included stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [more](.claude/skills/stdlib/SKILL.md)
+* **Ships as Go** — single binary, cross-compile, WASM, full Go ecosystem
+* **No lock-in** — `kukicha brew file.kuki` converts any file back to standard Go; existing `.go` files compile as `.kuki` unchanged
+
+---
+
+## Starting from Go
+
+Already have a Go codebase? You don't have to rewrite anything — Kukicha can suggest idioms incrementally or convert files on request.
 
 ```
 # See what your Go code looks like with Kukicha idioms
@@ -98,45 +146,6 @@ kukicha-blend --apply main.go
 # Convert Kukicha back to Go anytime
 kukicha brew main.kuki
 ```
-
-### Commands
-
-| Command | What it does |
-| --- | --- |
-| `kukicha check file.kuki` | Validate syntax without compiling |
-| `kukicha run file.kuki` | Compile and run immediately |
-| `kukicha build file.kuki` | Compile to a standalone binary |
-| `kukicha brew file.kuki` | Convert back to standalone Go |
-| `kukicha fmt -w file.kuki` | Format in place |
-| `kukicha-blend file.go` | Suggest Kukicha idioms for Go code |
-
----
-
-## What Kukicha adds
-
-Kukicha prioritizes readability and picks up patterns from Rust, Elixir, Kotlin, and Python that fit naturally alongside Go's existing syntax.
-
-| Feature | Go | Kukicha |
-| --- | --- | --- |
-| **Error handling** | `if err != nil { return err }` | `onerr return` |
-| **Pipes** | `f(g(h(x)))` | `x |> h() |> g() |> f()` |
-| **If-expressions** | 5-line temp var + if/else | `x := if cond then a else b` |
-| **Readable operators** | `&&`, `\|\|`, `!` | `and`, `or`, `not` |
-| **Type syntax** | `[]string`, `map[K]V`, `*T` | `list of string`, `map of K to V`, `reference T` |
-| **Enums** | `const` + `iota` | `enum Status` with named variants |
-| **Lambdas** | `func(x int) int { return x*2 }` | `(x int) => x * 2` |
-| **String interpolation** | `fmt.Sprintf("hi %s", name)` | `"hi {name}"` |
-
----
-
-## Why bother
-
-* Existing `.go` files compile as `.kuki` unchanged
-* `kukicha brew` converts back to standard Go anytime
-* Blend in one feature at a time; leave the rest as Go
-* **Compile-time security checks** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects before you ship
-* **42+ easy-to-use stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [more](.claude/skills/stdlib/SKILL.md)
-* **Ships as Go** — single binary, cross-compile, WASM, full Go ecosystem
 
 ---
 
@@ -158,7 +167,7 @@ Kukicha prioritizes readability and picks up patterns from Rust, Elixir, Kotlin,
 
 ---
 
-**Version:** 0.1.10 | **License:** [MIT](LICENSE)
+**Version:** 0.1.11 | **License:** [MIT](LICENSE)
 
 ---
 

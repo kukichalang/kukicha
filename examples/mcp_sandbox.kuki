@@ -16,8 +16,6 @@
 petiole main
 
 skill McpSandbox
-    description: "Read, write, and list files inside a sandbox root. All paths are confined to the sandbox — attempts to escape via .. or absolute paths are rejected. Use when an agent needs filesystem access scoped to a single working directory."
-    version: "1.0.0"
 
 import "stdlib/cli"
 import "stdlib/mcp"

@@ -1,0 +1,11 @@
+{
+  "tasks": [
+    {
+      "id": "dfd4748a",
+      "cron": "0 14 * * 1",
+      "prompt": "Run the /competition skill to scan recent competitor releases for ideas useful in Kukicha. Then create a dated markdown file at docs/for_review/competition-YYYY-MM-DD.md (use today's actual date) with your findings and recommendations. The file should include: a summary of notable competitor releases reviewed, specific ideas worth considering for Kukicha's compiler/stdlib/LSP/tooling, and a prioritized recommendation list. Use the Skill tool with skill \"competition\" to perform the scan first.",
+      "createdAt": 1776212042269,
+      "recurring": true
+    }
+  ]
+}
