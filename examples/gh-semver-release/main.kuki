@@ -8,8 +8,6 @@
 petiole main
 
 skill GhSemverRelease
-    description: "Cut GitHub releases with auto-bumped semver tags. Discovers repos the current gh-authenticated user can push to, reads the highest existing semver tag via git, and creates a new release on the default branch with an incremented tag. Subcommands: list (shows current/next tags across all repos, supports --json and --csv), release --repo OWNER/REPO (creates or dry-runs a release on one repo, supports --json). Use when an agent needs to mint a new release for one or more repos without a human picker. Requires the `gh` CLI on PATH and an authenticated GitHub session."
-    version: "1.0.0"
 
 import "os"
 import "stdlib/cli"
