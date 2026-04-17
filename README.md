@@ -1,6 +1,6 @@
 # Kukicha
 
-**Brewed from Go.** Readable Kukicha forms while you're learning; plain Go when you're fluent — same file, same compiler. The stdlib stays understandable either way. Ships as a single binary.
+**Brewed from Go.** Use readable forms while you learn, or plain Go when you're fluent—same file, same compiler. The standard library stays steeped in simplicity no matter how you write it. Ships as a single binary.
 
 **[kukicha.org](https://kukicha.org)** | [Quick Reference](docs/kukicha-quick-reference.md) | [Tutorials](https://kukicha.org/#tutorials) | [Stdlib Reference](.claude/skills/stdlib/SKILL.md)
 
