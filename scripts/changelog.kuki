@@ -14,6 +14,7 @@
 #   export MISTRAL_API_KEY="..."
 
 import "os"
+import "stdlib/cast"
 import "stdlib/cli"
 import "stdlib/datetime"
 import "stdlib/files"
@@ -29,6 +30,117 @@ type ChangelogResult
     date string as "date"
     entry string as "entry"
 
+type ContributorInfo
+    username string
+    prNumber int
+
+# BOT_EMAILS lists noreply addresses that should never appear as new contributors.
+# Add entries here when new automation accounts appear.
+var BOT_EMAILS = list of string{
+    "223556219+Copilot@users.noreply.github.com",
+    "41898282+github-actions[bot]@users.noreply.github.com",
+    "49699333+dependabot[bot]@users.noreply.github.com",
+}
+
+func isBot(email string, name string) bool
+    for e in BOT_EMAILS
+        if email equals e
+            return true
+    if strpkg.Contains(email, "[bot]") or strpkg.Contains(name, "[bot]")
+        return true
+    return false
+
+# extractUsername parses a GitHub noreply email of the form
+# <id>+<username>@users.noreply.github.com and returns the username.
+# Returns an empty string for non-noreply addresses.
+func extractUsername(email string) string
+    if not strpkg.Contains(email, "+") or not strpkg.HasSuffix(email, "@users.noreply.github.com")
+        return ""
+    plusParts := strpkg.SplitN(email, "+", 2)
+    if len(plusParts) < 2
+        return ""
+    return strpkg.Split(plusParts[1], "@")[0]
+
+# firstPRForCommit queries the GitHub API to find the PR number associated
+# with the given commit SHA. Returns 0 if no PR is found or on error.
+func firstPRForCommit(sha string) int
+    raw := shell.Output("gh", "api",
+        "/repos/kukichalang/kukicha/commits/{sha}/pulls",
+        "--jq", ".[0].number") onerr ""
+    raw = strpkg.TrimSpace(raw)
+    if raw equals "" or raw equals "null"
+        return 0
+    num := cast.Atoi(raw) onerr 0
+    return num
+
+# findNewContributors returns contributors who appear for the first time in
+# rangeArg (e.g. "v0.1.11..HEAD") but not in any commit before lastTag.
+# Bot/AI accounts are excluded. Requires `gh` to be authenticated.
+func findNewContributors(lastTag string, rangeArg string) list of ContributorInfo
+    # authors in this release: "name|email" per line
+    currentRaw := shell.Output("git", "log", rangeArg,
+        "--format=%an|%ae", "--no-merges") onerr ""
+
+    # all-time authors before this release (emails only)
+    priorEmails := make(map of string to bool)
+    if lastTag isnt ""
+        priorRaw := shell.Output("git", "log", lastTag,
+            "--format=%ae", "--no-merges") onerr ""
+        for line in strpkg.Lines(priorRaw)
+            email := strpkg.TrimSpace(line)
+            if email isnt ""
+                priorEmails[email] = true
+
+    seenInRange := make(map of string to bool)
+    result := make(list of ContributorInfo, 0)
+
+    for line in strpkg.Lines(currentRaw)
+        line = strpkg.TrimSpace(line)
+        if line equals ""
+            continue
+        parts := strpkg.SplitN(line, "|", 2)
+        if len(parts) < 2
+            continue
+        name := parts[0]
+        email := parts[1]
+
+        if isBot(email, name)
+            continue
+        if priorEmails[email] or seenInRange[email]
+            continue
+        seenInRange[email] = true
+
+        username := extractUsername(email)
+        if username equals ""
+            username = name
+
+        # Find the first commit this contributor made in the range
+        firstSHARaw := shell.Output("git", "log", rangeArg,
+            "--author={email}", "--no-merges",
+            "--format=%H", "--reverse") onerr ""
+        lines := strpkg.Lines(strpkg.TrimSpace(firstSHARaw))
+        prNum := 0
+        if slice.IsNotEmpty(lines) and strpkg.TrimSpace(lines[0]) isnt ""
+            prNum = firstPRForCommit(strpkg.TrimSpace(lines[0]))
+
+        result = append(result, ContributorInfo{username: username, prNumber: prNum})
+
+    return result
+
+# buildNewContributorsSection formats a "### New Contributors" markdown block.
+# Returns an empty string when there are no new contributors.
+func buildNewContributorsSection(contributors list of ContributorInfo) string
+    if slice.IsEmpty(contributors)
+        return ""
+    lines := make(list of string, 0)
+    lines = append(lines, "\n### New Contributors\n")
+    for c in contributors
+        if c.prNumber > 0
+            lines = append(lines, "- @{c.username} made their first contribution in [#{c.prNumber}](https://github.com/kukichalang/kukicha/pull/{c.prNumber})")
+        else
+            lines = append(lines, "- @{c.username} made their first contribution")
+    return strpkg.Join(lines, "\n") + "\n"
+
 func main()
     _ = cli.New("changelog")
         |> cli.Description("Generate CHANGELOG.md entries from git history using an LLM, don't mention changes to the CHANGELOG itself")
@@ -39,7 +151,7 @@ func main()
 
 func run(args cli.Args)
     version := cli.GetString(args, "version")
-    if version == ""
+    if version equals ""
         version = "Unreleased"
     jsonOut := cli.IsJSON(args)
     generateChangelog(version, jsonOut)
@@ -56,9 +168,9 @@ func generateChangelog(version string, jsonOut bool)
     lastTag := ""
     if slice.IsNotEmpty(tagLines)
         best := semver.Highest(tagLines) onerr ""
-        if best == version and len(tagLines) > 1
+        if best equals version and len(tagLines) > 1
             # Current version tag already exists — find the one before it
-            remaining := tagLines |> slice.Filter(t => t != best)
+            remaining := tagLines |> slice.Filter(t => t isnt best)
             if slice.IsNotEmpty(remaining)
                 lastTag = semver.Highest(remaining) onerr ""
         else
@@ -66,14 +178,14 @@ func generateChangelog(version string, jsonOut bool)
 
     # Get commits since previous tag (or last 50 if no prior tags exist)
     gitLog := ""
-    if lastTag != ""
+    if lastTag isnt ""
         rangeArg := "{lastTag}..HEAD"
         gitLog = shell.Output("git", "log", rangeArg, "--oneline", "--no-merges") onerr panic "git log failed: {error}"
     else
         gitLog = shell.Output("git", "log", "--oneline", "--no-merges", "-50") onerr panic "git log failed: {error}"
 
     gitLog = gitLog |> strpkg.TrimSpace()
-    if gitLog == ""
+    if gitLog equals ""
         if jsonOut
             jsonpkg.WriteOutput(map of string to string{"error": "no new commits since {lastTag}"}) onerr panic "{error}"
             os.Exit(0)
@@ -84,17 +196,17 @@ func generateChangelog(version string, jsonOut bool)
     # Try to get the tagged commit date first; fall back to today's system date.
     # This prevents the LLM from hallucinating a date from its training data.
     releaseDate := ""
-    if version != "Unreleased"
+    if version isnt "Unreleased"
         tagDate := shell.Output("git", "log", "-1", "--format=%cs", version) onerr ""
         tagDate = tagDate |> strpkg.TrimSpace()
-        if tagDate != ""
+        if tagDate isnt ""
             releaseDate = tagDate
-    if releaseDate == ""
+    if releaseDate equals ""
         releaseDate = datetime.Now() |> datetime.InUTC() |> datetime.Format("date")
 
     # Show what we're working with (suppressed in JSON mode)
     if not jsonOut
-        if lastTag != ""
+        if lastTag isnt ""
             print("Generating changelog for {version} ({releaseDate}) (commits since {lastTag})...")
         else
             print("Generating changelog for {version} ({releaseDate}) (no prior tags found, using last 50 commits)...")
@@ -110,7 +222,7 @@ func generateChangelog(version string, jsonOut bool)
 
     # Build the prompt
     context := ""
-    if lastTag != ""
+    if lastTag isnt ""
         context = "Previous release tag: {lastTag}\n"
 
     prompt := "You are a changelog writer for Kukicha, a beginner-friendly programming language that transpiles to Go.\n\n{context}New commits to summarize:\n{gitLog}\n\nWrite a single CHANGELOG entry for version {version}.\n\nRules:\n- Start with exactly: ## [{version}] - {releaseDate}\n- Group changes under ### Added, ### Changed, ### Fixed, ### Security (only include sections that apply)\n- Write concise bullet points from the developer perspective\n- Each bullet point must end with a markdown link to the relevant commit(s), e.g. ([abc1234](https://github.com/kukichalang/kukicha/commit/abc1234)). Use the 7-character short hash from the commit log.\n- Skip trivial or internal-only changes\n- Output ONLY the markdown section starting with ##, no preamble or explanation"
@@ -120,11 +232,19 @@ func generateChangelog(version string, jsonOut bool)
         |> llm.Retry(3, 1000)
         |> llm.Ask(prompt) onerr panic "LLM call failed: {error}"
 
+    # Append a "New Contributors" section (requires gh CLI to be authenticated)
+    rangeForContribs := if lastTag isnt "" then "{lastTag}..HEAD" else ""
+    if rangeForContribs isnt ""
+        contributors := findNewContributors(lastTag, rangeForContribs)
+        newContribSection := buildNewContributorsSection(contributors)
+        if newContribSection isnt ""
+            entry = entry + newContribSection
+
     # Build updated CHANGELOG.md
     header := "# Changelog\n\nAll notable changes to Kukicha will be documented in this file.\nThis file is auto-generated by `scripts/changelog.kuki`.\n\n"
 
     newContent := ""
-    if existing == ""
+    if existing equals ""
         newContent = header + entry + "\n"
     else if strpkg.Contains(existing, "\n## ")
         # Splice new entry in after the file header, before the first ## section
