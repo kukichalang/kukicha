@@ -94,30 +94,24 @@ func Map(items []any, f func(any) Fragment) Fragment {
 	return Fragment{content: buf.String()}
 }
 
-//line stdlib/html/html.kuki:91
-func Attr(s string) string {
-//line stdlib/html/html.kuki:92
-	return html.EscapeString(s)
-}
-
-//line stdlib/html/html.kuki:96
+//line stdlib/html/html.kuki:90
 func When(condition bool, f Fragment) Fragment {
-//line stdlib/html/html.kuki:97
+//line stdlib/html/html.kuki:91
 	if condition {
-//line stdlib/html/html.kuki:98
+//line stdlib/html/html.kuki:92
 		return f
 	}
-//line stdlib/html/html.kuki:99
+//line stdlib/html/html.kuki:93
 	return Fragment{content: ""}
 }
 
-//line stdlib/html/html.kuki:103
+//line stdlib/html/html.kuki:97
 func WhenElse(condition bool, ifTrue Fragment, ifFalse Fragment) Fragment {
-//line stdlib/html/html.kuki:104
+//line stdlib/html/html.kuki:98
 	if condition {
-//line stdlib/html/html.kuki:105
+//line stdlib/html/html.kuki:99
 		return ifTrue
 	}
-//line stdlib/html/html.kuki:106
+//line stdlib/html/html.kuki:100
 	return ifFalse
 }

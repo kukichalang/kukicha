@@ -56,136 +56,128 @@ func TestEscape(t *testing.T) {
 }
 
 //line stdlib/html/html_test.kuki:52
-func TestAttr(t *testing.T) {
-//line stdlib/html/html_test.kuki:53
-	result := html.Attr("value with \"quotes\"")
-//line stdlib/html/html_test.kuki:54
-	test.AssertEqual(t, result, "value with &#34;quotes&#34;")
-}
-
-//line stdlib/html/html_test.kuki:57
 func TestEmbed(t *testing.T) {
-//line stdlib/html/html_test.kuki:58
+//line stdlib/html/html_test.kuki:53
 	child := html.Render("<p>inner</p>")
-//line stdlib/html/html_test.kuki:59
+//line stdlib/html/html_test.kuki:54
 	raw := html.Embed(child)
-//line stdlib/html/html_test.kuki:60
+//line stdlib/html/html_test.kuki:55
 	test.AssertEqual(t, raw, "<p>inner</p>")
 }
 
-//line stdlib/html/html_test.kuki:63
+//line stdlib/html/html_test.kuki:58
 func TestJoin(t *testing.T) {
-//line stdlib/html/html_test.kuki:64
+//line stdlib/html/html_test.kuki:59
 	a := html.Render("<h1>Title</h1>")
-//line stdlib/html/html_test.kuki:65
+//line stdlib/html/html_test.kuki:60
 	b := html.Render("<p>Body</p>")
-//line stdlib/html/html_test.kuki:66
+//line stdlib/html/html_test.kuki:61
 	c := html.Render("<footer>End</footer>")
-//line stdlib/html/html_test.kuki:67
+//line stdlib/html/html_test.kuki:62
 	result := html.Join(a, b, c)
-//line stdlib/html/html_test.kuki:68
+//line stdlib/html/html_test.kuki:63
 	test.AssertEqual(t, html.String(result), "<h1>Title</h1><p>Body</p><footer>End</footer>")
 }
 
-//line stdlib/html/html_test.kuki:71
+//line stdlib/html/html_test.kuki:66
 func TestJoinEmpty(t *testing.T) {
-//line stdlib/html/html_test.kuki:72
+//line stdlib/html/html_test.kuki:67
 	result := html.Join()
-//line stdlib/html/html_test.kuki:73
+//line stdlib/html/html_test.kuki:68
 	test.AssertTrue(t, html.IsEmpty(result))
 }
 
-//line stdlib/html/html_test.kuki:76
+//line stdlib/html/html_test.kuki:71
 type IsEmptyCase struct {
 	name  string
 	input string
 	want  bool
 }
 
-//line stdlib/html/html_test.kuki:81
+//line stdlib/html/html_test.kuki:76
 func TestIsEmpty(t *testing.T) {
-//line stdlib/html/html_test.kuki:82
+//line stdlib/html/html_test.kuki:77
 	cases := []IsEmptyCase{IsEmptyCase{name: "empty fragment", input: "", want: true}, IsEmptyCase{name: "non-empty fragment", input: "<p>hi</p>", want: false}}
-//line stdlib/html/html_test.kuki:87
+//line stdlib/html/html_test.kuki:82
 	for _, tc := range cases {
-//line stdlib/html/html_test.kuki:88
+//line stdlib/html/html_test.kuki:83
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/html/html_test.kuki:89
+//line stdlib/html/html_test.kuki:84
 			f := html.Render(tc.input)
-//line stdlib/html/html_test.kuki:90
+//line stdlib/html/html_test.kuki:85
 			test.AssertEqual(t, html.IsEmpty(f), tc.want)
 		})
 	}
 }
 
-//line stdlib/html/html_test.kuki:94
+//line stdlib/html/html_test.kuki:89
 func TestWhen(t *testing.T) {
-//line stdlib/html/html_test.kuki:95
+//line stdlib/html/html_test.kuki:90
 	badge := html.Render("<span>admin</span>")
-//line stdlib/html/html_test.kuki:97
+//line stdlib/html/html_test.kuki:92
 	t.Run("condition true", func(t *testing.T) {
-//line stdlib/html/html_test.kuki:98
+//line stdlib/html/html_test.kuki:93
 		result := html.When(true, badge)
-//line stdlib/html/html_test.kuki:99
+//line stdlib/html/html_test.kuki:94
 		test.AssertEqual(t, html.String(result), "<span>admin</span>")
 	})
-//line stdlib/html/html_test.kuki:102
+//line stdlib/html/html_test.kuki:97
 	t.Run("condition false", func(t *testing.T) {
-//line stdlib/html/html_test.kuki:103
+//line stdlib/html/html_test.kuki:98
 		result := html.When(false, badge)
-//line stdlib/html/html_test.kuki:104
+//line stdlib/html/html_test.kuki:99
 		test.AssertTrue(t, html.IsEmpty(result))
 	})
 }
 
-//line stdlib/html/html_test.kuki:108
+//line stdlib/html/html_test.kuki:103
 func TestWhenElse(t *testing.T) {
-//line stdlib/html/html_test.kuki:109
+//line stdlib/html/html_test.kuki:104
 	yes := html.Render("<span>yes</span>")
-//line stdlib/html/html_test.kuki:110
+//line stdlib/html/html_test.kuki:105
 	no := html.Render("<span>no</span>")
-//line stdlib/html/html_test.kuki:112
+//line stdlib/html/html_test.kuki:107
 	t.Run("condition true", func(t *testing.T) {
-//line stdlib/html/html_test.kuki:113
+//line stdlib/html/html_test.kuki:108
 		result := html.WhenElse(true, yes, no)
-//line stdlib/html/html_test.kuki:114
+//line stdlib/html/html_test.kuki:109
 		test.AssertEqual(t, html.String(result), "<span>yes</span>")
 	})
-//line stdlib/html/html_test.kuki:117
+//line stdlib/html/html_test.kuki:112
 	t.Run("condition false", func(t *testing.T) {
-//line stdlib/html/html_test.kuki:118
+//line stdlib/html/html_test.kuki:113
 		result := html.WhenElse(false, yes, no)
-//line stdlib/html/html_test.kuki:119
+//line stdlib/html/html_test.kuki:114
 		test.AssertEqual(t, html.String(result), "<span>no</span>")
 	})
 }
 
-//line stdlib/html/html_test.kuki:123
+//line stdlib/html/html_test.kuki:118
 func TestComposition(t *testing.T) {
-//line stdlib/html/html_test.kuki:124
+//line stdlib/html/html_test.kuki:119
 	t.Run("nested fragments with escaped content", func(t *testing.T) {
-//line stdlib/html/html_test.kuki:125
+//line stdlib/html/html_test.kuki:120
 		name := "<script>alert('xss')</script>"
-//line stdlib/html/html_test.kuki:126
+//line stdlib/html/html_test.kuki:121
 		inner := html.Render(fmt.Sprintf("<p>%v</p>", html.Escape(name)))
-//line stdlib/html/html_test.kuki:127
+//line stdlib/html/html_test.kuki:122
 		outer := html.Render(fmt.Sprintf("<div>%v</div>", html.Embed(inner)))
-//line stdlib/html/html_test.kuki:128
+//line stdlib/html/html_test.kuki:123
 		want := "<div><p>&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;</p></div>"
-//line stdlib/html/html_test.kuki:129
+//line stdlib/html/html_test.kuki:124
 		test.AssertEqual(t, html.String(outer), want)
 	})
-//line stdlib/html/html_test.kuki:132
+//line stdlib/html/html_test.kuki:127
 	t.Run("join then embed", func(t *testing.T) {
-//line stdlib/html/html_test.kuki:133
+//line stdlib/html/html_test.kuki:128
 		a := html.Render("<li>one</li>")
-//line stdlib/html/html_test.kuki:134
+//line stdlib/html/html_test.kuki:129
 		b := html.Render("<li>two</li>")
-//line stdlib/html/html_test.kuki:135
+//line stdlib/html/html_test.kuki:130
 		items := html.Join(a, b)
-//line stdlib/html/html_test.kuki:136
+//line stdlib/html/html_test.kuki:131
 		result := html.Render(fmt.Sprintf("<ul>%v</ul>", html.Embed(items)))
-//line stdlib/html/html_test.kuki:137
+//line stdlib/html/html_test.kuki:132
 		test.AssertEqual(t, html.String(result), "<ul><li>one</li><li>two</li></ul>")
 	})
 }

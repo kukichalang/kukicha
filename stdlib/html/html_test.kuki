@@ -48,11 +48,6 @@ func TestEscape(t reference testing.T)
             test.AssertEqual(t, result, tc.want)
         )
 
-# --- TestAttr ---
-func TestAttr(t reference testing.T)
-    result := html.Attr("value with \"quotes\"")
-    test.AssertEqual(t, result, "value with &#34;quotes&#34;")
-
 # --- TestEmbed ---
 func TestEmbed(t reference testing.T)
     child := html.Render("<p>inner</p>")

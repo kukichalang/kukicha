@@ -85,12 +85,6 @@ func Map(items list of any, f func(any) Fragment) Fragment
         buf.WriteString(result.content)
     return {content: buf.String()}
 
-# Attr escapes a string for safe use in an HTML attribute value.
-# Wraps html.EscapeString — identical to Escape() but communicates intent.
-# Example: html.Render("<a href='{html.Attr(url)}'>link</a>")
-func Attr(s string) string
-    return html.EscapeString(s)
-
 # When returns the fragment if condition is true, otherwise an empty Fragment.
 # Example: html.Render("{html.Embed(html.When(isAdmin, adminBadge))}")
 func When(condition bool, f Fragment) Fragment

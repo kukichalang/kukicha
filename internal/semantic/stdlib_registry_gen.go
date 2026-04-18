@@ -295,7 +295,6 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"git.ReleaseExists":               {Count: 2, Types: []goStdlibType{{Kind: TypeKindBool}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"repo", "tag"}},
 	"git.RepoExists":                  {Count: 2, Types: []goStdlibType{{Kind: TypeKindBool}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"repo"}},
 	"git.TagExists":                   {Count: 2, Types: []goStdlibType{{Kind: TypeKindBool}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"repo", "tag"}},
-	"html.Attr":                       {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"s"}},
 	"html.Embed":                      {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"f"}},
 	"html.Escape":                     {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"s"}},
 	"html.IsEmpty":                    {Count: 1, Types: []goStdlibType{{Kind: TypeKindBool}}, ParamNames: []string{"f"}},
