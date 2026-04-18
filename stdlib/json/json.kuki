@@ -11,7 +11,6 @@ import "os"
 # Encoder wraps encoding/json for pipe-friendly encoding with builder pattern
 type Encoder
     writer io.Writer
-    deterministic bool
     indent string
     prefix string
 
@@ -25,16 +24,8 @@ type Decoder
 func NewEncoder(writer io.Writer) Encoder
     enc := Encoder{}
     enc.writer = writer
-    enc.deterministic = false
     enc.indent = ""
     enc.prefix = ""
-    return enc
-
-# WithDeterministic sets deterministic output (consistent field ordering)
-# Chainable - returns modified encoder for piping
-# Example: writer |> json.NewEncoder() |> json.WithDeterministic() |> json.Encode(data)
-func WithDeterministic(enc Encoder) Encoder
-    enc.deterministic = true
     return enc
 
 # WithIndent sets pretty-printing with indentation

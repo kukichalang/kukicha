@@ -404,7 +404,6 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"json.Unmarshal":                  {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data", "target"}},
 	"json.UnmarshalRead":              {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"reader", "target"}},
 	"json.UnmarshalString":            {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"data", "target"}},
-	"json.WithDeterministic":          {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "json.Encoder"}}, ParamNames: []string{"enc"}},
 	"json.WithIndent":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "json.Encoder"}}, ParamNames: []string{"enc", "indent"}},
 	"json.WithPrefix":                 {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "json.Encoder"}}, ParamNames: []string{"enc", "prefix"}},
 	"json.WriteOutput":                {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"v"}},

@@ -11,185 +11,174 @@ import (
 
 //line stdlib/json/json.kuki:12
 type Encoder struct {
-	writer        io.Writer
-	deterministic bool
-	indent        string
-	prefix        string
+	writer io.Writer
+	indent string
+	prefix string
 }
 
-//line stdlib/json/json.kuki:19
+//line stdlib/json/json.kuki:18
 type Decoder struct {
 	reader io.Reader
 }
 
-//line stdlib/json/json.kuki:25
+//line stdlib/json/json.kuki:24
 func NewEncoder(writer io.Writer) Encoder {
-//line stdlib/json/json.kuki:26
+//line stdlib/json/json.kuki:25
 	enc := Encoder{}
-//line stdlib/json/json.kuki:27
+//line stdlib/json/json.kuki:26
 	enc.writer = writer
-//line stdlib/json/json.kuki:28
-	enc.deterministic = false
-//line stdlib/json/json.kuki:29
+//line stdlib/json/json.kuki:27
 	enc.indent = ""
-//line stdlib/json/json.kuki:30
+//line stdlib/json/json.kuki:28
 	enc.prefix = ""
-//line stdlib/json/json.kuki:31
+//line stdlib/json/json.kuki:29
 	return enc
 }
 
-//line stdlib/json/json.kuki:36
-func WithDeterministic(enc Encoder) Encoder {
-//line stdlib/json/json.kuki:37
-	enc.deterministic = true
-//line stdlib/json/json.kuki:38
-	return enc
-}
-
-//line stdlib/json/json.kuki:43
+//line stdlib/json/json.kuki:34
 func WithIndent(enc Encoder, indent string) Encoder {
-//line stdlib/json/json.kuki:44
+//line stdlib/json/json.kuki:35
 	enc.indent = indent
-//line stdlib/json/json.kuki:45
+//line stdlib/json/json.kuki:36
 	return enc
 }
 
-//line stdlib/json/json.kuki:49
+//line stdlib/json/json.kuki:40
 func WithPrefix(enc Encoder, prefix string) Encoder {
-//line stdlib/json/json.kuki:50
+//line stdlib/json/json.kuki:41
 	enc.prefix = prefix
-//line stdlib/json/json.kuki:51
+//line stdlib/json/json.kuki:42
 	return enc
 }
 
-//line stdlib/json/json.kuki:57
+//line stdlib/json/json.kuki:48
 func Encode(enc Encoder, value any) error {
-//line stdlib/json/json.kuki:58
+//line stdlib/json/json.kuki:49
 	encoder := json.NewEncoder(enc.writer)
-//line stdlib/json/json.kuki:59
+//line stdlib/json/json.kuki:50
 	if (enc.indent != "") || (enc.prefix != "") {
-//line stdlib/json/json.kuki:60
+//line stdlib/json/json.kuki:51
 		encoder.SetIndent(enc.prefix, enc.indent)
 	}
-//line stdlib/json/json.kuki:61
+//line stdlib/json/json.kuki:52
 	return encoder.Encode(value)
 }
 
-//line stdlib/json/json.kuki:66
+//line stdlib/json/json.kuki:57
 func NewDecoder(reader io.Reader) Decoder {
-//line stdlib/json/json.kuki:67
+//line stdlib/json/json.kuki:58
 	dec := Decoder{}
-//line stdlib/json/json.kuki:68
+//line stdlib/json/json.kuki:59
 	dec.reader = reader
-//line stdlib/json/json.kuki:69
+//line stdlib/json/json.kuki:60
 	return dec
 }
 
-//line stdlib/json/json.kuki:74
+//line stdlib/json/json.kuki:65
 func Decode(dec Decoder, target any) error {
-//line stdlib/json/json.kuki:75
+//line stdlib/json/json.kuki:66
 	decoder := json.NewDecoder(dec.reader)
-//line stdlib/json/json.kuki:76
+//line stdlib/json/json.kuki:67
 	return decoder.Decode(target)
 }
 
-//line stdlib/json/json.kuki:81
+//line stdlib/json/json.kuki:72
 func Marshal(value any) ([]byte, error) {
-//line stdlib/json/json.kuki:82
+//line stdlib/json/json.kuki:73
 	bytes, err := json.Marshal(value)
-//line stdlib/json/json.kuki:83
+//line stdlib/json/json.kuki:74
 	return bytes, err
 }
 
-//line stdlib/json/json.kuki:87
+//line stdlib/json/json.kuki:78
 func MarshalPretty(value any) ([]byte, error) {
-//line stdlib/json/json.kuki:88
+//line stdlib/json/json.kuki:79
 	bytes, err := json.MarshalIndent(value, "", "  ")
-//line stdlib/json/json.kuki:89
+//line stdlib/json/json.kuki:80
 	return bytes, err
 }
 
-//line stdlib/json/json.kuki:94
+//line stdlib/json/json.kuki:85
 func Unmarshal(data []byte, target any) error {
-//line stdlib/json/json.kuki:95
+//line stdlib/json/json.kuki:86
 	return json.Unmarshal(data, target)
 }
 
-//line stdlib/json/json.kuki:100
+//line stdlib/json/json.kuki:91
 func UnmarshalString(data string, target any) error {
-//line stdlib/json/json.kuki:101
+//line stdlib/json/json.kuki:92
 	return json.Unmarshal([]byte(data), target)
 }
 
-//line stdlib/json/json.kuki:107
+//line stdlib/json/json.kuki:98
 func MarshalWrite(writer io.Writer, value any) error {
-//line stdlib/json/json.kuki:108
+//line stdlib/json/json.kuki:99
 	return Encode(NewEncoder(writer), value)
 }
 
-//line stdlib/json/json.kuki:114
+//line stdlib/json/json.kuki:105
 func UnmarshalRead(reader io.Reader, target any) error {
-//line stdlib/json/json.kuki:115
+//line stdlib/json/json.kuki:106
 	return Decode(NewDecoder(reader), target)
 }
 
-//line stdlib/json/json.kuki:121
+//line stdlib/json/json.kuki:112
 func WriteOutput(v any) error {
-//line stdlib/json/json.kuki:122
+//line stdlib/json/json.kuki:113
 	bytes, err := json.Marshal(v)
-//line stdlib/json/json.kuki:123
+//line stdlib/json/json.kuki:114
 	if err != nil {
-//line stdlib/json/json.kuki:124
+//line stdlib/json/json.kuki:115
 		return err
 	}
-//line stdlib/json/json.kuki:125
+//line stdlib/json/json.kuki:116
 	_, err = fmt.Fprintln(os.Stdout, string(bytes))
-//line stdlib/json/json.kuki:126
+//line stdlib/json/json.kuki:117
 	return err
 }
 
-//line stdlib/json/json.kuki:131
+//line stdlib/json/json.kuki:122
 func DecodeRead[T any](reader io.Reader, sample T) (T, error) {
-//line stdlib/json/json.kuki:132
+//line stdlib/json/json.kuki:123
 	data := sample
-//line stdlib/json/json.kuki:133
+//line stdlib/json/json.kuki:124
 	decoder := json.NewDecoder(reader)
-//line stdlib/json/json.kuki:134
-//line stdlib/json/json.kuki:134
+//line stdlib/json/json.kuki:125
+//line stdlib/json/json.kuki:125
 	err_1 := decoder.Decode(&data)
-//line stdlib/json/json.kuki:134
+//line stdlib/json/json.kuki:125
 	if err_1 != nil {
-//line stdlib/json/json.kuki:134
+//line stdlib/json/json.kuki:125
 		err_1 = fmt.Errorf("failed to decode json: %w", err_1)
 		var _zero0 T
-//line stdlib/json/json.kuki:134
+//line stdlib/json/json.kuki:125
 		return _zero0, err_1
 	}
-//line stdlib/json/json.kuki:135
+//line stdlib/json/json.kuki:126
 	return data, nil
 }
 
-//line stdlib/json/json.kuki:140
+//line stdlib/json/json.kuki:131
 func Parse[T any](data []byte, sample T) (T, error) {
-//line stdlib/json/json.kuki:141
+//line stdlib/json/json.kuki:132
 	out := sample
-//line stdlib/json/json.kuki:142
-//line stdlib/json/json.kuki:142
+//line stdlib/json/json.kuki:133
+//line stdlib/json/json.kuki:133
 	err_2 := json.Unmarshal(data, &out)
-//line stdlib/json/json.kuki:142
+//line stdlib/json/json.kuki:133
 	if err_2 != nil {
-//line stdlib/json/json.kuki:142
+//line stdlib/json/json.kuki:133
 		err_2 = fmt.Errorf("failed to parse json: %w", err_2)
 		var _zero0 T
-//line stdlib/json/json.kuki:142
+//line stdlib/json/json.kuki:133
 		return _zero0, err_2
 	}
-//line stdlib/json/json.kuki:143
+//line stdlib/json/json.kuki:134
 	return out, nil
 }
 
-//line stdlib/json/json.kuki:148
+//line stdlib/json/json.kuki:139
 func ParseString[T any](data string, sample T) (T, error) {
-//line stdlib/json/json.kuki:149
+//line stdlib/json/json.kuki:140
 	return Parse([]byte(data), sample)
 }

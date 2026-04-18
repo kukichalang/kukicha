@@ -33,7 +33,7 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/http` | HTTP response/request helpers + security | JSON, JSONStatus, JSONCreated, JSONError, JSONBadRequest, JSONNotFound, Text, HTML, SafeHTML, ReadJSON, ReadJSONLimit, Redirect, SafeRedirect, SafeURL, SetSecureHeaders, SecureHeaders, WithCSRF, Serve, MethodNotAllowed, IsGet/IsPost/IsPut/IsDelete/IsPatch, GetQueryParam, GetHeader; Constants: StatusOK/NotFound/etc |
 | `stdlib/input` | User input utilities | ReadLine, Prompt, Confirm, Choose |
 | `stdlib/iterator` | Functional iteration (Go 1.23 iter.Seq) | Values, Filter, Map, FlatMap, Take, Skip, Enumerate, Chunk, Zip, Reduce, Collect, Any, All, Find |
-| `stdlib/json` | encoding/json wrapper | Marshal, MarshalPretty, Unmarshal, MarshalWrite, UnmarshalRead, DecodeRead, NewEncoder, NewDecoder, Encode, Decode, WithDeterministic, WithIndent, WriteOutput |
+| `stdlib/json` | encoding/json wrapper | Marshal, MarshalPretty, Unmarshal, MarshalWrite, UnmarshalRead, DecodeRead, NewEncoder, NewDecoder, Encode, Decode, WithIndent, WriteOutput |
 | `stdlib/llm` | Large language model client (Chat Completions, OpenResponses, Anthropic; Retry) | New/Ask/Send/SendRaw/Complete, NewResponse/RAsk/RSend/Respond, NewMessages/MAsk/MSend/AnthropicComplete, Retry/RRetry/MRetry, Stream/RStream/MStream |
 | `stdlib/maps` | Map utilities | Keys, Values, Contains, Has, Merge, SortedKeys, Filter, MapValues, Pick, Omit |
 | `stdlib/set` | Generic set operations | From, Add, AddIn, Remove, RemoveIn, Contains, Len, IsEmpty, ToSlice, Union, Intersect, Difference, IsSubset, IsSuperset, Equal |
