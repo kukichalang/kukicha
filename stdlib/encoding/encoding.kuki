@@ -37,14 +37,6 @@ func Base64URLEncode(data list of byte) string
 func Base64URLDecode(s string) (list of byte, error)
     return base64.URLEncoding.DecodeString(s)
 
-# Base64RawEncode encodes data using raw standard base64 encoding (no padding).
-func Base64RawEncode(data list of byte) string
-    return base64.RawStdEncoding.EncodeToString(data)
-
-# Base64RawURLEncode encodes data using raw URL-safe base64 encoding (no padding).
-func Base64RawURLEncode(data list of byte) string
-    return base64.RawURLEncoding.EncodeToString(data)
-
 # HexEncode encodes data as a lowercase hexadecimal string.
 # Each byte is represented as two hex characters.
 func HexEncode(data list of byte) string

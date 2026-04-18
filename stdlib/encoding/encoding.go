@@ -31,26 +31,14 @@ func Base64URLDecode(s string) ([]byte, error) {
 	return base64.URLEncoding.DecodeString(s)
 }
 
-//line stdlib/encoding/encoding.kuki:41
-func Base64RawEncode(data []byte) string {
 //line stdlib/encoding/encoding.kuki:42
-	return base64.RawStdEncoding.EncodeToString(data)
-}
-
-//line stdlib/encoding/encoding.kuki:45
-func Base64RawURLEncode(data []byte) string {
-//line stdlib/encoding/encoding.kuki:46
-	return base64.RawURLEncoding.EncodeToString(data)
-}
-
-//line stdlib/encoding/encoding.kuki:50
 func HexEncode(data []byte) string {
-//line stdlib/encoding/encoding.kuki:51
+//line stdlib/encoding/encoding.kuki:43
 	return hex.EncodeToString(data)
 }
 
-//line stdlib/encoding/encoding.kuki:55
+//line stdlib/encoding/encoding.kuki:47
 func HexDecode(s string) ([]byte, error) {
-//line stdlib/encoding/encoding.kuki:56
+//line stdlib/encoding/encoding.kuki:48
 	return hex.DecodeString(s)
 }

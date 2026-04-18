@@ -28,22 +28,6 @@ func TestBase64URLEncoding(t reference testing.T)
     decoded := encoding.Base64URLDecode(encoded) onerr panic "base64url decode failed"
     test.AssertEqual(t, decoded, original)
 
-# Test Base64Raw encoding
-func TestBase64RawEncoding(t reference testing.T)
-    original := "Hello, World!" as list of byte
-
-    encoded := encoding.Base64RawEncode(original)
-    test.AssertNotEmpty(t, encoded)
-    test.AssertEqual(t, encoded, "SGVsbG8sIFdvcmxkIQ")
-
-# Test Base64RawURL encoding
-func TestBase64RawURLEncoding(t reference testing.T)
-    original := "Hello, World!" as list of byte
-
-    encoded := encoding.Base64RawURLEncode(original)
-    test.AssertNotEmpty(t, encoded)
-    test.AssertEqual(t, encoded, "SGVsbG8sIFdvcmxkIQ")
-
 # Test Hex encoding/decoding
 func TestHexEncoding(t reference testing.T)
     original := "Hello" as list of byte

@@ -178,8 +178,6 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"db.TxQueryRow":                   {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "db.Row"}}, ParamNames: []string{"tx", "query", "args"}},
 	"encoding.Base64Decode":           {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindInt}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"s"}},
 	"encoding.Base64Encode":           {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"data"}},
-	"encoding.Base64RawEncode":        {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"data"}},
-	"encoding.Base64RawURLEncode":     {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"data"}},
 	"encoding.Base64URLDecode":        {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindInt}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"s"}},
 	"encoding.Base64URLEncode":        {Count: 1, Types: []goStdlibType{{Kind: TypeKindString}}, ParamNames: []string{"data"}},
 	"encoding.HexDecode":              {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindInt}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"s"}},
