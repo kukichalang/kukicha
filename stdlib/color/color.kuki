@@ -132,19 +132,3 @@ func BrightRed(s string) string
 # Error returns s in bold bright red — use for error messages.
 func Error(s string) string
     return wrap("1;91", s)
-
-# Warn returns s in yellow — use for warning messages.
-func Warn(s string) string
-    return Yellow(s)
-
-# Success returns s in green — use for success messages.
-func Success(s string) string
-    return Green(s)
-
-# Info returns s in cyan — use for informational messages.
-func Info(s string) string
-    return Cyan(s)
-
-# Muted returns s in dim — use for secondary/less-important text.
-func Muted(s string) string
-    return Dim(s)

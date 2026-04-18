@@ -303,7 +303,7 @@ import "stdlib/datetime"
 import "stdlib/errors"
 
 function logResult(res Result)
-    now := datetime.Now() |> datetime.Format(datetime.RFC3339)
+    now := datetime.Now() |> datetime.Format("rfc3339")
     line := "{now} | [{res.status}] {res.url} | {res.latency}\n"
 
     files.AppendString("health.log", line) onerr

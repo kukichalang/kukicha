@@ -93,11 +93,52 @@ Before you change or remove any stdlib function review it's usage in 5 repos in 
   follow-up: `Lines` uses a hardcoded `"\n"` separator and won't handle
   `\r\n` on Windows-authored inputs; could migrate to `bufio.Scanner`.
 
-## Not yet reviewed
+- `stdlib/datetime` — dropped the 13 format-name constants (`ISO8601`,
+  `RFC3339`, `RFC3339Nano`, `Date`, `Time`, `DateTime`, `DateTimeT`,
+  `Kitchen`, `Stamp`, `RFC822`, `RFC1123`, `ANSIC`, `UnixDate`) — they
+  were self-aliasing strings (`const ISO8601 = "iso8601"`) and a
+  footgun, since e.g. `datetime.RFC3339 = "rfc3339"` shadows
+  `time.RFC3339 = "2006-01-02T15:04:05Z07:00"`: passing
+  `time.RFC3339` to `datetime.Format` quietly falls through to the
+  custom-layout branch, and passing `datetime.RFC3339` to `time.Format`
+  formats the literal string "rfc3339". Users now pass the format name
+  directly: `datetime.Format(t, "rfc3339")`. Dropped 11 method-
+  passthroughs (`Year`, `Day`, `Hour`, `Minute`, `Second`, `Unix`,
+  `UnixMilli`, `InUTC`, `InLocal`, `IsBefore`, `IsAfter`) — `t.Year()`,
+  `t.UTC()`, `t1.Before(t2)` etc. are already idiomatic Go and require
+  no extra import since callers already hold a `time.Time`. Kept
+  `Now`/`Sleep`/`FromUnix`/`FromUnixMilli` (save a second `time`
+  import), `Month`/`Weekday` (add the `as int` cast that the method
+  form doesn't), `WeekdayName`, the duration constructors, time-
+  arithmetic helpers, compound comparisons
+  (`IsBetween`/`IsSameDay`/`IsToday`/`IsYesterday`/`IsTomorrow`/
+  `IsPast`/`IsFuture`), `Today`/`Tomorrow`/`Yesterday`, named-format
+  `Format`/`Parse`/`ParseInLocation`, `InLocation`,
+  `SleepSeconds`/`SleepMilliseconds`. Migrated:
+  `scripts/changelog.kuki:212` (`datetime.InUTC()` → `.UTC()` in a
+  pipe) and `docs/tutorials/concurrent-url-health-checker.md:306`
+  (`datetime.RFC3339` → `"rfc3339"`); test file purged of dropped-
+  wrapper calls.
 
-### Data / format
-- `stdlib/datetime`
-- `stdlib/color`
+- `stdlib/color` — Kukicha-novel (no Go stdlib equivalent; `image/color`
+  is RGBA, unrelated). Dropped four same-shape semantic aliases:
+  `Warn(s)` = `Yellow(s)`, `Success(s)` = `Green(s)`, `Info(s)` =
+  `Cyan(s)`, `Muted(s)` = `Dim(s)`. Zero real-code callers — only in
+  color's own test (and a SKILL.md snippet that propagates via
+  `AGENTS.md` into external repos). Kept `Error(s)` — `wrap("1;91", s)`
+  is a genuine bold-bright-red compound not aliased by any single
+  color function, and it's actually called from
+  `examples/beads_kukicha/format.kuki:65`. Kept all primary colors,
+  styles, and the `NO_COLOR`/`FORCE_COLOR`/isatty machinery (`Enabled`,
+  `SetEnabled`). Migrated the one SKILL.md example from
+  `color.Success(...)` to `color.Green(...)`, and expanded the
+  package's doc-listing in `docs/SKILL.md:523` (added
+  `Italic`/`Underline`/`Magenta` which were missing). **Deferred
+  follow-up:** asymmetric bright colors — `BrightRed` is heavily used
+  externally (15 uses) but there's no `BrightGreen`/`BrightYellow`/etc.;
+  either complete the set or drop `BrightRed`.
+
+## Not yet reviewed
 
 ### Collections
 - `stdlib/slice`

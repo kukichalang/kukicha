@@ -110,10 +110,6 @@ func TestSemanticHelpers(t reference testing.T)
     color.SetEnabled(true)
     cases := list of SemanticCase{
         {name: "Error", fn: color.Error, want: "\x1b[1;91mtest\x1b[0m"},
-        {name: "Warn", fn: color.Warn, want: "\x1b[33mtest\x1b[0m"},
-        {name: "Success", fn: color.Success, want: "\x1b[32mtest\x1b[0m"},
-        {name: "Info", fn: color.Info, want: "\x1b[36mtest\x1b[0m"},
-        {name: "Muted", fn: color.Muted, want: "\x1b[2mtest\x1b[0m"},
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
@@ -126,10 +122,6 @@ func TestSemanticDisabled(t reference testing.T)
     color.SetEnabled(false)
     cases := list of DisabledCase{
         {name: "Error", fn: color.Error},
-        {name: "Warn", fn: color.Warn},
-        {name: "Success", fn: color.Success},
-        {name: "Info", fn: color.Info},
-        {name: "Muted", fn: color.Muted},
     }
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>

@@ -27,11 +27,11 @@ func TestNowAndToday(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:19
 		today := datetime.Today()
 //line stdlib/datetime/datetime_test.kuki:20
-		test.AssertEqual(t, datetime.Hour(today), 0)
+		test.AssertEqual(t, today.Hour(), 0)
 //line stdlib/datetime/datetime_test.kuki:21
-		test.AssertEqual(t, datetime.Minute(today), 0)
+		test.AssertEqual(t, today.Minute(), 0)
 //line stdlib/datetime/datetime_test.kuki:22
-		test.AssertEqual(t, datetime.Second(today), 0)
+		test.AssertEqual(t, today.Second(), 0)
 	})
 //line stdlib/datetime/datetime_test.kuki:25
 	t.Run("Tomorrow is after Today", func(t *testing.T) {
@@ -92,7 +92,7 @@ func TestParse(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:65
 		test.AssertEqual(t, datetime.Month(t1), 1)
 //line stdlib/datetime/datetime_test.kuki:66
-		test.AssertEqual(t, datetime.Day(t1), 15)
+		test.AssertEqual(t, t1.Day(), 15)
 	})
 //line stdlib/datetime/datetime_test.kuki:69
 	t.Run("time format", func(t *testing.T) {
@@ -104,11 +104,11 @@ func TestParse(t *testing.T) {
 			panic(fmt.Sprintf("parse failed: %v", err_1))
 		}
 //line stdlib/datetime/datetime_test.kuki:71
-		test.AssertEqual(t, datetime.Hour(t2), 14)
+		test.AssertEqual(t, t2.Hour(), 14)
 //line stdlib/datetime/datetime_test.kuki:72
-		test.AssertEqual(t, datetime.Minute(t2), 30)
+		test.AssertEqual(t, t2.Minute(), 30)
 //line stdlib/datetime/datetime_test.kuki:73
-		test.AssertEqual(t, datetime.Second(t2), 45)
+		test.AssertEqual(t, t2.Second(), 45)
 	})
 //line stdlib/datetime/datetime_test.kuki:76
 	t.Run("custom format", func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestParse(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:79
 		test.AssertEqual(t, datetime.Month(t3), 1)
 //line stdlib/datetime/datetime_test.kuki:80
-		test.AssertEqual(t, datetime.Day(t3), 15)
+		test.AssertEqual(t, t3.Day(), 15)
 	})
 }
 
@@ -144,11 +144,11 @@ func TestParseInLocation(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:88
 		test.AssertEqual(t, datetime.Month(tt), 1)
 //line stdlib/datetime/datetime_test.kuki:89
-		test.AssertEqual(t, datetime.Day(tt), 15)
+		test.AssertEqual(t, tt.Day(), 15)
 //line stdlib/datetime/datetime_test.kuki:90
-		test.AssertEqual(t, datetime.Hour(tt), 14)
+		test.AssertEqual(t, tt.Hour(), 14)
 //line stdlib/datetime/datetime_test.kuki:91
-		test.AssertEqual(t, datetime.Minute(tt), 30)
+		test.AssertEqual(t, tt.Minute(), 30)
 	})
 }
 
@@ -227,12 +227,12 @@ func TestTimeArithmetic(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:141
 	t.Run("AddDays", func(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:142
-		test.AssertEqual(t, datetime.Day(datetime.AddDays(base, 7)), 22)
+		test.AssertEqual(t, datetime.AddDays(base, 7).Day(), 22)
 	})
 //line stdlib/datetime/datetime_test.kuki:145
 	t.Run("AddWeeks", func(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:146
-		test.AssertEqual(t, datetime.Day(datetime.AddWeeks(base, 2)), 29)
+		test.AssertEqual(t, datetime.AddWeeks(base, 2).Day(), 29)
 	})
 //line stdlib/datetime/datetime_test.kuki:149
 	t.Run("AddMonths", func(t *testing.T) {
@@ -242,17 +242,17 @@ func TestTimeArithmetic(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:153
 	t.Run("AddYears", func(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:154
-		test.AssertEqual(t, datetime.Year(datetime.AddYears(base, 1)), 2025)
+		test.AssertEqual(t, datetime.AddYears(base, 1).Year(), 2025)
 	})
 //line stdlib/datetime/datetime_test.kuki:157
 	t.Run("SubDays", func(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:158
-		test.AssertEqual(t, datetime.Day(datetime.SubDays(base, 7)), 8)
+		test.AssertEqual(t, datetime.SubDays(base, 7).Day(), 8)
 	})
 //line stdlib/datetime/datetime_test.kuki:161
 	t.Run("SubWeeks", func(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:162
-		test.AssertEqual(t, datetime.Day(datetime.SubWeeks(base, 2)), 1)
+		test.AssertEqual(t, datetime.SubWeeks(base, 2).Day(), 1)
 	})
 //line stdlib/datetime/datetime_test.kuki:165
 	t.Run("SubMonths", func(t *testing.T) {
@@ -262,7 +262,7 @@ func TestTimeArithmetic(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:169
 	t.Run("SubYears", func(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:170
-		test.AssertEqual(t, datetime.Year(datetime.SubYears(base, 1)), 2023)
+		test.AssertEqual(t, datetime.SubYears(base, 1).Year(), 2023)
 	})
 }
 
@@ -275,191 +275,117 @@ func TestComparisons(t *testing.T) {
 //line stdlib/datetime/datetime_test.kuki:177
 	t3 := time.Date(2024, 1, 17, 10, 0, 0, 0, time.UTC)
 //line stdlib/datetime/datetime_test.kuki:179
-	t.Run("IsBefore", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:180
-		test.AssertTrue(t, datetime.IsBefore(t1, t2))
-	})
-//line stdlib/datetime/datetime_test.kuki:183
-	t.Run("IsAfter", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:184
-		test.AssertTrue(t, datetime.IsAfter(t2, t1))
-	})
-//line stdlib/datetime/datetime_test.kuki:187
 	t.Run("IsBetween", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:188
+//line stdlib/datetime/datetime_test.kuki:180
 		test.AssertTrue(t, datetime.IsBetween(t2, t1, t3))
 	})
-//line stdlib/datetime/datetime_test.kuki:191
+//line stdlib/datetime/datetime_test.kuki:183
 	t.Run("IsSameDay", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:192
+//line stdlib/datetime/datetime_test.kuki:184
 		sameDay := time.Date(2024, 1, 15, 23, 59, 59, 0, time.UTC)
-//line stdlib/datetime/datetime_test.kuki:193
+//line stdlib/datetime/datetime_test.kuki:185
 		test.AssertTrue(t, datetime.IsSameDay(t1, sameDay))
 	})
 }
 
-//line stdlib/datetime/datetime_test.kuki:197
+//line stdlib/datetime/datetime_test.kuki:189
 func TestComponentExtraction(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:198
+//line stdlib/datetime/datetime_test.kuki:190
 	tt := time.Date(2024, 1, 15, 14, 30, 45, 0, time.UTC)
-//line stdlib/datetime/datetime_test.kuki:200
-	t.Run("Year", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:201
-		test.AssertEqual(t, datetime.Year(tt), 2024)
-	})
-//line stdlib/datetime/datetime_test.kuki:204
-	t.Run("Month", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:205
+//line stdlib/datetime/datetime_test.kuki:192
+	t.Run("Month returns int", func(t *testing.T) {
+//line stdlib/datetime/datetime_test.kuki:193
 		test.AssertEqual(t, datetime.Month(tt), 1)
 	})
-//line stdlib/datetime/datetime_test.kuki:208
-	t.Run("Day", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:209
-		test.AssertEqual(t, datetime.Day(tt), 15)
-	})
-//line stdlib/datetime/datetime_test.kuki:212
-	t.Run("Hour", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:213
-		test.AssertEqual(t, datetime.Hour(tt), 14)
-	})
-//line stdlib/datetime/datetime_test.kuki:216
-	t.Run("Minute", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:217
-		test.AssertEqual(t, datetime.Minute(tt), 30)
-	})
-//line stdlib/datetime/datetime_test.kuki:220
-	t.Run("Second", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:221
-		test.AssertEqual(t, datetime.Second(tt), 45)
-	})
-//line stdlib/datetime/datetime_test.kuki:224
+//line stdlib/datetime/datetime_test.kuki:196
 	t.Run("Weekday is Monday", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:225
+//line stdlib/datetime/datetime_test.kuki:197
 		test.AssertEqual(t, datetime.Weekday(tt), 1)
 	})
-//line stdlib/datetime/datetime_test.kuki:228
+//line stdlib/datetime/datetime_test.kuki:200
 	t.Run("WeekdayName is Monday", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:229
+//line stdlib/datetime/datetime_test.kuki:201
 		test.AssertEqual(t, datetime.WeekdayName(tt), "Monday")
 	})
 }
 
-//line stdlib/datetime/datetime_test.kuki:233
+//line stdlib/datetime/datetime_test.kuki:205
 func TestUnixTimestamps(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:234
+//line stdlib/datetime/datetime_test.kuki:206
 	tt := time.Date(2024, 1, 15, 14, 30, 45, 0, time.UTC)
-//line stdlib/datetime/datetime_test.kuki:236
-	t.Run("Unix is positive", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:237
-		unixSec := datetime.Unix(tt)
-//line stdlib/datetime/datetime_test.kuki:238
-		test.AssertTrue(t, (unixSec > 0))
-	})
-//line stdlib/datetime/datetime_test.kuki:241
-	t.Run("UnixMilli is 1000x Unix", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:242
-		unixSec := datetime.Unix(tt)
-//line stdlib/datetime/datetime_test.kuki:243
-		unixMilli := datetime.UnixMilli(tt)
-//line stdlib/datetime/datetime_test.kuki:244
-		test.AssertTrue(t, (unixMilli > 0))
-//line stdlib/datetime/datetime_test.kuki:245
-		test.AssertEqual(t, unixMilli, (unixSec * 1000))
-	})
-//line stdlib/datetime/datetime_test.kuki:248
+//line stdlib/datetime/datetime_test.kuki:208
 	t.Run("FromUnix round-trip", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:249
-		unixSec := datetime.Unix(tt)
-//line stdlib/datetime/datetime_test.kuki:250
-		t2 := datetime.FromUnix(unixSec)
-//line stdlib/datetime/datetime_test.kuki:251
-		test.AssertEqual(t, t2.Unix(), unixSec)
+//line stdlib/datetime/datetime_test.kuki:209
+		t2 := datetime.FromUnix(tt.Unix())
+//line stdlib/datetime/datetime_test.kuki:210
+		test.AssertEqual(t, t2.Unix(), tt.Unix())
 	})
-//line stdlib/datetime/datetime_test.kuki:254
+//line stdlib/datetime/datetime_test.kuki:213
 	t.Run("FromUnixMilli round-trip", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:255
-		unixMilli := datetime.UnixMilli(tt)
-//line stdlib/datetime/datetime_test.kuki:256
-		t3 := datetime.FromUnixMilli(unixMilli)
-//line stdlib/datetime/datetime_test.kuki:257
-		test.AssertEqual(t, t3.UnixMilli(), unixMilli)
+//line stdlib/datetime/datetime_test.kuki:214
+		t3 := datetime.FromUnixMilli(tt.UnixMilli())
+//line stdlib/datetime/datetime_test.kuki:215
+		test.AssertEqual(t, t3.UnixMilli(), tt.UnixMilli())
 	})
 }
 
-//line stdlib/datetime/datetime_test.kuki:261
+//line stdlib/datetime/datetime_test.kuki:219
 func TestTimezoneHelpers(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:262
+//line stdlib/datetime/datetime_test.kuki:220
 	tt := time.Date(2024, 1, 15, 14, 30, 45, 0, time.UTC)
-//line stdlib/datetime/datetime_test.kuki:264
-	t.Run("InUTC is UTC", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:265
-		utc := datetime.InUTC(tt)
-//line stdlib/datetime/datetime_test.kuki:266
-		test.AssertEqual(t, utc.Location().String(), "UTC")
-	})
-//line stdlib/datetime/datetime_test.kuki:269
-	t.Run("InLocal is non-zero", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:270
-		local := datetime.InLocal(tt)
-//line stdlib/datetime/datetime_test.kuki:271
-		if local.IsZero() {
-//line stdlib/datetime/datetime_test.kuki:272
-			t.Error("expected InLocal to return non-zero time")
-		}
-	})
-//line stdlib/datetime/datetime_test.kuki:275
+//line stdlib/datetime/datetime_test.kuki:222
 	t.Run("InLocation New York", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:276
+//line stdlib/datetime/datetime_test.kuki:223
 		ny, err_1 := datetime.InLocation(tt, "America/New_York")
-//line stdlib/datetime/datetime_test.kuki:276
+//line stdlib/datetime/datetime_test.kuki:223
 		if err_1 != nil {
-//line stdlib/datetime/datetime_test.kuki:276
+//line stdlib/datetime/datetime_test.kuki:223
 			panic(fmt.Sprintf("location failed: %v", err_1))
 		}
-//line stdlib/datetime/datetime_test.kuki:277
+//line stdlib/datetime/datetime_test.kuki:224
 		test.AssertEqual(t, ny.Location().String(), "America/New_York")
 	})
 }
 
-//line stdlib/datetime/datetime_test.kuki:281
+//line stdlib/datetime/datetime_test.kuki:228
 func TestDayRelativeFunctions(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:282
+//line stdlib/datetime/datetime_test.kuki:229
 	today := datetime.Today()
-//line stdlib/datetime/datetime_test.kuki:283
+//line stdlib/datetime/datetime_test.kuki:230
 	yesterday := datetime.Yesterday()
-//line stdlib/datetime/datetime_test.kuki:284
+//line stdlib/datetime/datetime_test.kuki:231
 	tomorrow := datetime.Tomorrow()
-//line stdlib/datetime/datetime_test.kuki:286
+//line stdlib/datetime/datetime_test.kuki:233
 	t.Run("IsToday/today", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:287
+//line stdlib/datetime/datetime_test.kuki:234
 		test.AssertTrue(t, datetime.IsToday(today))
 	})
-//line stdlib/datetime/datetime_test.kuki:290
+//line stdlib/datetime/datetime_test.kuki:237
 	t.Run("IsYesterday", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:291
+//line stdlib/datetime/datetime_test.kuki:238
 		test.AssertTrue(t, datetime.IsYesterday(yesterday))
 	})
-//line stdlib/datetime/datetime_test.kuki:294
+//line stdlib/datetime/datetime_test.kuki:241
 	t.Run("IsTomorrow", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:295
+//line stdlib/datetime/datetime_test.kuki:242
 		test.AssertTrue(t, datetime.IsTomorrow(tomorrow))
 	})
 }
 
-//line stdlib/datetime/datetime_test.kuki:299
+//line stdlib/datetime/datetime_test.kuki:246
 func TestPastFutureFunctions(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:300
+//line stdlib/datetime/datetime_test.kuki:247
 	past := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-//line stdlib/datetime/datetime_test.kuki:301
+//line stdlib/datetime/datetime_test.kuki:248
 	future := time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC)
-//line stdlib/datetime/datetime_test.kuki:303
+//line stdlib/datetime/datetime_test.kuki:250
 	t.Run("IsPast", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:304
+//line stdlib/datetime/datetime_test.kuki:251
 		test.AssertTrue(t, datetime.IsPast(past))
 	})
-//line stdlib/datetime/datetime_test.kuki:307
+//line stdlib/datetime/datetime_test.kuki:254
 	t.Run("IsFuture", func(t *testing.T) {
-//line stdlib/datetime/datetime_test.kuki:308
+//line stdlib/datetime/datetime_test.kuki:255
 		test.AssertTrue(t, datetime.IsFuture(future))
 	})
 }

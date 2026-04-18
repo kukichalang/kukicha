@@ -520,12 +520,12 @@ data := loadConfig() onerr cli.Fatal("config error: {error}")
 
 **table** — Terminal tables: `New`, `AddRow`, `Print`, `PrintWithStyle` (`"plain"`, `"box"`, `"markdown"`)
 
-**color** — ANSI terminal colors: `Bold`, `Dim`, `Red`, `Green`, `Yellow`, `Blue`, `Cyan`, `Gray`, `BrightRed`, `Error`, `Warn`, `Success`, `Info`, `Muted`, `Enabled`, `SetEnabled`
+**color** — ANSI terminal colors: `Bold`, `Dim`, `Italic`, `Underline`, `Red`, `Green`, `Yellow`, `Blue`, `Magenta`, `Cyan`, `Gray`, `BrightRed`, `Error` (bold bright red), `Enabled`, `SetEnabled`
 
 ```kukicha
 print(color.Bold("Title"))
-print(color.Red("error: something went wrong"))
-print(color.Success("All tests passed"))
+print(color.Error("fatal: disk full"))
+print(color.Green("All tests passed"))
 color.SetEnabled(false)  # disable in tests
 ```
 

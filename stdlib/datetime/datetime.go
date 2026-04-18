@@ -4,456 +4,351 @@ package datetime
 
 import "time"
 
-//line stdlib/datetime/datetime.kuki:12
-const ISO8601 = "iso8601"
-
-//line stdlib/datetime/datetime.kuki:14
-const RFC3339 = "rfc3339"
-
 //line stdlib/datetime/datetime.kuki:16
-const RFC3339Nano = "rfc3339nano"
-
-//line stdlib/datetime/datetime.kuki:18
-const Date = "date"
-
-//line stdlib/datetime/datetime.kuki:20
-const Time = "time"
-
-//line stdlib/datetime/datetime.kuki:22
-const DateTime = "datetime"
-
-//line stdlib/datetime/datetime.kuki:24
-const DateTimeT = "dateTimeT"
-
-//line stdlib/datetime/datetime.kuki:26
-const Kitchen = "kitchen"
-
-//line stdlib/datetime/datetime.kuki:28
-const Stamp = "stamp"
-
-//line stdlib/datetime/datetime.kuki:30
-const RFC822 = "rfc822"
-
-//line stdlib/datetime/datetime.kuki:32
-const RFC1123 = "rfc1123"
-
-//line stdlib/datetime/datetime.kuki:34
-const ANSIC = "ansic"
-
-//line stdlib/datetime/datetime.kuki:36
-const UnixDate = "unixdate"
-
-//line stdlib/datetime/datetime.kuki:43
 func Format(t time.Time, format string) string {
-//line stdlib/datetime/datetime.kuki:44
+//line stdlib/datetime/datetime.kuki:17
 	layout := getLayout(format)
-//line stdlib/datetime/datetime.kuki:45
+//line stdlib/datetime/datetime.kuki:18
 	return t.Format(layout)
 }
 
-//line stdlib/datetime/datetime.kuki:50
+//line stdlib/datetime/datetime.kuki:23
 func Parse(value string, format string) (time.Time, error) {
-//line stdlib/datetime/datetime.kuki:51
+//line stdlib/datetime/datetime.kuki:24
 	layout := getLayout(format)
-//line stdlib/datetime/datetime.kuki:52
+//line stdlib/datetime/datetime.kuki:25
 	return time.Parse(layout, value)
 }
 
-//line stdlib/datetime/datetime.kuki:56
+//line stdlib/datetime/datetime.kuki:29
 func ParseInLocation(value string, format string, location string) (time.Time, error) {
-//line stdlib/datetime/datetime.kuki:57
+//line stdlib/datetime/datetime.kuki:30
 	layout := getLayout(format)
-//line stdlib/datetime/datetime.kuki:58
+//line stdlib/datetime/datetime.kuki:31
 	loc, err_1 := time.LoadLocation(location)
-//line stdlib/datetime/datetime.kuki:58
+//line stdlib/datetime/datetime.kuki:31
 	if err_1 != nil {
 		var _zero0 time.Time
-//line stdlib/datetime/datetime.kuki:58
+//line stdlib/datetime/datetime.kuki:31
 		return _zero0, err_1
 	}
-//line stdlib/datetime/datetime.kuki:59
+//line stdlib/datetime/datetime.kuki:32
 	return time.ParseInLocation(layout, value, loc)
 }
 
-//line stdlib/datetime/datetime.kuki:63
+//line stdlib/datetime/datetime.kuki:36
 func Now() time.Time {
-//line stdlib/datetime/datetime.kuki:64
+//line stdlib/datetime/datetime.kuki:37
 	return time.Now()
 }
 
-//line stdlib/datetime/datetime.kuki:68
+//line stdlib/datetime/datetime.kuki:41
 func Today() time.Time {
-//line stdlib/datetime/datetime.kuki:69
+//line stdlib/datetime/datetime.kuki:42
 	now := time.Now()
-//line stdlib/datetime/datetime.kuki:70
+//line stdlib/datetime/datetime.kuki:43
 	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 }
 
-//line stdlib/datetime/datetime.kuki:74
+//line stdlib/datetime/datetime.kuki:47
 func Tomorrow() time.Time {
-//line stdlib/datetime/datetime.kuki:75
+//line stdlib/datetime/datetime.kuki:48
 	return Today().AddDate(0, 0, 1)
 }
 
-//line stdlib/datetime/datetime.kuki:79
+//line stdlib/datetime/datetime.kuki:52
 func Yesterday() time.Time {
-//line stdlib/datetime/datetime.kuki:80
+//line stdlib/datetime/datetime.kuki:53
 	return Today().AddDate(0, 0, -1)
 }
 
-//line stdlib/datetime/datetime.kuki:87
+//line stdlib/datetime/datetime.kuki:60
 func Nanoseconds(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:88
+//line stdlib/datetime/datetime.kuki:61
 	return time.Duration((n * 1))
 }
 
-//line stdlib/datetime/datetime.kuki:92
+//line stdlib/datetime/datetime.kuki:65
 func Microseconds(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:93
+//line stdlib/datetime/datetime.kuki:66
 	return time.Duration((n * 1000))
 }
 
-//line stdlib/datetime/datetime.kuki:97
+//line stdlib/datetime/datetime.kuki:70
 func Milliseconds(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:98
+//line stdlib/datetime/datetime.kuki:71
 	return time.Duration((n * 1000000))
 }
 
-//line stdlib/datetime/datetime.kuki:102
+//line stdlib/datetime/datetime.kuki:75
 func Seconds(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:103
+//line stdlib/datetime/datetime.kuki:76
 	return time.Duration((n * 1000000000))
 }
 
-//line stdlib/datetime/datetime.kuki:107
+//line stdlib/datetime/datetime.kuki:80
 func Minutes(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:108
+//line stdlib/datetime/datetime.kuki:81
 	return time.Duration((n * 60000000000))
 }
 
-//line stdlib/datetime/datetime.kuki:112
+//line stdlib/datetime/datetime.kuki:85
 func Hours(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:113
+//line stdlib/datetime/datetime.kuki:86
 	return time.Duration((n * 3600000000000))
 }
 
-//line stdlib/datetime/datetime.kuki:117
+//line stdlib/datetime/datetime.kuki:90
 func Days(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:118
+//line stdlib/datetime/datetime.kuki:91
 	return time.Duration((n * 86400000000000))
 }
 
-//line stdlib/datetime/datetime.kuki:122
+//line stdlib/datetime/datetime.kuki:95
 func Weeks(n int64) time.Duration {
-//line stdlib/datetime/datetime.kuki:123
+//line stdlib/datetime/datetime.kuki:96
 	return time.Duration((n * 604800000000000))
 }
 
-//line stdlib/datetime/datetime.kuki:129
+//line stdlib/datetime/datetime.kuki:102
 func AddDays(t time.Time, days int) time.Time {
-//line stdlib/datetime/datetime.kuki:130
+//line stdlib/datetime/datetime.kuki:103
 	return t.AddDate(0, 0, days)
 }
 
-//line stdlib/datetime/datetime.kuki:134
+//line stdlib/datetime/datetime.kuki:107
 func AddWeeks(t time.Time, weeks int) time.Time {
-//line stdlib/datetime/datetime.kuki:135
+//line stdlib/datetime/datetime.kuki:108
 	return t.AddDate(0, 0, (weeks * 7))
 }
 
-//line stdlib/datetime/datetime.kuki:139
+//line stdlib/datetime/datetime.kuki:112
 func AddMonths(t time.Time, months int) time.Time {
-//line stdlib/datetime/datetime.kuki:140
+//line stdlib/datetime/datetime.kuki:113
 	return t.AddDate(0, months, 0)
 }
 
-//line stdlib/datetime/datetime.kuki:144
+//line stdlib/datetime/datetime.kuki:117
 func AddYears(t time.Time, years int) time.Time {
-//line stdlib/datetime/datetime.kuki:145
+//line stdlib/datetime/datetime.kuki:118
 	return t.AddDate(years, 0, 0)
 }
 
-//line stdlib/datetime/datetime.kuki:149
+//line stdlib/datetime/datetime.kuki:122
 func SubDays(t time.Time, days int) time.Time {
-//line stdlib/datetime/datetime.kuki:150
+//line stdlib/datetime/datetime.kuki:123
 	return t.AddDate(0, 0, -days)
 }
 
-//line stdlib/datetime/datetime.kuki:154
+//line stdlib/datetime/datetime.kuki:127
 func SubWeeks(t time.Time, weeks int) time.Time {
-//line stdlib/datetime/datetime.kuki:155
+//line stdlib/datetime/datetime.kuki:128
 	return t.AddDate(0, 0, (-weeks * 7))
 }
 
-//line stdlib/datetime/datetime.kuki:159
+//line stdlib/datetime/datetime.kuki:132
 func SubMonths(t time.Time, months int) time.Time {
-//line stdlib/datetime/datetime.kuki:160
+//line stdlib/datetime/datetime.kuki:133
 	return t.AddDate(0, -months, 0)
 }
 
-//line stdlib/datetime/datetime.kuki:164
+//line stdlib/datetime/datetime.kuki:137
 func SubYears(t time.Time, years int) time.Time {
-//line stdlib/datetime/datetime.kuki:165
+//line stdlib/datetime/datetime.kuki:138
 	return t.AddDate(-years, 0, 0)
 }
 
-//line stdlib/datetime/datetime.kuki:171
-func IsBefore(t1 time.Time, t2 time.Time) bool {
-//line stdlib/datetime/datetime.kuki:172
-	return t1.Before(t2)
-}
-
-//line stdlib/datetime/datetime.kuki:176
-func IsAfter(t1 time.Time, t2 time.Time) bool {
-//line stdlib/datetime/datetime.kuki:177
-	return t1.After(t2)
-}
-
-//line stdlib/datetime/datetime.kuki:181
+//line stdlib/datetime/datetime.kuki:144
 func IsBetween(t time.Time, start time.Time, end time.Time) bool {
-//line stdlib/datetime/datetime.kuki:182
+//line stdlib/datetime/datetime.kuki:145
 	atOrAfterStart := t.Equal(start)
-//line stdlib/datetime/datetime.kuki:183
+//line stdlib/datetime/datetime.kuki:146
 	afterStart := t.After(start)
-//line stdlib/datetime/datetime.kuki:184
+//line stdlib/datetime/datetime.kuki:147
 	atOrBeforeEnd := t.Equal(end)
-//line stdlib/datetime/datetime.kuki:185
+//line stdlib/datetime/datetime.kuki:148
 	beforeEnd := t.Before(end)
-//line stdlib/datetime/datetime.kuki:186
+//line stdlib/datetime/datetime.kuki:149
 	return ((atOrAfterStart || afterStart) && (atOrBeforeEnd || beforeEnd))
 }
 
-//line stdlib/datetime/datetime.kuki:190
+//line stdlib/datetime/datetime.kuki:153
 func IsSameDay(t1 time.Time, t2 time.Time) bool {
-//line stdlib/datetime/datetime.kuki:191
+//line stdlib/datetime/datetime.kuki:154
 	y1 := t1.Year()
-//line stdlib/datetime/datetime.kuki:192
+//line stdlib/datetime/datetime.kuki:155
 	m1 := t1.Month()
-//line stdlib/datetime/datetime.kuki:193
+//line stdlib/datetime/datetime.kuki:156
 	d1 := t1.Day()
-//line stdlib/datetime/datetime.kuki:194
+//line stdlib/datetime/datetime.kuki:157
 	y2 := t2.Year()
-//line stdlib/datetime/datetime.kuki:195
+//line stdlib/datetime/datetime.kuki:158
 	m2 := t2.Month()
-//line stdlib/datetime/datetime.kuki:196
+//line stdlib/datetime/datetime.kuki:159
 	d2 := t2.Day()
-//line stdlib/datetime/datetime.kuki:197
+//line stdlib/datetime/datetime.kuki:160
 	return (((y1 == y2) && (m1 == m2)) && (d1 == d2))
 }
 
-//line stdlib/datetime/datetime.kuki:201
+//line stdlib/datetime/datetime.kuki:164
 func IsToday(t time.Time) bool {
-//line stdlib/datetime/datetime.kuki:202
+//line stdlib/datetime/datetime.kuki:165
 	return IsSameDay(t, time.Now())
 }
 
-//line stdlib/datetime/datetime.kuki:206
+//line stdlib/datetime/datetime.kuki:169
 func IsYesterday(t time.Time) bool {
-//line stdlib/datetime/datetime.kuki:207
+//line stdlib/datetime/datetime.kuki:170
 	return IsSameDay(t, Yesterday())
 }
 
-//line stdlib/datetime/datetime.kuki:211
+//line stdlib/datetime/datetime.kuki:174
 func IsTomorrow(t time.Time) bool {
-//line stdlib/datetime/datetime.kuki:212
+//line stdlib/datetime/datetime.kuki:175
 	return IsSameDay(t, Tomorrow())
 }
 
-//line stdlib/datetime/datetime.kuki:216
+//line stdlib/datetime/datetime.kuki:179
 func IsPast(t time.Time) bool {
-//line stdlib/datetime/datetime.kuki:217
+//line stdlib/datetime/datetime.kuki:180
 	return t.Before(time.Now())
 }
 
-//line stdlib/datetime/datetime.kuki:221
+//line stdlib/datetime/datetime.kuki:184
 func IsFuture(t time.Time) bool {
-//line stdlib/datetime/datetime.kuki:222
+//line stdlib/datetime/datetime.kuki:185
 	return t.After(time.Now())
 }
 
-//line stdlib/datetime/datetime.kuki:228
-func Year(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:229
-	return t.Year()
-}
-
-//line stdlib/datetime/datetime.kuki:233
+//line stdlib/datetime/datetime.kuki:192
 func Month(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:234
+//line stdlib/datetime/datetime.kuki:193
 	return int(t.Month())
 }
 
-//line stdlib/datetime/datetime.kuki:238
-func Day(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:239
-	return t.Day()
-}
-
-//line stdlib/datetime/datetime.kuki:243
-func Hour(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:244
-	return t.Hour()
-}
-
-//line stdlib/datetime/datetime.kuki:248
-func Minute(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:249
-	return t.Minute()
-}
-
-//line stdlib/datetime/datetime.kuki:253
-func Second(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:254
-	return t.Second()
-}
-
-//line stdlib/datetime/datetime.kuki:258
+//line stdlib/datetime/datetime.kuki:198
 func Weekday(t time.Time) int {
-//line stdlib/datetime/datetime.kuki:259
+//line stdlib/datetime/datetime.kuki:199
 	return int(t.Weekday())
 }
 
-//line stdlib/datetime/datetime.kuki:263
+//line stdlib/datetime/datetime.kuki:203
 func WeekdayName(t time.Time) string {
-//line stdlib/datetime/datetime.kuki:264
+//line stdlib/datetime/datetime.kuki:204
 	return t.Weekday().String()
 }
 
-//line stdlib/datetime/datetime.kuki:270
-func Unix(t time.Time) int64 {
-//line stdlib/datetime/datetime.kuki:271
-	return t.Unix()
-}
-
-//line stdlib/datetime/datetime.kuki:275
-func UnixMilli(t time.Time) int64 {
-//line stdlib/datetime/datetime.kuki:276
-	return t.UnixMilli()
-}
-
-//line stdlib/datetime/datetime.kuki:280
+//line stdlib/datetime/datetime.kuki:210
 func FromUnix(sec int64) time.Time {
-//line stdlib/datetime/datetime.kuki:281
+//line stdlib/datetime/datetime.kuki:211
 	return time.Unix(sec, 0)
 }
 
-//line stdlib/datetime/datetime.kuki:285
+//line stdlib/datetime/datetime.kuki:215
 func FromUnixMilli(msec int64) time.Time {
-//line stdlib/datetime/datetime.kuki:286
+//line stdlib/datetime/datetime.kuki:216
 	return time.UnixMilli(msec)
 }
 
-//line stdlib/datetime/datetime.kuki:292
+//line stdlib/datetime/datetime.kuki:222
 func Sleep(d time.Duration) {
-//line stdlib/datetime/datetime.kuki:293
+//line stdlib/datetime/datetime.kuki:223
 	time.Sleep(d)
 }
 
-//line stdlib/datetime/datetime.kuki:297
+//line stdlib/datetime/datetime.kuki:227
 func SleepSeconds(n int64) {
-//line stdlib/datetime/datetime.kuki:298
+//line stdlib/datetime/datetime.kuki:228
 	time.Sleep((time.Duration(n) * time.Second))
 }
 
-//line stdlib/datetime/datetime.kuki:302
+//line stdlib/datetime/datetime.kuki:232
 func SleepMilliseconds(n int64) {
-//line stdlib/datetime/datetime.kuki:303
+//line stdlib/datetime/datetime.kuki:233
 	time.Sleep((time.Duration(n) * time.Millisecond))
 }
 
-//line stdlib/datetime/datetime.kuki:309
-func InUTC(t time.Time) time.Time {
-//line stdlib/datetime/datetime.kuki:310
-	return t.UTC()
-}
-
-//line stdlib/datetime/datetime.kuki:314
-func InLocal(t time.Time) time.Time {
-//line stdlib/datetime/datetime.kuki:315
-	return t.Local()
-}
-
-//line stdlib/datetime/datetime.kuki:319
+//line stdlib/datetime/datetime.kuki:239
 func InLocation(t time.Time, location string) (time.Time, error) {
-//line stdlib/datetime/datetime.kuki:320
+//line stdlib/datetime/datetime.kuki:240
 	loc, err_2 := time.LoadLocation(location)
-//line stdlib/datetime/datetime.kuki:320
+//line stdlib/datetime/datetime.kuki:240
 	if err_2 != nil {
 		var _zero0 time.Time
-//line stdlib/datetime/datetime.kuki:320
+//line stdlib/datetime/datetime.kuki:240
 		return _zero0, err_2
 	}
-//line stdlib/datetime/datetime.kuki:321
+//line stdlib/datetime/datetime.kuki:241
 	return t.In(loc), nil
 }
 
-//line stdlib/datetime/datetime.kuki:324
+//line stdlib/datetime/datetime.kuki:244
 func getLayout(format string) string {
-//line stdlib/datetime/datetime.kuki:325
+//line stdlib/datetime/datetime.kuki:245
 	if (format == "iso8601") || (format == "ISO8601") {
-//line stdlib/datetime/datetime.kuki:326
+//line stdlib/datetime/datetime.kuki:246
 		return "2006-01-02T15:04:05Z07:00"
 	}
-//line stdlib/datetime/datetime.kuki:327
+//line stdlib/datetime/datetime.kuki:247
 	if (format == "rfc3339") || (format == "RFC3339") {
-//line stdlib/datetime/datetime.kuki:328
+//line stdlib/datetime/datetime.kuki:248
 		return time.RFC3339
 	}
-//line stdlib/datetime/datetime.kuki:329
+//line stdlib/datetime/datetime.kuki:249
 	if (format == "rfc3339nano") || (format == "RFC3339Nano") {
-//line stdlib/datetime/datetime.kuki:330
+//line stdlib/datetime/datetime.kuki:250
 		return time.RFC3339Nano
 	}
-//line stdlib/datetime/datetime.kuki:331
+//line stdlib/datetime/datetime.kuki:251
 	if format == "date" {
-//line stdlib/datetime/datetime.kuki:332
+//line stdlib/datetime/datetime.kuki:252
 		return "2006-01-02"
 	}
-//line stdlib/datetime/datetime.kuki:333
+//line stdlib/datetime/datetime.kuki:253
 	if format == "time" {
-//line stdlib/datetime/datetime.kuki:334
+//line stdlib/datetime/datetime.kuki:254
 		return "15:04:05"
 	}
-//line stdlib/datetime/datetime.kuki:335
+//line stdlib/datetime/datetime.kuki:255
 	if format == "datetime" {
-//line stdlib/datetime/datetime.kuki:336
+//line stdlib/datetime/datetime.kuki:256
 		return "2006-01-02 15:04:05"
 	}
-//line stdlib/datetime/datetime.kuki:337
+//line stdlib/datetime/datetime.kuki:257
 	if format == "dateTimeT" {
-//line stdlib/datetime/datetime.kuki:338
+//line stdlib/datetime/datetime.kuki:258
 		return "2006-01-02T15:04:05"
 	}
-//line stdlib/datetime/datetime.kuki:339
+//line stdlib/datetime/datetime.kuki:259
 	if format == "kitchen" {
-//line stdlib/datetime/datetime.kuki:340
+//line stdlib/datetime/datetime.kuki:260
 		return time.Kitchen
 	}
-//line stdlib/datetime/datetime.kuki:341
+//line stdlib/datetime/datetime.kuki:261
 	if format == "stamp" {
-//line stdlib/datetime/datetime.kuki:342
+//line stdlib/datetime/datetime.kuki:262
 		return time.Stamp
 	}
-//line stdlib/datetime/datetime.kuki:343
+//line stdlib/datetime/datetime.kuki:263
 	if format == "rfc822" {
-//line stdlib/datetime/datetime.kuki:344
+//line stdlib/datetime/datetime.kuki:264
 		return time.RFC822
 	}
-//line stdlib/datetime/datetime.kuki:345
+//line stdlib/datetime/datetime.kuki:265
 	if format == "rfc1123" {
-//line stdlib/datetime/datetime.kuki:346
+//line stdlib/datetime/datetime.kuki:266
 		return time.RFC1123
 	}
-//line stdlib/datetime/datetime.kuki:347
+//line stdlib/datetime/datetime.kuki:267
 	if format == "ansic" {
-//line stdlib/datetime/datetime.kuki:348
+//line stdlib/datetime/datetime.kuki:268
 		return time.ANSIC
 	}
-//line stdlib/datetime/datetime.kuki:349
+//line stdlib/datetime/datetime.kuki:269
 	if format == "unixdate" {
-//line stdlib/datetime/datetime.kuki:350
+//line stdlib/datetime/datetime.kuki:270
 		return time.UnixDate
 	}
-//line stdlib/datetime/datetime.kuki:352
+//line stdlib/datetime/datetime.kuki:272
 	return format
 }

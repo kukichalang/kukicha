@@ -6,37 +6,10 @@ petiole datetime
 
 import "time"
 
-# Named Format Constants
-# Use these instead of remembering Go reference time layouts
-# Go uses the reference time: Mon Jan 2 15:04:05 MST 2006
-const ISO8601 = "iso8601"
-
-const RFC3339 = "rfc3339"
-
-const RFC3339Nano = "rfc3339nano"
-
-const Date = "date"
-
-const Time = "time"
-
-const DateTime = "datetime"
-
-const DateTimeT = "dateTimeT"
-
-const Kitchen = "kitchen"
-
-const Stamp = "stamp"
-
-const RFC822 = "rfc822"
-
-const RFC1123 = "rfc1123"
-
-const ANSIC = "ansic"
-
-const UnixDate = "unixdate"
-
 # Format formats a time using a named format or custom layout
-# Named formats: "iso8601", "rfc3339", "date", "time", "datetime", "unix", "kitchen"
+# Named formats: "iso8601", "rfc3339", "rfc3339nano", "date", "time",
+# "datetime", "dateTimeT", "kitchen", "stamp", "rfc822", "rfc1123",
+# "ansic", "unixdate"
 # Example: datetime.Format(t, "iso8601")
 # Example: datetime.Format(t, "date")
 # Example: datetime.Format(t, "2006-01-02") for custom layout
@@ -45,7 +18,7 @@ func Format(t time.Time, format string) string
     return t.Format(layout)
 
 # Parse parses a string using a named format or custom layout
-# Named formats: "iso8601", "rfc3339", "date", "time", "datetime"
+# See Format for the list of named formats.
 # Example: t := datetime.Parse("2024-01-15", "date") onerr return
 func Parse(value string, format string) (time.Time, error)
     layout := getLayout(format)
@@ -166,16 +139,6 @@ func SubYears(t time.Time, years int) time.Time
 
 # Comparison Helpers
 
-# IsBefore returns true if t1 is before t2
-# Example: if datetime.IsBefore(created, deadline) ...
-func IsBefore(t1 time.Time, t2 time.Time) bool
-    return t1.Before(t2)
-
-# IsAfter returns true if t1 is after t2
-# Example: if datetime.IsAfter(now, deadline) ...
-func IsAfter(t1 time.Time, t2 time.Time) bool
-    return t1.After(t2)
-
 # IsBetween returns true if t is between start and end (inclusive)
 # Example: if datetime.IsBetween(event, startDate, endDate) ...
 func IsBetween(t time.Time, start time.Time, end time.Time) bool
@@ -223,37 +186,14 @@ func IsFuture(t time.Time) bool
 
 # Component Extraction
 
-# Year returns the year
-# Example: year := datetime.Year(t)
-func Year(t time.Time) int
-    return t.Year()
-
-# Month returns the month (1-12)
+# Month returns the month (1-12) as an int
+# (time.Time.Month() returns time.Month; this wrapper casts to int)
 # Example: month := datetime.Month(t)
 func Month(t time.Time) int
     return t.Month() as int
 
-# Day returns the day of month (1-31)
-# Example: day := datetime.Day(t)
-func Day(t time.Time) int
-    return t.Day()
-
-# Hour returns the hour (0-23)
-# Example: hour := datetime.Hour(t)
-func Hour(t time.Time) int
-    return t.Hour()
-
-# Minute returns the minute (0-59)
-# Example: minute := datetime.Minute(t)
-func Minute(t time.Time) int
-    return t.Minute()
-
-# Second returns the second (0-59)
-# Example: second := datetime.Second(t)
-func Second(t time.Time) int
-    return t.Second()
-
-# Weekday returns the day of week (0=Sunday, 6=Saturday)
+# Weekday returns the day of week as an int (0=Sunday, 6=Saturday)
+# (time.Time.Weekday() returns time.Weekday; this wrapper casts to int)
 # Example: weekday := datetime.Weekday(t)
 func Weekday(t time.Time) int
     return t.Weekday() as int
@@ -264,16 +204,6 @@ func WeekdayName(t time.Time) string
     return t.Weekday().String()
 
 # Unix Timestamps
-
-# Unix returns the Unix timestamp (seconds since epoch)
-# Example: ts := datetime.Unix(t)
-func Unix(t time.Time) int64
-    return t.Unix()
-
-# UnixMilli returns the Unix timestamp in milliseconds
-# Example: ts := datetime.UnixMilli(t)
-func UnixMilli(t time.Time) int64
-    return t.UnixMilli()
 
 # FromUnix creates a time from a Unix timestamp (seconds)
 # Example: t := datetime.FromUnix(1704067200)
@@ -303,16 +233,6 @@ func SleepMilliseconds(n int64)
     time.Sleep(time.Duration(n) * time.Millisecond)
 
 # Timezone Helpers
-
-# InUTC converts a time to UTC
-# Example: utc := datetime.InUTC(t)
-func InUTC(t time.Time) time.Time
-    return t.UTC()
-
-# InLocal converts a time to local timezone
-# Example: local := datetime.InLocal(t)
-func InLocal(t time.Time) time.Time
-    return t.Local()
 
 # InLocation converts a time to a specific timezone
 # Example: ny := datetime.InLocation(t, "America/New_York") onerr return

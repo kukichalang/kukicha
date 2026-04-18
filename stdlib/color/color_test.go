@@ -120,71 +120,71 @@ func TestSemanticHelpers(t *testing.T) {
 //line stdlib/color/color_test.kuki:110
 	color.SetEnabled(true)
 //line stdlib/color/color_test.kuki:111
-	cases := []SemanticCase{SemanticCase{name: "Error", fn: color.Error, want: "\x1b[1;91mtest\x1b[0m"}, SemanticCase{name: "Warn", fn: color.Warn, want: "\x1b[33mtest\x1b[0m"}, SemanticCase{name: "Success", fn: color.Success, want: "\x1b[32mtest\x1b[0m"}, SemanticCase{name: "Info", fn: color.Info, want: "\x1b[36mtest\x1b[0m"}, SemanticCase{name: "Muted", fn: color.Muted, want: "\x1b[2mtest\x1b[0m"}}
-//line stdlib/color/color_test.kuki:118
+	cases := []SemanticCase{SemanticCase{name: "Error", fn: color.Error, want: "\x1b[1;91mtest\x1b[0m"}}
+//line stdlib/color/color_test.kuki:114
 	for _, tc := range cases {
-//line stdlib/color/color_test.kuki:119
+//line stdlib/color/color_test.kuki:115
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/color/color_test.kuki:120
+//line stdlib/color/color_test.kuki:116
 			test.AssertEqual(t, tc.fn("test"), tc.want)
 		})
 	}
 }
 
-//line stdlib/color/color_test.kuki:125
+//line stdlib/color/color_test.kuki:121
 func TestSemanticDisabled(t *testing.T) {
-//line stdlib/color/color_test.kuki:126
+//line stdlib/color/color_test.kuki:122
 	color.SetEnabled(false)
-//line stdlib/color/color_test.kuki:127
-	cases := []DisabledCase{DisabledCase{name: "Error", fn: color.Error}, DisabledCase{name: "Warn", fn: color.Warn}, DisabledCase{name: "Success", fn: color.Success}, DisabledCase{name: "Info", fn: color.Info}, DisabledCase{name: "Muted", fn: color.Muted}}
-//line stdlib/color/color_test.kuki:134
+//line stdlib/color/color_test.kuki:123
+	cases := []DisabledCase{DisabledCase{name: "Error", fn: color.Error}}
+//line stdlib/color/color_test.kuki:126
 	for _, tc := range cases {
-//line stdlib/color/color_test.kuki:135
+//line stdlib/color/color_test.kuki:127
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/color/color_test.kuki:136
+//line stdlib/color/color_test.kuki:128
 			test.AssertEqual(t, tc.fn("hello"), "hello")
 		})
 	}
 }
 
-//line stdlib/color/color_test.kuki:141
+//line stdlib/color/color_test.kuki:133
 func TestNesting(t *testing.T) {
-//line stdlib/color/color_test.kuki:142
+//line stdlib/color/color_test.kuki:134
 	color.SetEnabled(true)
-//line stdlib/color/color_test.kuki:145
+//line stdlib/color/color_test.kuki:137
 	t.Run("inner reset re-opens outer style", func(t *testing.T) {
-//line stdlib/color/color_test.kuki:146
+//line stdlib/color/color_test.kuki:138
 		inner := color.Bold("b")
-//line stdlib/color/color_test.kuki:147
+//line stdlib/color/color_test.kuki:139
 		got := color.Red(inner)
-//line stdlib/color/color_test.kuki:148
+//line stdlib/color/color_test.kuki:140
 		want := "\x1b[31m\x1b[1mb\x1b[0m\x1b[31m\x1b[0m"
-//line stdlib/color/color_test.kuki:149
+//line stdlib/color/color_test.kuki:141
 		test.AssertEqual(t, got, want)
 	})
-//line stdlib/color/color_test.kuki:153
+//line stdlib/color/color_test.kuki:145
 	t.Run("no inner reset is unchanged", func(t *testing.T) {
-//line stdlib/color/color_test.kuki:154
+//line stdlib/color/color_test.kuki:146
 		got := color.Red("plain")
-//line stdlib/color/color_test.kuki:155
+//line stdlib/color/color_test.kuki:147
 		want := "\x1b[31mplain\x1b[0m"
-//line stdlib/color/color_test.kuki:156
+//line stdlib/color/color_test.kuki:148
 		test.AssertEqual(t, got, want)
 	})
 }
 
-//line stdlib/color/color_test.kuki:161
+//line stdlib/color/color_test.kuki:153
 func TestSetEnabled(t *testing.T) {
-//line stdlib/color/color_test.kuki:162
+//line stdlib/color/color_test.kuki:154
 	color.SetEnabled(true)
-//line stdlib/color/color_test.kuki:163
+//line stdlib/color/color_test.kuki:155
 	test.AssertTrue(t, color.Enabled())
-//line stdlib/color/color_test.kuki:165
+//line stdlib/color/color_test.kuki:157
 	color.SetEnabled(false)
-//line stdlib/color/color_test.kuki:166
+//line stdlib/color/color_test.kuki:158
 	test.AssertFalse(t, color.Enabled())
-//line stdlib/color/color_test.kuki:168
+//line stdlib/color/color_test.kuki:160
 	color.SetEnabled(true)
-//line stdlib/color/color_test.kuki:169
+//line stdlib/color/color_test.kuki:161
 	test.AssertTrue(t, color.Enabled())
 }

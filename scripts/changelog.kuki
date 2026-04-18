@@ -209,7 +209,7 @@ func generateChangelog(version string, jsonOut bool)
         if tagDate isnt ""
             releaseDate = tagDate
     if releaseDate equals ""
-        releaseDate = datetime.Now() |> datetime.InUTC() |> datetime.Format("date")
+        releaseDate = datetime.Now() |> .UTC() |> datetime.Format("date")
 
     # Show what we're working with (suppressed in JSON mode)
     if not jsonOut

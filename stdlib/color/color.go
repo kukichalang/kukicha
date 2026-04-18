@@ -161,27 +161,3 @@ func Error(s string) string {
 //line stdlib/color/color.kuki:134
 	return wrap("1;91", s)
 }
-
-//line stdlib/color/color.kuki:137
-func Warn(s string) string {
-//line stdlib/color/color.kuki:138
-	return Yellow(s)
-}
-
-//line stdlib/color/color.kuki:141
-func Success(s string) string {
-//line stdlib/color/color.kuki:142
-	return Green(s)
-}
-
-//line stdlib/color/color.kuki:145
-func Info(s string) string {
-//line stdlib/color/color.kuki:146
-	return Cyan(s)
-}
-
-//line stdlib/color/color.kuki:149
-func Muted(s string) string {
-//line stdlib/color/color.kuki:150
-	return Dim(s)
-}
