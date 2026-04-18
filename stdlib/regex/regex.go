@@ -66,127 +66,127 @@ func FindGroups(pattern string, text string) ([]string, error) {
 	return matches, nil
 }
 
-//line stdlib/regex/regex.kuki:68
-func FindAllGroups(pattern string, text string) ([][]string, error) {
 //line stdlib/regex/regex.kuki:69
-	re := regexp.MustCompile(pattern)
+func FindAllGroups(pattern string, text string) [][]string {
 //line stdlib/regex/regex.kuki:70
-	matches := re.FindAllStringSubmatch(text, -1)
+	re := regexp.MustCompile(pattern)
 //line stdlib/regex/regex.kuki:71
-	if matches == nil {
+	matches := re.FindAllStringSubmatch(text, -1)
 //line stdlib/regex/regex.kuki:72
-		return [][]string{}, errors.New("no matches found")
-	}
-//line stdlib/regex/regex.kuki:73
-	return matches, nil
-}
-
-//line stdlib/regex/regex.kuki:81
-func Replace(pattern string, replacement string, text string) string {
-//line stdlib/regex/regex.kuki:82
-	re := regexp.MustCompile(pattern)
-//line stdlib/regex/regex.kuki:83
-	return re.ReplaceAllString(text, replacement)
-}
-
-//line stdlib/regex/regex.kuki:89
-func ReplaceFunc(pattern string, replacer func(string) string, text string) string {
-//line stdlib/regex/regex.kuki:90
-	re := regexp.MustCompile(pattern)
-//line stdlib/regex/regex.kuki:91
-	return re.ReplaceAllStringFunc(text, replacer)
-}
-
-//line stdlib/regex/regex.kuki:98
-func Split(pattern string, text string) []string {
-//line stdlib/regex/regex.kuki:99
-	re := regexp.MustCompile(pattern)
-//line stdlib/regex/regex.kuki:100
-	return re.Split(text, -1)
-}
-
-//line stdlib/regex/regex.kuki:106
-func IsValid(pattern string) bool {
-//line stdlib/regex/regex.kuki:107
-	_, err := regexp.Compile(pattern)
-//line stdlib/regex/regex.kuki:108
-	return (err == nil)
-}
-
-//line stdlib/regex/regex.kuki:114
-func Compile(pattern string) (Pattern, error) {
-//line stdlib/regex/regex.kuki:115
-	re, err_1 := regexp.Compile(pattern)
-//line stdlib/regex/regex.kuki:115
-	if err_1 != nil {
-//line stdlib/regex/regex.kuki:115
-		return Pattern{}, fmt.Errorf("invalid pattern: %v", err_1)
-	}
-//line stdlib/regex/regex.kuki:116
-	return Pattern{re: re}, nil
-}
-
-//line stdlib/regex/regex.kuki:121
-func MustCompile(pattern string) Pattern {
-//line stdlib/regex/regex.kuki:122
-	re := regexp.MustCompile(pattern)
-//line stdlib/regex/regex.kuki:123
-	return Pattern{re: re}
-}
-
-//line stdlib/regex/regex.kuki:127
-func MatchCompiled(p Pattern, text string) bool {
-//line stdlib/regex/regex.kuki:128
-	return p.re.MatchString(text)
-}
-
-//line stdlib/regex/regex.kuki:132
-func FindCompiled(p Pattern, text string) (string, error) {
-//line stdlib/regex/regex.kuki:133
-	result := p.re.FindString(text)
-//line stdlib/regex/regex.kuki:134
-	if result == "" {
-//line stdlib/regex/regex.kuki:135
-		return "", errors.New("no match found")
-	}
-//line stdlib/regex/regex.kuki:136
-	return result, nil
-}
-
-//line stdlib/regex/regex.kuki:140
-func FindAllCompiled(p Pattern, text string) []string {
-//line stdlib/regex/regex.kuki:141
-	matches := p.re.FindAllString(text, -1)
-//line stdlib/regex/regex.kuki:142
 	if matches == nil {
-//line stdlib/regex/regex.kuki:143
-		return []string{}
+//line stdlib/regex/regex.kuki:73
+		return [][]string{}
 	}
-//line stdlib/regex/regex.kuki:144
+//line stdlib/regex/regex.kuki:74
 	return matches
 }
 
-//line stdlib/regex/regex.kuki:148
-func FindGroupsCompiled(p Pattern, text string) ([]string, error) {
-//line stdlib/regex/regex.kuki:149
-	matches := p.re.FindStringSubmatch(text)
-//line stdlib/regex/regex.kuki:150
+//line stdlib/regex/regex.kuki:82
+func Replace(pattern string, replacement string, text string) string {
+//line stdlib/regex/regex.kuki:83
+	re := regexp.MustCompile(pattern)
+//line stdlib/regex/regex.kuki:84
+	return re.ReplaceAllString(text, replacement)
+}
+
+//line stdlib/regex/regex.kuki:90
+func ReplaceFunc(pattern string, replacer func(string) string, text string) string {
+//line stdlib/regex/regex.kuki:91
+	re := regexp.MustCompile(pattern)
+//line stdlib/regex/regex.kuki:92
+	return re.ReplaceAllStringFunc(text, replacer)
+}
+
+//line stdlib/regex/regex.kuki:99
+func Split(pattern string, text string) []string {
+//line stdlib/regex/regex.kuki:100
+	re := regexp.MustCompile(pattern)
+//line stdlib/regex/regex.kuki:101
+	return re.Split(text, -1)
+}
+
+//line stdlib/regex/regex.kuki:107
+func IsValid(pattern string) bool {
+//line stdlib/regex/regex.kuki:108
+	_, err := regexp.Compile(pattern)
+//line stdlib/regex/regex.kuki:109
+	return (err == nil)
+}
+
+//line stdlib/regex/regex.kuki:115
+func Compile(pattern string) (Pattern, error) {
+//line stdlib/regex/regex.kuki:116
+	re, err_1 := regexp.Compile(pattern)
+//line stdlib/regex/regex.kuki:116
+	if err_1 != nil {
+//line stdlib/regex/regex.kuki:116
+		return Pattern{}, fmt.Errorf("invalid pattern: %v", err_1)
+	}
+//line stdlib/regex/regex.kuki:117
+	return Pattern{re: re}, nil
+}
+
+//line stdlib/regex/regex.kuki:122
+func MustCompile(pattern string) Pattern {
+//line stdlib/regex/regex.kuki:123
+	re := regexp.MustCompile(pattern)
+//line stdlib/regex/regex.kuki:124
+	return Pattern{re: re}
+}
+
+//line stdlib/regex/regex.kuki:128
+func MatchCompiled(p Pattern, text string) bool {
+//line stdlib/regex/regex.kuki:129
+	return p.re.MatchString(text)
+}
+
+//line stdlib/regex/regex.kuki:133
+func FindCompiled(p Pattern, text string) (string, error) {
+//line stdlib/regex/regex.kuki:134
+	result := p.re.FindString(text)
+//line stdlib/regex/regex.kuki:135
+	if result == "" {
+//line stdlib/regex/regex.kuki:136
+		return "", errors.New("no match found")
+	}
+//line stdlib/regex/regex.kuki:137
+	return result, nil
+}
+
+//line stdlib/regex/regex.kuki:141
+func FindAllCompiled(p Pattern, text string) []string {
+//line stdlib/regex/regex.kuki:142
+	matches := p.re.FindAllString(text, -1)
+//line stdlib/regex/regex.kuki:143
 	if matches == nil {
+//line stdlib/regex/regex.kuki:144
+		return []string{}
+	}
+//line stdlib/regex/regex.kuki:145
+	return matches
+}
+
+//line stdlib/regex/regex.kuki:149
+func FindGroupsCompiled(p Pattern, text string) ([]string, error) {
+//line stdlib/regex/regex.kuki:150
+	matches := p.re.FindStringSubmatch(text)
 //line stdlib/regex/regex.kuki:151
+	if matches == nil {
+//line stdlib/regex/regex.kuki:152
 		return []string{}, errors.New("no match found")
 	}
-//line stdlib/regex/regex.kuki:152
+//line stdlib/regex/regex.kuki:153
 	return matches, nil
 }
 
-//line stdlib/regex/regex.kuki:156
-func ReplaceCompiled(p Pattern, replacement string, text string) string {
 //line stdlib/regex/regex.kuki:157
+func ReplaceCompiled(p Pattern, replacement string, text string) string {
+//line stdlib/regex/regex.kuki:158
 	return p.re.ReplaceAllString(text, replacement)
 }
 
-//line stdlib/regex/regex.kuki:161
-func SplitCompiled(p Pattern, text string) []string {
 //line stdlib/regex/regex.kuki:162
+func SplitCompiled(p Pattern, text string) []string {
+//line stdlib/regex/regex.kuki:163
 	return p.re.Split(text, -1)
 }

@@ -63,14 +63,15 @@ func FindGroups(pattern string, text string) (list of string, error)
 
 # FindAllGroups returns all matches with their capture groups
 # Each element is a list where index 0 is the full match and 1+ are groups
-# Example: all := regex.FindAllGroups(`(\w+)=(\w+)`, "a=1 b=2") onerr panic "{error}"
+# Returns an empty list (no error) when there are no matches
+# Example: all := regex.FindAllGroups(`(\w+)=(\w+)`, "a=1 b=2")
 # kuki:security "regex"
-func FindAllGroups(pattern string, text string) (list of list of string, error)
+func FindAllGroups(pattern string, text string) list of list of string
     re := regexp.MustCompile(pattern)
     matches := re.FindAllStringSubmatch(text, -1)
     if matches equals empty
-        return empty list of list of string, error "no matches found"
-    return matches, empty
+        return empty list of list of string
+    return matches
 
 # --- Replacement ---
 

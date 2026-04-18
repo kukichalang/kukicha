@@ -84,8 +84,7 @@ func TestExecute(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            td := template.New()
-            td = template.WithContent(td, tc.template)
+            td := template.Parse(tc.template)
             td = template.Data(td, tc.data)
             final, err := template.Execute(td)
             if tc.wantErr

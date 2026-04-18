@@ -335,33 +335,8 @@ func TestEqualFold(t reference testing.T)
             test.AssertEqual(t, got, wantBool)
         )
 
-# --- TestLen ---
-func TestLen(t reference testing.T)
-    cases := list of IndexCase{
-        IndexCase{name: "hello is 5", input: "hello", sub: "", want: 5},
-        IndexCase{name: "empty is 0", input: "", sub: "", want: 0},
-        IndexCase{name: "single char is 1", input: "a", sub: "", want: 1},
-    }
-
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            test.AssertEqual(t, string.Len(tc.input), tc.want)
-        )
-
-# --- TestIsEmptyIsBlank ---
-func TestIsEmptyIsBlank(t reference testing.T)
-    t.Run("IsEmpty/empty string", (t reference testing.T) =>
-        test.AssertEqual(t, string.IsEmpty(""), true)
-    )
-
-    t.Run("IsEmpty/non-empty", (t reference testing.T) =>
-        test.AssertEqual(t, string.IsEmpty("hello"), false)
-    )
-
-    t.Run("IsEmpty/space is not empty", (t reference testing.T) =>
-        test.AssertEqual(t, string.IsEmpty(" "), false)
-    )
-
+# --- TestIsBlank ---
+func TestIsBlank(t reference testing.T)
     t.Run("IsBlank/empty", (t reference testing.T) =>
         test.AssertEqual(t, string.IsBlank(""), true)
     )
@@ -397,19 +372,3 @@ func TestLines(t reference testing.T)
         test.AssertEqual(t, single[0], "hello")
     )
 
-# --- TestConcat ---
-func TestConcat(t reference testing.T)
-    t.Run("joins parts", (t reference testing.T) =>
-        parts := list of string{"hello", " ", "world"}
-        test.AssertEqual(t, string.Concat(parts), "hello world")
-    )
-
-    t.Run("empty slice", (t reference testing.T) =>
-        noParts := empty list of string
-        test.AssertEqual(t, string.Concat(noParts), "")
-    )
-
-    t.Run("single element", (t reference testing.T) =>
-        single := list of string{"alone"}
-        test.AssertEqual(t, string.Concat(single), "alone")
-    )

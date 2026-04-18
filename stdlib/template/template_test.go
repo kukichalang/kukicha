@@ -59,28 +59,26 @@ func TestExecute(t *testing.T) {
 //line stdlib/template/template_test.kuki:86
 		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/template/template_test.kuki:87
-			td := template.New()
+			td := template.Parse(tc.template)
 //line stdlib/template/template_test.kuki:88
-			td = template.WithContent(td, tc.template)
-//line stdlib/template/template_test.kuki:89
 			td = template.Data(td, tc.data)
-//line stdlib/template/template_test.kuki:90
+//line stdlib/template/template_test.kuki:89
 			final, err := template.Execute(td)
-//line stdlib/template/template_test.kuki:91
+//line stdlib/template/template_test.kuki:90
 			if tc.wantErr {
-//line stdlib/template/template_test.kuki:92
+//line stdlib/template/template_test.kuki:91
 				test.AssertError(t, err)
 			} else {
-//line stdlib/template/template_test.kuki:94
+//line stdlib/template/template_test.kuki:93
 				test.AssertNoError(t, err)
-//line stdlib/template/template_test.kuki:95
+//line stdlib/template/template_test.kuki:94
 				test.AssertEqual(t, final, tc.want)
 			}
 		})
 	}
 }
 
-//line stdlib/template/template_test.kuki:99
+//line stdlib/template/template_test.kuki:98
 type HTMLRenderSimpleCase struct {
 	name     string
 	template string
@@ -89,24 +87,24 @@ type HTMLRenderSimpleCase struct {
 	wantErr  bool
 }
 
-//line stdlib/template/template_test.kuki:106
+//line stdlib/template/template_test.kuki:105
 func TestHTMLRenderSimple(t *testing.T) {
-//line stdlib/template/template_test.kuki:107
+//line stdlib/template/template_test.kuki:106
 	cases := []HTMLRenderSimpleCase{HTMLRenderSimpleCase{name: "escapes HTML content", template: "<b>{{.Value}}</b>", data: map[string]any{"Value": "<script>"}, want: "<b>&lt;script&gt;</b>", wantErr: false}, HTMLRenderSimpleCase{name: "renders plain text", template: "Hello {{.Name}}", data: map[string]any{"Name": "World"}, want: "Hello World", wantErr: false}, HTMLRenderSimpleCase{name: "invalid html template returns error", template: "{{", data: map[string]any{}, want: "", wantErr: true}}
-//line stdlib/template/template_test.kuki:131
+//line stdlib/template/template_test.kuki:130
 	for _, tc := range cases {
-//line stdlib/template/template_test.kuki:132
+//line stdlib/template/template_test.kuki:131
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/template/template_test.kuki:133
+//line stdlib/template/template_test.kuki:132
 			result, err := template.HTMLRenderSimple(tc.template, tc.data)
-//line stdlib/template/template_test.kuki:134
+//line stdlib/template/template_test.kuki:133
 			if tc.wantErr {
-//line stdlib/template/template_test.kuki:135
+//line stdlib/template/template_test.kuki:134
 				test.AssertError(t, err)
 			} else {
-//line stdlib/template/template_test.kuki:137
+//line stdlib/template/template_test.kuki:136
 				test.AssertNoError(t, err)
-//line stdlib/template/template_test.kuki:138
+//line stdlib/template/template_test.kuki:137
 				test.AssertEqual(t, result, tc.want)
 			}
 		})

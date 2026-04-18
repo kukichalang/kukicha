@@ -133,17 +133,6 @@ func PadLeft(s string, width int, padChar string = " ") string
         return s
     return strings.Repeat(padChar, width - length) + s
 
-# Builder Functions (for efficient string construction)
-
-# Builder provides an efficient way to build strings incrementally
-# Note: This wraps strings.Builder which should be used directly in Kukicha
-# Example usage:
-#   import "strings"
-#   builder := strings.Builder{}
-#   builder.WriteString("Hello")
-#   builder.WriteString(" World")
-#   result := builder.String()
-
 # Comparison Functions
 
 # EqualFold compares two strings case-insensitively
@@ -153,14 +142,6 @@ func EqualFold(s string, t string) bool
 
 # Utility Functions
 
-# Len returns the length of the string in bytes
-func Len(s string) int
-    return len(s)
-
-# IsEmpty checks if the string is empty
-func IsEmpty(s string) bool
-    return len(s) equals 0
-
 # IsBlank checks if the string is empty or contains only whitespace
 func IsBlank(s string) bool
     return len(strings.TrimSpace(s)) equals 0
@@ -168,8 +149,3 @@ func IsBlank(s string) bool
 # Lines splits a string into lines (by newline characters)
 func Lines(s string) list of string
     return strings.Split(s, "\n")
-
-# Concat concatenates multiple strings efficiently
-# Uses Join with empty separator for efficiency
-func Concat(parts list of string) string
-    return strings.Join(parts, "")

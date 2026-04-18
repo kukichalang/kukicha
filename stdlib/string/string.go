@@ -166,38 +166,20 @@ func PadLeft(s string, width int, padChar string) string {
 	return (strings.Repeat(padChar, (width-length)) + s)
 }
 
-//line stdlib/string/string.kuki:151
+//line stdlib/string/string.kuki:140
 func EqualFold(s string, t string) bool {
-//line stdlib/string/string.kuki:152
+//line stdlib/string/string.kuki:141
 	return strings.EqualFold(s, t)
 }
 
-//line stdlib/string/string.kuki:157
-func Len(s string) int {
-//line stdlib/string/string.kuki:158
-	return len(s)
-}
-
-//line stdlib/string/string.kuki:161
-func IsEmpty(s string) bool {
-//line stdlib/string/string.kuki:162
-	return (len(s) == 0)
-}
-
-//line stdlib/string/string.kuki:165
+//line stdlib/string/string.kuki:146
 func IsBlank(s string) bool {
-//line stdlib/string/string.kuki:166
+//line stdlib/string/string.kuki:147
 	return (len(strings.TrimSpace(s)) == 0)
 }
 
-//line stdlib/string/string.kuki:169
+//line stdlib/string/string.kuki:150
 func Lines(s string) []string {
-//line stdlib/string/string.kuki:170
+//line stdlib/string/string.kuki:151
 	return strings.Split(s, "\n")
-}
-
-//line stdlib/string/string.kuki:174
-func Concat(parts []string) string {
-//line stdlib/string/string.kuki:175
-	return strings.Join(parts, "")
 }

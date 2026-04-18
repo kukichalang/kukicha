@@ -510,12 +510,11 @@ function handleHome on store reference LinkStore(response http.ResponseWriter, r
 </body>
 </html>
 `
-    # Parse the HTML string into a template, then write it to the response.
-    # template.Parse() returns (Template, error). Since we're parsing a hardcoded
-    # string that we know is valid, we use _ to discard the error. For templates
-    # loaded from files, you'd want onerr instead.
-    tmpl, _ := template.New("home") |> .Parse(html)
-    tmpl |> .Execute(response, empty) onerr return
+    # Render the template with an empty data map (no {{ }} placeholders here).
+    # HTMLRenderSimple auto-escapes any {{ }} values — safe by default when
+    # you later add user-supplied data.
+    body := template.HTMLRenderSimple(html, empty map of string to any) onerr return
+    httphelper.HTML(response, body) onerr return
 ```
 
 Then register it in `main()`:

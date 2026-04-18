@@ -149,7 +149,6 @@ type FindAllGroupsCase
     name string
     pattern string
     text string
-    expectErr bool
     expectedLen int
 
 func TestFindAllGroups(t reference testing.T)
@@ -158,26 +157,20 @@ func TestFindAllGroups(t reference testing.T)
         name: "key-value pairs",
         pattern: `(\w+)=(\w+)`,
         text: "a=1 b=2 c=3",
-        expectErr: false,
         expectedLen: 3,
     },
         FindAllGroupsCase{
         name: "no matches",
         pattern: `(\d+)-(\d+)`,
         text: "no dashes here",
-        expectErr: true,
         expectedLen: 0,
     },
     }
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            got, err := regex.FindAllGroups(tc.pattern, tc.text)
-            if tc.expectErr
-                test.AssertError(t, err)
-            else
-                test.AssertNoError(t, err)
-                test.AssertEqual(t, len(got), tc.expectedLen)
+            got := regex.FindAllGroups(tc.pattern, tc.text)
+            test.AssertEqual(t, len(got), tc.expectedLen)
         )
 
 # --- TestReplace ---

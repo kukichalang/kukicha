@@ -14,175 +14,138 @@ type TemplateData struct {
 	Data    map[string]any
 }
 
-//line stdlib/template/template.kuki:16
-func Render(tmplStr string) TemplateData {
 //line stdlib/template/template.kuki:17
-	return TemplateData{Content: tmplStr, Data: make(map[string]any)}
-}
-
-//line stdlib/template/template.kuki:21
-func Data(td TemplateData, data map[string]any) TemplateData {
-//line stdlib/template/template.kuki:22
-	td.Data = data
-//line stdlib/template/template.kuki:23
-	return td
-}
-
-//line stdlib/template/template.kuki:28
-func Execute(td TemplateData) (string, error) {
-//line stdlib/template/template.kuki:29
-	// pipe step 1: parseTextTemplate(...)
-//line stdlib/template/template.kuki:30
-	pipe_1, err_2 := parseTextTemplate(td.Content)
-//line stdlib/template/template.kuki:31
-	if err_2 != nil {
-//line stdlib/template/template.kuki:31
-		return "", err_2
-	}
-	// pipe step 2: executeTextTemplate(...)
-//line stdlib/template/template.kuki:31
-	result, err_4 := executeTextTemplate(pipe_1, td.Data)
-//line stdlib/template/template.kuki:31
-	if err_4 != nil {
-//line stdlib/template/template.kuki:31
-		return "", err_4
-	}
-//line stdlib/template/template.kuki:33
-	return result, nil
-}
-
-//line stdlib/template/template.kuki:37
 func Parse(content string) TemplateData {
-//line stdlib/template/template.kuki:38
+//line stdlib/template/template.kuki:18
 	return TemplateData{Content: content, Data: make(map[string]any)}
 }
 
-//line stdlib/template/template.kuki:42
-func New() TemplateData {
-//line stdlib/template/template.kuki:43
-	return TemplateData{Content: "", Data: make(map[string]any)}
-}
-
-//line stdlib/template/template.kuki:46
-func WithContent(td TemplateData, content string) TemplateData {
-//line stdlib/template/template.kuki:47
-	td.Content = content
-//line stdlib/template/template.kuki:48
+//line stdlib/template/template.kuki:22
+func Data(td TemplateData, data map[string]any) TemplateData {
+//line stdlib/template/template.kuki:23
+	td.Data = data
+//line stdlib/template/template.kuki:24
 	return td
 }
 
-//line stdlib/template/template.kuki:52
-func RenderSimple(tmplStr string, data map[string]any) (string, error) {
-//line stdlib/template/template.kuki:53
-	// pipe step 1: Execute(...)
-//line stdlib/template/template.kuki:55
-	result, err_6 := Execute(Data(Render(tmplStr), data))
-//line stdlib/template/template.kuki:55
-	if err_6 != nil {
-//line stdlib/template/template.kuki:55
-		return "", err_6
+//line stdlib/template/template.kuki:29
+func Execute(td TemplateData) (string, error) {
+//line stdlib/template/template.kuki:30
+	// pipe step 1: parseTextTemplate(...)
+//line stdlib/template/template.kuki:31
+	pipe_1, err_2 := parseTextTemplate(td.Content)
+//line stdlib/template/template.kuki:32
+	if err_2 != nil {
+//line stdlib/template/template.kuki:32
+		return "", err_2
 	}
-//line stdlib/template/template.kuki:57
+	// pipe step 2: executeTextTemplate(...)
+//line stdlib/template/template.kuki:32
+	result, err_4 := executeTextTemplate(pipe_1, td.Data)
+//line stdlib/template/template.kuki:32
+	if err_4 != nil {
+//line stdlib/template/template.kuki:32
+		return "", err_4
+	}
+//line stdlib/template/template.kuki:34
 	return result, nil
 }
 
-//line stdlib/template/template.kuki:63
+//line stdlib/template/template.kuki:39
+func RenderSimple(tmplStr string, data map[string]any) (string, error) {
+//line stdlib/template/template.kuki:40
+	// pipe step 1: Execute(...)
+//line stdlib/template/template.kuki:42
+	result, err_6 := Execute(Data(Parse(tmplStr), data))
+//line stdlib/template/template.kuki:42
+	if err_6 != nil {
+//line stdlib/template/template.kuki:42
+		return "", err_6
+	}
+//line stdlib/template/template.kuki:44
+	return result, nil
+}
+
+//line stdlib/template/template.kuki:50
 func HTMLExecute(td TemplateData) (string, error) {
-//line stdlib/template/template.kuki:64
+//line stdlib/template/template.kuki:51
 	// pipe step 1: parseHTMLTemplate(...)
-//line stdlib/template/template.kuki:65
+//line stdlib/template/template.kuki:52
 	pipe_7, err_8 := parseHTMLTemplate(td.Content)
-//line stdlib/template/template.kuki:66
+//line stdlib/template/template.kuki:53
 	if err_8 != nil {
-//line stdlib/template/template.kuki:66
+//line stdlib/template/template.kuki:53
 		return "", err_8
 	}
 	// pipe step 2: executeHTMLTemplate(...)
-//line stdlib/template/template.kuki:66
+//line stdlib/template/template.kuki:53
 	result, err_10 := executeHTMLTemplate(pipe_7, td.Data)
-//line stdlib/template/template.kuki:66
+//line stdlib/template/template.kuki:53
 	if err_10 != nil {
-//line stdlib/template/template.kuki:66
+//line stdlib/template/template.kuki:53
 		return "", err_10
 	}
-//line stdlib/template/template.kuki:68
+//line stdlib/template/template.kuki:55
 	return result, nil
 }
 
-//line stdlib/template/template.kuki:74
+//line stdlib/template/template.kuki:61
 func HTMLRenderSimple(tmplStr string, data map[string]any) (string, error) {
-//line stdlib/template/template.kuki:75
+//line stdlib/template/template.kuki:62
 	// pipe step 1: HTMLExecute(...)
-//line stdlib/template/template.kuki:77
-	result, err_12 := HTMLExecute(Data(Render(tmplStr), data))
-//line stdlib/template/template.kuki:77
+//line stdlib/template/template.kuki:64
+	result, err_12 := HTMLExecute(Data(Parse(tmplStr), data))
+//line stdlib/template/template.kuki:64
 	if err_12 != nil {
-//line stdlib/template/template.kuki:77
+//line stdlib/template/template.kuki:64
 		return "", err_12
 	}
-//line stdlib/template/template.kuki:79
+//line stdlib/template/template.kuki:66
 	return result, nil
 }
 
-//line stdlib/template/template.kuki:83
-func Must(result string, err error) string {
-//line stdlib/template/template.kuki:84
-	if err != nil {
-//line stdlib/template/template.kuki:85
-		panic(err)
-	}
-//line stdlib/template/template.kuki:86
-	return result
-}
-
-//line stdlib/template/template.kuki:90
-func Funcs(td TemplateData, funcMap map[string]any) TemplateData {
-//line stdlib/template/template.kuki:94
-	return td
-}
-
-//line stdlib/template/template.kuki:96
+//line stdlib/template/template.kuki:68
 func parseTextTemplate(content string) (*template.Template, error) {
-//line stdlib/template/template.kuki:97
+//line stdlib/template/template.kuki:69
 	return template.New("template").Parse(content)
 }
 
-//line stdlib/template/template.kuki:99
+//line stdlib/template/template.kuki:71
 func executeTextTemplate(tmpl *template.Template, data map[string]any) (string, error) {
-//line stdlib/template/template.kuki:100
+//line stdlib/template/template.kuki:72
 	buf := bytes.Buffer{}
-//line stdlib/template/template.kuki:101
+//line stdlib/template/template.kuki:73
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/template/template.kuki:101
+//line stdlib/template/template.kuki:73
 	err_13 := tmpl.Execute(&buf, data)
-//line stdlib/template/template.kuki:101
+//line stdlib/template/template.kuki:73
 	if err_13 != nil {
-//line stdlib/template/template.kuki:101
+//line stdlib/template/template.kuki:73
 		return "", err_13
 	}
-//line stdlib/template/template.kuki:102
+//line stdlib/template/template.kuki:74
 	return buf.String(), nil
 }
 
-//line stdlib/template/template.kuki:104
+//line stdlib/template/template.kuki:76
 func parseHTMLTemplate(content string) (*htmltmpl.Template, error) {
-//line stdlib/template/template.kuki:105
+//line stdlib/template/template.kuki:77
 	return htmltmpl.New("template").Parse(content)
 }
 
-//line stdlib/template/template.kuki:107
+//line stdlib/template/template.kuki:79
 func executeHTMLTemplate(tmpl *htmltmpl.Template, data map[string]any) (string, error) {
-//line stdlib/template/template.kuki:108
+//line stdlib/template/template.kuki:80
 	buf := bytes.Buffer{}
-//line stdlib/template/template.kuki:109
+//line stdlib/template/template.kuki:81
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/template/template.kuki:109
+//line stdlib/template/template.kuki:81
 	err_14 := tmpl.Execute(&buf, data)
-//line stdlib/template/template.kuki:109
+//line stdlib/template/template.kuki:81
 	if err_14 != nil {
-//line stdlib/template/template.kuki:109
+//line stdlib/template/template.kuki:81
 		return "", err_14
 	}
-//line stdlib/template/template.kuki:110
+//line stdlib/template/template.kuki:82
 	return buf.String(), nil
 }

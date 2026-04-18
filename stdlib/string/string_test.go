@@ -401,108 +401,54 @@ func TestEqualFold(t *testing.T) {
 }
 
 //line stdlib/string/string_test.kuki:339
-func TestLen(t *testing.T) {
+func TestIsBlank(t *testing.T) {
 //line stdlib/string/string_test.kuki:340
-	cases := []IndexCase{IndexCase{name: "hello is 5", input: "hello", sub: "", want: 5}, IndexCase{name: "empty is 0", input: "", sub: "", want: 0}, IndexCase{name: "single char is 1", input: "a", sub: "", want: 1}}
-//line stdlib/string/string_test.kuki:346
-	for _, tc := range cases {
-//line stdlib/string/string_test.kuki:347
-		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/string/string_test.kuki:348
-			test.AssertEqual(t, kukistring.Len(tc.input), tc.want)
-		})
-	}
-}
-
-//line stdlib/string/string_test.kuki:352
-func TestIsEmptyIsBlank(t *testing.T) {
-//line stdlib/string/string_test.kuki:353
-	t.Run("IsEmpty/empty string", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:354
-		test.AssertEqual(t, kukistring.IsEmpty(""), true)
-	})
-//line stdlib/string/string_test.kuki:357
-	t.Run("IsEmpty/non-empty", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:358
-		test.AssertEqual(t, kukistring.IsEmpty("hello"), false)
-	})
-//line stdlib/string/string_test.kuki:361
-	t.Run("IsEmpty/space is not empty", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:362
-		test.AssertEqual(t, kukistring.IsEmpty(" "), false)
-	})
-//line stdlib/string/string_test.kuki:365
 	t.Run("IsBlank/empty", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:366
+//line stdlib/string/string_test.kuki:341
 		test.AssertEqual(t, kukistring.IsBlank(""), true)
 	})
-//line stdlib/string/string_test.kuki:369
+//line stdlib/string/string_test.kuki:344
 	t.Run("IsBlank/spaces", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:370
+//line stdlib/string/string_test.kuki:345
 		test.AssertEqual(t, kukistring.IsBlank("   "), true)
 	})
-//line stdlib/string/string_test.kuki:373
+//line stdlib/string/string_test.kuki:348
 	t.Run("IsBlank/tabs and newlines", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:374
+//line stdlib/string/string_test.kuki:349
 		test.AssertEqual(t, kukistring.IsBlank("\t\n"), true)
 	})
-//line stdlib/string/string_test.kuki:377
+//line stdlib/string/string_test.kuki:352
 	t.Run("IsBlank/non-blank", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:378
+//line stdlib/string/string_test.kuki:353
 		test.AssertEqual(t, kukistring.IsBlank("hello"), false)
 	})
-//line stdlib/string/string_test.kuki:381
+//line stdlib/string/string_test.kuki:356
 	t.Run("IsBlank/space with char", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:382
+//line stdlib/string/string_test.kuki:357
 		test.AssertEqual(t, kukistring.IsBlank(" x "), false)
 	})
 }
 
-//line stdlib/string/string_test.kuki:386
+//line stdlib/string/string_test.kuki:361
 func TestLines(t *testing.T) {
-//line stdlib/string/string_test.kuki:387
+//line stdlib/string/string_test.kuki:362
 	t.Run("three lines", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:388
+//line stdlib/string/string_test.kuki:363
 		lines := kukistring.Lines("line1\nline2\nline3")
-//line stdlib/string/string_test.kuki:389
+//line stdlib/string/string_test.kuki:364
 		test.AssertEqual(t, len(lines), 3)
-//line stdlib/string/string_test.kuki:390
+//line stdlib/string/string_test.kuki:365
 		test.AssertEqual(t, lines[0], "line1")
-//line stdlib/string/string_test.kuki:391
+//line stdlib/string/string_test.kuki:366
 		test.AssertEqual(t, lines[2], "line3")
 	})
-//line stdlib/string/string_test.kuki:394
+//line stdlib/string/string_test.kuki:369
 	t.Run("single line no newline", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:395
+//line stdlib/string/string_test.kuki:370
 		single := kukistring.Lines("hello")
-//line stdlib/string/string_test.kuki:396
+//line stdlib/string/string_test.kuki:371
 		test.AssertEqual(t, len(single), 1)
-//line stdlib/string/string_test.kuki:397
+//line stdlib/string/string_test.kuki:372
 		test.AssertEqual(t, single[0], "hello")
-	})
-}
-
-//line stdlib/string/string_test.kuki:401
-func TestConcat(t *testing.T) {
-//line stdlib/string/string_test.kuki:402
-	t.Run("joins parts", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:403
-		parts := []string{"hello", " ", "world"}
-//line stdlib/string/string_test.kuki:404
-		test.AssertEqual(t, kukistring.Concat(parts), "hello world")
-	})
-//line stdlib/string/string_test.kuki:407
-	t.Run("empty slice", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:408
-		noParts := []string{}
-//line stdlib/string/string_test.kuki:409
-		test.AssertEqual(t, kukistring.Concat(noParts), "")
-	})
-//line stdlib/string/string_test.kuki:412
-	t.Run("single element", func(t *testing.T) {
-//line stdlib/string/string_test.kuki:413
-		single := []string{"alone"}
-//line stdlib/string/string_test.kuki:414
-		test.AssertEqual(t, kukistring.Concat(single), "alone")
 	})
 }
