@@ -86,7 +86,7 @@ func Init() (Env, error)
     wEnv, wErr := webinfer.Init()
     if wErr == empty
         return {backend: "web", webEnv: wEnv}, empty
-    return {}, errors.New("no inference backend available (native: {nErr}, web: {wErr})")
+    return {}, error "no inference backend available (native: {nErr}, web: {wErr})"
 
 # InitWith creates an Env using an explicit backend ("native" or "web").
 func InitWith(backend string) (Env, error)
@@ -100,7 +100,7 @@ func InitWith(backend string) (Env, error)
         if err != empty
             return {}, errors.Wrap(err, "web backend init")
         return {backend: "web", webEnv: wEnv}, empty
-    return {}, errors.New("unknown backend: {backend} (use \"native\" or \"web\")")
+    return {}, error "unknown backend: {backend} (use \"native\" or \"web\")"
 
 # Cleanup releases the backend environment resources.
 func Cleanup(env Env) error
@@ -170,7 +170,7 @@ func EP(cfg Config, ep string) Config
 
 # Load creates an inference session from a model file using the active backend.
 func Load(cfg Config, env Env, path string, inputNames list of string, outputNames list of string, inputs list of Tensor, outputs list of Tensor) (Model, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer")
+    return {}, error "stub: use external module github.com/kukichalang/infer"
 
 # Close destroys the model session for the active backend.
 func Close(model Model) error
@@ -180,7 +180,7 @@ func Close(model Model) error
 
 # Run executes inference on the active backend.
 func Run(model Model) error
-    return errors.New("stub: use external module github.com/kukichalang/infer")
+    return error "stub: use external module github.com/kukichalang/infer"
 
 # --- Tensor creation ---
 
@@ -193,19 +193,19 @@ func Shape(many dims int64) list of int64
 
 # NewFloat32 creates a float32 tensor using the active backend.
 func NewFloat32(env Env, shape list of int64, data list of float32) (Tensor, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer")
+    return {}, error "stub: use external module github.com/kukichalang/infer"
 
 # ZeroFloat32 creates a zeroed float32 tensor using the active backend.
 func ZeroFloat32(env Env, shape list of int64) (Tensor, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer")
+    return {}, error "stub: use external module github.com/kukichalang/infer"
 
 # NewInt64 creates an int64 tensor using the active backend.
 func NewInt64(env Env, shape list of int64, data list of int64) (Tensor, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer")
+    return {}, error "stub: use external module github.com/kukichalang/infer"
 
 # ZeroInt64 creates a zeroed int64 tensor using the active backend.
 func ZeroInt64(env Env, shape list of int64) (Tensor, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer")
+    return {}, error "stub: use external module github.com/kukichalang/infer"
 
 # Destroy releases the underlying tensor memory.
 func Destroy(tensor Tensor) error
@@ -233,7 +233,7 @@ func Dtype(tensor Tensor) string
 
 # Inspect reads model metadata from an ONNX file. Only supported on native backend.
 func Inspect(env Env, path string) (ModelInfo, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer")
+    return {}, error "stub: use external module github.com/kukichalang/infer"
 
 # InputNames returns the input names from a ModelInfo.
 func InputNames(info ModelInfo) list of string

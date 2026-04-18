@@ -612,15 +612,16 @@ function LoadConfig(path string) (Config, error)
     return cfg, empty
 ```
 
-`errors.Wrap(error, "context")` produces `"context: <original>"`, preserving the full error chain for logging. Use `errors.Is(error, target)` to check for specific errors deep in a wrapped chain — useful in middleware that translates errors for the user:
+`errors.Wrap(error, "context")` produces `"context: <original>"`, preserving the full error chain for logging. For identity checks through a wrapped chain, use Go's `errors.Is` directly — the Go stdlib provides this unchanged:
 
 ```kukicha
 import "stdlib/errors"
+import "errors" as goerrors
 import "io"
 
 function ReadAll(r io.Reader) (string, error)
     data := io.ReadAll(r) onerr
-        if errors.Is(error, io.ErrUnexpectedEOF)
+        if goerrors.Is(error, io.ErrUnexpectedEOF)
             return "", errors.Wrap(error, "incomplete read")
         return "", errors.Wrap(error, "read failed")
     return data as string, empty

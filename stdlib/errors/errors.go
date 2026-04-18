@@ -2,74 +2,47 @@
 
 package errors
 
-import (
-	goerrors "errors"
-	"fmt"
-)
+import "fmt"
 
-//line stdlib/errors/errors.kuki:22
+//line stdlib/errors/errors.kuki:20
 func Wrap(err error, msg string) error {
-//line stdlib/errors/errors.kuki:23
+//line stdlib/errors/errors.kuki:21
 	return fmt.Errorf("%s: %w", msg, err)
 }
 
 //line stdlib/errors/errors.kuki:27
-func Is(err error, target error) bool {
-//line stdlib/errors/errors.kuki:28
-	return goerrors.Is(err, target)
-}
-
-//line stdlib/errors/errors.kuki:33
-func Unwrap(err error) error {
-//line stdlib/errors/errors.kuki:34
-	return goerrors.Unwrap(err)
-}
-
-//line stdlib/errors/errors.kuki:38
-func New(msg string) error {
-//line stdlib/errors/errors.kuki:39
-	return goerrors.New(msg)
-}
-
-//line stdlib/errors/errors.kuki:43
-func Join(items ...error) error {
-//line stdlib/errors/errors.kuki:44
-	return goerrors.Join(items...)
-}
-
-//line stdlib/errors/errors.kuki:50
 func Opaque(err error, msg string) error {
-//line stdlib/errors/errors.kuki:51
+//line stdlib/errors/errors.kuki:28
 	return fmt.Errorf("%s: %s", msg, err)
 }
 
-//line stdlib/errors/errors.kuki:56
+//line stdlib/errors/errors.kuki:33
 type PublicError struct {
 	internal string
 	public   string
 }
 
-//line stdlib/errors/errors.kuki:61
+//line stdlib/errors/errors.kuki:38
 func (e PublicError) Error() string {
-//line stdlib/errors/errors.kuki:62
+//line stdlib/errors/errors.kuki:39
 	return e.internal
 }
 
-//line stdlib/errors/errors.kuki:67
+//line stdlib/errors/errors.kuki:44
 func NewPublic(internalMsg string, publicMsg string) error {
-//line stdlib/errors/errors.kuki:68
+//line stdlib/errors/errors.kuki:45
 	return PublicError{internal: internalMsg, public: publicMsg}
 }
 
-//line stdlib/errors/errors.kuki:73
+//line stdlib/errors/errors.kuki:50
 func Public(err error) string {
-//line stdlib/errors/errors.kuki:74
+//line stdlib/errors/errors.kuki:51
 	e, ok := err.(PublicError)
-//line stdlib/errors/errors.kuki:75
+//line stdlib/errors/errors.kuki:52
 	if ok {
-//line stdlib/errors/errors.kuki:76
+//line stdlib/errors/errors.kuki:53
 		return e.public
 	}
-//line stdlib/errors/errors.kuki:77
+//line stdlib/errors/errors.kuki:54
 	return "an error occurred"
 }

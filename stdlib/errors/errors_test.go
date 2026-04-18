@@ -18,7 +18,7 @@ type WrapCase struct {
 }
 
 //line stdlib/errors/errors_test.kuki:17
-func TestWrapAndIs(t *testing.T) {
+func TestWrap(t *testing.T) {
 //line stdlib/errors/errors_test.kuki:18
 	cases := []WrapCase{WrapCase{name: "wraps and identifies base error", baseMsg: "base", wrapMsg: "context", wantEqual: true}, WrapCase{name: "does not match different error", baseMsg: "base", wrapMsg: "context", wantEqual: false}}
 //line stdlib/errors/errors_test.kuki:33
@@ -32,13 +32,13 @@ func TestWrapAndIs(t *testing.T) {
 //line stdlib/errors/errors_test.kuki:37
 			if tc.wantEqual {
 //line stdlib/errors/errors_test.kuki:38
-				test.AssertTrue(t, errors.Is(wrapped, base))
+				test.AssertTrue(t, goerrors.Is(wrapped, base))
 			} else {
 //line stdlib/errors/errors_test.kuki:40
-				test.AssertFalse(t, errors.Is(wrapped, goerrors.New("different")))
+				test.AssertFalse(t, goerrors.Is(wrapped, goerrors.New("different")))
 			}
 //line stdlib/errors/errors_test.kuki:42
-			unwrapped := errors.Unwrap(wrapped)
+			unwrapped := goerrors.Unwrap(wrapped)
 //line stdlib/errors/errors_test.kuki:43
 			if tc.wantEqual {
 //line stdlib/errors/errors_test.kuki:44
@@ -74,7 +74,7 @@ func TestOpaque(t *testing.T) {
 //line stdlib/errors/errors_test.kuki:70
 			test.AssertEqual(t, opaque.Error(), tc.wantMsg)
 //line stdlib/errors/errors_test.kuki:72
-			test.AssertFalse(t, errors.Is(opaque, base))
+			test.AssertFalse(t, goerrors.Is(opaque, base))
 		})
 	}
 }
@@ -112,41 +112,4 @@ func TestPublicFallback(t *testing.T) {
 	msg := errors.Public(plain)
 //line stdlib/errors/errors_test.kuki:107
 	test.AssertEqual(t, msg, "an error occurred")
-}
-
-//line stdlib/errors/errors_test.kuki:110
-type JoinCase struct {
-	name    string
-	errs    []error
-	wantNil bool
-}
-
-//line stdlib/errors/errors_test.kuki:115
-func TestJoin(t *testing.T) {
-//line stdlib/errors/errors_test.kuki:116
-	cases := []JoinCase{JoinCase{name: "joins multiple errors", errs: []error{goerrors.New("a"), goerrors.New("b")}, wantNil: false}, JoinCase{name: "returns nil for empty list", errs: []error{}, wantNil: true}}
-//line stdlib/errors/errors_test.kuki:125
-	for _, tc := range cases {
-//line stdlib/errors/errors_test.kuki:126
-		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/errors/errors_test.kuki:127
-			e := errors.Join(tc.errs...)
-//line stdlib/errors/errors_test.kuki:128
-			if tc.wantNil {
-//line stdlib/errors/errors_test.kuki:129
-				test.AssertNoError(t, e)
-			} else {
-//line stdlib/errors/errors_test.kuki:131
-				test.AssertError(t, e)
-//line stdlib/errors/errors_test.kuki:132
-				test.AssertNoError(t, nil)
-//line stdlib/errors/errors_test.kuki:133
-				errStr := e.Error()
-//line stdlib/errors/errors_test.kuki:134
-				test.AssertNotEmpty(t, errStr)
-//line stdlib/errors/errors_test.kuki:135
-				test.AssertTrue(t, (len(errStr) > 0))
-			}
-		})
-	}
 }

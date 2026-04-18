@@ -25,8 +25,6 @@
 
 petiole webinfer
 
-import "stdlib/errors"
-
 # Env holds the headless browser state.
 type Env
     pw any
@@ -70,7 +68,7 @@ type IOInfo
 # Init launches a headless Chromium instance via Playwright and loads
 # onnxruntime-web from CDN.
 func Init() (Env, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
+    return {}, error "stub: use external module github.com/kukichalang/infer/webinfer"
 
 # Cleanup closes the browser and stops the Playwright driver.
 func Cleanup(env Env) error
@@ -99,7 +97,7 @@ func EP(cfg Config, ep string) Config
 
 # Load reads an ONNX model file and creates an inference session in the browser.
 func Load(cfg Config, env Env, path string, inputNames list of string, outputNames list of string, inputs list of Tensor, outputs list of Tensor) (Model, error)
-    return {}, errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
+    return {}, error "stub: use external module github.com/kukichalang/infer/webinfer"
 
 # Close destroys the browser-side inference session.
 func Close(model Model) error
@@ -109,7 +107,7 @@ func Close(model Model) error
 
 # Run executes inference.
 func Run(model Model) error
-    return errors.New("stub: use external module github.com/kukichalang/infer/webinfer")
+    return error "stub: use external module github.com/kukichalang/infer/webinfer"
 
 # --- Tensor creation ---
 
@@ -168,7 +166,7 @@ func Dtype(tensor Tensor) string
 
 # Inspect is not supported by the web backend. Use ort.Inspect instead.
 func Inspect(path string) (ModelInfo, error)
-    return {}, errors.New("webinfer: model inspection not supported (use ort.Inspect)")
+    return {}, error "webinfer: model inspection not supported (use ort.Inspect)"
 
 # InputNames returns the input names from a ModelInfo.
 func InputNames(info ModelInfo) list of string

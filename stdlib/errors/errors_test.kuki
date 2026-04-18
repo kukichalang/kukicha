@@ -7,14 +7,14 @@ import "stdlib/errors"
 import "stdlib/test"
 import "testing"
 
-# --- TestWrapAndIs ---
+# --- TestWrap ---
 type WrapCase
     name string
     baseMsg string
     wrapMsg string
     wantEqual bool
 
-func TestWrapAndIs(t reference testing.T)
+func TestWrap(t reference testing.T)
     cases := list of WrapCase{
         WrapCase{
         name: "wraps and identifies base error",
@@ -35,11 +35,11 @@ func TestWrapAndIs(t reference testing.T)
             base := goerrors.New(tc.baseMsg)
             wrapped := errors.Wrap(base, tc.wrapMsg)
             if tc.wantEqual
-                test.AssertTrue(t, errors.Is(wrapped, base))
+                test.AssertTrue(t, goerrors.Is(wrapped, base))
             else
-                test.AssertFalse(t, errors.Is(wrapped, goerrors.New("different")))
+                test.AssertFalse(t, goerrors.Is(wrapped, goerrors.New("different")))
 
-            unwrapped := errors.Unwrap(wrapped)
+            unwrapped := goerrors.Unwrap(wrapped)
             if tc.wantEqual
                 test.AssertEqual(t, unwrapped.Error(), tc.baseMsg)
             else
@@ -69,7 +69,7 @@ func TestOpaque(t reference testing.T)
             opaque := errors.Opaque(base, tc.wrapMsg)
             test.AssertEqual(t, opaque.Error(), tc.wantMsg)
 
-            test.AssertFalse(t, errors.Is(opaque, base))
+            test.AssertFalse(t, goerrors.Is(opaque, base))
         )
 
 # Crucially, errors.Is must NOT traverse through an opaque boundary
@@ -105,32 +105,3 @@ func TestPublicFallback(t reference testing.T)
     plain := goerrors.New("some internal error")
     msg := errors.Public(plain)
     test.AssertEqual(t, msg, "an error occurred")
-
-# --- TestJoin ---
-type JoinCase
-    name string
-    errs list of error
-    wantNil bool
-
-func TestJoin(t reference testing.T)
-    cases := list of JoinCase{
-        JoinCase{
-        name: "joins multiple errors",
-        errs: list of error{goerrors.New("a"), goerrors.New("b")},
-        wantNil: false,
-    },
-        JoinCase{name: "returns nil for empty list", errs: empty list of error, wantNil: true},
-    }
-
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            e := errors.Join(many tc.errs)
-            if tc.wantNil
-                test.AssertNoError(t, e)
-            else
-                test.AssertError(t, e)
-                test.AssertNoError(t, empty)
-                errStr := e.Error()
-                test.AssertNotEmpty(t, errStr)
-                test.AssertTrue(t, len(errStr) > 0)
-        )

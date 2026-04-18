@@ -209,13 +209,16 @@ You can also check whether a specific error occurred deep in a call stack:
 
 ```kukicha
 import "stdlib/errors"
+import "errors" as goerrors
 import "io"
 
 data := readSomething() onerr
-    if errors.Is(error, io.EOF)
+    if goerrors.Is(error, io.EOF)
         return "", empty  # EOF is normal — treat as empty
     return "", errors.Wrap(error, "read failed")
 ```
+
+For `Is`/`As`/`Unwrap`/`Join`, use Go's `"errors"` package directly — those are pure passthroughs, so `stdlib/errors` doesn't re-export them.
 
 ### Custom Error Variable Names with `onerr as`
 
