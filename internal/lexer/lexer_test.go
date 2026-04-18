@@ -1187,3 +1187,112 @@ func TestClosureInFunctionCall(t *testing.T) {
 		})
 	}
 }
+
+func TestParenContinuation(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []TokenType
+	}{
+		{
+			// Multi-line call with no closures: NEWLINE tokens between arguments
+			// are suppressed; the whole call looks like a single expression.
+			name: "multi-line call no closures",
+			input: "db.Exec(pool,\n    \"INSERT INTO links (code, url) VALUES (?, ?)\",\n    code, url)\n",
+			expected: []TokenType{
+				TOKEN_IDENTIFIER, TOKEN_DOT, TOKEN_IDENTIFIER, // db.Exec
+				TOKEN_LPAREN,
+				TOKEN_IDENTIFIER,                                // pool
+				TOKEN_COMMA,
+				TOKEN_STRING,                                    // "INSERT ..."
+				TOKEN_COMMA,
+				TOKEN_IDENTIFIER, TOKEN_COMMA, TOKEN_IDENTIFIER, // code, url
+				TOKEN_RPAREN,
+				TOKEN_NEWLINE,
+				TOKEN_EOF,
+			},
+		},
+		{
+			// Trailing comma before closing paren is tolerated.
+			name: "trailing comma before rparen",
+			input: "foo(a,\n    b,\n)\n",
+			expected: []TokenType{
+				TOKEN_IDENTIFIER, // foo
+				TOKEN_LPAREN,
+				TOKEN_IDENTIFIER, TOKEN_COMMA, // a,
+				TOKEN_IDENTIFIER, TOKEN_COMMA, // b,
+				TOKEN_RPAREN,
+				TOKEN_NEWLINE,
+				TOKEN_EOF,
+			},
+		},
+		{
+			// Multi-line call with inline fat-arrow closures: => followed by an
+			// expression (not a block) stays in paren-continuation mode.
+			name: "multi-line call with inline fat-arrow closures",
+			input: "result.Match(\n    (link Link) => ok(link),\n    (cause error) => fail(cause),\n)\n",
+			expected: []TokenType{
+				TOKEN_IDENTIFIER, TOKEN_DOT, TOKEN_IDENTIFIER, // result.Match
+				TOKEN_LPAREN,
+				TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_IDENTIFIER, TOKEN_RPAREN, // (link Link)
+				TOKEN_FAT_ARROW,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_RPAREN, // ok(link)
+				TOKEN_COMMA,
+				TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_ERROR, TOKEN_RPAREN, // (cause error) — error is a builtin keyword
+				TOKEN_FAT_ARROW,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_RPAREN, // fail(cause)
+				TOKEN_COMMA,
+				TOKEN_RPAREN,
+				TOKEN_NEWLINE,
+				TOKEN_EOF,
+			},
+		},
+		{
+			// Multi-line call with a block-bodied fat-arrow closure: => followed by
+			// NEWLINE + INDENT suspends paren-continuation and emits real INDENT/DEDENT
+			// for the closure body, then resumes continuation mode afterward.
+			// Note: any comma separating this closure from the next argument must
+			// appear AFTER the closure body (after the DEDENT), not on the body's
+			// last line.
+			name: "multi-line call with block-bodied fat-arrow closure",
+			input: "parallel(\n    () =>\n        processA()\n)\n",
+			expected: []TokenType{
+				TOKEN_IDENTIFIER, // parallel
+				TOKEN_LPAREN,
+				TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_FAT_ARROW, // () =>
+				TOKEN_NEWLINE,
+				TOKEN_INDENT,
+				TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_RPAREN, // processA()
+				TOKEN_NEWLINE,
+				TOKEN_DEDENT,
+				TOKEN_RPAREN,
+				TOKEN_NEWLINE,
+				TOKEN_EOF,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lex := NewLexer(tt.input, "test.kuki")
+			tokens, err := lex.ScanTokens()
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+
+			if len(tokens) != len(tt.expected) {
+				types := make([]string, len(tokens))
+				for i, tok := range tokens {
+					types[i] = tok.Type.String()
+				}
+				t.Fatalf("Expected %d tokens, got %d\nGot: %v", len(tt.expected), len(tokens), types)
+			}
+
+			for i, expected := range tt.expected {
+				if tokens[i].Type != expected {
+					t.Errorf("Token %d: expected %s, got %s (lexeme: %q)", i, expected, tokens[i].Type, tokens[i].Lexeme)
+				}
+			}
+		})
+	}
+}

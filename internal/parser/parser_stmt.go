@@ -48,6 +48,10 @@ func (p *Parser) parseCallArguments() ([]ast.Expression, []*ast.NamedArgument, b
 		if !p.match(lexer.TOKEN_COMMA) {
 			break
 		}
+		// Allow trailing comma before closing paren (common in multi-line calls).
+		if p.check(lexer.TOKEN_RPAREN) {
+			break
+		}
 	}
 
 	return args, namedArgs, variadic

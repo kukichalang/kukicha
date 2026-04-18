@@ -37,10 +37,20 @@ type Lexer struct {
 	// suppressed and indentation is consumed without emitting INDENT/DEDENT.
 	// Pipe continuation (|>) is handled separately by mergeLineContinuations
 	// as a post-tokenization pass, decoupling it from the indent stack.
-	continuationLine  bool // true when the next line is inside a brace continuation
+	continuationLine  bool // true when the next line is inside a brace/paren continuation
 	braceDepth        int  // current nesting level of [], literal {} (used for continuations)
-	parenDepth        int  // current nesting level of () (used for closures)
+	parenDepth        int  // current nesting level of ()
 	inFunctionLiteral bool // true when we've just seen 'func' and are parsing its body
+
+	// Paren continuation support: inside (), NEWLINE tokens are suppressed so
+	// multi-line function calls work. The exception is block-bodied closures —
+	// when => is followed by an indented block, normal INDENT/DEDENT processing
+	// resumes for that closure's body. closureIndentStack tracks the indent levels
+	// where those closure bodies started; the suppression condition is
+	// parenDepth > len(closureIndentStack).
+	closureIndentStack  []int // indent levels of open block-bodied closures inside ()
+	afterFatArrow       bool  // true after emitting => inside paren-continuation mode
+	pendingClosureBlock bool  // true when the next INDENT should open a closure block
 
 	// Brace block support: { } as alternative to indentation for blocks.
 	// Block braces (after if/for/func/switch/else/select/go/defer) preserve
@@ -166,13 +176,29 @@ func (l *Lexer) scanToken() {
 			l.advance()
 		}
 	case '\n':
-		// Implicit continuation inside [] or {} (braceDepth > 0).
+		// Implicit continuation inside [] or literal {} (braceDepth > 0), or
+		// inside () when not currently inside a block-bodied closure body.
 		// Pipe continuation (|>) is handled by mergeLineContinuations post-pass.
 		if l.braceDepth > 0 {
 			l.continuationLine = true
+		} else if l.parenDepth > len(l.closureIndentStack) {
+			// Inside a paren call. Two tokens can precede a block-bodied body
+			// that needs real INDENT/DEDENT:
+			//   • => (fat arrow closure)
+			//   • end-of-func-signature (func literal, tracked by inFunctionLiteral)
+			// In both cases, the block is signaled by the next line being more
+			// indented than the current outer indent level.
+			if (l.afterFatArrow || l.inFunctionLiteral) && l.peekNextLineIndent() > l.indentStack[len(l.indentStack)-1] {
+				l.pendingClosureBlock = true
+				l.addToken(TOKEN_NEWLINE)
+			} else {
+				l.continuationLine = true
+			}
 		} else {
 			l.addToken(TOKEN_NEWLINE)
 		}
+		l.afterFatArrow = false
+		l.inFunctionLiteral = false
 		l.line++
 		l.column = 0
 		l.atLineStart = true
@@ -183,9 +209,18 @@ func (l *Lexer) scanToken() {
 		}
 		if l.braceDepth > 0 {
 			l.continuationLine = true
+		} else if l.parenDepth > len(l.closureIndentStack) {
+			if (l.afterFatArrow || l.inFunctionLiteral) && l.peekNextLineIndent() > l.indentStack[len(l.indentStack)-1] {
+				l.pendingClosureBlock = true
+				l.addToken(TOKEN_NEWLINE)
+			} else {
+				l.continuationLine = true
+			}
 		} else {
 			l.addToken(TOKEN_NEWLINE)
 		}
+		l.afterFatArrow = false
+		l.inFunctionLiteral = false
 		l.line++
 		l.column = 0
 		l.atLineStart = true
@@ -301,6 +336,7 @@ func (l *Lexer) scanToken() {
 		if l.match('=') {
 			l.addToken(TOKEN_DOUBLE_EQUALS)
 		} else if l.match('>') {
+			l.afterFatArrow = true
 			l.addToken(TOKEN_FAT_ARROW)
 		} else {
 			l.addToken(TOKEN_ASSIGN)
@@ -365,6 +401,12 @@ func (l *Lexer) scanToken() {
 //
 // The indentStack ensures dedents always return to a valid prior level.
 // For example, going from 8 spaces directly to 0 emits two DEDENT tokens.
+//
+// Special case: paren continuation mode (parenDepth > len(closureIndentStack)).
+// Inside a multi-line call, continuation-line indentation is decorative — we
+// consume the whitespace without emitting INDENT/DEDENT. The exception is when
+// a block-bodied closure follows =>, in which case we DO emit INDENT/DEDENT for
+// the closure's body and track it in closureIndentStack.
 func (l *Lexer) handleIndentation() {
 	spaces := 0
 	tabs := 0
@@ -390,6 +432,16 @@ func (l *Lexer) handleIndentation() {
 		return
 	}
 
+	// Paren continuation mode: we're inside a multi-line call and not currently
+	// inside a block-bodied closure body. Just consume the decorative indentation
+	// without emitting INDENT/DEDENT.
+	// Exception: pendingClosureBlock means the previous line ended with => or a
+	// func signature, and this line opens the closure/function body — handle
+	// indentation normally so we emit the INDENT and register the closure.
+	if l.parenDepth > len(l.closureIndentStack) && !l.pendingClosureBlock {
+		return
+	}
+
 	// Must be multiple of 4
 	if spaces%4 != 0 {
 		nearest := ((spaces + 2) / 4) * 4
@@ -403,13 +455,23 @@ func (l *Lexer) handleIndentation() {
 	currentIndent := l.indentStack[len(l.indentStack)-1]
 
 	if spaces > currentIndent {
-		// Indent
-		if spaces != currentIndent+4 {
+		// Indent — normally must be exactly +4 at a time.
+		// Exception: when opening a block-bodied closure inside a paren call
+		// (pendingClosureBlock), the closure's declaration line used continuation
+		// indentation (decorative, not tracked in indentStack), so the body can
+		// appear at any multiple of 4 greater than currentIndent.
+		if !l.pendingClosureBlock && spaces != currentIndent+4 {
 			l.error(fmt.Sprintf("indentation error: indentation can only increase by 4 spaces at a time (jumped from %d to %d)", currentIndent, spaces))
 			return
 		}
 		l.indentStack = append(l.indentStack, spaces)
 		l.addToken(TOKEN_INDENT)
+		// If this INDENT opens a block-bodied closure inside a paren call,
+		// record it so we know when to resume paren-continuation suppression.
+		if l.pendingClosureBlock {
+			l.closureIndentStack = append(l.closureIndentStack, spaces)
+			l.pendingClosureBlock = false
+		}
 	} else if spaces < currentIndent {
 		// Capture valid levels before popping, for use in the error message.
 		validLevels := make([]int, len(l.indentStack))
@@ -419,6 +481,18 @@ func (l *Lexer) handleIndentation() {
 		for len(l.indentStack) > 1 && l.indentStack[len(l.indentStack)-1] > spaces {
 			l.addToken(TOKEN_DEDENT)
 			l.indentStack = l.indentStack[:len(l.indentStack)-1]
+			// If we've dedented back to (or below) where a closure block started,
+			// that closure is closed — resume paren-continuation suppression.
+			if len(l.closureIndentStack) > 0 && l.indentStack[len(l.indentStack)-1] < l.closureIndentStack[len(l.closureIndentStack)-1] {
+				l.closureIndentStack = l.closureIndentStack[:len(l.closureIndentStack)-1]
+			}
+		}
+
+		// If we've exited all closure blocks and are back inside the paren call,
+		// the current line's indentation is just continuation formatting — no
+		// alignment check needed.
+		if l.parenDepth > len(l.closureIndentStack) {
+			return
 		}
 
 		// Verify we landed on a valid indentation level
@@ -430,6 +504,20 @@ func (l *Lexer) handleIndentation() {
 			l.error(fmt.Sprintf("indentation error: dedent does not match any outer indent level (found %d spaces, expected one of: %s)", spaces, strings.Join(parts, ", ")))
 		}
 	}
+}
+
+// peekNextLineIndent returns the number of leading spaces on the line that
+// starts at l.current (i.e. just after the newline character that was just
+// consumed by advance()). Used to decide whether => is followed by a
+// block-bodied closure.
+func (l *Lexer) peekNextLineIndent() int {
+	spaces := 0
+	for i := l.current; i < len(l.source) && (l.source[i] == ' ' || l.source[i] == '\t'); i++ {
+		if l.source[i] == ' ' {
+			spaces++
+		}
+	}
+	return spaces
 }
 
 // scanString scans a double-quoted string literal.
@@ -1006,6 +1094,12 @@ func (l *Lexer) addTokenWithLexeme(tokenType TokenType, lexeme string) {
 		File:   l.file,
 	}
 	l.tokens = append(l.tokens, token)
+
+	// afterFatArrow is only meaningful when => is the last significant token
+	// before a newline. Clear it as soon as any other real token is emitted.
+	if l.afterFatArrow && tokenType != TOKEN_FAT_ARROW && tokenType != TOKEN_COMMENT && tokenType != TOKEN_DIRECTIVE {
+		l.afterFatArrow = false
+	}
 
 	// Track block keywords for brace block detection.
 	// Set blockKeywordSeen when a keyword that introduces a block is emitted;
