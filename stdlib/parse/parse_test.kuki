@@ -3,126 +3,82 @@
 petiole parse_test
 
 import "stdlib/parse"
-import "stdlib/string" as kukistring
 import "stdlib/test"
 import "testing"
+import "time"
 
-# --- TestJson ---
-type JsonCase
-    name string
-    payload string
-    want string
+# --- TestJSON ---
+type User
+    Name string
+    Age int
 
-func TestJson(t reference testing.T)
-    cases := list of JsonCase{
-        JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"},
-    }
+func TestJSON(t reference testing.T)
+    u := empty User
+    err := parse.JSON("{\"Name\":\"ada\",\"Age\":36}", reference of u)
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, u.Name, "ada")
+    test.AssertEqual(t, u.Age, 36)
 
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            result, err := parse.Json(tc.payload)
-            test.AssertNoError(t, err)
-            test.AssertEqual(t, result as string, tc.want)
-        )
+# --- TestJSONLines ---
+func TestJSONLines(t reference testing.T)
+    lines := parse.JSONLines("{\"a\":1}\n\n {\"b\":2}\n")
+    test.AssertEqual(t, len(lines), 2)
+    test.AssertEqual(t, lines[0], "{\"a\":1}")
+    test.AssertEqual(t, lines[1], "{\"b\":2}")
 
-# --- TestJsonLines ---
-type JsonLinesCase
-    name string
-    ndjson string
-    wantCount int
-    firstLine string
+# --- TestYAML ---
+type Config
+    User string
+    Email string
 
-func TestJsonLines(t reference testing.T)
-    cases := list of JsonLinesCase{
-        JsonLinesCase{
-        name: "basic ndjson",
-        ndjson: "{\"a\":1}\n\n {\"b\":2}\n",
-        wantCount: 2,
-        firstLine: "{\"a\":1}",
-    },
-    }
+func TestYAML(t reference testing.T)
+    c := empty Config
+    err := parse.YAML("user: alice\nemail: test@example.com", reference of c)
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, c.User, "alice")
+    test.AssertEqual(t, c.Email, "test@example.com")
 
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            lines, err := parse.JsonLines(tc.ndjson)
-            test.AssertNoError(t, err)
-            test.AssertEqual(t, len(lines), tc.wantCount)
-            if len(lines) > 0
-                test.AssertEqual(t, lines[0], tc.firstLine)
-        )
+# --- TestCSV ---
+func TestCSV(t reference testing.T)
+    records, err := parse.CSV("name,age\nalice,30\nbob,25")
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, len(records), 3)
+    test.AssertEqual(t, records[0][0], "name")
+    test.AssertEqual(t, records[1][0], "alice")
 
-# --- TestCsvWithHeader ---
-type CsvCase
-    name string
-    csv string
-    wantRecords int
-    wantHeaderRows int
-    firstRowName string
+# --- TestCSVRecords ---
+func TestCSVRecords(t reference testing.T)
+    rows, err := parse.CSVRecords("name,age\nalice,30\nbob,25")
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, len(rows), 2)
+    test.AssertEqual(t, rows[0]["name"], "alice")
+    test.AssertEqual(t, rows[0]["age"], "30")
+    test.AssertEqual(t, rows[1]["name"], "bob")
 
-func TestCsvWithHeader(t reference testing.T)
-    cases := list of CsvCase{
-        CsvCase{
-        name: "basic csv",
-        csv: "name,age\nalice,30\nbob,25",
-        wantRecords: 3,
-        wantHeaderRows: 2,
-        firstRowName: "alice",
-    },
-    }
+# --- TestLines ---
+func TestLines(t reference testing.T)
+    lines := parse.Lines("foo\n\n  bar  \n\nbaz\n")
+    test.AssertEqual(t, len(lines), 3)
+    test.AssertEqual(t, lines[0], "foo")
+    test.AssertEqual(t, lines[1], "bar")
+    test.AssertEqual(t, lines[2], "baz")
 
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            records, err := parse.Csv(tc.csv)
-            test.AssertNoError(t, err)
-            test.AssertEqual(t, len(records), tc.wantRecords)
+# --- TestDuration ---
+func TestDuration(t reference testing.T)
+    d, err := parse.Duration("1h30m")
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, d, 90 * time.Minute)
 
-            headerRows, err2 := parse.CsvWithHeader(tc.csv)
-            test.AssertNoError(t, err2)
-            test.AssertEqual(t, len(headerRows), tc.wantHeaderRows)
-            if len(headerRows) > 0
-                test.AssertEqual(t, headerRows[0]["name"], tc.firstRowName)
-        )
+# --- TestURL ---
+func TestURL(t reference testing.T)
+    u, err := parse.URL("https://example.com/api?q=1")
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, u.Host, "example.com")
+    test.AssertEqual(t, u.Path, "/api")
 
-# --- TestYamlPretty ---
-type YamlPrettyCase
-    name string
-    data map of string to any
-    contains string
-
-func TestYamlPretty(t reference testing.T)
-    cases := list of YamlPrettyCase{
-        YamlPrettyCase{
-        name: "basic map",
-        data: map of string to any{"user": map of string to any{"name": "sam"}},
-        contains: "user",
-    },
-    }
-
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            pretty, err := parse.YamlPretty(tc.data)
-            test.AssertNoError(t, err)
-            test.AssertTrue(t, kukistring.Contains(pretty as string, tc.contains))
-        )
-
-# --- TestYaml ---
-type JsonYamlCase
-    name string
-    payload string
-    want string
-
-func TestYaml(t reference testing.T)
-    cases := list of JsonYamlCase{
-        JsonYamlCase{
-        name: "basic yaml",
-        payload: "user: alice\nemail: test@example.com",
-        want: "user: alice\nemail: test@example.com",
-    },
-    }
-
-    for tc in cases
-        t.Run(tc.name, (t reference testing.T) =>
-            result, err := parse.Yaml(tc.payload)
-            test.AssertNoError(t, err)
-            test.AssertEqual(t, result as string, tc.want)
-        )
+# --- TestQuery ---
+func TestQuery(t reference testing.T)
+    v, err := parse.Query("name=ada&age=30")
+    test.AssertNoError(t, err)
+    test.AssertEqual(t, v.Get("name"), "ada")
+    test.AssertEqual(t, v.Get("age"), "30")

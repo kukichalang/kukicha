@@ -22,7 +22,6 @@ import "context"
 import "net"
 import "net/http"
 import "stdlib/datetime"
-import "stdlib/net" as netutil
 import "syscall"
 
 type Guard
@@ -34,7 +33,9 @@ type Guard
 func parseCIDRs(cidrs list of string) (list of reference net.IPNet, error)
     nets := make(list of reference net.IPNet, 0)
     for cidr in cidrs
-        network := netutil.ParseCIDR(cidr) onerr explain "netguard: invalid CIDR "
+        _, network, err := net.ParseCIDR(cidr)
+        if err isnt empty
+            return empty, error "netguard: invalid CIDR {cidr}: {err}"
         nets = append(nets, network)
     return nets, empty
 
@@ -42,7 +43,7 @@ func parseCIDRs(cidrs list of string) (list of reference net.IPNet, error)
 func checkIP(g Guard, ip net.IP) bool
     matched := false
     for n in g.networks
-        if netutil.Contains(n, ip)
+        if n.Contains(ip)
             matched = true
             break
 
@@ -93,8 +94,8 @@ func NewSSRFGuard() Guard
 # Check validates a single IP string against the guard policy.
 # Returns true if the IP is allowed, false if blocked.
 func Check(g Guard, ipStr string) bool
-    ip := netutil.ParseIP(ipStr)
-    if netutil.IsNil(ip)
+    ip := net.ParseIP(ipStr)
+    if ip equals empty
         return false
     return checkIP(g, ip)
 

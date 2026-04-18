@@ -25,7 +25,7 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/encoding` | Base64 and hex encoding/decoding | Base64Encode, Base64Decode, Base64URLEncode, Base64URLDecode, Base64RawEncode, Base64RawURLEncode, HexEncode, HexDecode |
 | `stdlib/env` | Typed env vars with onerr | Get, GetOr, GetInt, GetIntOrDefault, GetBool, GetBoolOrDefault, GetFloat, GetList, Set, Unset, IsSet, All |
 | `stdlib/errors` | Error wrapping and inspection | Wrap, Opaque, Is, Unwrap, New, Join, NewPublic, Public |
-| `stdlib/fetch` | HTTP client (Builder, Auth, Sessions, Safe URL helpers, Retry) | Get, SafeGet, Post, Json, Decode, Text, Bytes, CheckStatus, URLTemplate, URLWithQuery, PathEscape, QueryEscape, New/Header/Timeout/Retry/MaxBodySize/Transport/Do, BearerAuth, BasicAuth, FormData, NewSession, DownloadTo |
+| `stdlib/fetch` | HTTP client (Builder, Auth, Sessions, Safe URL helpers, Retry) | Get, SafeGet, Post, Json, Decode, Text, Bytes, CheckStatus, URLTemplate, URLWithQuery, PathEscape, QueryEscape, New, NewExternal, Header/Timeout/Retry/MaxBodySize/Transport/Do, BearerAuth, BasicAuth, FormData, NewSession, DownloadTo |
 | `stdlib/files` | File I/O operations | Read, ReadBytes, Write, WriteString, Append, AppendString, Exists, IsDir, IsFile, Copy, Move, Delete, DeleteAll, List, ListRecursive, MkDir, MkDirAll, TempFile, TempDir, Size, ModTime, Basename, Dirname, Extension, Join, Abs, UseWith, Watch |
 | `stdlib/game` | 2D game library (kukichalang/game, Ebitengine wrapper, **WASM-only**) | Window, OnSetup, OnUpdate, OnDraw, Run, Clear, DrawRect, DrawCircle, DrawLine, DrawText, IsKeyDown, IsKeyPressed, MousePosition, MouseClicked, Overlaps, OverlapsCircle, CircleOverlapsRect, MakeColor, Random, RandomFloat, FrameCount |
 | `stdlib/git` | Git/GitHub operations via gh CLI | ListTags, TagExists, DefaultBranch, CurrentBranch, ReleaseExists, CreateRelease, PreviewRelease, RepoExists, CurrentUser, Clone, CloneShallow |
@@ -39,7 +39,6 @@ Each package lives in `stdlib/<name>/` with:
 | `stdlib/set` | Generic set operations | From, Add, AddIn, Remove, RemoveIn, Contains, Len, IsEmpty, ToSlice, Union, Intersect, Difference, IsSubset, IsSuperset, Equal |
 | `stdlib/mcp` | Model Context Protocol server + client | New, Serve, Tool, Prop, Schema, Required, TextResult, ErrorResult, Connect, BearerConnect, ConnectWithClient, Close, ListTools, CallTool |
 | `stdlib/must` | Panic-on-error startup helpers | Do, DoMsg, Ok, OkMsg, Env, EnvOr, EnvInt, EnvIntOr, EnvBool, EnvBoolOr, EnvList, EnvListOr, True, False, NotEmpty, NotNil |
-| `stdlib/net` | IP address and CIDR utilities | ParseIP, ParseCIDR, Contains, SplitHostPort, JoinHostPort, LookupHost, IsLoopback, IsPrivate, IsMulticast, IsNil, IPString |
 | `stdlib/netguard` | Network restriction & SSRF protection | NewSSRFGuard, NewAllow, NewBlock, Check, DialContext, HTTPTransport, HTTPClient |
 | `stdlib/obs` | Structured observability helpers | New, Component, WithCorrelation, NewCorrelationID, Debug, Info, Warn, Error, Log, Start, Stop, Fail |
 | `stdlib/parse` | Data format parsing | Json, JsonLines, JsonPretty, Csv, CsvWithHeader, Yaml, YamlPretty |
@@ -106,7 +105,7 @@ The compiler enforces several security checks. Use the safe alternatives below t
 |----------|------------------------|------------------|
 | **SQL Injection** | `db.Query(pool, "SELECT * FROM t WHERE name = '{name}'")` | `db.Query(pool, "SELECT * FROM t WHERE name = $1", name)` |
 | **XSS** | `http.HTML(w, userInput)` | `http.SafeHTML(w, userInput)`, `html.Render()` with `html.Escape()`, or `template.HTMLRenderSimple(...)` |
-| **SSRF** | `fetch.Get(url)` (in HTTP handler) | `fetch.SafeGet(url)` |
+| **SSRF** | `fetch.Get(url)` (in HTTP handler) | `fetch.SafeGet(url)` one-shot, or `fetch.NewExternal(url) \|> ... \|> Do()` for chains |
 | **Open Redirect** | `http.Redirect(w, r, userURL)` | `http.SafeRedirect(w, r, url, "example.com")` |
 | **Path Traversal** | `files.Read(userInput)` (in HTTP handler) | `sandbox.New("/var/data")` + `sandbox.Read(box, userInput)` |
 | **Command Injection** | `shell.Run("git log {branch}")` | `shell.Output("git", "log", branch)` |
@@ -128,7 +127,6 @@ When a package's last path segment collides with a local variable name, use `as`
 | `stdlib/string` | `strpkg` | Clashes with `string` type name |
 | `stdlib/container` | `docker` | Clashes with local `container` variables |
 | `stdlib/http` | `httphelper` | Clashes with `net/http` |
-| `stdlib/net` | `netutil` | Clashes with `net` stdlib package |
 
 ## Common Pitfalls
 

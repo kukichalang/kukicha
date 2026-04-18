@@ -7,12 +7,12 @@ import "html"
 import "io"
 import "net/http"
 import "net/url"
-import "stdlib/cast"
 import "stdlib/fetch"
 import "stdlib/json"
 import "stdlib/slice"
 import "stdlib/string"
 import "stdlib/validate"
+import "strconv"
 
 # HTTP Status Codes
 const StatusOK = 200
@@ -195,7 +195,7 @@ func GetQueryInt(r reference http.Request, key string) (int, error)
     value := r.URL.Query().Get(key)
     if value equals ""
         return 0, error "query parameter '{key}' is required"
-    val := cast.Atoi(value) onerr return 0, error "query parameter '{key}' must be an integer"
+    val := strconv.Atoi(value) onerr return 0, error "query parameter '{key}' must be an integer"
     return val, empty
 
 # GetQueryIntOr returns a query parameter as an integer, or default if not present/invalid
@@ -205,7 +205,7 @@ func GetQueryIntOr(r reference http.Request, key string, defaultValue int) int
     value := r.URL.Query().Get(key)
     if value equals ""
         return defaultValue
-    val := cast.Atoi(value) onerr return defaultValue
+    val := strconv.Atoi(value) onerr return defaultValue
     return val
 
 # GetQueryBool returns a query parameter as a boolean

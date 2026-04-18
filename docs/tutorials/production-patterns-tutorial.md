@@ -626,21 +626,21 @@ function ReadAll(r io.Reader) (string, error)
     return data as string, empty
 ```
 
-### IP Utilities with `net`
+### IP Utilities with Go's `net`
 
 ```kukicha
-import "stdlib/net" as netutil
+import "net"
 
 # Validate an IP from a request header (e.g., X-Forwarded-For)
 function TrustedIP(ipStr string) bool
-    ip := netutil.ParseIP(ipStr)
-    if netutil.IsNil(ip)
+    ip := net.ParseIP(ipStr)
+    if ip equals empty
         return false
     # Reject requests from loopback/private ranges in production
-    return not netutil.IsPrivate(ip) and not netutil.IsLoopback(ip)
+    return not ip.IsPrivate() and not ip.IsLoopback()
 ```
 
-`stdlib/net` wraps Go's `net` package with null-safe helpers and readable names. Useful for IP-based rate limiting, access control, and SSRF protection alongside `stdlib/netguard`.
+Go's `net` package covers IP/CIDR parsing and classification directly. For SSRF protection on outbound fetches, see `stdlib/netguard`.
 
 ### Token Encoding with `encoding`
 

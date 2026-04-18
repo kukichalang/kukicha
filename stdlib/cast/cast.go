@@ -9,149 +9,137 @@ import (
 	"strconv"
 )
 
-//line stdlib/cast/cast.kuki:18
-func Atoi(s string) (int, error) {
-//line stdlib/cast/cast.kuki:19
-	return strconv.Atoi(s)
-}
-
-//line stdlib/cast/cast.kuki:24
-func ParseFloat(s string, bitSize int) (float64, error) {
-//line stdlib/cast/cast.kuki:25
-	return strconv.ParseFloat(s, bitSize)
-}
-
-//line stdlib/cast/cast.kuki:29
+//line stdlib/cast/cast.kuki:17
 func SmartInt(value any) (int, error) {
-//line stdlib/cast/cast.kuki:30
+//line stdlib/cast/cast.kuki:18
 	switch v := value.(type) {
 	case int:
-//line stdlib/cast/cast.kuki:32
+//line stdlib/cast/cast.kuki:20
 		return v, nil
 	case int64:
-//line stdlib/cast/cast.kuki:34
+//line stdlib/cast/cast.kuki:22
 		return int(v), nil
 	case float64:
-//line stdlib/cast/cast.kuki:36
+//line stdlib/cast/cast.kuki:24
 		return int(v), nil
 	case string:
-//line stdlib/cast/cast.kuki:38
+//line stdlib/cast/cast.kuki:26
 		n, err := strconv.Atoi(v)
-//line stdlib/cast/cast.kuki:39
+//line stdlib/cast/cast.kuki:27
 		return n, err
 	case jsonpkg.Number:
-//line stdlib/cast/cast.kuki:41
+//line stdlib/cast/cast.kuki:29
 		i, err := v.Int64()
-//line stdlib/cast/cast.kuki:42
+//line stdlib/cast/cast.kuki:30
 		return int(i), err
 	case bool:
-//line stdlib/cast/cast.kuki:44
+//line stdlib/cast/cast.kuki:32
 		if v {
-//line stdlib/cast/cast.kuki:45
+//line stdlib/cast/cast.kuki:33
 			return 1, nil
 		}
-//line stdlib/cast/cast.kuki:46
+//line stdlib/cast/cast.kuki:34
 		return 0, nil
 	}
-//line stdlib/cast/cast.kuki:48
+//line stdlib/cast/cast.kuki:36
 	return 0, errors.New("cannot convert to int")
 }
 
-//line stdlib/cast/cast.kuki:52
+//line stdlib/cast/cast.kuki:40
 func SmartFloat64(value any) (float64, error) {
-//line stdlib/cast/cast.kuki:53
+//line stdlib/cast/cast.kuki:41
 	switch v := value.(type) {
 	case float64:
-//line stdlib/cast/cast.kuki:55
+//line stdlib/cast/cast.kuki:43
 		return v, nil
 	case float32:
-//line stdlib/cast/cast.kuki:57
+//line stdlib/cast/cast.kuki:45
 		return float64(v), nil
 	case int:
-//line stdlib/cast/cast.kuki:59
+//line stdlib/cast/cast.kuki:47
 		return float64(v), nil
 	case int64:
-//line stdlib/cast/cast.kuki:61
+//line stdlib/cast/cast.kuki:49
 		return float64(v), nil
 	case string:
-//line stdlib/cast/cast.kuki:63
+//line stdlib/cast/cast.kuki:51
 		f, err := strconv.ParseFloat(v, 64)
-//line stdlib/cast/cast.kuki:64
+//line stdlib/cast/cast.kuki:52
 		return f, err
 	case jsonpkg.Number:
-//line stdlib/cast/cast.kuki:66
+//line stdlib/cast/cast.kuki:54
 		f, err := v.Float64()
-//line stdlib/cast/cast.kuki:67
+//line stdlib/cast/cast.kuki:55
 		return f, err
 	case bool:
-//line stdlib/cast/cast.kuki:69
+//line stdlib/cast/cast.kuki:57
 		if v {
-//line stdlib/cast/cast.kuki:70
+//line stdlib/cast/cast.kuki:58
 			return 1.0, nil
 		}
-//line stdlib/cast/cast.kuki:71
+//line stdlib/cast/cast.kuki:59
 		return 0.0, nil
 	}
-//line stdlib/cast/cast.kuki:73
+//line stdlib/cast/cast.kuki:61
 	return 0.0, errors.New("cannot convert to float64")
 }
 
-//line stdlib/cast/cast.kuki:77
+//line stdlib/cast/cast.kuki:65
 func SmartBool(value any) (bool, error) {
-//line stdlib/cast/cast.kuki:78
+//line stdlib/cast/cast.kuki:66
 	switch v := value.(type) {
 	case bool:
-//line stdlib/cast/cast.kuki:80
+//line stdlib/cast/cast.kuki:68
 		return v, nil
 	case int:
-//line stdlib/cast/cast.kuki:82
+//line stdlib/cast/cast.kuki:70
 		return (v != 0), nil
 	case float64:
-//line stdlib/cast/cast.kuki:84
+//line stdlib/cast/cast.kuki:72
 		return (v != 0.0), nil
 	case string:
-//line stdlib/cast/cast.kuki:86
+//line stdlib/cast/cast.kuki:74
 		b, err := strconv.ParseBool(v)
-//line stdlib/cast/cast.kuki:87
+//line stdlib/cast/cast.kuki:75
 		return b, err
 	}
-//line stdlib/cast/cast.kuki:89
+//line stdlib/cast/cast.kuki:77
 	return false, errors.New("cannot convert to bool")
 }
 
-//line stdlib/cast/cast.kuki:93
+//line stdlib/cast/cast.kuki:81
 func SmartString(value any) (string, error) {
-//line stdlib/cast/cast.kuki:94
+//line stdlib/cast/cast.kuki:82
 	if value == nil {
-//line stdlib/cast/cast.kuki:95
+//line stdlib/cast/cast.kuki:83
 		return "", nil
 	}
-//line stdlib/cast/cast.kuki:96
+//line stdlib/cast/cast.kuki:84
 	result := func() string {
 		switch v := value.(type) {
 		case string:
-//line stdlib/cast/cast.kuki:98
+//line stdlib/cast/cast.kuki:86
 			return v
 		case int:
-//line stdlib/cast/cast.kuki:100
+//line stdlib/cast/cast.kuki:88
 			return strconv.Itoa(v)
 		case int64:
-//line stdlib/cast/cast.kuki:102
+//line stdlib/cast/cast.kuki:90
 			return strconv.FormatInt(v, 10)
 		case float64:
-//line stdlib/cast/cast.kuki:104
+//line stdlib/cast/cast.kuki:92
 			return fmt.Sprintf("%g", v)
 		case bool:
-//line stdlib/cast/cast.kuki:106
+//line stdlib/cast/cast.kuki:94
 			return strconv.FormatBool(v)
 		case []byte:
-//line stdlib/cast/cast.kuki:108
+//line stdlib/cast/cast.kuki:96
 			return string(v)
 		default:
-//line stdlib/cast/cast.kuki:110
+//line stdlib/cast/cast.kuki:98
 			return fmt.Sprintf("%v", value)
 		}
 	}()
-//line stdlib/cast/cast.kuki:112
+//line stdlib/cast/cast.kuki:100
 	return result, nil
 }

@@ -60,7 +60,7 @@ items list of string
 
 **Cause:** Using `onerr` or pipe `|>` with a stdlib function that returns `(T, error)`, but the compiler doesn't recognize the function's return count. The semantic analyzer uses a generated registry of known external function return counts.
 
-**Context:** This affects pipe chains with `onerr` where the function is from a stdlib package (e.g., `parse.CsvWithHeader`, `json.MarshalPretty`). The compiler needs to know the function returns 2 values so it can split the assignment into `val, err := f()`.
+**Context:** This affects pipe chains with `onerr` where the function is from a stdlib package (e.g., `parse.CSVRecords`, `json.MarshalPretty`). The compiler needs to know the function returns 2 values so it can split the assignment into `val, err := f()`.
 
 **Solution:** The registry is now auto-generated from stdlib `.kuki` sources — do **not** edit `semantic.go` manually.
 

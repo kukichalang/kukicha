@@ -105,7 +105,7 @@ The compiler wraps the switch in an IIFE: `func() { switch role { ... } }()`.
 
 ```kukicha
 processed := data
-    |> parse.Json(list of User)
+    |> parse.CSVRecords()
     |> fetch.EnrichWithDB()
     |> validate.Safe()
     onerr panic "pipeline failed: {error}"

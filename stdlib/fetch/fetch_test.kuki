@@ -420,3 +420,20 @@ func TestSession(t reference testing.T)
             test.AssertNoError(t, errText)
             test.AssertEqual(t, text, "logged in")
         )
+
+# --- TestNewExternal ---
+# NewExternal wires the SSRF guard into the transport, so any request to a
+# loopback/private address should be refused by netguard before the dial
+# reaches the test server. We assert the refusal, which proves the guard is
+# installed without needing a public endpoint.
+func TestNewExternal(t reference testing.T)
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r reference http.Request)
+        w.WriteHeader(http.StatusOK)
+    ))
+
+    defer server.Close()
+
+    resp, err := fetch.NewExternal(server.URL) |> fetch.Do()
+    test.AssertError(t, err)
+    if resp isnt empty
+        resp.Body.Close()

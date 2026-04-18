@@ -5,9 +5,9 @@ package env
 import (
 	"errors"
 	"fmt"
-	"github.com/kukichalang/kukicha/stdlib/cast"
 	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"os"
+	"strconv"
 )
 
 //line stdlib/env/env.kuki:14
@@ -46,7 +46,7 @@ func GetInt(key string) (int, error) {
 		return 0, fmt.Errorf("environment variable %v is not set", key)
 	}
 //line stdlib/env/env.kuki:36
-	n, err := cast.Atoi(value)
+	n, err := strconv.Atoi(value)
 //line stdlib/env/env.kuki:37
 	if err != nil {
 //line stdlib/env/env.kuki:38
@@ -66,7 +66,7 @@ func GetIntOr(key string, defaultValue int) (int, error) {
 		return defaultValue, nil
 	}
 //line stdlib/env/env.kuki:48
-	n, err := cast.Atoi(value)
+	n, err := strconv.Atoi(value)
 //line stdlib/env/env.kuki:49
 	if err != nil {
 //line stdlib/env/env.kuki:50
@@ -86,7 +86,7 @@ func GetIntOrDefault(key string, defaultValue int) int {
 		return defaultValue
 	}
 //line stdlib/env/env.kuki:60
-	n, err := cast.Atoi(value)
+	n, err := strconv.Atoi(value)
 //line stdlib/env/env.kuki:61
 	if err != nil {
 //line stdlib/env/env.kuki:62
@@ -152,7 +152,7 @@ func GetFloat(key string) (float64, error) {
 		return 0.0, fmt.Errorf("environment variable %v is not set", key)
 	}
 //line stdlib/env/env.kuki:103
-	n, err := cast.ParseFloat(value, 64)
+	n, err := strconv.ParseFloat(value, 64)
 //line stdlib/env/env.kuki:104
 	if err != nil {
 //line stdlib/env/env.kuki:105
@@ -172,7 +172,7 @@ func GetFloatOr(key string, defaultValue float64) (float64, error) {
 		return defaultValue, nil
 	}
 //line stdlib/env/env.kuki:115
-	n, err := cast.ParseFloat(value, 64)
+	n, err := strconv.ParseFloat(value, 64)
 //line stdlib/env/env.kuki:116
 	if err != nil {
 //line stdlib/env/env.kuki:117

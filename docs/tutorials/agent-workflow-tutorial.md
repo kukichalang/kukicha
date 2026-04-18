@@ -127,6 +127,24 @@ You don't need to understand every detail — verify the program does what you i
 - [ ] Does `onerr panic` make sense here? Fine for tools; prefer `onerr return` for production.
 - [ ] Any hardcoded secrets? (Use `stdlib/env` or `stdlib/must` for those.)
 - [ ] Are external URLs correct?
+- [ ] Any URL that came from an LLM, tool output, or user input is fetched with `fetch.NewExternal` — not `fetch.Get` or `fetch.New`.
+
+### Fetching URLs from LLM output
+
+Agents routinely extract URLs from chat messages, tool results, or user prompts and fetch them. That's an SSRF risk — a crafted URL like `http://169.254.169.254/...` can exfiltrate cloud instance metadata, and `http://localhost:6379` can reach internal services.
+
+Use `fetch.NewExternal` whenever the URL didn't come from your own code:
+
+```kukicha
+import "stdlib/fetch"
+
+func fetchCitation(urlFromLLM string) (string, error)
+    resp := fetch.NewExternal(urlFromLLM) |> fetch.Do() onerr return "", error
+    defer resp.Body.Close()
+    return fetch.Text(resp)
+```
+
+`NewExternal` blocks private, loopback, link-local, and cloud-metadata IPs at dial time. Use plain `fetch.New` / `fetch.Get` only for URLs hard-coded in your program or loaded from trusted config.
 
 ---
 
@@ -268,8 +286,8 @@ MCP (Model Context Protocol) lets you extend AI agents with custom tools. Build 
 ### Example: DNS lookup tool
 
 ```kukicha
+import "net"
 import "stdlib/mcp"
-import "stdlib/net"
 import "stdlib/string"
 
 function lookupHost(hostname string) string
@@ -342,12 +360,12 @@ skill DnsLookup
     description: "Resolve hostnames to IP addresses."
     version: "1.0.0"
 
+import "net"
 import "stdlib/mcp"
-import "stdlib/net" as netutil
 import "stdlib/string" as strpkg
 
 function lookupHost(hostname string) string
-    ips := netutil.LookupHost(hostname) onerr return "lookup failed: {error}"
+    ips := net.LookupHost(hostname) onerr return "lookup failed: {error}"
     return strpkg.Join(ips, ", ")
 
 function main()

@@ -803,7 +803,7 @@ One line. One intent. Hard to miss.
 When you need more than one statement in the error handler:
 
 ```
-users := csvData |> parse.CsvWithHeader() onerr
+users := csvData |> parse.CSVRecords() onerr
     print("Failed to parse CSV: {error}")
     metrics.Inc("parse.errors")
     return

@@ -363,7 +363,6 @@ import "stdlib/json"      as jsonpkg    # clashes with 'encoding/json'
 import "stdlib/string"    as strpkg     # clashes with 'string' type
 import "stdlib/container" as docker     # clashes with 'container' vars
 import "stdlib/http"      as httphelper # clashes with 'net/http'
-import "stdlib/net"       as netutil    # clashes with 'net' package
 
 import "github.com/jackc/pgx/v5" as pgx  # external package
 ```
@@ -484,7 +483,7 @@ resp := fetch.New(url)
     |> fetch.Do() onerr panic "{error}"
 ```
 
-Key: `Get`, `SafeGet` (SSRF-safe), `Post`, `Json`, `Text`, `Bytes`, `CheckStatus`, `URLTemplate`, `URLWithQuery`, `New`/`BearerAuth`/`Timeout`/`Retry`/`MaxBodySize`/`Do`, `DownloadTo`
+Key: `Get`, `SafeGet` (SSRF-safe), `Post`, `Json`, `Text`, `Bytes`, `CheckStatus`, `URLTemplate`, `URLWithQuery`, `New`/`NewExternal` (SSRF-safe builder)/`BearerAuth`/`Timeout`/`Retry`/`MaxBodySize`/`Do`, `DownloadTo`
 
 **http** (as `httphelper`) — Response helpers + security
 
@@ -505,9 +504,7 @@ page := html.Render("<h1>{html.Escape(title)}</h1>")
 html.WriteTo(w, page) onerr discard
 ```
 
-**net** (as `netutil`) — `ParseIP`, `ParseCIDR`, `Contains`, `IsPrivate`, `IsLoopback`
-
-**netguard** — SSRF protection: `NewSSRFGuard`, `NewAllow`, `NewBlock`, `Check`, `HTTPClient`, `HTTPTransport`
+**netguard** — SSRF protection: `NewSSRFGuard`, `NewAllow`, `NewBlock`, `Check`, `HTTPClient`, `HTTPTransport`. For IP/CIDR parsing, use Go's `net` package directly.
 
 #### CLI & System
 
@@ -642,7 +639,7 @@ The compiler **rejects** these patterns in HTTP handlers (functions with `http.R
 | Pattern | Fix |
 |---------|-----|
 | `httphelper.HTML(w, nonLiteral)` | `httphelper.SafeHTML(w, content)` |
-| `fetch.Get(url)` in handler | `fetch.SafeGet(url)` |
+| `fetch.Get(url)` in handler | `fetch.SafeGet(url)` (or `fetch.NewExternal(url) \|> ... \|> Do()` for builder) |
 | `files.Read(path)` in handler | `sandbox.New(root)` + `sandbox.Read(box, path)` |
 | `shell.Run("cmd {var}")` | `shell.Output("cmd", arg)` |
 | `httphelper.Redirect(w, r, nonLiteral)` | `httphelper.SafeRedirect(w, r, url, "host")` |

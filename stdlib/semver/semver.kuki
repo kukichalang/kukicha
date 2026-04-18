@@ -10,10 +10,10 @@
 petiole semver
 
 import "fmt"
-import "stdlib/cast"
 import "stdlib/slice"
 import "stdlib/sort"
 import "stdlib/string"
+import "strconv"
 
 # Version represents a parsed semver tag
 type Version
@@ -36,9 +36,9 @@ func Parse(tag string) (Version, error)
     if len(parts) isnt 3
         return {}, error "invalid semver: {tag}"
 
-    major := cast.Atoi(parts[0]) onerr return {}, error "invalid semver: {tag}"
-    minor := cast.Atoi(parts[1]) onerr return {}, error "invalid semver: {tag}"
-    patch := cast.Atoi(parts[2]) onerr return {}, error "invalid semver: {tag}"
+    major := strconv.Atoi(parts[0]) onerr return {}, error "invalid semver: {tag}"
+    minor := strconv.Atoi(parts[1]) onerr return {}, error "invalid semver: {tag}"
+    patch := strconv.Atoi(parts[2]) onerr return {}, error "invalid semver: {tag}"
 
     if major < 0 or minor < 0 or patch < 0
         return {}, error "invalid semver: {tag}"

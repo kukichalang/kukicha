@@ -199,14 +199,27 @@ func Get(url string) (reference http.Response, error)
 
     return resp, empty
 
+# NewExternal creates a request builder pre-configured to block private,
+# loopback, link-local, and cloud-metadata IPs. Use for any URL that came
+# from outside your code — user input, AI/tool output, config files — so
+# the fetch can't be tricked into reaching internal services.
+# Chain it like any other request: headers, auth, body, retry, Do().
+# Example: resp := fetch.NewExternal(url)
+#     |> fetch.BearerAuth(token)
+#     |> fetch.Method("POST")
+#     |> fetch.Body(payload)
+#     |> fetch.Do() onerr return
+# kuki:security "fetch"
+func NewExternal(url string) Request
+    guard := netguard.NewSSRFGuard()
+    return New(url) |> Transport(netguard.HTTPTransport(guard))
+
 # SafeGet performs an SSRF-protected HTTP GET request
 # Uses netguard to block requests to internal IPs, cloud metadata endpoints,
 # and loopback addresses. Use this instead of fetch.Get inside HTTP handlers.
 # Example: resp, err := fetch.SafeGet("https://api.example.com/data")
 func SafeGet(url string) (reference http.Response, error)
-    guard := netguard.NewSSRFGuard()
-    transport := netguard.HTTPTransport(guard)
-    resp := New(url) |> Transport(transport) |> Do() onerr return
+    resp := NewExternal(url) |> Do() onerr return
 
     return resp, empty
 

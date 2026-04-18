@@ -1,47 +1,43 @@
-# Kukicha Standard Library - Parse (Data Format Parsing)
+# Kukicha Standard Library - Parse (Ergonomic Data-Format Parsing)
+#
+# Turn strings into structured data with one call. Use these when you
+# have raw text (CSV, YAML, JSON, a duration, a URL) and want a value
+# you can work with. For streaming or builder-style JSON, reach for the
+# json package instead.
 
 petiole parse
 
 import "bytes"
 import "encoding/csv"
+import "net/url"
 import "stdlib/json"
 import "stdlib/string"
+import "time"
 
 import "gopkg.in/yaml.v3"
 
-# Json parses a JSON string into a value
-# This is a convenience wrapper around json.Unmarshal
-# Example: jsonData |> parse.Json() |> json.Unmarshal(reference config)
-func Json(data string) (list of byte, error)
-    return data as list of byte, empty
+# JSON parses a JSON string into target. Target must be a pointer.
+# Example: parse.JSON(body, reference of user) onerr return
+func JSON(data string, target any) error
+    return json.UnmarshalString(data, target)
 
-# JsonLines parses newline-delimited JSON (NDJSON format)
-# Returns a list of JSON strings, one for each line
-# Example: ndjsonData |> parse.JsonLines() |> slice.Map(parse.Json) |> slice.Map(parseToType)
-func JsonLines(data string) (list of string, error)
-    lines := string.Split(data, "\n")
-    result := make(list of string, 0, len(lines))
-    for line in lines
-        line = string.TrimSpace(line)
-        if len(line) > 0
-            result = append(result, line)
-    return result, empty
+# JSONLines splits newline-delimited JSON (NDJSON) into trimmed, non-empty
+# lines. Decode each line with parse.JSON to get values.
+# Example: for line in parse.JSONLines(ndjson)
+func JSONLines(data string) list of string
+    return splitNonEmpty(data)
 
-# JsonPretty formats a value as indented JSON bytes
-# Uses encoding/json MarshalIndent for pretty-printing
-# Example: config |> parse.JsonPretty()
-func JsonPretty(value any) (list of byte, error)
-    pretty := value |> json.MarshalPretty() onerr return
-    return pretty, empty
+# YAML parses a YAML string into target. Target must be a pointer.
+# Example: parse.YAML(configText, reference of config) onerr return
+func YAML(data string, target any) error
+    return yaml.Unmarshal(data as list of byte, target)
 
 func readAllCSV(reader reference csv.Reader) (list of list of string, error)
     return reader.ReadAll()
 
-# Csv parses a CSV string into a list of records
-# Each record is a list of strings representing the columns
-# Returns the parsed records and any error that occurred
-# Example: csvStr |> parse.Csv()
-func Csv(data string) (list of list of string, error)
+# CSV parses a CSV string into a list of rows. Each row is a list of fields.
+# Example: rows := csvText |> parse.CSV() onerr return
+func CSV(data string) (list of list of string, error)
     records := data
         |> bytes.NewBufferString()
         |> csv.NewReader()
@@ -49,12 +45,10 @@ func Csv(data string) (list of list of string, error)
 
     return records, empty
 
-# CsvWithHeader parses a CSV string with headers
-# Returns a list of maps where keys are column headers
-# The first row is treated as the header row
-# Returns the parsed records and any error that occurred
-# Example: csvStr |> parse.CsvWithHeader()
-func CsvWithHeader(data string) (list of map of string to string, error)
+# CSVRecords parses CSV text that has a header row and returns one
+# map per data row, keyed by header name.
+# Example: rows := csvText |> parse.CSVRecords() onerr return
+func CSVRecords(data string) (list of map of string to string, error)
     records := data
         |> bytes.NewBufferString()
         |> csv.NewReader()
@@ -66,13 +60,11 @@ func CsvWithHeader(data string) (list of map of string to string, error)
     headers := records[0]
     result := make(list of map of string to string, 0, len(records) - 1)
 
-    # Process each row starting from index 1
     numRecords := len(records)
     for i from 1 to numRecords
         row := records[i]
         rowMap := make(map of string to string)
 
-        # Process each column
         numHeaders := len(headers)
         numCols := len(row)
         maxCols := min(numCols, numHeaders)
@@ -84,14 +76,35 @@ func CsvWithHeader(data string) (list of map of string to string, error)
 
     return result, empty
 
-# Yaml parses a YAML string into a value
-# Returns the YAML data as bytes for use with yaml.Unmarshal
-# Example: yamlData |> parse.Yaml() |> yaml.Unmarshal(reference config)
-func Yaml(data string) (list of byte, error)
-    return data as list of byte, empty
+# Lines splits text into trimmed, non-empty lines. Handy for iterating
+# command output or pasted blocks without a separate trim pass.
+# Example: for line in parse.Lines(output)
+func Lines(data string) list of string
+    return splitNonEmpty(data)
 
-# YamlPretty formats a value as YAML bytes
-# Example: config |> parse.YamlPretty()
-func YamlPretty(value any) (list of byte, error)
-    val := yaml.Marshal(value) onerr return
-    return val, empty
+func splitNonEmpty(data string) list of string
+    raw := string.Split(data, "\n")
+    result := make(list of string, 0, len(raw))
+    for line in raw
+        line = string.TrimSpace(line)
+        if len(line) > 0
+            result = append(result, line)
+    return result
+
+# Duration parses a duration string like "1h30m", "250ms", or "2.5s".
+# Example: timeout := parse.Duration("30s") onerr return
+func Duration(s string) (time.Duration, error)
+    d := time.ParseDuration(s) onerr return
+    return d, empty
+
+# URL parses a URL string into a structured url.URL value.
+# Example: u := parse.URL("https://example.com/api?q=1") onerr return
+func URL(s string) (reference url.URL, error)
+    u := url.Parse(s) onerr return
+    return u, empty
+
+# Query parses a URL query string (no leading "?") into a values map.
+# Example: params := parse.Query("name=ada&age=30") onerr return
+func Query(s string) (url.Values, error)
+    v := url.ParseQuery(s) onerr return
+    return v, empty

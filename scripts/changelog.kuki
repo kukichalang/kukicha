@@ -14,7 +14,6 @@
 #   export MISTRAL_API_KEY="..."
 
 import "os"
-import "stdlib/cast"
 import "stdlib/cli"
 import "stdlib/datetime"
 import "stdlib/files"
@@ -24,6 +23,7 @@ import "stdlib/semver"
 import "stdlib/shell"
 import "stdlib/slice"
 import "stdlib/string" as strpkg
+import "strconv"
 
 type ChangelogResult
     version string as "version"
@@ -64,13 +64,17 @@ func extractUsername(email string) string
 # firstPRForCommit queries the GitHub API to find the PR number associated
 # with the given commit SHA. Returns 0 if no PR is found or on error.
 func firstPRForCommit(sha string) int
-    raw := shell.Output("gh", "api",
+    raw := shell.Output(
+        "gh",
+        "api",
         "/repos/kukichalang/kukicha/commits/{sha}/pulls",
-        "--jq", ".[0].number") onerr ""
+        "--jq",
+        ".[0].number",
+    ) onerr ""
     raw = strpkg.TrimSpace(raw)
     if raw equals "" or raw equals "null"
         return 0
-    num := cast.Atoi(raw) onerr 0
+    num := strconv.Atoi(raw) onerr 0
     return num
 
 # findNewContributors returns contributors who appear for the first time in
@@ -78,14 +82,11 @@ func firstPRForCommit(sha string) int
 # Bot/AI accounts are excluded. Requires `gh` to be authenticated.
 func findNewContributors(lastTag string, rangeArg string) list of ContributorInfo
     # authors in this release: "name|email" per line
-    currentRaw := shell.Output("git", "log", rangeArg,
-        "--format=%an|%ae", "--no-merges") onerr ""
-
+    currentRaw := shell.Output("git", "log", rangeArg, "--format=%an|%ae", "--no-merges") onerr ""
     # all-time authors before this release (emails only)
     priorEmails := make(map of string to bool)
     if lastTag isnt ""
-        priorRaw := shell.Output("git", "log", lastTag,
-            "--format=%ae", "--no-merges") onerr ""
+        priorRaw := shell.Output("git", "log", lastTag, "--format=%ae", "--no-merges") onerr ""
         for line in strpkg.Lines(priorRaw)
             email := strpkg.TrimSpace(line)
             if email isnt ""
@@ -115,9 +116,15 @@ func findNewContributors(lastTag string, rangeArg string) list of ContributorInf
             username = name
 
         # Find the first commit this contributor made in the range
-        firstSHARaw := shell.Output("git", "log", rangeArg,
-            "--author={email}", "--no-merges",
-            "--format=%H", "--reverse") onerr ""
+        firstSHARaw := shell.Output(
+            "git",
+            "log",
+            rangeArg,
+            "--author={email}",
+            "--no-merges",
+            "--format=%H",
+            "--reverse",
+        ) onerr ""
         lines := strpkg.Lines(strpkg.TrimSpace(firstSHARaw))
         prNum := 0
         if slice.IsNotEmpty(lines) and strpkg.TrimSpace(lines[0]) isnt ""
@@ -136,18 +143,18 @@ func buildNewContributorsSection(contributors list of ContributorInfo) string
     lines = append(lines, "\n### New Contributors\n")
     for c in contributors
         if c.prNumber > 0
-            lines = append(lines, "- @{c.username} made their first contribution in [#{c.prNumber}](https://github.com/kukichalang/kukicha/pull/{c.prNumber})")
+            lines = append(
+                lines,
+                "- @{c.username} made their first contribution in [#{c.prNumber}](https://github.com/kukichalang/kukicha/pull/{c.prNumber})",
+            )
         else
             lines = append(lines, "- @{c.username} made their first contribution")
     return strpkg.Join(lines, "\n") + "\n"
 
 func main()
-    _ = cli.New("changelog")
-        |> cli.Description("Generate CHANGELOG.md entries from git history using an LLM, don't mention changes to the CHANGELOG itself")
-        |> cli.Arg("version", "Release version (e.g. v0.5.0). Defaults to 'Unreleased'")
-        |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of progress prose", "false")
-        |> cli.Action(run)
-        |> cli.RunApp() onerr panic "{error}"
+    _ = cli.New("changelog") |> cli.Description(
+        "Generate CHANGELOG.md entries from git history using an LLM, don't mention changes to the CHANGELOG itself",
+    ) |> cli.Arg("version", "Release version (e.g. v0.5.0). Defaults to 'Unreleased'") |> cli.GlobalFlag("json", "Emit machine-readable JSON instead of progress prose", "false") |> cli.Action(run) |> cli.RunApp() onerr panic "{error}"
 
 func run(args cli.Args)
     version := cli.GetString(args, "version")
@@ -209,7 +216,9 @@ func generateChangelog(version string, jsonOut bool)
         if lastTag isnt ""
             print("Generating changelog for {version} ({releaseDate}) (commits since {lastTag})...")
         else
-            print("Generating changelog for {version} ({releaseDate}) (no prior tags found, using last 50 commits)...")
+            print(
+                "Generating changelog for {version} ({releaseDate}) (no prior tags found, using last 50 commits)...",
+            )
         print("")
         print(gitLog)
         print("")

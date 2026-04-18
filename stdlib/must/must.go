@@ -4,8 +4,8 @@ package must
 
 import (
 	"fmt"
-	"github.com/kukichalang/kukicha/stdlib/cast"
 	"github.com/kukichalang/kukicha/stdlib/env"
+	"strconv"
 )
 
 //line stdlib/must/must.kuki:14
@@ -84,7 +84,7 @@ func EnvInt(key string) int {
 		panic(fmt.Sprintf("must: environment variable %v is required but not set", key))
 	}
 //line stdlib/must/must.kuki:63
-	val, err_1 := cast.Atoi(value)
+	val, err_1 := strconv.Atoi(value)
 //line stdlib/must/must.kuki:63
 	if err_1 != nil {
 //line stdlib/must/must.kuki:63
@@ -104,7 +104,7 @@ func EnvIntOr(key string, defaultValue int) int {
 		return defaultValue
 	}
 //line stdlib/must/must.kuki:73
-	val, err_2 := cast.Atoi(value)
+	val, err_2 := strconv.Atoi(value)
 //line stdlib/must/must.kuki:73
 	if err_2 != nil {
 //line stdlib/must/must.kuki:73

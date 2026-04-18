@@ -5,10 +5,10 @@ package semver
 import (
 	"errors"
 	"fmt"
-	"github.com/kukichalang/kukicha/stdlib/cast"
 	"github.com/kukichalang/kukicha/stdlib/slice"
 	"github.com/kukichalang/kukicha/stdlib/sort"
 	kukistring "github.com/kukichalang/kukicha/stdlib/string"
+	"strconv"
 )
 
 //line stdlib/semver/semver.kuki:19
@@ -40,21 +40,21 @@ func Parse(tag string) (Version, error) {
 		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line stdlib/semver/semver.kuki:39
-	major, err_1 := cast.Atoi(parts[0])
+	major, err_1 := strconv.Atoi(parts[0])
 //line stdlib/semver/semver.kuki:39
 	if err_1 != nil {
 //line stdlib/semver/semver.kuki:39
 		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line stdlib/semver/semver.kuki:40
-	minor, err_2 := cast.Atoi(parts[1])
+	minor, err_2 := strconv.Atoi(parts[1])
 //line stdlib/semver/semver.kuki:40
 	if err_2 != nil {
 //line stdlib/semver/semver.kuki:40
 		return Version{}, fmt.Errorf("invalid semver: %v", tag)
 	}
 //line stdlib/semver/semver.kuki:41
-	patch, err_3 := cast.Atoi(parts[2])
+	patch, err_3 := strconv.Atoi(parts[2])
 //line stdlib/semver/semver.kuki:41
 	if err_3 != nil {
 //line stdlib/semver/semver.kuki:41

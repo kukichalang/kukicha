@@ -4,151 +4,137 @@ package parse_test
 
 import (
 	"github.com/kukichalang/kukicha/stdlib/parse"
-	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"github.com/kukichalang/kukicha/stdlib/test"
 	"testing"
+	"time"
 )
 
 //line stdlib/parse/parse_test.kuki:11
-type JsonCase struct {
-	name    string
-	payload string
-	want    string
+type User struct {
+	Name string
+	Age  int
 }
 
+//line stdlib/parse/parse_test.kuki:15
+func TestJSON(t *testing.T) {
 //line stdlib/parse/parse_test.kuki:16
-func TestJson(t *testing.T) {
+	u := *new(User)
 //line stdlib/parse/parse_test.kuki:17
-	cases := []JsonCase{JsonCase{name: "basic json", payload: "{\"status\":\"ok\"}", want: "{\"status\":\"ok\"}"}}
-//line stdlib/parse/parse_test.kuki:21
-	for _, tc := range cases {
-//line stdlib/parse/parse_test.kuki:22
-		t.Run(tc.name, func(t *testing.T) {
+	err := parse.JSON("{\"Name\":\"ada\",\"Age\":36}", &u)
+//line stdlib/parse/parse_test.kuki:18
+	test.AssertNoError(t, err)
+//line stdlib/parse/parse_test.kuki:19
+	test.AssertEqual(t, u.Name, "ada")
+//line stdlib/parse/parse_test.kuki:20
+	test.AssertEqual(t, u.Age, 36)
+}
+
 //line stdlib/parse/parse_test.kuki:23
-			result, err := parse.Json(tc.payload)
+func TestJSONLines(t *testing.T) {
 //line stdlib/parse/parse_test.kuki:24
-			test.AssertNoError(t, err)
+	lines := parse.JSONLines("{\"a\":1}\n\n {\"b\":2}\n")
 //line stdlib/parse/parse_test.kuki:25
-			test.AssertEqual(t, string(result), tc.want)
-		})
-	}
+	test.AssertEqual(t, len(lines), 2)
+//line stdlib/parse/parse_test.kuki:26
+	test.AssertEqual(t, lines[0], "{\"a\":1}")
+//line stdlib/parse/parse_test.kuki:27
+	test.AssertEqual(t, lines[1], "{\"b\":2}")
 }
 
-//line stdlib/parse/parse_test.kuki:29
-type JsonLinesCase struct {
-	name      string
-	ndjson    string
-	wantCount int
-	firstLine string
+//line stdlib/parse/parse_test.kuki:30
+type Config struct {
+	User  string
+	Email string
 }
 
+//line stdlib/parse/parse_test.kuki:34
+func TestYAML(t *testing.T) {
 //line stdlib/parse/parse_test.kuki:35
-func TestJsonLines(t *testing.T) {
+	c := *new(Config)
 //line stdlib/parse/parse_test.kuki:36
-	cases := []JsonLinesCase{JsonLinesCase{name: "basic ndjson", ndjson: "{\"a\":1}\n\n {\"b\":2}\n", wantCount: 2, firstLine: "{\"a\":1}"}}
+	err := parse.YAML("user: alice\nemail: test@example.com", &c)
+//line stdlib/parse/parse_test.kuki:37
+	test.AssertNoError(t, err)
+//line stdlib/parse/parse_test.kuki:38
+	test.AssertEqual(t, c.User, "alice")
+//line stdlib/parse/parse_test.kuki:39
+	test.AssertEqual(t, c.Email, "test@example.com")
+}
+
+//line stdlib/parse/parse_test.kuki:42
+func TestCSV(t *testing.T) {
+//line stdlib/parse/parse_test.kuki:43
+	records, err := parse.CSV("name,age\nalice,30\nbob,25")
+//line stdlib/parse/parse_test.kuki:44
+	test.AssertNoError(t, err)
 //line stdlib/parse/parse_test.kuki:45
-	for _, tc := range cases {
+	test.AssertEqual(t, len(records), 3)
 //line stdlib/parse/parse_test.kuki:46
-		t.Run(tc.name, func(t *testing.T) {
+	test.AssertEqual(t, records[0][0], "name")
 //line stdlib/parse/parse_test.kuki:47
-			lines, err := parse.JsonLines(tc.ndjson)
-//line stdlib/parse/parse_test.kuki:48
-			test.AssertNoError(t, err)
-//line stdlib/parse/parse_test.kuki:49
-			test.AssertEqual(t, len(lines), tc.wantCount)
+	test.AssertEqual(t, records[1][0], "alice")
+}
+
 //line stdlib/parse/parse_test.kuki:50
-			if len(lines) > 0 {
+func TestCSVRecords(t *testing.T) {
 //line stdlib/parse/parse_test.kuki:51
-				test.AssertEqual(t, lines[0], tc.firstLine)
-			}
-		})
-	}
-}
-
+	rows, err := parse.CSVRecords("name,age\nalice,30\nbob,25")
+//line stdlib/parse/parse_test.kuki:52
+	test.AssertNoError(t, err)
+//line stdlib/parse/parse_test.kuki:53
+	test.AssertEqual(t, len(rows), 2)
+//line stdlib/parse/parse_test.kuki:54
+	test.AssertEqual(t, rows[0]["name"], "alice")
 //line stdlib/parse/parse_test.kuki:55
-type CsvCase struct {
-	name           string
-	csv            string
-	wantRecords    int
-	wantHeaderRows int
-	firstRowName   string
+	test.AssertEqual(t, rows[0]["age"], "30")
+//line stdlib/parse/parse_test.kuki:56
+	test.AssertEqual(t, rows[1]["name"], "bob")
 }
 
+//line stdlib/parse/parse_test.kuki:59
+func TestLines(t *testing.T) {
+//line stdlib/parse/parse_test.kuki:60
+	lines := parse.Lines("foo\n\n  bar  \n\nbaz\n")
+//line stdlib/parse/parse_test.kuki:61
+	test.AssertEqual(t, len(lines), 3)
 //line stdlib/parse/parse_test.kuki:62
-func TestCsvWithHeader(t *testing.T) {
+	test.AssertEqual(t, lines[0], "foo")
 //line stdlib/parse/parse_test.kuki:63
-	cases := []CsvCase{CsvCase{name: "basic csv", csv: "name,age\nalice,30\nbob,25", wantRecords: 3, wantHeaderRows: 2, firstRowName: "alice"}}
+	test.AssertEqual(t, lines[1], "bar")
+//line stdlib/parse/parse_test.kuki:64
+	test.AssertEqual(t, lines[2], "baz")
+}
+
+//line stdlib/parse/parse_test.kuki:67
+func TestDuration(t *testing.T) {
+//line stdlib/parse/parse_test.kuki:68
+	d, err := parse.Duration("1h30m")
+//line stdlib/parse/parse_test.kuki:69
+	test.AssertNoError(t, err)
+//line stdlib/parse/parse_test.kuki:70
+	test.AssertEqual(t, d, (90 * time.Minute))
+}
+
 //line stdlib/parse/parse_test.kuki:73
-	for _, tc := range cases {
+func TestURL(t *testing.T) {
 //line stdlib/parse/parse_test.kuki:74
-		t.Run(tc.name, func(t *testing.T) {
+	u, err := parse.URL("https://example.com/api?q=1")
 //line stdlib/parse/parse_test.kuki:75
-			records, err := parse.Csv(tc.csv)
+	test.AssertNoError(t, err)
 //line stdlib/parse/parse_test.kuki:76
-			test.AssertNoError(t, err)
+	test.AssertEqual(t, u.Host, "example.com")
 //line stdlib/parse/parse_test.kuki:77
-			test.AssertEqual(t, len(records), tc.wantRecords)
-//line stdlib/parse/parse_test.kuki:79
-			headerRows, err2 := parse.CsvWithHeader(tc.csv)
+	test.AssertEqual(t, u.Path, "/api")
+}
+
 //line stdlib/parse/parse_test.kuki:80
-			test.AssertNoError(t, err2)
+func TestQuery(t *testing.T) {
 //line stdlib/parse/parse_test.kuki:81
-			test.AssertEqual(t, len(headerRows), tc.wantHeaderRows)
+	v, err := parse.Query("name=ada&age=30")
 //line stdlib/parse/parse_test.kuki:82
-			if len(headerRows) > 0 {
+	test.AssertNoError(t, err)
 //line stdlib/parse/parse_test.kuki:83
-				test.AssertEqual(t, headerRows[0]["name"], tc.firstRowName)
-			}
-		})
-	}
-}
-
-//line stdlib/parse/parse_test.kuki:87
-type YamlPrettyCase struct {
-	name     string
-	data     map[string]any
-	contains string
-}
-
-//line stdlib/parse/parse_test.kuki:92
-func TestYamlPretty(t *testing.T) {
-//line stdlib/parse/parse_test.kuki:93
-	cases := []YamlPrettyCase{YamlPrettyCase{name: "basic map", data: map[string]any{"user": map[string]any{"name": "sam"}}, contains: "user"}}
-//line stdlib/parse/parse_test.kuki:101
-	for _, tc := range cases {
-//line stdlib/parse/parse_test.kuki:102
-		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/parse/parse_test.kuki:103
-			pretty, err := parse.YamlPretty(tc.data)
-//line stdlib/parse/parse_test.kuki:104
-			test.AssertNoError(t, err)
-//line stdlib/parse/parse_test.kuki:105
-			test.AssertTrue(t, kukistring.Contains(string(pretty), tc.contains))
-		})
-	}
-}
-
-//line stdlib/parse/parse_test.kuki:109
-type JsonYamlCase struct {
-	name    string
-	payload string
-	want    string
-}
-
-//line stdlib/parse/parse_test.kuki:114
-func TestYaml(t *testing.T) {
-//line stdlib/parse/parse_test.kuki:115
-	cases := []JsonYamlCase{JsonYamlCase{name: "basic yaml", payload: "user: alice\nemail: test@example.com", want: "user: alice\nemail: test@example.com"}}
-//line stdlib/parse/parse_test.kuki:123
-	for _, tc := range cases {
-//line stdlib/parse/parse_test.kuki:124
-		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/parse/parse_test.kuki:125
-			result, err := parse.Yaml(tc.payload)
-//line stdlib/parse/parse_test.kuki:126
-			test.AssertNoError(t, err)
-//line stdlib/parse/parse_test.kuki:127
-			test.AssertEqual(t, string(result), tc.want)
-		})
-	}
+	test.AssertEqual(t, v.Get("name"), "ada")
+//line stdlib/parse/parse_test.kuki:84
+	test.AssertEqual(t, v.Get("age"), "30")
 }

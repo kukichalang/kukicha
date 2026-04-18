@@ -6,9 +6,9 @@ petiole validate
 
 import "net/url"
 import "regexp"
-import "stdlib/cast"
 import "stdlib/slice"
 import "stdlib/string"
+import "strconv"
 import "unicode"
 
 # String Validation Functions
@@ -209,13 +209,13 @@ func InRangeFloat(n float64, min float64, max float64) (float64, error)
 # ParseInt parses a string as an integer with validation
 # Example: count := input |> validate.ParseInt() onerr return
 func ParseInt(s string) (int, error)
-    val := cast.Atoi(s) onerr return 0, error "invalid integer: {s}"
+    val := strconv.Atoi(s) onerr return 0, error "invalid integer: {s}"
     return val, empty
 
 # ParsePositiveInt parses and validates a positive integer
 # Example: id := input |> validate.ParsePositiveInt() onerr return
 func ParsePositiveInt(s string) (int, error)
-    val := cast.Atoi(s) onerr return 0, error "invalid integer: {s}"
+    val := strconv.Atoi(s) onerr return 0, error "invalid integer: {s}"
     if val <= 0
         return val, error "value must be positive"
     return val, empty
@@ -223,7 +223,7 @@ func ParsePositiveInt(s string) (int, error)
 # ParseFloat parses a string as a float64 with validation
 # Example: price := input |> validate.ParseFloat() onerr return
 func ParseFloat(s string) (float64, error)
-    val := cast.ParseFloat(s, 64) onerr return 0.0, error "invalid number: {s}"
+    val := strconv.ParseFloat(s, 64) onerr return 0.0, error "invalid number: {s}"
     return val, empty
 
 # ParseBool parses a string as a boolean

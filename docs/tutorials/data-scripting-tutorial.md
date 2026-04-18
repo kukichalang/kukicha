@@ -153,7 +153,7 @@ function main()
 
     # Parse into a list of maps
     # Each row becomes a map: {"Name": "Alice", "Role": "Admin", ...}
-    users := csvData |> parse.CsvWithHeader() onerr
+    users := csvData |> parse.CSVRecords() onerr
         print("Failed to parse CSV: {error}")
         return
 
@@ -175,7 +175,7 @@ kukicha run parser.kuki
 ```
 
 **What happened?**
-1.  `parse.CsvWithHeader()` took the text.
+1.  `parse.CSVRecords()` took the text.
 2.  It used the first line (`Name,Role,Score`) as keys.
 3.  It turned each row into a `map of string to string`.
 4.  Result: A `list of map of string to string`.
@@ -327,7 +327,7 @@ function main()
     print(csvData)
 
     # Parse
-    rows := csvData |> parse.CsvWithHeader() onerr
+    rows := csvData |> parse.CSVRecords() onerr
         print("Failed to parse CSV: {error}")
         return
 
@@ -395,7 +395,7 @@ Next, we'll build a full interactive application that fetches data from the inte
 | :--- | :--- | :--- |
 | **Map** | `map of K to V` | `m := map of string to int{"A": 1}` |
 | **Access** | `m[key]` | `val := m["A"]` |
-| **Parse CSV** | `parse.CsvWithHeader()` | Turns string keys into field names |
+| **Parse CSV** | `parse.CSVRecords()` | Turns string keys into field names |
 | **Shell** | `shell.Output()` | API to run `git`, `ls`, etc. |
 | **LLM** | `llm.New() \|> ...` | Easy AI integration |
 | **Variadic spread** | `Sum(many values)` | Spread a list into a variadic call |

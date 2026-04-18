@@ -620,3 +620,23 @@ func TestSession(t *testing.T) {
 		})
 	}
 }
+
+//line stdlib/fetch/fetch_test.kuki:429
+func TestNewExternal(t *testing.T) {
+//line stdlib/fetch/fetch_test.kuki:430
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//line stdlib/fetch/fetch_test.kuki:431
+		w.WriteHeader(http.StatusOK)
+	}))
+//line stdlib/fetch/fetch_test.kuki:434
+	defer server.Close()
+//line stdlib/fetch/fetch_test.kuki:436
+	resp, err := fetch.Do(fetch.NewExternal(server.URL))
+//line stdlib/fetch/fetch_test.kuki:437
+	test.AssertError(t, err)
+//line stdlib/fetch/fetch_test.kuki:438
+	if resp != nil {
+//line stdlib/fetch/fetch_test.kuki:439
+		resp.Body.Close()
+	}
+}

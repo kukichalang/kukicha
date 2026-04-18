@@ -5,9 +5,9 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/kukichalang/kukicha/stdlib/cast"
 	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"os"
+	"strconv"
 )
 
 //line stdlib/cli/cli.kuki:11
@@ -503,5 +503,5 @@ func GetInt(args Args, name string) (int, error) {
 		return 0, fmt.Errorf("argument %v not found", name)
 	}
 //line stdlib/cli/cli.kuki:359
-	return cast.Atoi(strVal)
+	return strconv.Atoi(strVal)
 }

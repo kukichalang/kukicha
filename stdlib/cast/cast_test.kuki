@@ -6,20 +6,6 @@ import "encoding/json"
 import "stdlib/cast"
 import "testing"
 
-# Test Atoi and ParseFloat wrappers
-func TestBasicParsers(t reference testing.T)
-    n, err := cast.Atoi("123")
-    if err != empty
-        t.Fatalf("Atoi failed: {err}")
-    if n != 123
-        t.Errorf("Expected 123, got {n}")
-
-    f, err2 := cast.ParseFloat("3.14", 64)
-    if err2 != empty
-        t.Fatalf("ParseFloat failed: {err2}")
-    if f == 0.0
-        t.Errorf("ParseFloat returned zero for valid input")
-
 # Test SmartInt conversions
 func TestSmartInt(t reference testing.T)
     val, err := cast.SmartInt(5)

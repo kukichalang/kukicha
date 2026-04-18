@@ -5,11 +5,11 @@ package validate
 import (
 	"errors"
 	"fmt"
-	"github.com/kukichalang/kukicha/stdlib/cast"
 	"github.com/kukichalang/kukicha/stdlib/slice"
 	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"net/url"
 	"regexp"
+	"strconv"
 	"unicode"
 )
 
@@ -328,7 +328,7 @@ func InRangeFloat(n float64, min float64, max float64) (float64, error) {
 //line stdlib/validate/validate.kuki:211
 func ParseInt(s string) (int, error) {
 //line stdlib/validate/validate.kuki:212
-	val, err_4 := cast.Atoi(s)
+	val, err_4 := strconv.Atoi(s)
 //line stdlib/validate/validate.kuki:212
 	if err_4 != nil {
 //line stdlib/validate/validate.kuki:212
@@ -341,7 +341,7 @@ func ParseInt(s string) (int, error) {
 //line stdlib/validate/validate.kuki:217
 func ParsePositiveInt(s string) (int, error) {
 //line stdlib/validate/validate.kuki:218
-	val, err_5 := cast.Atoi(s)
+	val, err_5 := strconv.Atoi(s)
 //line stdlib/validate/validate.kuki:218
 	if err_5 != nil {
 //line stdlib/validate/validate.kuki:218
@@ -359,7 +359,7 @@ func ParsePositiveInt(s string) (int, error) {
 //line stdlib/validate/validate.kuki:225
 func ParseFloat(s string) (float64, error) {
 //line stdlib/validate/validate.kuki:226
-	val, err_6 := cast.ParseFloat(s, 64)
+	val, err_6 := strconv.ParseFloat(s, 64)
 //line stdlib/validate/validate.kuki:226
 	if err_6 != nil {
 //line stdlib/validate/validate.kuki:226

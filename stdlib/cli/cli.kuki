@@ -4,8 +4,8 @@ petiole cli
 
 import "fmt"
 import "os"
-import "stdlib/cast"
 import "stdlib/string"
+import "strconv"
 
 # ArgDef represents an argument definition
 type ArgDef
@@ -356,4 +356,4 @@ func GetInt(args Args, name string) (int, error)
     if strVal equals ""
         return 0, error "argument {name} not found"
 
-    return cast.Atoi(strVal)
+    return strconv.Atoi(strVal)

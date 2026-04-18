@@ -61,8 +61,8 @@ user |> json.MarshalWrite(w, _)
 res, err := data |> process()
 
 # Pipeline-level onerr: catch errors from any step
-result := data
-    |> parse.Json(list of User)
+rows := data
+    |> parse.CSVRecords()
     |> validate.Safe()
     onerr panic "pipeline failed: {error}"
 
