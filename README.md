@@ -89,7 +89,7 @@ What stays constant across both tiers is the [stdlib](.claude/skills/stdlib/SKIL
 **Requires Go 1.26+** ([download](https://go.dev/dl/)) | Pre-built binaries on [GitHub Releases](https://github.com/kukichalang/kukicha/releases)
 
 ```
-go install github.com/kukichalang/kukicha/cmd/kukicha@v0.1.12
+go install github.com/kukichalang/kukicha/cmd/kukicha@v0.2.0
 mkdir myapp && cd myapp
 kukicha init
 ```
@@ -167,7 +167,7 @@ kukicha brew main.kuki
 
 ---
 
-**Version:** 0.1.12 | **License:** [MIT](LICENSE)
+**Version:** 0.2.0 | **License:** [MIT](LICENSE)
 
 ---
 
