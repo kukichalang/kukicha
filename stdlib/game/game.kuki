@@ -156,15 +156,39 @@ func Clear(screen Screen, c Color)
 
 # DrawRect draws a filled rectangle
 func DrawRect(screen Screen, x float64, y float64, w float64, h float64, c Color)
-    vector.DrawFilledRect(screen.img, x as float32, y as float32, w as float32, h as float32, toColor(c), true)
+    vector.DrawFilledRect(
+        screen.img,
+        x as float32,
+        y as float32,
+        w as float32,
+        h as float32,
+        toColor(c),
+        true,
+    )
 
 # DrawCircle draws a filled circle
 func DrawCircle(screen Screen, x float64, y float64, radius float64, c Color)
-    vector.DrawFilledCircle(screen.img, x as float32, y as float32, radius as float32, toColor(c), true)
+    vector.DrawFilledCircle(
+        screen.img,
+        x as float32,
+        y as float32,
+        radius as float32,
+        toColor(c),
+        true,
+    )
 
 # DrawLine draws a line between two points
 func DrawLine(screen Screen, x1 float64, y1 float64, x2 float64, y2 float64, c Color)
-    vector.StrokeLine(screen.img, x1 as float32, y1 as float32, x2 as float32, y2 as float32, 2, toColor(c), true)
+    vector.StrokeLine(
+        screen.img,
+        x1 as float32,
+        y1 as float32,
+        x2 as float32,
+        y2 as float32,
+        2,
+        toColor(c),
+        true,
+    )
 
 # DrawText draws debug text at the given position (uses Ebitengine's built-in debug font)
 func DrawText(screen Screen, msg string, x int, y int, c Color)

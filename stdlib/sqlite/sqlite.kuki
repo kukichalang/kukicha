@@ -34,7 +34,10 @@ import "github.com/ncruces/go-sqlite3/driver" as _
 # Example: pool := sqlite.Open("/tmp/app.db") onerr panic "{error}"
 # kuki:security "files"
 func Open(path string) (db.Pool, error)
-    return db.Open("sqlite3", "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)")
+    return db.Open(
+        "sqlite3",
+        "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)&_pragma=busy_timeout(5000)",
+    )
 
 # OpenMemory opens an in-memory SQLite database with foreign keys enabled.
 # Data is lost when the pool is closed.
@@ -91,7 +94,9 @@ func SetPragma(pool db.Pool, name string, value string) error
 # Example: tables := sqlite.Tables(pool) onerr panic "{error}"
 func Tables(pool db.Pool) (list of string, error)
     rawDB := db.RawDB(pool)
-    rows := rawDB.Query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name") onerr return
+    rows := rawDB.Query(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+    ) onerr return
     defer rows.Close()
     names := make(list of string, 0)
     for rows.Next()
@@ -156,7 +161,11 @@ func AddNotNull(pool db.Pool, table string, column string) error
     if not isValidPragmaName(table) or not isValidPragmaName(column)
         return error "sqlite.AddNotNull: invalid table or column name"
     rawDB := db.RawDB(pool)
-    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s SET NOT NULL", quoteIdentifier(table), quoteIdentifier(column)))
+    _, err := rawDB.Exec(fmt.Sprintf(
+        "ALTER TABLE %s ALTER COLUMN %s SET NOT NULL",
+        quoteIdentifier(table),
+        quoteIdentifier(column),
+    ))
     return err
 
 # DropNotNull removes a NOT NULL constraint from an existing column.
@@ -167,7 +176,11 @@ func DropNotNull(pool db.Pool, table string, column string) error
     if not isValidPragmaName(table) or not isValidPragmaName(column)
         return error "sqlite.DropNotNull: invalid table or column name"
     rawDB := db.RawDB(pool)
-    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s DROP NOT NULL", quoteIdentifier(table), quoteIdentifier(column)))
+    _, err := rawDB.Exec(fmt.Sprintf(
+        "ALTER TABLE %s ALTER COLUMN %s DROP NOT NULL",
+        quoteIdentifier(table),
+        quoteIdentifier(column),
+    ))
     return err
 
 # AddCheck adds a CHECK constraint to an existing table.
@@ -194,7 +207,9 @@ func DropCheck(pool db.Pool, table string, constraintName string) error
     if not isValidPragmaName(table) or not isValidPragmaName(constraintName)
         return error "sqlite.DropCheck: invalid table or constraint name"
     rawDB := db.RawDB(pool)
-    _, err := rawDB.Exec(fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", quoteIdentifier(table), constraintName))
+    _, err := rawDB.Exec(
+        fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", quoteIdentifier(table), constraintName),
+    )
     return err
 
 # ReindexExpressions rebuilds all expression indexes on the database,
@@ -375,7 +390,9 @@ func Dump(pool db.Pool) (string, error)
     b := strpkg.Builder{}
 
     # Schema: CREATE TABLE, CREATE INDEX, CREATE VIEW, CREATE TRIGGER
-    schemaRows := rawDB.Query("SELECT sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'view' THEN 2 WHEN 'index' THEN 3 WHEN 'trigger' THEN 4 END") onerr return
+    schemaRows := rawDB.Query(
+        "SELECT sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'view' THEN 2 WHEN 'index' THEN 3 WHEN 'trigger' THEN 4 END",
+    ) onerr return
     defer schemaRows.Close()
     for schemaRows.Next()
         sqlText := ""

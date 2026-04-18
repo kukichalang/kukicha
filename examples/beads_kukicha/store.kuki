@@ -36,7 +36,21 @@ func createIssue(pool db.Pool, title string, desc string, issueType int, priorit
     issue.ContentHash = contentHash(issue)
 
     sqlStr := "INSERT INTO issues (id, title, description, status, priority, issue_type, assignee, labels, content_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    db.Exec(pool, sqlStr, id, title, desc, StatusOpen, priority, issueType, assignee, labelsJSON, issue.ContentHash, ts, ts) onerr return
+    db.Exec(
+        pool,
+        sqlStr,
+        id,
+        title,
+        desc,
+        StatusOpen,
+        priority,
+        issueType,
+        assignee,
+        labelsJSON,
+        issue.ContentHash,
+        ts,
+        ts,
+    ) onerr return
 
     logEvent(pool, id, EvtCreated, "", title)
     return issue, empty
@@ -122,7 +136,14 @@ func closeIssue(pool db.Pool, id string) error
     if old.Status equals StatusClosed
         return error "issue {id} is already closed"
     ts := nowISO()
-    db.Exec(pool, "UPDATE issues SET status = ?, closed_at = ?, updated_at = ? WHERE id = ?", StatusClosed, ts, ts, id) onerr return
+    db.Exec(
+        pool,
+        "UPDATE issues SET status = ?, closed_at = ?, updated_at = ? WHERE id = ?",
+        StatusClosed,
+        ts,
+        ts,
+        id,
+    ) onerr return
     logEvent(pool, id, EvtStatusChanged, statusName(old.Status), "closed")
     recomputeHash(pool, id)
     rebuildBlockedCache(pool) onerr
@@ -135,7 +156,13 @@ func reopenIssue(pool db.Pool, id string) error
     if old.Status isnt StatusClosed
         return error "issue {id} is not closed"
     ts := nowISO()
-    db.Exec(pool, "UPDATE issues SET status = ?, closed_at = '', updated_at = ? WHERE id = ?", StatusOpen, ts, id) onerr return
+    db.Exec(
+        pool,
+        "UPDATE issues SET status = ?, closed_at = '', updated_at = ? WHERE id = ?",
+        StatusOpen,
+        ts,
+        id,
+    ) onerr return
     logEvent(pool, id, EvtStatusChanged, "closed", "open")
     recomputeHash(pool, id)
     rebuildBlockedCache(pool) onerr
@@ -162,14 +189,27 @@ func searchIssues(pool db.Pool, query string, limit int) (list of Issue, error)
 
 func addLabel(pool db.Pool, id string, label string) error
     ts := nowISO()
-    db.Exec(pool, "UPDATE issues SET labels = json_insert(labels, '$[#]', ?), updated_at = ? WHERE id = ?", label, ts, id) onerr return
+    db.Exec(
+        pool,
+        "UPDATE issues SET labels = json_insert(labels, '$[#]', ?), updated_at = ? WHERE id = ?",
+        label,
+        ts,
+        id,
+    ) onerr return
     logEvent(pool, id, EvtLabelAdded, "", label)
     recomputeHash(pool, id)
     return empty
 
 func removeLabel(pool db.Pool, id string, label string) error
     ts := nowISO()
-    db.Exec(pool, "UPDATE issues SET labels = (SELECT json_remove(issues.labels, '$[' || t.key || ']') FROM json_each(issues.labels) t WHERE t.value = ?), updated_at = ? WHERE id = ? AND EXISTS (SELECT 1 FROM json_each(issues.labels) t2 WHERE t2.value = ?)", label, ts, id, label) onerr return
+    db.Exec(
+        pool,
+        "UPDATE issues SET labels = (SELECT json_remove(issues.labels, '$[' || t.key || ']') FROM json_each(issues.labels) t WHERE t.value = ?), updated_at = ? WHERE id = ? AND EXISTS (SELECT 1 FROM json_each(issues.labels) t2 WHERE t2.value = ?)",
+        label,
+        ts,
+        id,
+        label,
+    ) onerr return
     logEvent(pool, id, EvtLabelRemoved, label, "")
     recomputeHash(pool, id)
     return empty
@@ -179,37 +219,61 @@ func removeLabel(pool db.Pool, id string, label string) error
 func addComment(pool db.Pool, issueId string, body string, author string) error
     _ = getIssue(pool, issueId) onerr return
     ts := nowISO()
-    db.Exec(pool, "INSERT INTO comments (issue_id, body, author, created_at) VALUES (?, ?, ?, ?)", issueId, body, author, ts) onerr return
+    db.Exec(
+        pool,
+        "INSERT INTO comments (issue_id, body, author, created_at) VALUES (?, ?, ?, ?)",
+        issueId,
+        body,
+        author,
+        ts,
+    ) onerr return
     logEvent(pool, issueId, EvtCommented, "", body)
     return empty
 
 func listComments(pool db.Pool, issueId string) (list of Comment, error)
-    result := db.Query(pool, "SELECT id, issue_id, body, author, created_at FROM comments WHERE issue_id = ? ORDER BY created_at", issueId)
-        |> db.ScanAll(empty list of Comment) onerr return
+    result := db.Query(
+        pool,
+        "SELECT id, issue_id, body, author, created_at FROM comments WHERE issue_id = ? ORDER BY created_at",
+        issueId,
+    ) |> db.ScanAll(empty list of Comment) onerr return
     return result, empty
 
 # --- Stats ---
 
 func getStatusStats(pool db.Pool) (list of StatRow, error)
-    result := db.Query(pool, "SELECT CASE status WHEN 0 THEN 'open' WHEN 1 THEN 'in-progress' WHEN 2 THEN 'blocked' WHEN 3 THEN 'closed' END AS label, COUNT(*) AS count FROM issues GROUP BY status ORDER BY status")
-        |> db.ScanAll(empty list of StatRow) onerr return
+    result := db.Query(
+        pool,
+        "SELECT CASE status WHEN 0 THEN 'open' WHEN 1 THEN 'in-progress' WHEN 2 THEN 'blocked' WHEN 3 THEN 'closed' END AS label, COUNT(*) AS count FROM issues GROUP BY status ORDER BY status",
+    ) |> db.ScanAll(empty list of StatRow) onerr return
     return result, empty
 
 func getPriorityStats(pool db.Pool) (list of StatRow, error)
-    result := db.Query(pool, "SELECT CASE priority WHEN 0 THEN 'critical' WHEN 1 THEN 'high' WHEN 2 THEN 'medium' WHEN 3 THEN 'low' WHEN 4 THEN 'backlog' END AS label, COUNT(*) AS count FROM issues GROUP BY priority ORDER BY priority")
-        |> db.ScanAll(empty list of StatRow) onerr return
+    result := db.Query(
+        pool,
+        "SELECT CASE priority WHEN 0 THEN 'critical' WHEN 1 THEN 'high' WHEN 2 THEN 'medium' WHEN 3 THEN 'low' WHEN 4 THEN 'backlog' END AS label, COUNT(*) AS count FROM issues GROUP BY priority ORDER BY priority",
+    ) |> db.ScanAll(empty list of StatRow) onerr return
     return result, empty
 
 func getTypeStats(pool db.Pool) (list of StatRow, error)
-    result := db.Query(pool, "SELECT CASE issue_type WHEN 0 THEN 'task' WHEN 1 THEN 'bug' WHEN 2 THEN 'feature' WHEN 3 THEN 'epic' WHEN 4 THEN 'chore' END AS label, COUNT(*) AS count FROM issues GROUP BY issue_type ORDER BY issue_type")
-        |> db.ScanAll(empty list of StatRow) onerr return
+    result := db.Query(
+        pool,
+        "SELECT CASE issue_type WHEN 0 THEN 'task' WHEN 1 THEN 'bug' WHEN 2 THEN 'feature' WHEN 3 THEN 'epic' WHEN 4 THEN 'chore' END AS label, COUNT(*) AS count FROM issues GROUP BY issue_type ORDER BY issue_type",
+    ) |> db.ScanAll(empty list of StatRow) onerr return
     return result, empty
 
 # --- Internal helpers ---
 
 func logEvent(pool db.Pool, issueId string, evtType int, oldVal string, newVal string)
     ts := nowISO()
-    db.Exec(pool, "INSERT INTO events (issue_id, event_type, old_value, new_value, created_at) VALUES (?, ?, ?, ?, ?)", issueId, evtType, oldVal, newVal, ts) onerr
+    db.Exec(
+        pool,
+        "INSERT INTO events (issue_id, event_type, old_value, new_value, created_at) VALUES (?, ?, ?, ?, ?)",
+        issueId,
+        evtType,
+        oldVal,
+        newVal,
+        ts,
+    ) onerr
         return
 
 func recomputeHash(pool db.Pool, id string)

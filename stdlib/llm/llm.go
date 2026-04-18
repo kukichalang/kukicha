@@ -2003,13 +2003,13 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error) {
 //line stdlib/llm/llm.kuki:1475
 		output = append(output, OutputItem{Type: "message", Role: "assistant", Content: []any{msgPart}})
 	}
-//line stdlib/llm/llm.kuki:1477
+//line stdlib/llm/llm.kuki:1480
 	result := Response{Output: output}
-//line stdlib/llm/llm.kuki:1479
+//line stdlib/llm/llm.kuki:1482
 	return result, nil
 }
 
-//line stdlib/llm/llm.kuki:1488
+//line stdlib/llm/llm.kuki:1491
 type ContentBlock struct {
 	Type      string `json:"type"`
 	Text      string `json:"text,omitempty"`
@@ -2022,37 +2022,37 @@ type ContentBlock struct {
 	Source    any    `json:"source,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1502
+//line stdlib/llm/llm.kuki:1505
 type ThinkingConfig struct {
 	Type         string `json:"type"`
 	BudgetTokens int    `json:"budget_tokens,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1508
+//line stdlib/llm/llm.kuki:1511
 type OutputConfig struct {
 	Format any `json:"format,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1513
+//line stdlib/llm/llm.kuki:1516
 type AnthropicMessage struct {
 	Role    string `json:"role"`
 	Content any    `json:"content"`
 }
 
-//line stdlib/llm/llm.kuki:1518
+//line stdlib/llm/llm.kuki:1521
 type AnthropicTool struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	InputSchema any    `json:"input_schema"`
 }
 
-//line stdlib/llm/llm.kuki:1524
+//line stdlib/llm/llm.kuki:1527
 type AnthropicToolChoice struct {
 	Type string `json:"type"`
 	Name string `json:"name,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1529
+//line stdlib/llm/llm.kuki:1532
 type AnthropicUsage struct {
 	InputTokens              int `json:"input_tokens"`
 	OutputTokens             int `json:"output_tokens"`
@@ -2060,7 +2060,7 @@ type AnthropicUsage struct {
 	CacheReadInputTokens     int `json:"cache_read_input_tokens,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1536
+//line stdlib/llm/llm.kuki:1539
 type AnthropicResponse struct {
 	ID           string         `json:"id"`
 	Type         string         `json:"type"`
@@ -2072,7 +2072,7 @@ type AnthropicResponse struct {
 	Usage        AnthropicUsage `json:"usage"`
 }
 
-//line stdlib/llm/llm.kuki:1547
+//line stdlib/llm/llm.kuki:1550
 type MessagesRequest struct {
 	Model         string             `json:"model"`
 	Messages      []AnthropicMessage `json:"messages"`
@@ -2092,7 +2092,7 @@ type MessagesRequest struct {
 	InferenceGeo  string             `json:"inference_geo,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1567
+//line stdlib/llm/llm.kuki:1570
 type AnthropicStreamEvent struct {
 	Type         string            `json:"type"`
 	Index        int               `json:"index,omitempty"`
@@ -2102,7 +2102,7 @@ type AnthropicStreamEvent struct {
 	Usage        AnthropicUsage    `json:"usage,omitzero"`
 }
 
-//line stdlib/llm/llm.kuki:1577
+//line stdlib/llm/llm.kuki:1580
 type AnthropicDelta struct {
 	Type         string `json:"type,omitempty"`
 	Text         string `json:"text,omitempty"`
@@ -2112,7 +2112,7 @@ type AnthropicDelta struct {
 	StopSequence string `json:"stop_sequence,omitempty"`
 }
 
-//line stdlib/llm/llm.kuki:1586
+//line stdlib/llm/llm.kuki:1589
 type MessagesClient struct {
 	model            string
 	baseURL          string
@@ -2139,740 +2139,740 @@ type MessagesClient struct {
 	retryDelayMs     int
 }
 
-//line stdlib/llm/llm.kuki:1613
-func NewMessages(model string) MessagesClient {
-//line stdlib/llm/llm.kuki:1614
-	c := MessagesClient{}
-//line stdlib/llm/llm.kuki:1615
-	c.model = model
 //line stdlib/llm/llm.kuki:1616
-	c.baseURL = ""
+func NewMessages(model string) MessagesClient {
 //line stdlib/llm/llm.kuki:1617
-	c.path = ""
+	c := MessagesClient{}
 //line stdlib/llm/llm.kuki:1618
-	c.apiKey = ""
+	c.model = model
 //line stdlib/llm/llm.kuki:1619
-	c.apiVersion = "2023-06-01"
+	c.baseURL = ""
 //line stdlib/llm/llm.kuki:1620
-	c.system = ""
+	c.path = ""
 //line stdlib/llm/llm.kuki:1621
-	c.messages = []AnthropicMessage{}
+	c.apiKey = ""
 //line stdlib/llm/llm.kuki:1622
-	c.maxTokens = 1024
+	c.apiVersion = "2023-06-01"
 //line stdlib/llm/llm.kuki:1623
-	c.temperature = 0.0
+	c.system = ""
 //line stdlib/llm/llm.kuki:1624
-	c.topP = 0.0
+	c.messages = []AnthropicMessage{}
 //line stdlib/llm/llm.kuki:1625
-	c.topK = 0
+	c.maxTokens = 1024
 //line stdlib/llm/llm.kuki:1626
-	c.stopSequences = []string{}
+	c.temperature = 0.0
 //line stdlib/llm/llm.kuki:1627
-	c.tools = []AnthropicTool{}
+	c.topP = 0.0
 //line stdlib/llm/llm.kuki:1628
-	c.toolChoice = nil
+	c.topK = 0
 //line stdlib/llm/llm.kuki:1629
-	c.metadata = nil
+	c.stopSequences = []string{}
 //line stdlib/llm/llm.kuki:1630
-	c.thinking = nil
+	c.tools = []AnthropicTool{}
 //line stdlib/llm/llm.kuki:1631
-	c.effort = ""
+	c.toolChoice = nil
 //line stdlib/llm/llm.kuki:1632
-	c.outputConfig = nil
+	c.metadata = nil
 //line stdlib/llm/llm.kuki:1633
-	c.inferenceGeo = ""
+	c.thinking = nil
 //line stdlib/llm/llm.kuki:1634
-	c.streamHandler = nil
+	c.effort = ""
 //line stdlib/llm/llm.kuki:1635
-	c.eventHandler = nil
+	c.outputConfig = nil
 //line stdlib/llm/llm.kuki:1636
-	c.retryMaxAttempts = 0
+	c.inferenceGeo = ""
 //line stdlib/llm/llm.kuki:1637
-	c.retryDelayMs = 0
+	c.streamHandler = nil
 //line stdlib/llm/llm.kuki:1638
+	c.eventHandler = nil
+//line stdlib/llm/llm.kuki:1639
+	c.retryMaxAttempts = 0
+//line stdlib/llm/llm.kuki:1640
+	c.retryDelayMs = 0
+//line stdlib/llm/llm.kuki:1641
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1642
+//line stdlib/llm/llm.kuki:1645
 func MBaseURL(c MessagesClient, url string) MessagesClient {
-//line stdlib/llm/llm.kuki:1643
+//line stdlib/llm/llm.kuki:1646
 	c.baseURL = url
-//line stdlib/llm/llm.kuki:1644
+//line stdlib/llm/llm.kuki:1647
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1648
+//line stdlib/llm/llm.kuki:1651
 func MPath(c MessagesClient, path string) MessagesClient {
-//line stdlib/llm/llm.kuki:1649
+//line stdlib/llm/llm.kuki:1652
 	c.path = path
-//line stdlib/llm/llm.kuki:1650
+//line stdlib/llm/llm.kuki:1653
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1655
+//line stdlib/llm/llm.kuki:1658
 func MAPIKey(c MessagesClient, key string) MessagesClient {
-//line stdlib/llm/llm.kuki:1656
+//line stdlib/llm/llm.kuki:1659
 	c.apiKey = key
-//line stdlib/llm/llm.kuki:1657
+//line stdlib/llm/llm.kuki:1660
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1662
+//line stdlib/llm/llm.kuki:1665
 func MAPIVersion(c MessagesClient, version string) MessagesClient {
-//line stdlib/llm/llm.kuki:1663
+//line stdlib/llm/llm.kuki:1666
 	c.apiVersion = version
-//line stdlib/llm/llm.kuki:1664
+//line stdlib/llm/llm.kuki:1667
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1668
+//line stdlib/llm/llm.kuki:1671
 func MSystem(c MessagesClient, system string) MessagesClient {
-//line stdlib/llm/llm.kuki:1669
+//line stdlib/llm/llm.kuki:1672
 	c.system = system
-//line stdlib/llm/llm.kuki:1670
+//line stdlib/llm/llm.kuki:1673
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1674
-func MUser(c MessagesClient, content string) MessagesClient {
-//line stdlib/llm/llm.kuki:1675
-	msg := AnthropicMessage{Role: "user", Content: content}
-//line stdlib/llm/llm.kuki:1676
-	c.messages = append(c.messages, msg)
 //line stdlib/llm/llm.kuki:1677
+func MUser(c MessagesClient, content string) MessagesClient {
+//line stdlib/llm/llm.kuki:1678
+	msg := AnthropicMessage{Role: "user", Content: content}
+//line stdlib/llm/llm.kuki:1679
+	c.messages = append(c.messages, msg)
+//line stdlib/llm/llm.kuki:1680
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1682
-func MAssistant(c MessagesClient, content string) MessagesClient {
-//line stdlib/llm/llm.kuki:1683
-	msg := AnthropicMessage{Role: "assistant", Content: content}
-//line stdlib/llm/llm.kuki:1684
-	c.messages = append(c.messages, msg)
 //line stdlib/llm/llm.kuki:1685
+func MAssistant(c MessagesClient, content string) MessagesClient {
+//line stdlib/llm/llm.kuki:1686
+	msg := AnthropicMessage{Role: "assistant", Content: content}
+//line stdlib/llm/llm.kuki:1687
+	c.messages = append(c.messages, msg)
+//line stdlib/llm/llm.kuki:1688
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1689
-func MAddMessage(c MessagesClient, role string, content any) MessagesClient {
-//line stdlib/llm/llm.kuki:1690
-	msg := AnthropicMessage{Role: role, Content: content}
-//line stdlib/llm/llm.kuki:1691
-	c.messages = append(c.messages, msg)
 //line stdlib/llm/llm.kuki:1692
-	return c
-}
-
-//line stdlib/llm/llm.kuki:1697
-func MToolResult(c MessagesClient, toolUseID string, result string) MessagesClient {
-//line stdlib/llm/llm.kuki:1698
-	block := ContentBlock{}
-//line stdlib/llm/llm.kuki:1699
-	block.Type = "tool_result"
-//line stdlib/llm/llm.kuki:1700
-	block.ToolUseID = toolUseID
-//line stdlib/llm/llm.kuki:1701
-	block.Content = result
-//line stdlib/llm/llm.kuki:1702
-	blocks := []ContentBlock{block}
-//line stdlib/llm/llm.kuki:1703
-	msg := AnthropicMessage{Role: "user", Content: blocks}
-//line stdlib/llm/llm.kuki:1704
+func MAddMessage(c MessagesClient, role string, content any) MessagesClient {
+//line stdlib/llm/llm.kuki:1693
+	msg := AnthropicMessage{Role: role, Content: content}
+//line stdlib/llm/llm.kuki:1694
 	c.messages = append(c.messages, msg)
+//line stdlib/llm/llm.kuki:1695
+	return c
+}
+
+//line stdlib/llm/llm.kuki:1700
+func MToolResult(c MessagesClient, toolUseID string, result string) MessagesClient {
+//line stdlib/llm/llm.kuki:1701
+	block := ContentBlock{}
+//line stdlib/llm/llm.kuki:1702
+	block.Type = "tool_result"
+//line stdlib/llm/llm.kuki:1703
+	block.ToolUseID = toolUseID
+//line stdlib/llm/llm.kuki:1704
+	block.Content = result
 //line stdlib/llm/llm.kuki:1705
+	blocks := []ContentBlock{block}
+//line stdlib/llm/llm.kuki:1706
+	msg := AnthropicMessage{Role: "user", Content: blocks}
+//line stdlib/llm/llm.kuki:1707
+	c.messages = append(c.messages, msg)
+//line stdlib/llm/llm.kuki:1708
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1710
+//line stdlib/llm/llm.kuki:1713
 func MMaxTokens(c MessagesClient, max int) MessagesClient {
-//line stdlib/llm/llm.kuki:1711
+//line stdlib/llm/llm.kuki:1714
 	c.maxTokens = max
-//line stdlib/llm/llm.kuki:1712
+//line stdlib/llm/llm.kuki:1715
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1716
+//line stdlib/llm/llm.kuki:1719
 func MTemperature(c MessagesClient, temp float64) MessagesClient {
-//line stdlib/llm/llm.kuki:1717
+//line stdlib/llm/llm.kuki:1720
 	c.temperature = temp
-//line stdlib/llm/llm.kuki:1718
+//line stdlib/llm/llm.kuki:1721
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1722
+//line stdlib/llm/llm.kuki:1725
 func MTopP(c MessagesClient, p float64) MessagesClient {
-//line stdlib/llm/llm.kuki:1723
+//line stdlib/llm/llm.kuki:1726
 	c.topP = p
-//line stdlib/llm/llm.kuki:1724
+//line stdlib/llm/llm.kuki:1727
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1728
+//line stdlib/llm/llm.kuki:1731
 func MTopK(c MessagesClient, k int) MessagesClient {
-//line stdlib/llm/llm.kuki:1729
+//line stdlib/llm/llm.kuki:1732
 	c.topK = k
-//line stdlib/llm/llm.kuki:1730
+//line stdlib/llm/llm.kuki:1733
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1734
+//line stdlib/llm/llm.kuki:1737
 func MStopSequences(c MessagesClient, sequences []string) MessagesClient {
-//line stdlib/llm/llm.kuki:1735
+//line stdlib/llm/llm.kuki:1738
 	c.stopSequences = sequences
-//line stdlib/llm/llm.kuki:1736
+//line stdlib/llm/llm.kuki:1739
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1741
+//line stdlib/llm/llm.kuki:1744
 func MAdaptiveThinking(c MessagesClient) MessagesClient {
-//line stdlib/llm/llm.kuki:1742
+//line stdlib/llm/llm.kuki:1745
 	c.thinking = ThinkingConfig{Type: "adaptive"}
-//line stdlib/llm/llm.kuki:1743
+//line stdlib/llm/llm.kuki:1746
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1747
+//line stdlib/llm/llm.kuki:1750
 func MThinking(c MessagesClient, budgetTokens int) MessagesClient {
-//line stdlib/llm/llm.kuki:1748
+//line stdlib/llm/llm.kuki:1751
 	c.thinking = ThinkingConfig{Type: "enabled", BudgetTokens: budgetTokens}
-//line stdlib/llm/llm.kuki:1749
+//line stdlib/llm/llm.kuki:1752
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1756
+//line stdlib/llm/llm.kuki:1759
 func MEffort(c MessagesClient, effort string) MessagesClient {
-//line stdlib/llm/llm.kuki:1757
+//line stdlib/llm/llm.kuki:1760
 	c.effort = effort
-//line stdlib/llm/llm.kuki:1758
+//line stdlib/llm/llm.kuki:1761
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1764
+//line stdlib/llm/llm.kuki:1767
 func MOutputFormat(c MessagesClient, format any) MessagesClient {
-//line stdlib/llm/llm.kuki:1765
+//line stdlib/llm/llm.kuki:1768
 	c.outputConfig = OutputConfig{Format: format}
-//line stdlib/llm/llm.kuki:1766
+//line stdlib/llm/llm.kuki:1769
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1772
+//line stdlib/llm/llm.kuki:1775
 func MInferenceGeo(c MessagesClient, geo string) MessagesClient {
-//line stdlib/llm/llm.kuki:1773
+//line stdlib/llm/llm.kuki:1776
 	c.inferenceGeo = geo
-//line stdlib/llm/llm.kuki:1774
+//line stdlib/llm/llm.kuki:1777
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1778
-func MAddTool(c MessagesClient, name string, description string, inputSchema any) MessagesClient {
-//line stdlib/llm/llm.kuki:1779
-	tool := AnthropicTool{Name: name, Description: description, InputSchema: inputSchema}
-//line stdlib/llm/llm.kuki:1780
-	c.tools = append(c.tools, tool)
 //line stdlib/llm/llm.kuki:1781
+func MAddTool(c MessagesClient, name string, description string, inputSchema any) MessagesClient {
+//line stdlib/llm/llm.kuki:1782
+	tool := AnthropicTool{Name: name, Description: description, InputSchema: inputSchema}
+//line stdlib/llm/llm.kuki:1783
+	c.tools = append(c.tools, tool)
+//line stdlib/llm/llm.kuki:1784
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1785
+//line stdlib/llm/llm.kuki:1788
 func MToolChoiceAuto(c MessagesClient) MessagesClient {
-//line stdlib/llm/llm.kuki:1786
+//line stdlib/llm/llm.kuki:1789
 	c.toolChoice = AnthropicToolChoice{Type: "auto"}
-//line stdlib/llm/llm.kuki:1787
+//line stdlib/llm/llm.kuki:1790
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1791
+//line stdlib/llm/llm.kuki:1794
 func MToolChoiceAny(c MessagesClient) MessagesClient {
-//line stdlib/llm/llm.kuki:1792
+//line stdlib/llm/llm.kuki:1795
 	c.toolChoice = AnthropicToolChoice{Type: "any"}
-//line stdlib/llm/llm.kuki:1793
+//line stdlib/llm/llm.kuki:1796
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1797
+//line stdlib/llm/llm.kuki:1800
 func MToolChoiceTool(c MessagesClient, name string) MessagesClient {
-//line stdlib/llm/llm.kuki:1798
+//line stdlib/llm/llm.kuki:1801
 	c.toolChoice = AnthropicToolChoice{Type: "tool", Name: name}
-//line stdlib/llm/llm.kuki:1799
+//line stdlib/llm/llm.kuki:1802
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1804
+//line stdlib/llm/llm.kuki:1807
 func MStream(c MessagesClient, handler func(string)) MessagesClient {
-//line stdlib/llm/llm.kuki:1805
+//line stdlib/llm/llm.kuki:1808
 	c.streamHandler = handler
-//line stdlib/llm/llm.kuki:1806
+//line stdlib/llm/llm.kuki:1809
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1811
+//line stdlib/llm/llm.kuki:1814
 func MStreamEvents(c MessagesClient, handler func(AnthropicStreamEvent)) MessagesClient {
-//line stdlib/llm/llm.kuki:1812
+//line stdlib/llm/llm.kuki:1815
 	c.eventHandler = handler
-//line stdlib/llm/llm.kuki:1813
+//line stdlib/llm/llm.kuki:1816
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1817
-func MRetry(c MessagesClient, maxAttempts int, delayMs int) MessagesClient {
-//line stdlib/llm/llm.kuki:1818
-	c.retryMaxAttempts = maxAttempts
-//line stdlib/llm/llm.kuki:1819
-	c.retryDelayMs = delayMs
 //line stdlib/llm/llm.kuki:1820
+func MRetry(c MessagesClient, maxAttempts int, delayMs int) MessagesClient {
+//line stdlib/llm/llm.kuki:1821
+	c.retryMaxAttempts = maxAttempts
+//line stdlib/llm/llm.kuki:1822
+	c.retryDelayMs = delayMs
+//line stdlib/llm/llm.kuki:1823
 	return c
 }
 
-//line stdlib/llm/llm.kuki:1826
+//line stdlib/llm/llm.kuki:1829
 func MAsk(c MessagesClient, prompt string) (string, error) {
-//line stdlib/llm/llm.kuki:1827
+//line stdlib/llm/llm.kuki:1830
 	c = MUser(c, prompt)
-//line stdlib/llm/llm.kuki:1828
+//line stdlib/llm/llm.kuki:1831
 	return mExecute(c)
 }
 
-//line stdlib/llm/llm.kuki:1838
+//line stdlib/llm/llm.kuki:1841
 func MSend(c MessagesClient) (string, error) {
-//line stdlib/llm/llm.kuki:1839
+//line stdlib/llm/llm.kuki:1842
 	return mExecute(c)
 }
 
-//line stdlib/llm/llm.kuki:1847
+//line stdlib/llm/llm.kuki:1850
 func MAskRaw(c MessagesClient, prompt string) (AnthropicResponse, error) {
-//line stdlib/llm/llm.kuki:1848
+//line stdlib/llm/llm.kuki:1851
 	c = MUser(c, prompt)
-//line stdlib/llm/llm.kuki:1849
+//line stdlib/llm/llm.kuki:1852
 	return mExecuteRaw(c)
 }
 
-//line stdlib/llm/llm.kuki:1857
+//line stdlib/llm/llm.kuki:1860
 func MSendRaw(c MessagesClient) (AnthropicResponse, error) {
-//line stdlib/llm/llm.kuki:1858
+//line stdlib/llm/llm.kuki:1861
 	return mExecuteRaw(c)
 }
 
-//line stdlib/llm/llm.kuki:1862
+//line stdlib/llm/llm.kuki:1865
 func AnthropicComplete(model string, prompt string) (string, error) {
-//line stdlib/llm/llm.kuki:1863
+//line stdlib/llm/llm.kuki:1866
 	c := NewMessages(model)
-//line stdlib/llm/llm.kuki:1864
+//line stdlib/llm/llm.kuki:1867
 	return MAsk(c, prompt)
 }
 
-//line stdlib/llm/llm.kuki:1868
-func AnthropicCompleteWithSystem(model string, system string, prompt string) (string, error) {
-//line stdlib/llm/llm.kuki:1869
-	c := NewMessages(model)
-//line stdlib/llm/llm.kuki:1870
-	c = MSystem(c, system)
 //line stdlib/llm/llm.kuki:1871
+func AnthropicCompleteWithSystem(model string, system string, prompt string) (string, error) {
+//line stdlib/llm/llm.kuki:1872
+	c := NewMessages(model)
+//line stdlib/llm/llm.kuki:1873
+	c = MSystem(c, system)
+//line stdlib/llm/llm.kuki:1874
 	return MAsk(c, prompt)
 }
 
-//line stdlib/llm/llm.kuki:1876
-func GetAnthropicText(resp AnthropicResponse) string {
-//line stdlib/llm/llm.kuki:1877
-	result := ""
-//line stdlib/llm/llm.kuki:1878
-	for _, block := range resp.Content {
 //line stdlib/llm/llm.kuki:1879
-		if block.Type == "text" {
+func GetAnthropicText(resp AnthropicResponse) string {
 //line stdlib/llm/llm.kuki:1880
+	result := ""
+//line stdlib/llm/llm.kuki:1881
+	for _, block := range resp.Content {
+//line stdlib/llm/llm.kuki:1882
+		if block.Type == "text" {
+//line stdlib/llm/llm.kuki:1883
 			result = (result + block.Text)
 		}
 	}
-//line stdlib/llm/llm.kuki:1881
+//line stdlib/llm/llm.kuki:1884
 	return result
 }
 
-//line stdlib/llm/llm.kuki:1887
-func GetThinking(resp AnthropicResponse) string {
-//line stdlib/llm/llm.kuki:1888
-	result := ""
-//line stdlib/llm/llm.kuki:1889
-	for _, block := range resp.Content {
 //line stdlib/llm/llm.kuki:1890
-		if block.Type == "thinking" {
+func GetThinking(resp AnthropicResponse) string {
 //line stdlib/llm/llm.kuki:1891
+	result := ""
+//line stdlib/llm/llm.kuki:1892
+	for _, block := range resp.Content {
+//line stdlib/llm/llm.kuki:1893
+		if block.Type == "thinking" {
+//line stdlib/llm/llm.kuki:1894
 			result = (result + block.Thinking)
 		}
 	}
-//line stdlib/llm/llm.kuki:1892
+//line stdlib/llm/llm.kuki:1895
 	return result
 }
 
-//line stdlib/llm/llm.kuki:1897
-func GetToolUses(resp AnthropicResponse) []ContentBlock {
-//line stdlib/llm/llm.kuki:1898
-	uses := []ContentBlock{}
-//line stdlib/llm/llm.kuki:1899
-	for _, block := range resp.Content {
 //line stdlib/llm/llm.kuki:1900
-		if block.Type == "tool_use" {
+func GetToolUses(resp AnthropicResponse) []ContentBlock {
 //line stdlib/llm/llm.kuki:1901
+	uses := []ContentBlock{}
+//line stdlib/llm/llm.kuki:1902
+	for _, block := range resp.Content {
+//line stdlib/llm/llm.kuki:1903
+		if block.Type == "tool_use" {
+//line stdlib/llm/llm.kuki:1904
 			uses = append(uses, block)
 		}
 	}
-//line stdlib/llm/llm.kuki:1902
+//line stdlib/llm/llm.kuki:1905
 	return uses
 }
 
-//line stdlib/llm/llm.kuki:1906
+//line stdlib/llm/llm.kuki:1909
 func HasToolUses(resp AnthropicResponse) bool {
-//line stdlib/llm/llm.kuki:1907
+//line stdlib/llm/llm.kuki:1910
 	return (resp.StopReason == "tool_use")
 }
 
-//line stdlib/llm/llm.kuki:1910
+//line stdlib/llm/llm.kuki:1913
 func mResolveAPIKey(c MessagesClient) string {
-//line stdlib/llm/llm.kuki:1911
+//line stdlib/llm/llm.kuki:1914
 	if c.apiKey != "" {
-//line stdlib/llm/llm.kuki:1912
+//line stdlib/llm/llm.kuki:1915
 		return c.apiKey
 	}
-//line stdlib/llm/llm.kuki:1913
+//line stdlib/llm/llm.kuki:1916
 	return env.GetOr("ANTHROPIC_API_KEY", "")
 }
 
-//line stdlib/llm/llm.kuki:1916
+//line stdlib/llm/llm.kuki:1919
 func mResolveBaseURL(c MessagesClient) string {
-//line stdlib/llm/llm.kuki:1917
+//line stdlib/llm/llm.kuki:1920
 	if c.baseURL != "" {
-//line stdlib/llm/llm.kuki:1918
+//line stdlib/llm/llm.kuki:1921
 		return c.baseURL
 	}
-//line stdlib/llm/llm.kuki:1919
+//line stdlib/llm/llm.kuki:1922
 	return "https://api.anthropic.com"
 }
 
-//line stdlib/llm/llm.kuki:1922
+//line stdlib/llm/llm.kuki:1925
 func mResolvePath(c MessagesClient) string {
-//line stdlib/llm/llm.kuki:1923
+//line stdlib/llm/llm.kuki:1926
 	if c.path != "" {
-//line stdlib/llm/llm.kuki:1924
+//line stdlib/llm/llm.kuki:1927
 		return c.path
 	}
-//line stdlib/llm/llm.kuki:1925
+//line stdlib/llm/llm.kuki:1928
 	return "/v1/messages"
 }
 
-//line stdlib/llm/llm.kuki:1928
-func mBuildRequest(c MessagesClient) MessagesRequest {
-//line stdlib/llm/llm.kuki:1929
-	req := MessagesRequest{}
-//line stdlib/llm/llm.kuki:1930
-	req.Model = c.model
 //line stdlib/llm/llm.kuki:1931
-	req.Messages = c.messages
+func mBuildRequest(c MessagesClient) MessagesRequest {
 //line stdlib/llm/llm.kuki:1932
-	req.MaxTokens = c.maxTokens
+	req := MessagesRequest{}
+//line stdlib/llm/llm.kuki:1933
+	req.Model = c.model
 //line stdlib/llm/llm.kuki:1934
-	if c.system != "" {
+	req.Messages = c.messages
 //line stdlib/llm/llm.kuki:1935
+	req.MaxTokens = c.maxTokens
+//line stdlib/llm/llm.kuki:1937
+	if c.system != "" {
+//line stdlib/llm/llm.kuki:1938
 		req.System = c.system
 	}
-//line stdlib/llm/llm.kuki:1936
+//line stdlib/llm/llm.kuki:1939
 	if c.temperature != 0.0 {
-//line stdlib/llm/llm.kuki:1937
+//line stdlib/llm/llm.kuki:1940
 		req.Temperature = c.temperature
 	}
-//line stdlib/llm/llm.kuki:1938
+//line stdlib/llm/llm.kuki:1941
 	if c.topP != 0.0 {
-//line stdlib/llm/llm.kuki:1939
+//line stdlib/llm/llm.kuki:1942
 		req.TopP = c.topP
 	}
-//line stdlib/llm/llm.kuki:1940
+//line stdlib/llm/llm.kuki:1943
 	if c.topK != 0 {
-//line stdlib/llm/llm.kuki:1941
+//line stdlib/llm/llm.kuki:1944
 		req.TopK = c.topK
 	}
-//line stdlib/llm/llm.kuki:1942
+//line stdlib/llm/llm.kuki:1945
 	if len(c.stopSequences) > 0 {
-//line stdlib/llm/llm.kuki:1943
+//line stdlib/llm/llm.kuki:1946
 		req.StopSequences = c.stopSequences
 	}
-//line stdlib/llm/llm.kuki:1944
+//line stdlib/llm/llm.kuki:1947
 	if len(c.tools) > 0 {
-//line stdlib/llm/llm.kuki:1945
+//line stdlib/llm/llm.kuki:1948
 		req.Tools = c.tools
 	}
-//line stdlib/llm/llm.kuki:1946
+//line stdlib/llm/llm.kuki:1949
 	if c.toolChoice != nil {
-//line stdlib/llm/llm.kuki:1947
+//line stdlib/llm/llm.kuki:1950
 		req.ToolChoice = c.toolChoice
 	}
-//line stdlib/llm/llm.kuki:1948
+//line stdlib/llm/llm.kuki:1951
 	if c.metadata != nil {
-//line stdlib/llm/llm.kuki:1949
+//line stdlib/llm/llm.kuki:1952
 		req.Metadata = c.metadata
 	}
-//line stdlib/llm/llm.kuki:1950
+//line stdlib/llm/llm.kuki:1953
 	if c.thinking != nil {
-//line stdlib/llm/llm.kuki:1951
+//line stdlib/llm/llm.kuki:1954
 		req.Thinking = c.thinking
 	}
-//line stdlib/llm/llm.kuki:1952
+//line stdlib/llm/llm.kuki:1955
 	if c.effort != "" {
-//line stdlib/llm/llm.kuki:1953
+//line stdlib/llm/llm.kuki:1956
 		req.Effort = c.effort
 	}
-//line stdlib/llm/llm.kuki:1954
+//line stdlib/llm/llm.kuki:1957
 	if c.outputConfig != nil {
-//line stdlib/llm/llm.kuki:1955
+//line stdlib/llm/llm.kuki:1958
 		req.OutputConfig = c.outputConfig
 	}
-//line stdlib/llm/llm.kuki:1956
+//line stdlib/llm/llm.kuki:1959
 	if c.inferenceGeo != "" {
-//line stdlib/llm/llm.kuki:1957
+//line stdlib/llm/llm.kuki:1960
 		req.InferenceGeo = c.inferenceGeo
 	}
-//line stdlib/llm/llm.kuki:1958
+//line stdlib/llm/llm.kuki:1961
 	if (c.streamHandler != nil) || (c.eventHandler != nil) {
-//line stdlib/llm/llm.kuki:1959
+//line stdlib/llm/llm.kuki:1962
 		req.Stream = true
 	}
-//line stdlib/llm/llm.kuki:1961
+//line stdlib/llm/llm.kuki:1964
 	return req
 }
 
-//line stdlib/llm/llm.kuki:1964
+//line stdlib/llm/llm.kuki:1967
 func mExecute(c MessagesClient) (string, error) {
-//line stdlib/llm/llm.kuki:1965
+//line stdlib/llm/llm.kuki:1968
 	if (c.streamHandler != nil) || (c.eventHandler != nil) {
-//line stdlib/llm/llm.kuki:1966
+//line stdlib/llm/llm.kuki:1969
 		return mExecuteStream(c)
 	}
-//line stdlib/llm/llm.kuki:1968
+//line stdlib/llm/llm.kuki:1971
 	resp, err_19 := mExecuteRaw(c)
-//line stdlib/llm/llm.kuki:1968
+//line stdlib/llm/llm.kuki:1971
 	if err_19 != nil {
-//line stdlib/llm/llm.kuki:1968
+//line stdlib/llm/llm.kuki:1971
 		return "", err_19
 	}
-//line stdlib/llm/llm.kuki:1969
+//line stdlib/llm/llm.kuki:1972
 	return GetAnthropicText(resp), nil
 }
 
-//line stdlib/llm/llm.kuki:1972
-func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
-//line stdlib/llm/llm.kuki:1973
-	baseURL := mResolveBaseURL(c)
-//line stdlib/llm/llm.kuki:1974
-	apiKey := mResolveAPIKey(c)
 //line stdlib/llm/llm.kuki:1975
-	msgPath := mResolvePath(c)
+func mExecuteRaw(c MessagesClient) (AnthropicResponse, error) {
 //line stdlib/llm/llm.kuki:1976
-	url := fmt.Sprintf("%v%v", baseURL, msgPath)
+	baseURL := mResolveBaseURL(c)
 //line stdlib/llm/llm.kuki:1977
-	body := mBuildRequest(c)
+	apiKey := mResolveAPIKey(c)
+//line stdlib/llm/llm.kuki:1978
+	msgPath := mResolvePath(c)
+//line stdlib/llm/llm.kuki:1979
+	url := fmt.Sprintf("%v%v", baseURL, msgPath)
 //line stdlib/llm/llm.kuki:1980
+	body := mBuildRequest(c)
+//line stdlib/llm/llm.kuki:1983
 	req := fetch.Header(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), "anthropic-version", c.apiVersion)
-//line stdlib/llm/llm.kuki:1985
+//line stdlib/llm/llm.kuki:1988
 	if apiKey != "" {
-//line stdlib/llm/llm.kuki:1986
+//line stdlib/llm/llm.kuki:1989
 		req = fetch.Header(req, "x-api-key", apiKey)
 	}
-//line stdlib/llm/llm.kuki:1988
-	req = fetch.Body(req, body)
-//line stdlib/llm/llm.kuki:1990
-	if c.retryMaxAttempts > 1 {
 //line stdlib/llm/llm.kuki:1991
+	req = fetch.Body(req, body)
+//line stdlib/llm/llm.kuki:1993
+	if c.retryMaxAttempts > 1 {
+//line stdlib/llm/llm.kuki:1994
 		req = fetch.Retry(req, c.retryMaxAttempts, c.retryDelayMs)
 	}
-//line stdlib/llm/llm.kuki:1993
+//line stdlib/llm/llm.kuki:1996
 	resp, err_20 := fetch.Do(req)
-//line stdlib/llm/llm.kuki:1993
+//line stdlib/llm/llm.kuki:1996
 	if err_20 != nil {
 		var _zero0 AnthropicResponse
-//line stdlib/llm/llm.kuki:1993
+//line stdlib/llm/llm.kuki:1996
 		return _zero0, err_20
 	}
-//line stdlib/llm/llm.kuki:1995
+//line stdlib/llm/llm.kuki:1998
 	defer resp.Body.Close()
-//line stdlib/llm/llm.kuki:1997
+//line stdlib/llm/llm.kuki:2000
 	if resp.StatusCode >= 400 {
-//line stdlib/llm/llm.kuki:1998
+//line stdlib/llm/llm.kuki:2001
 		errBody, err_21 := fetch.Bytes(resp)
-//line stdlib/llm/llm.kuki:1998
+//line stdlib/llm/llm.kuki:2001
 		if err_21 != nil {
-//line stdlib/llm/llm.kuki:1998
+//line stdlib/llm/llm.kuki:2001
 			return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
-//line stdlib/llm/llm.kuki:1999
+//line stdlib/llm/llm.kuki:2002
 		return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line stdlib/llm/llm.kuki:2001
+//line stdlib/llm/llm.kuki:2004
 	result := AnthropicResponse{}
-//line stdlib/llm/llm.kuki:2002
-//line stdlib/llm/llm.kuki:2002
+//line stdlib/llm/llm.kuki:2005
+//line stdlib/llm/llm.kuki:2005
 	err_22 := json.UnmarshalRead(resp.Body, &result)
-//line stdlib/llm/llm.kuki:2002
+//line stdlib/llm/llm.kuki:2005
 	if err_22 != nil {
 		var _zero0 AnthropicResponse
-//line stdlib/llm/llm.kuki:2002
+//line stdlib/llm/llm.kuki:2005
 		return _zero0, err_22
 	}
-//line stdlib/llm/llm.kuki:2004
+//line stdlib/llm/llm.kuki:2007
 	return result, nil
 }
 
-//line stdlib/llm/llm.kuki:2007
+//line stdlib/llm/llm.kuki:2010
 func mExecuteStream(c MessagesClient) (string, error) {
-//line stdlib/llm/llm.kuki:2008
+//line stdlib/llm/llm.kuki:2011
 	resp, err_23 := mExecuteStreamRaw(c)
-//line stdlib/llm/llm.kuki:2008
+//line stdlib/llm/llm.kuki:2011
 	if err_23 != nil {
-//line stdlib/llm/llm.kuki:2008
+//line stdlib/llm/llm.kuki:2011
 		return "", err_23
 	}
-//line stdlib/llm/llm.kuki:2009
+//line stdlib/llm/llm.kuki:2012
 	return GetAnthropicText(resp), nil
 }
 
-//line stdlib/llm/llm.kuki:2012
-func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error) {
-//line stdlib/llm/llm.kuki:2013
-	baseURL := mResolveBaseURL(c)
-//line stdlib/llm/llm.kuki:2014
-	apiKey := mResolveAPIKey(c)
 //line stdlib/llm/llm.kuki:2015
-	msgPath := mResolvePath(c)
+func mExecuteStreamRaw(c MessagesClient) (AnthropicResponse, error) {
 //line stdlib/llm/llm.kuki:2016
-	url := fmt.Sprintf("%v%v", baseURL, msgPath)
+	baseURL := mResolveBaseURL(c)
 //line stdlib/llm/llm.kuki:2017
-	body := mBuildRequest(c)
+	apiKey := mResolveAPIKey(c)
+//line stdlib/llm/llm.kuki:2018
+	msgPath := mResolvePath(c)
 //line stdlib/llm/llm.kuki:2019
+	url := fmt.Sprintf("%v%v", baseURL, msgPath)
+//line stdlib/llm/llm.kuki:2020
+	body := mBuildRequest(c)
+//line stdlib/llm/llm.kuki:2022
 	req := fetch.Header(fetch.Header(fetch.Header(fetch.Method(fetch.New(url), "POST"), "Content-Type", "application/json"), "Accept", "text/event-stream"), "anthropic-version", c.apiVersion)
-//line stdlib/llm/llm.kuki:2025
+//line stdlib/llm/llm.kuki:2028
 	if apiKey != "" {
-//line stdlib/llm/llm.kuki:2026
+//line stdlib/llm/llm.kuki:2029
 		req = fetch.Header(req, "x-api-key", apiKey)
 	}
-//line stdlib/llm/llm.kuki:2028
+//line stdlib/llm/llm.kuki:2031
 	req = fetch.Body(req, body)
-//line stdlib/llm/llm.kuki:2030
+//line stdlib/llm/llm.kuki:2033
 	resp, err_24 := fetch.Do(req)
-//line stdlib/llm/llm.kuki:2030
+//line stdlib/llm/llm.kuki:2033
 	if err_24 != nil {
 		var _zero0 AnthropicResponse
-//line stdlib/llm/llm.kuki:2030
+//line stdlib/llm/llm.kuki:2033
 		return _zero0, err_24
 	}
-//line stdlib/llm/llm.kuki:2032
+//line stdlib/llm/llm.kuki:2035
 	defer resp.Body.Close()
-//line stdlib/llm/llm.kuki:2034
+//line stdlib/llm/llm.kuki:2037
 	if resp.StatusCode >= 400 {
-//line stdlib/llm/llm.kuki:2035
+//line stdlib/llm/llm.kuki:2038
 		errBody, err_25 := fetch.Bytes(resp)
-//line stdlib/llm/llm.kuki:2035
+//line stdlib/llm/llm.kuki:2038
 		if err_25 != nil {
-//line stdlib/llm/llm.kuki:2035
+//line stdlib/llm/llm.kuki:2038
 			return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed with status %v", resp.StatusCode)
 		}
-//line stdlib/llm/llm.kuki:2036
+//line stdlib/llm/llm.kuki:2039
 		return AnthropicResponse{}, fmt.Errorf("Anthropic API request failed (%v): %v", resp.StatusCode, string(errBody))
 	}
-//line stdlib/llm/llm.kuki:2039
-	contentBlocks := make(map[int]ContentBlock)
-//line stdlib/llm/llm.kuki:2040
-	inputAccum := make(map[int]string)
-//line stdlib/llm/llm.kuki:2041
-	scanner := bufio.NewScanner(resp.Body)
 //line stdlib/llm/llm.kuki:2042
-	for scanner.Scan() {
+	contentBlocks := make(map[int]ContentBlock)
 //line stdlib/llm/llm.kuki:2043
-		line := scanner.Text()
+	inputAccum := make(map[int]string)
+//line stdlib/llm/llm.kuki:2044
+	scanner := bufio.NewScanner(resp.Body)
+//line stdlib/llm/llm.kuki:2045
+	for scanner.Scan() {
 //line stdlib/llm/llm.kuki:2046
+		line := scanner.Text()
+//line stdlib/llm/llm.kuki:2049
 		if ((line == "") || kukistring.HasPrefix(line, "event:")) || kukistring.HasPrefix(line, ":") {
-//line stdlib/llm/llm.kuki:2047
+//line stdlib/llm/llm.kuki:2050
 			continue
 		}
-//line stdlib/llm/llm.kuki:2050
+//line stdlib/llm/llm.kuki:2053
 		if kukistring.HasPrefix(line, "data: ") {
-//line stdlib/llm/llm.kuki:2051
+//line stdlib/llm/llm.kuki:2054
 			data := kukistring.TrimPrefix(line, "data: ")
-//line stdlib/llm/llm.kuki:2052
+//line stdlib/llm/llm.kuki:2055
 			evt := AnthropicStreamEvent{}
-//line stdlib/llm/llm.kuki:2053
-//line stdlib/llm/llm.kuki:2053
+//line stdlib/llm/llm.kuki:2056
+//line stdlib/llm/llm.kuki:2056
 			err_26 := json.Unmarshal([]byte(data), &evt)
-//line stdlib/llm/llm.kuki:2053
+//line stdlib/llm/llm.kuki:2056
 			if err_26 != nil {
-//line stdlib/llm/llm.kuki:2053
-				//line stdlib/llm/llm.kuki:2054
+//line stdlib/llm/llm.kuki:2056
+				//line stdlib/llm/llm.kuki:2057
 				continue
 			}
-//line stdlib/llm/llm.kuki:2057
+//line stdlib/llm/llm.kuki:2060
 			if c.eventHandler != nil {
-//line stdlib/llm/llm.kuki:2058
+//line stdlib/llm/llm.kuki:2061
 				c.eventHandler(evt)
 			}
-//line stdlib/llm/llm.kuki:2061
+//line stdlib/llm/llm.kuki:2064
 			if evt.Type == "content_block_start" {
-//line stdlib/llm/llm.kuki:2062
+//line stdlib/llm/llm.kuki:2065
 				idx := evt.Index
-//line stdlib/llm/llm.kuki:2063
+//line stdlib/llm/llm.kuki:2066
 				contentBlocks[idx] = evt.ContentBlock
 			}
-//line stdlib/llm/llm.kuki:2066
-			if evt.Type == "content_block_delta" {
-//line stdlib/llm/llm.kuki:2067
-				idx := evt.Index
-//line stdlib/llm/llm.kuki:2068
-				block := contentBlocks[idx]
 //line stdlib/llm/llm.kuki:2069
-				if evt.Delta.Type == "text_delta" {
+			if evt.Type == "content_block_delta" {
 //line stdlib/llm/llm.kuki:2070
-					block.Type = "text"
+				idx := evt.Index
 //line stdlib/llm/llm.kuki:2071
-					block.Text = (block.Text + evt.Delta.Text)
+				block := contentBlocks[idx]
 //line stdlib/llm/llm.kuki:2072
-					if c.streamHandler != nil {
+				if evt.Delta.Type == "text_delta" {
 //line stdlib/llm/llm.kuki:2073
+					block.Type = "text"
+//line stdlib/llm/llm.kuki:2074
+					block.Text = (block.Text + evt.Delta.Text)
+//line stdlib/llm/llm.kuki:2075
+					if c.streamHandler != nil {
+//line stdlib/llm/llm.kuki:2076
 						c.streamHandler(evt.Delta.Text)
 					}
 				}
-//line stdlib/llm/llm.kuki:2074
-				if evt.Delta.Type == "input_json_delta" {
-//line stdlib/llm/llm.kuki:2075
-					block.Type = "tool_use"
-//line stdlib/llm/llm.kuki:2076
-					inputAccum[idx] = (inputAccum[idx] + evt.Delta.PartialJSON)
 //line stdlib/llm/llm.kuki:2077
+				if evt.Delta.Type == "input_json_delta" {
+//line stdlib/llm/llm.kuki:2078
+					block.Type = "tool_use"
+//line stdlib/llm/llm.kuki:2079
+					inputAccum[idx] = (inputAccum[idx] + evt.Delta.PartialJSON)
+//line stdlib/llm/llm.kuki:2080
 					block.Input = inputAccum[idx]
 				}
-//line stdlib/llm/llm.kuki:2078
+//line stdlib/llm/llm.kuki:2081
 				contentBlocks[idx] = block
 			}
-//line stdlib/llm/llm.kuki:2081
+//line stdlib/llm/llm.kuki:2084
 			if evt.Type == "error" {
-//line stdlib/llm/llm.kuki:2082
+//line stdlib/llm/llm.kuki:2085
 				return AnthropicResponse{}, errors.New("Anthropic streaming error")
 			}
 		}
 	}
-//line stdlib/llm/llm.kuki:2084
-//line stdlib/llm/llm.kuki:2084
+//line stdlib/llm/llm.kuki:2087
+//line stdlib/llm/llm.kuki:2087
 	err_27 := scanner.Err()
-//line stdlib/llm/llm.kuki:2084
+//line stdlib/llm/llm.kuki:2087
 	if err_27 != nil {
-//line stdlib/llm/llm.kuki:2084
+//line stdlib/llm/llm.kuki:2087
 		return AnthropicResponse{}, fmt.Errorf("%v", err_27)
 	}
-//line stdlib/llm/llm.kuki:2087
-	blocks := []ContentBlock{}
-//line stdlib/llm/llm.kuki:2088
-	for i := range 20 {
-//line stdlib/llm/llm.kuki:2089
-		_, ok := contentBlocks[i]
 //line stdlib/llm/llm.kuki:2090
-		if ok {
+	blocks := []ContentBlock{}
 //line stdlib/llm/llm.kuki:2091
+	for i := range 20 {
+//line stdlib/llm/llm.kuki:2092
+		_, ok := contentBlocks[i]
+//line stdlib/llm/llm.kuki:2093
+		if ok {
+//line stdlib/llm/llm.kuki:2094
 			blocks = append(blocks, contentBlocks[i])
 		}
 	}
-//line stdlib/llm/llm.kuki:2093
+//line stdlib/llm/llm.kuki:2096
 	result := AnthropicResponse{Content: blocks}
-//line stdlib/llm/llm.kuki:2095
+//line stdlib/llm/llm.kuki:2098
 	return result, nil
 }

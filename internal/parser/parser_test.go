@@ -626,6 +626,24 @@ func TestParseMultiLineCall(t *testing.T) {
 `,
 			wantArgs: 2,
 		},
+		{
+			name: "block-bodied closure inside nested paren call",
+			input: `func Run()
+    outer(inner((x int) =>
+        return x + 1
+    ))
+`,
+			wantArgs: 1,
+		},
+		{
+			name: "block-bodied func literal inside nested paren call",
+			input: `func Run()
+    outer(inner(func(x int) int
+        return x + 1
+    ))
+`,
+			wantArgs: 1,
+		},
 	}
 
 	for _, tt := range tests {

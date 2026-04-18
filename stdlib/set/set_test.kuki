@@ -238,11 +238,17 @@ func TestIsSubset(t reference testing.T)
 # --- TestIsSuperset ---
 func TestIsSuperset(t reference testing.T)
     t.Run("superset", (t reference testing.T) =>
-        test.AssertTrue(t, set.IsSuperset(set.From(list of string{"a", "b", "c"}), set.From(list of string{"a", "b"})))
+        test.AssertTrue(
+            t,
+            set.IsSuperset(set.From(list of string{"a", "b", "c"}), set.From(list of string{"a", "b"})),
+        )
     )
 
     t.Run("not superset", (t reference testing.T) =>
-        test.AssertFalse(t, set.IsSuperset(set.From(list of string{"a"}), set.From(list of string{"a", "b"})))
+        test.AssertFalse(
+            t,
+            set.IsSuperset(set.From(list of string{"a"}), set.From(list of string{"a", "b"})),
+        )
     )
 
 # --- TestEqual ---

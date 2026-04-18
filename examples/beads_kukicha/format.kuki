@@ -180,7 +180,9 @@ func printIssueRow(issue Issue)
     title := issue.Title
     if len(title) > 50
         title = title[:47] + "..."
-    print("  {color.Dim(id)} {statusColor(issue.Status)} {priorityColor(issue.Priority)} {color.Dim(typ)} {color.Dim(age)} {title}")
+    print(
+        "  {color.Dim(id)} {statusColor(issue.Status)} {priorityColor(issue.Priority)} {color.Dim(typ)} {color.Dim(age)} {title}",
+    )
 
 func printIssueList(issues list of Issue)
     if len(issues) equals 0

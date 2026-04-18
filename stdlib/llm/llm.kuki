@@ -1472,7 +1472,10 @@ func rExecuteStreamRaw(c ResponseClient) (Response, error)
     # Add text message as well if we have content
     if fullContent isnt ""
         msgPart := map of string to any{"type": "output_text", "text": fullContent}
-        output = append(output, OutputItem{Type: "message", Role: "assistant", Content: list of any{msgPart}})
+        output = append(
+            output,
+            OutputItem{Type: "message", Role: "assistant", Content: list of any{msgPart}},
+        )
 
     result := Response{Output: output}
 

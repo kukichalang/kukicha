@@ -306,7 +306,10 @@ func BearerConnect(ctx context.Context, endpoint string, token string) (referenc
 # Pass a custom http.Client to inject authentication headers (e.g. via a custom RoundTripper).
 # If httpClient is nil, the default http.Client is used.
 func ConnectWithClient(ctx context.Context, endpoint string, httpClient reference http.Client) (reference ClientSession, error)
-    client := mcp.NewClient(reference of mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"}, empty)
+    client := mcp.NewClient(
+        reference of mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"},
+        empty,
+    )
     transport := reference of mcp.StreamableClientTransport{Endpoint: endpoint, HTTPClient: httpClient}
     session := client.Connect(ctx, transport, empty) onerr return empty, error "MCP connect to {endpoint} failed: {error}"
     return reference of ClientSession{inner: session}, empty

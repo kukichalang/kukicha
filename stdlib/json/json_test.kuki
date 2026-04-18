@@ -93,7 +93,9 @@ func TestMarshalPretty(t reference testing.T)
                 t.Error("Expected non-empty pretty JSON bytes")
 
             if len(pretty) <= len(compact)
-                t.Errorf("Expected pretty JSON (len={len(pretty)}) to be longer than compact (len={len(compact)})")
+                t.Errorf(
+                    "Expected pretty JSON (len={len(pretty)}) to be longer than compact (len={len(compact)})",
+                )
         )
 
 # --- TestMarshalWrite ---

@@ -95,6 +95,10 @@ func TestCallToolRichContent(t reference testing.T)
         t.Fatalf("CallTool failed: {error}")
         return
 
-    test.AssertEqual(t, result.Text, "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text")
+    test.AssertEqual(
+        t,
+        result.Text,
+        "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text",
+    )
     test.AssertEqual(t, len(result.Content), 5)
     test.AssertFalse(t, result.IsError)

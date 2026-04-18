@@ -95,413 +95,413 @@ func Action(app App, handler func(Args)) App {
 func Command(app App, name string, desc string) App {
 //line stdlib/cli/cli.kuki:89
 	app.subcommands = append(app.subcommands, SubcommandDef{name: name, description: desc, flags: make([]FlagDef, 0), action: nil})
-//line stdlib/cli/cli.kuki:90
+//line stdlib/cli/cli.kuki:93
 	return app
 }
 
-//line stdlib/cli/cli.kuki:94
-func CommandFlag(app App, cmd string, name string, desc string, defaultValue string) App {
-//line stdlib/cli/cli.kuki:95
-	for i := range len(app.subcommands) {
-//line stdlib/cli/cli.kuki:96
-		if app.subcommands[i].name == cmd {
 //line stdlib/cli/cli.kuki:97
-			app.subcommands[i].flags = append(app.subcommands[i].flags, FlagDef{name: name, description: desc, defaultValue: defaultValue})
+func CommandFlag(app App, cmd string, name string, desc string, defaultValue string) App {
 //line stdlib/cli/cli.kuki:98
-			return app
-		}
-	}
-//line stdlib/cli/cli.kuki:99
-	return app
-}
-
-//line stdlib/cli/cli.kuki:103
-func CommandAction(app App, cmd string, handler func(Args)) App {
-//line stdlib/cli/cli.kuki:104
 	for i := range len(app.subcommands) {
-//line stdlib/cli/cli.kuki:105
+//line stdlib/cli/cli.kuki:99
 		if app.subcommands[i].name == cmd {
-//line stdlib/cli/cli.kuki:106
-			app.subcommands[i].action = handler
-//line stdlib/cli/cli.kuki:107
+//line stdlib/cli/cli.kuki:100
+			app.subcommands[i].flags = append(app.subcommands[i].flags, FlagDef{name: name, description: desc, defaultValue: defaultValue})
+//line stdlib/cli/cli.kuki:104
 			return app
 		}
 	}
-//line stdlib/cli/cli.kuki:108
+//line stdlib/cli/cli.kuki:105
 	return app
 }
 
+//line stdlib/cli/cli.kuki:109
+func CommandAction(app App, cmd string, handler func(Args)) App {
+//line stdlib/cli/cli.kuki:110
+	for i := range len(app.subcommands) {
+//line stdlib/cli/cli.kuki:111
+		if app.subcommands[i].name == cmd {
 //line stdlib/cli/cli.kuki:112
-func GlobalFlag(app App, name string, desc string, defaultValue string) App {
+			app.subcommands[i].action = handler
 //line stdlib/cli/cli.kuki:113
-	app.globalFlags = append(app.globalFlags, FlagDef{name: name, description: desc, defaultValue: defaultValue})
+			return app
+		}
+	}
 //line stdlib/cli/cli.kuki:114
 	return app
 }
 
 //line stdlib/cli/cli.kuki:118
-func CommandName(args Args) string {
+func GlobalFlag(app App, name string, desc string, defaultValue string) App {
 //line stdlib/cli/cli.kuki:119
+	app.globalFlags = append(app.globalFlags, FlagDef{name: name, description: desc, defaultValue: defaultValue})
+//line stdlib/cli/cli.kuki:120
+	return app
+}
+
+//line stdlib/cli/cli.kuki:124
+func CommandName(args Args) string {
+//line stdlib/cli/cli.kuki:125
 	return args.values["__command__"]
 }
 
-//line stdlib/cli/cli.kuki:123
+//line stdlib/cli/cli.kuki:129
 func RunApp(app App) error {
-//line stdlib/cli/cli.kuki:125
+//line stdlib/cli/cli.kuki:131
 	if len(app.subcommands) > 0 {
-//line stdlib/cli/cli.kuki:126
+//line stdlib/cli/cli.kuki:132
 		return runWithSubcommands(app)
 	}
-//line stdlib/cli/cli.kuki:129
+//line stdlib/cli/cli.kuki:135
 	return runFlat(app)
 }
 
-//line stdlib/cli/cli.kuki:133
-func runFlat(app App) error {
-//line stdlib/cli/cli.kuki:134
-	values := make(map[string]string)
-//line stdlib/cli/cli.kuki:137
-	args := os.Args
-//line stdlib/cli/cli.kuki:138
-	argIndex := 1
 //line stdlib/cli/cli.kuki:139
-	for _, argDef := range app.args {
+func runFlat(app App) error {
 //line stdlib/cli/cli.kuki:140
+	values := make(map[string]string)
+//line stdlib/cli/cli.kuki:143
+	args := os.Args
+//line stdlib/cli/cli.kuki:144
+	argIndex := 1
+//line stdlib/cli/cli.kuki:145
+	for _, argDef := range app.args {
+//line stdlib/cli/cli.kuki:146
 		if (argIndex < len(args)) && !kukistring.HasPrefix(args[argIndex], "--") {
-//line stdlib/cli/cli.kuki:141
+//line stdlib/cli/cli.kuki:147
 			values[argDef.name] = args[argIndex]
-//line stdlib/cli/cli.kuki:142
+//line stdlib/cli/cli.kuki:148
 			argIndex = (argIndex + 1)
 		}
 	}
-//line stdlib/cli/cli.kuki:145
-	i := argIndex
-//line stdlib/cli/cli.kuki:146
-	for i < len(args) {
-//line stdlib/cli/cli.kuki:147
-		arg := args[i]
-//line stdlib/cli/cli.kuki:148
-		if kukistring.HasPrefix(arg, "--") {
-//line stdlib/cli/cli.kuki:149
-			parts := kukistring.SplitN(arg, "=", 2)
-//line stdlib/cli/cli.kuki:150
-			flagName := kukistring.TrimPrefix(parts[0], "--")
 //line stdlib/cli/cli.kuki:151
-			flagValue := ""
+	i := argIndex
 //line stdlib/cli/cli.kuki:152
-			if len(parts) > 1 {
+	for i < len(args) {
 //line stdlib/cli/cli.kuki:153
+		arg := args[i]
+//line stdlib/cli/cli.kuki:154
+		if kukistring.HasPrefix(arg, "--") {
+//line stdlib/cli/cli.kuki:155
+			parts := kukistring.SplitN(arg, "=", 2)
+//line stdlib/cli/cli.kuki:156
+			flagName := kukistring.TrimPrefix(parts[0], "--")
+//line stdlib/cli/cli.kuki:157
+			flagValue := ""
+//line stdlib/cli/cli.kuki:158
+			if len(parts) > 1 {
+//line stdlib/cli/cli.kuki:159
 				flagValue = parts[1]
 			} else {
-//line stdlib/cli/cli.kuki:155
+//line stdlib/cli/cli.kuki:161
 				i = (i + 1)
-//line stdlib/cli/cli.kuki:156
+//line stdlib/cli/cli.kuki:162
 				if (i < len(args)) && !kukistring.HasPrefix(args[i], "--") {
-//line stdlib/cli/cli.kuki:157
+//line stdlib/cli/cli.kuki:163
 					flagValue = args[i]
 				} else {
-//line stdlib/cli/cli.kuki:159
+//line stdlib/cli/cli.kuki:165
 					i = (i - 1)
 				}
 			}
-//line stdlib/cli/cli.kuki:161
+//line stdlib/cli/cli.kuki:167
 			values[flagName] = flagValue
 		}
-//line stdlib/cli/cli.kuki:162
+//line stdlib/cli/cli.kuki:168
 		i = (i + 1)
 	}
-//line stdlib/cli/cli.kuki:165
+//line stdlib/cli/cli.kuki:171
 	for _, flagDef := range app.flags {
-//line stdlib/cli/cli.kuki:166
+//line stdlib/cli/cli.kuki:172
 		if values[flagDef.name] == "" {
-//line stdlib/cli/cli.kuki:167
+//line stdlib/cli/cli.kuki:173
 			values[flagDef.name] = flagDef.defaultValue
 		}
 	}
-//line stdlib/cli/cli.kuki:170
+//line stdlib/cli/cli.kuki:176
 	if app.action != nil {
-//line stdlib/cli/cli.kuki:171
+//line stdlib/cli/cli.kuki:177
 		parsedArgs := Args{values: values}
-//line stdlib/cli/cli.kuki:172
+//line stdlib/cli/cli.kuki:178
 		app.action(parsedArgs)
-//line stdlib/cli/cli.kuki:173
+//line stdlib/cli/cli.kuki:179
 		return nil
 	}
-//line stdlib/cli/cli.kuki:175
+//line stdlib/cli/cli.kuki:181
 	return errors.New("no action defined")
 }
 
-//line stdlib/cli/cli.kuki:179
+//line stdlib/cli/cli.kuki:185
 func runWithSubcommands(app App) error {
-//line stdlib/cli/cli.kuki:180
+//line stdlib/cli/cli.kuki:186
 	args := os.Args
-//line stdlib/cli/cli.kuki:182
+//line stdlib/cli/cli.kuki:188
 	if ((len(args) < 2) || (args[1] == "-h")) || (args[1] == "--help") {
-//line stdlib/cli/cli.kuki:183
+//line stdlib/cli/cli.kuki:189
 		printHelp(app)
-//line stdlib/cli/cli.kuki:184
+//line stdlib/cli/cli.kuki:190
 		return nil
 	}
-//line stdlib/cli/cli.kuki:186
-	cmdName := args[1]
-//line stdlib/cli/cli.kuki:189
-	cmdIndex := -1
-//line stdlib/cli/cli.kuki:190
-	for i := range len(app.subcommands) {
-//line stdlib/cli/cli.kuki:191
-		if app.subcommands[i].name == cmdName {
 //line stdlib/cli/cli.kuki:192
+	cmdName := args[1]
+//line stdlib/cli/cli.kuki:195
+	cmdIndex := -1
+//line stdlib/cli/cli.kuki:196
+	for i := range len(app.subcommands) {
+//line stdlib/cli/cli.kuki:197
+		if app.subcommands[i].name == cmdName {
+//line stdlib/cli/cli.kuki:198
 			cmdIndex = i
 		}
 	}
-//line stdlib/cli/cli.kuki:194
+//line stdlib/cli/cli.kuki:200
 	if cmdIndex == -1 {
-//line stdlib/cli/cli.kuki:195
+//line stdlib/cli/cli.kuki:201
 		fmt.Fprintln(os.Stderr, fmt.Sprintf("Unknown command: %v", cmdName))
-//line stdlib/cli/cli.kuki:196
+//line stdlib/cli/cli.kuki:202
 		fmt.Fprintln(os.Stderr, "")
-//line stdlib/cli/cli.kuki:197
+//line stdlib/cli/cli.kuki:203
 		printHelp(app)
-//line stdlib/cli/cli.kuki:198
+//line stdlib/cli/cli.kuki:204
 		return fmt.Errorf("unknown command: %v", cmdName)
 	}
-//line stdlib/cli/cli.kuki:200
+//line stdlib/cli/cli.kuki:206
 	cmd := app.subcommands[cmdIndex]
-//line stdlib/cli/cli.kuki:203
+//line stdlib/cli/cli.kuki:209
 	if (len(args) > 2) && ((args[2] == "-h") || (args[2] == "--help")) {
-//line stdlib/cli/cli.kuki:204
+//line stdlib/cli/cli.kuki:210
 		printCommandHelp(app, cmd)
-//line stdlib/cli/cli.kuki:205
+//line stdlib/cli/cli.kuki:211
 		return nil
 	}
-//line stdlib/cli/cli.kuki:208
-	values := make(map[string]string)
-//line stdlib/cli/cli.kuki:209
-	values["__command__"] = cmdName
-//line stdlib/cli/cli.kuki:211
-	i := 2
-//line stdlib/cli/cli.kuki:212
-	for i < len(args) {
-//line stdlib/cli/cli.kuki:213
-		arg := args[i]
 //line stdlib/cli/cli.kuki:214
-		if kukistring.HasPrefix(arg, "--") {
+	values := make(map[string]string)
 //line stdlib/cli/cli.kuki:215
-			parts := kukistring.SplitN(arg, "=", 2)
-//line stdlib/cli/cli.kuki:216
-			flagName := kukistring.TrimPrefix(parts[0], "--")
+	values["__command__"] = cmdName
 //line stdlib/cli/cli.kuki:217
-			flagValue := ""
+	i := 2
 //line stdlib/cli/cli.kuki:218
-			if len(parts) > 1 {
+	for i < len(args) {
 //line stdlib/cli/cli.kuki:219
+		arg := args[i]
+//line stdlib/cli/cli.kuki:220
+		if kukistring.HasPrefix(arg, "--") {
+//line stdlib/cli/cli.kuki:221
+			parts := kukistring.SplitN(arg, "=", 2)
+//line stdlib/cli/cli.kuki:222
+			flagName := kukistring.TrimPrefix(parts[0], "--")
+//line stdlib/cli/cli.kuki:223
+			flagValue := ""
+//line stdlib/cli/cli.kuki:224
+			if len(parts) > 1 {
+//line stdlib/cli/cli.kuki:225
 				flagValue = parts[1]
 			} else {
-//line stdlib/cli/cli.kuki:221
+//line stdlib/cli/cli.kuki:227
 				i = (i + 1)
-//line stdlib/cli/cli.kuki:222
+//line stdlib/cli/cli.kuki:228
 				if (i < len(args)) && !kukistring.HasPrefix(args[i], "--") {
-//line stdlib/cli/cli.kuki:223
+//line stdlib/cli/cli.kuki:229
 					flagValue = args[i]
 				} else {
-//line stdlib/cli/cli.kuki:225
+//line stdlib/cli/cli.kuki:231
 					flagValue = "true"
-//line stdlib/cli/cli.kuki:226
+//line stdlib/cli/cli.kuki:232
 					i = (i - 1)
 				}
 			}
-//line stdlib/cli/cli.kuki:227
+//line stdlib/cli/cli.kuki:233
 			values[flagName] = flagValue
 		}
-//line stdlib/cli/cli.kuki:228
+//line stdlib/cli/cli.kuki:234
 		i = (i + 1)
 	}
-//line stdlib/cli/cli.kuki:231
-	for _, flagDef := range app.globalFlags {
-//line stdlib/cli/cli.kuki:232
-		if values[flagDef.name] == "" {
-//line stdlib/cli/cli.kuki:233
-			values[flagDef.name] = flagDef.defaultValue
-		}
-	}
-//line stdlib/cli/cli.kuki:236
-	for _, flagDef := range cmd.flags {
 //line stdlib/cli/cli.kuki:237
-		if values[flagDef.name] == "" {
+	for _, flagDef := range app.globalFlags {
 //line stdlib/cli/cli.kuki:238
+		if values[flagDef.name] == "" {
+//line stdlib/cli/cli.kuki:239
 			values[flagDef.name] = flagDef.defaultValue
 		}
 	}
-//line stdlib/cli/cli.kuki:240
+//line stdlib/cli/cli.kuki:242
+	for _, flagDef := range cmd.flags {
+//line stdlib/cli/cli.kuki:243
+		if values[flagDef.name] == "" {
+//line stdlib/cli/cli.kuki:244
+			values[flagDef.name] = flagDef.defaultValue
+		}
+	}
+//line stdlib/cli/cli.kuki:246
 	if cmd.action == nil {
-//line stdlib/cli/cli.kuki:241
+//line stdlib/cli/cli.kuki:247
 		return fmt.Errorf("no action defined for command: %v", cmdName)
 	}
-//line stdlib/cli/cli.kuki:243
+//line stdlib/cli/cli.kuki:249
 	parsedArgs := Args{values: values}
-//line stdlib/cli/cli.kuki:244
+//line stdlib/cli/cli.kuki:250
 	cmd.action(parsedArgs)
-//line stdlib/cli/cli.kuki:245
+//line stdlib/cli/cli.kuki:251
 	return nil
 }
 
-//line stdlib/cli/cli.kuki:249
+//line stdlib/cli/cli.kuki:255
 func printHelp(app App) {
-//line stdlib/cli/cli.kuki:250
+//line stdlib/cli/cli.kuki:256
 	if app.description != "" {
-//line stdlib/cli/cli.kuki:251
+//line stdlib/cli/cli.kuki:257
 		fmt.Println(app.description)
-//line stdlib/cli/cli.kuki:252
+//line stdlib/cli/cli.kuki:258
 		fmt.Println("")
 	}
-//line stdlib/cli/cli.kuki:254
+//line stdlib/cli/cli.kuki:260
 	fmt.Println("Usage:")
-//line stdlib/cli/cli.kuki:255
+//line stdlib/cli/cli.kuki:261
 	fmt.Println(fmt.Sprintf("  %v <command> [flags]", app.name))
-//line stdlib/cli/cli.kuki:256
+//line stdlib/cli/cli.kuki:262
 	fmt.Println("")
-//line stdlib/cli/cli.kuki:257
+//line stdlib/cli/cli.kuki:263
 	fmt.Println("Commands:")
-//line stdlib/cli/cli.kuki:258
+//line stdlib/cli/cli.kuki:264
 	for _, cmd := range app.subcommands {
-//line stdlib/cli/cli.kuki:259
+//line stdlib/cli/cli.kuki:265
 		fmt.Println(fmt.Sprintf("  %v%v", kukistring.PadRight(cmd.name, 14, " "), cmd.description))
 	}
-//line stdlib/cli/cli.kuki:261
-	if len(app.globalFlags) > 0 {
-//line stdlib/cli/cli.kuki:262
-		fmt.Println("")
-//line stdlib/cli/cli.kuki:263
-		fmt.Println("Global Flags:")
-//line stdlib/cli/cli.kuki:264
-		for _, flag := range app.globalFlags {
-//line stdlib/cli/cli.kuki:265
-			label := kukistring.PadRight(fmt.Sprintf("--%v", flag.name), 20, " ")
-//line stdlib/cli/cli.kuki:266
-			if flag.defaultValue != "" {
 //line stdlib/cli/cli.kuki:267
+	if len(app.globalFlags) > 0 {
+//line stdlib/cli/cli.kuki:268
+		fmt.Println("")
+//line stdlib/cli/cli.kuki:269
+		fmt.Println("Global Flags:")
+//line stdlib/cli/cli.kuki:270
+		for _, flag := range app.globalFlags {
+//line stdlib/cli/cli.kuki:271
+			label := kukistring.PadRight(fmt.Sprintf("--%v", flag.name), 20, " ")
+//line stdlib/cli/cli.kuki:272
+			if flag.defaultValue != "" {
+//line stdlib/cli/cli.kuki:273
 				fmt.Println(fmt.Sprintf("  %v%v (default: %v)", label, flag.description, flag.defaultValue))
 			} else {
-//line stdlib/cli/cli.kuki:269
+//line stdlib/cli/cli.kuki:275
 				fmt.Println(fmt.Sprintf("  %v%v", label, flag.description))
 			}
 		}
 	}
-//line stdlib/cli/cli.kuki:271
-	fmt.Println("")
-//line stdlib/cli/cli.kuki:272
-	fmt.Println(fmt.Sprintf("Use \"%v <command> --help\" for more information about a command.", app.name))
-}
-
-//line stdlib/cli/cli.kuki:274
-func printCommandHelp(app App, cmd SubcommandDef) {
-//line stdlib/cli/cli.kuki:275
-	fmt.Println("Usage:")
-//line stdlib/cli/cli.kuki:276
-	fmt.Println(fmt.Sprintf("  %v %v [flags]", app.name, cmd.name))
 //line stdlib/cli/cli.kuki:277
 	fmt.Println("")
 //line stdlib/cli/cli.kuki:278
-	if cmd.description != "" {
-//line stdlib/cli/cli.kuki:279
-		fmt.Println(cmd.description)
+	fmt.Println(fmt.Sprintf("Use \"%v <command> --help\" for more information about a command.", app.name))
+}
+
 //line stdlib/cli/cli.kuki:280
+func printCommandHelp(app App, cmd SubcommandDef) {
+//line stdlib/cli/cli.kuki:281
+	fmt.Println("Usage:")
+//line stdlib/cli/cli.kuki:282
+	fmt.Println(fmt.Sprintf("  %v %v [flags]", app.name, cmd.name))
+//line stdlib/cli/cli.kuki:283
+	fmt.Println("")
+//line stdlib/cli/cli.kuki:284
+	if cmd.description != "" {
+//line stdlib/cli/cli.kuki:285
+		fmt.Println(cmd.description)
+//line stdlib/cli/cli.kuki:286
 		fmt.Println("")
 	}
-//line stdlib/cli/cli.kuki:282
+//line stdlib/cli/cli.kuki:288
 	if (len(app.globalFlags) > 0) || (len(cmd.flags) > 0) {
-//line stdlib/cli/cli.kuki:283
+//line stdlib/cli/cli.kuki:289
 		fmt.Println("Flags:")
 	}
-//line stdlib/cli/cli.kuki:285
+//line stdlib/cli/cli.kuki:291
 	for _, flag := range app.globalFlags {
-//line stdlib/cli/cli.kuki:286
+//line stdlib/cli/cli.kuki:292
 		label := kukistring.PadRight(fmt.Sprintf("--%v", flag.name), 20, " ")
-//line stdlib/cli/cli.kuki:287
+//line stdlib/cli/cli.kuki:293
 		if flag.defaultValue != "" {
-//line stdlib/cli/cli.kuki:288
+//line stdlib/cli/cli.kuki:294
 			fmt.Println(fmt.Sprintf("  %v%v (default: %v)", label, flag.description, flag.defaultValue))
 		} else {
-//line stdlib/cli/cli.kuki:290
+//line stdlib/cli/cli.kuki:296
 			fmt.Println(fmt.Sprintf("  %v%v", label, flag.description))
 		}
 	}
-//line stdlib/cli/cli.kuki:292
+//line stdlib/cli/cli.kuki:298
 	for _, flag := range cmd.flags {
-//line stdlib/cli/cli.kuki:293
+//line stdlib/cli/cli.kuki:299
 		label := kukistring.PadRight(fmt.Sprintf("--%v", flag.name), 20, " ")
-//line stdlib/cli/cli.kuki:294
+//line stdlib/cli/cli.kuki:300
 		if flag.defaultValue != "" {
-//line stdlib/cli/cli.kuki:295
+//line stdlib/cli/cli.kuki:301
 			fmt.Println(fmt.Sprintf("  %v%v (default: %v)", label, flag.description, flag.defaultValue))
 		} else {
-//line stdlib/cli/cli.kuki:297
+//line stdlib/cli/cli.kuki:303
 			fmt.Println(fmt.Sprintf("  %v%v", label, flag.description))
 		}
 	}
 }
 
-//line stdlib/cli/cli.kuki:301
+//line stdlib/cli/cli.kuki:307
 func Error(msg string) {
-//line stdlib/cli/cli.kuki:302
+//line stdlib/cli/cli.kuki:308
 	fmt.Fprintln(os.Stderr, msg)
 }
 
-//line stdlib/cli/cli.kuki:306
+//line stdlib/cli/cli.kuki:312
 func Warn(msg string) {
-//line stdlib/cli/cli.kuki:307
+//line stdlib/cli/cli.kuki:313
 	fmt.Fprintln(os.Stderr, fmt.Sprintf("warning: %v", msg))
 }
 
-//line stdlib/cli/cli.kuki:311
-func Info(msg string) {
-//line stdlib/cli/cli.kuki:312
-	fmt.Println(msg)
-}
-
 //line stdlib/cli/cli.kuki:317
-func Success(msg string) {
+func Info(msg string) {
 //line stdlib/cli/cli.kuki:318
 	fmt.Println(msg)
 }
 
 //line stdlib/cli/cli.kuki:323
-func Fatal(msg string) {
+func Success(msg string) {
 //line stdlib/cli/cli.kuki:324
+	fmt.Println(msg)
+}
+
+//line stdlib/cli/cli.kuki:329
+func Fatal(msg string) {
+//line stdlib/cli/cli.kuki:330
 	fmt.Fprintln(os.Stderr, msg)
-//line stdlib/cli/cli.kuki:325
+//line stdlib/cli/cli.kuki:331
 	os.Exit(1)
 }
 
-//line stdlib/cli/cli.kuki:331
+//line stdlib/cli/cli.kuki:337
 func GetString(args Args, name string) string {
-//line stdlib/cli/cli.kuki:332
+//line stdlib/cli/cli.kuki:338
 	return args.values[name]
 }
 
-//line stdlib/cli/cli.kuki:336
+//line stdlib/cli/cli.kuki:342
 func GetBool(args Args, name string) bool {
-//line stdlib/cli/cli.kuki:337
+//line stdlib/cli/cli.kuki:343
 	val := args.values[name]
-//line stdlib/cli/cli.kuki:338
+//line stdlib/cli/cli.kuki:344
 	return (((val == "true") || (val == "1")) || (val == "yes"))
 }
 
-//line stdlib/cli/cli.kuki:343
+//line stdlib/cli/cli.kuki:349
 func IsJSON(args Args) bool {
-//line stdlib/cli/cli.kuki:344
+//line stdlib/cli/cli.kuki:350
 	return GetBool(args, "json")
 }
 
-//line stdlib/cli/cli.kuki:348
+//line stdlib/cli/cli.kuki:354
 func GetInt(args Args, name string) (int, error) {
-//line stdlib/cli/cli.kuki:349
+//line stdlib/cli/cli.kuki:355
 	strVal := args.values[name]
-//line stdlib/cli/cli.kuki:350
+//line stdlib/cli/cli.kuki:356
 	if strVal == "" {
-//line stdlib/cli/cli.kuki:351
+//line stdlib/cli/cli.kuki:357
 		return 0, fmt.Errorf("argument %v not found", name)
 	}
-//line stdlib/cli/cli.kuki:353
+//line stdlib/cli/cli.kuki:359
 	return cast.Atoi(strVal)
 }

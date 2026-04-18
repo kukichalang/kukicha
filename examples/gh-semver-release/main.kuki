@@ -123,7 +123,18 @@ func listReposWhereICommitted(org string) (list of string, error)
 | .nameWithOwner
 `
 
-    raw := shell.Output("gh", "api", "graphql", "--paginate", "-f", "login={me}", "-f", "query={query}", "--jq", jqFilter) onerr return empty list of string, error "failed to list repos: {error}"
+    raw := shell.Output(
+        "gh",
+        "api",
+        "graphql",
+        "--paginate",
+        "-f",
+        "login={me}",
+        "-f",
+        "query={query}",
+        "--jq",
+        jqFilter,
+    ) onerr return empty list of string, error "failed to list repos: {error}"
 
     repos := raw
         |> string.Lines()

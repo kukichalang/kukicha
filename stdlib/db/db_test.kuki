@@ -17,9 +17,27 @@ type User
 func setupTestDB(t reference testing.T) db.Pool
     pool := db.Open("sqlite3", ":memory:") onerr panic "open failed: {error}"
     db.Exec(pool, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)") onerr panic "create failed: {error}"
-    db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 1, "Alice", "alice@example.com") onerr panic "insert failed: {error}"
-    db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 2, "Bob", "bob@example.com") onerr panic "insert failed: {error}"
-    db.Exec(pool, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 3, "Charlie", "charlie@example.com") onerr panic "insert failed: {error}"
+    db.Exec(
+        pool,
+        "INSERT INTO users (id, name, email) VALUES (?, ?, ?)",
+        1,
+        "Alice",
+        "alice@example.com",
+    ) onerr panic "insert failed: {error}"
+    db.Exec(
+        pool,
+        "INSERT INTO users (id, name, email) VALUES (?, ?, ?)",
+        2,
+        "Bob",
+        "bob@example.com",
+    ) onerr panic "insert failed: {error}"
+    db.Exec(
+        pool,
+        "INSERT INTO users (id, name, email) VALUES (?, ?, ?)",
+        3,
+        "Charlie",
+        "charlie@example.com",
+    ) onerr panic "insert failed: {error}"
     return pool
 
 # --- TestOpenAndClose ---
@@ -194,7 +212,13 @@ func TestTransaction(t reference testing.T)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             err := db.Transaction(pool, (tx db.Tx) =>
-                db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com") onerr return
+                db.TxExec(
+                    tx,
+                    "INSERT INTO users (id, name, email) VALUES (?, ?, ?)",
+                    4,
+                    "Diana",
+                    "diana@example.com",
+                ) onerr return
                 return empty
             )
 
@@ -216,7 +240,13 @@ func TestTransactionRollback(t reference testing.T)
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
             err := db.Transaction(pool, (tx db.Tx) =>
-                db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com") onerr return
+                db.TxExec(
+                    tx,
+                    "INSERT INTO users (id, name, email) VALUES (?, ?, ?)",
+                    5,
+                    "Eve",
+                    "eve@example.com",
+                ) onerr return
                 return error "deliberate rollback"
             )
 

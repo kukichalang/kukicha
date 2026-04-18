@@ -264,7 +264,14 @@ func LogsTail(engine Engine, containerID string, lines int64) (string, error)
 # Run creates and starts a container. Returns the container ID.
 func Run(engine Engine, img string, cmd list of string) (string, error)
     bg := ctxpkg.Background()
-    resp := engine.cli.ContainerCreate(ctxpkg.Value(bg), reference of dockercontainer.Config{Image: img, Cmd: cmd}, empty, empty, empty, "") onerr explain "container run create"
+    resp := engine.cli.ContainerCreate(
+        ctxpkg.Value(bg),
+        reference of dockercontainer.Config{Image: img, Cmd: cmd},
+        empty,
+        empty,
+        empty,
+        "",
+    ) onerr explain "container run create"
 
     engine.cli.ContainerStart(ctxpkg.Value(bg), resp.ID, dockercontainer.StartOptions{}) onerr explain "container run start"
 
@@ -291,7 +298,11 @@ func Exec(engine Engine, containerID string, cmd list of string, many handles ct
     ctx := ctxpkg.Background()
     if len(handles) > 0
         ctx = handles[0]
-    createResp := engine.cli.ContainerExecCreate(ctxpkg.Value(ctx), containerID, dockertypes.ExecConfig{Cmd: cmd, AttachStdout: true, AttachStderr: true}) onerr explain "container exec create"
+    createResp := engine.cli.ContainerExecCreate(
+        ctxpkg.Value(ctx),
+        containerID,
+        dockertypes.ExecConfig{Cmd: cmd, AttachStdout: true, AttachStderr: true},
+    ) onerr explain "container exec create"
 
     attachResp := engine.cli.ContainerExecAttach(ctxpkg.Value(ctx), createResp.ID, dockertypes.ExecStartCheck{}) onerr explain "container exec attach"
     defer attachResp.Close()
@@ -413,7 +424,11 @@ func PullAuth(engine Engine, ref string, auth Auth) (string, error)
     }) onerr explain "container pull auth"
 
     encoded := base64.URLEncoding.EncodeToString(authJSON)
-    reader := engine.cli.ImagePull(ctxpkg.Value(ctxpkg.Background()), ref, dockerimage.PullOptions{RegistryAuth: encoded}) onerr explain "container pull"
+    reader := engine.cli.ImagePull(
+        ctxpkg.Value(ctxpkg.Background()),
+        ref,
+        dockerimage.PullOptions{RegistryAuth: encoded},
+    ) onerr explain "container pull"
 
     defer reader.Close()
 
@@ -599,7 +614,11 @@ func extractTar(reader io.Reader, destPath string) error
                 os.MkdirAll(target, os.FileMode(header.Mode)) onerr return
             when tar.TypeReg
                 os.MkdirAll(filepath.Dir(target), 493) onerr return
-                f := os.OpenFile(target, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, os.FileMode(header.Mode)) onerr return
+                f := os.OpenFile(
+                    target,
+                    os.O_CREATE | os.O_WRONLY | os.O_TRUNC,
+                    os.FileMode(header.Mode),
+                ) onerr return
                 io.Copy(f, tr) onerr
                     f.Close()
                     return error "{error}"

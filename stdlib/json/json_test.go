@@ -152,231 +152,231 @@ func TestMarshalPretty(t *testing.T) {
 	}
 }
 
-//line stdlib/json/json_test.kuki:100
+//line stdlib/json/json_test.kuki:102
 type MarshalWriteCase struct {
 	name string
 }
 
-//line stdlib/json/json_test.kuki:103
+//line stdlib/json/json_test.kuki:105
 func TestMarshalWrite(t *testing.T) {
-//line stdlib/json/json_test.kuki:104
-	cases := []MarshalWriteCase{MarshalWriteCase{name: "write to buffer"}}
 //line stdlib/json/json_test.kuki:106
-	for _, tc := range cases {
-//line stdlib/json/json_test.kuki:107
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []MarshalWriteCase{MarshalWriteCase{name: "write to buffer"}}
 //line stdlib/json/json_test.kuki:108
-			p := Person{Name: "Eve", Age: 22}
+	for _, tc := range cases {
 //line stdlib/json/json_test.kuki:109
-			buf := bytes.Buffer{}
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/json/json_test.kuki:110
-			err := json.MarshalWrite(&buf, p)
+			p := Person{Name: "Eve", Age: 22}
 //line stdlib/json/json_test.kuki:111
-			test.AssertNoError(t, err)
+			buf := bytes.Buffer{}
 //line stdlib/json/json_test.kuki:112
-			if buf.Len() == 0 {
+			err := json.MarshalWrite(&buf, p)
 //line stdlib/json/json_test.kuki:113
+			test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:114
+			if buf.Len() == 0 {
+//line stdlib/json/json_test.kuki:115
 				t.Error("Expected non-empty buffer after MarshalWrite")
 			}
 		})
 	}
 }
 
-//line stdlib/json/json_test.kuki:117
+//line stdlib/json/json_test.kuki:119
 type UnmarshalReadCase struct {
 	name string
 }
 
-//line stdlib/json/json_test.kuki:120
+//line stdlib/json/json_test.kuki:122
 func TestUnmarshalRead(t *testing.T) {
-//line stdlib/json/json_test.kuki:121
-	cases := []UnmarshalReadCase{UnmarshalReadCase{name: "read from buffer"}}
 //line stdlib/json/json_test.kuki:123
-	for _, tc := range cases {
-//line stdlib/json/json_test.kuki:124
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []UnmarshalReadCase{UnmarshalReadCase{name: "read from buffer"}}
 //line stdlib/json/json_test.kuki:125
-			p := Person{Name: "Frank", Age: 35}
+	for _, tc := range cases {
 //line stdlib/json/json_test.kuki:126
-			buf := bytes.Buffer{}
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/json/json_test.kuki:127
-			writeErr := json.MarshalWrite(&buf, p)
+			p := Person{Name: "Frank", Age: 35}
 //line stdlib/json/json_test.kuki:128
-			test.AssertNoError(t, writeErr)
+			buf := bytes.Buffer{}
+//line stdlib/json/json_test.kuki:129
+			writeErr := json.MarshalWrite(&buf, p)
 //line stdlib/json/json_test.kuki:130
-			result := *new(Person)
-//line stdlib/json/json_test.kuki:131
-			readErr := json.UnmarshalRead(&buf, &result)
+			test.AssertNoError(t, writeErr)
 //line stdlib/json/json_test.kuki:132
-			test.AssertNoError(t, readErr)
+			result := *new(Person)
 //line stdlib/json/json_test.kuki:133
-			test.AssertEqual(t, result.Name, "Frank")
+			readErr := json.UnmarshalRead(&buf, &result)
 //line stdlib/json/json_test.kuki:134
+			test.AssertNoError(t, readErr)
+//line stdlib/json/json_test.kuki:135
+			test.AssertEqual(t, result.Name, "Frank")
+//line stdlib/json/json_test.kuki:136
 			test.AssertEqual(t, result.Age, 35)
 		})
 	}
 }
 
-//line stdlib/json/json_test.kuki:138
+//line stdlib/json/json_test.kuki:140
 type EncodeCase struct {
 	name string
 }
 
-//line stdlib/json/json_test.kuki:141
+//line stdlib/json/json_test.kuki:143
 func TestEncode(t *testing.T) {
-//line stdlib/json/json_test.kuki:142
-	cases := []EncodeCase{EncodeCase{name: "encode to buffer"}}
 //line stdlib/json/json_test.kuki:144
-	for _, tc := range cases {
-//line stdlib/json/json_test.kuki:145
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []EncodeCase{EncodeCase{name: "encode to buffer"}}
 //line stdlib/json/json_test.kuki:146
-			p := Person{Name: "Grace", Age: 29}
+	for _, tc := range cases {
 //line stdlib/json/json_test.kuki:147
-			buf := bytes.Buffer{}
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/json/json_test.kuki:148
-			enc := json.NewEncoder(&buf)
+			p := Person{Name: "Grace", Age: 29}
 //line stdlib/json/json_test.kuki:149
-			err := json.Encode(enc, p)
+			buf := bytes.Buffer{}
 //line stdlib/json/json_test.kuki:150
-			test.AssertNoError(t, err)
+			enc := json.NewEncoder(&buf)
 //line stdlib/json/json_test.kuki:151
-			if buf.Len() == 0 {
+			err := json.Encode(enc, p)
 //line stdlib/json/json_test.kuki:152
+			test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:153
+			if buf.Len() == 0 {
+//line stdlib/json/json_test.kuki:154
 				t.Error("Expected non-empty buffer after Encode")
 			}
 		})
 	}
 }
 
-//line stdlib/json/json_test.kuki:156
+//line stdlib/json/json_test.kuki:158
 type DecodeCase struct {
 	name string
 }
 
-//line stdlib/json/json_test.kuki:159
+//line stdlib/json/json_test.kuki:161
 func TestDecode(t *testing.T) {
-//line stdlib/json/json_test.kuki:160
-	cases := []DecodeCase{DecodeCase{name: "decode from buffer"}}
 //line stdlib/json/json_test.kuki:162
-	for _, tc := range cases {
-//line stdlib/json/json_test.kuki:163
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []DecodeCase{DecodeCase{name: "decode from buffer"}}
 //line stdlib/json/json_test.kuki:164
-			p := Person{Name: "Hank", Age: 40}
+	for _, tc := range cases {
 //line stdlib/json/json_test.kuki:165
-			buf := bytes.Buffer{}
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/json/json_test.kuki:166
-			enc := json.NewEncoder(&buf)
+			p := Person{Name: "Hank", Age: 40}
 //line stdlib/json/json_test.kuki:167
-			encErr := json.Encode(enc, p)
+			buf := bytes.Buffer{}
 //line stdlib/json/json_test.kuki:168
-			test.AssertNoError(t, encErr)
+			enc := json.NewEncoder(&buf)
+//line stdlib/json/json_test.kuki:169
+			encErr := json.Encode(enc, p)
 //line stdlib/json/json_test.kuki:170
-			result := *new(Person)
-//line stdlib/json/json_test.kuki:171
-			dec := json.NewDecoder(&buf)
+			test.AssertNoError(t, encErr)
 //line stdlib/json/json_test.kuki:172
-			decErr := json.Decode(dec, &result)
+			result := *new(Person)
 //line stdlib/json/json_test.kuki:173
-			test.AssertNoError(t, decErr)
+			dec := json.NewDecoder(&buf)
 //line stdlib/json/json_test.kuki:174
-			test.AssertEqual(t, result.Name, "Hank")
+			decErr := json.Decode(dec, &result)
 //line stdlib/json/json_test.kuki:175
+			test.AssertNoError(t, decErr)
+//line stdlib/json/json_test.kuki:176
+			test.AssertEqual(t, result.Name, "Hank")
+//line stdlib/json/json_test.kuki:177
 			test.AssertEqual(t, result.Age, 40)
 		})
 	}
 }
 
-//line stdlib/json/json_test.kuki:179
+//line stdlib/json/json_test.kuki:181
 type WithIndentCase struct {
 	name string
 }
 
-//line stdlib/json/json_test.kuki:182
+//line stdlib/json/json_test.kuki:184
 func TestWithIndent(t *testing.T) {
-//line stdlib/json/json_test.kuki:183
-	cases := []WithIndentCase{WithIndentCase{name: "indent encoding"}}
 //line stdlib/json/json_test.kuki:185
-	for _, tc := range cases {
-//line stdlib/json/json_test.kuki:186
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []WithIndentCase{WithIndentCase{name: "indent encoding"}}
 //line stdlib/json/json_test.kuki:187
-			p := Person{Name: "Iris", Age: 33}
+	for _, tc := range cases {
 //line stdlib/json/json_test.kuki:188
-			buf := bytes.Buffer{}
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/json/json_test.kuki:189
-			enc := json.WithIndent(json.NewEncoder(&buf), "  ")
+			p := Person{Name: "Iris", Age: 33}
 //line stdlib/json/json_test.kuki:190
-			err := json.Encode(enc, p)
+			buf := bytes.Buffer{}
 //line stdlib/json/json_test.kuki:191
-			test.AssertNoError(t, err)
+			enc := json.WithIndent(json.NewEncoder(&buf), "  ")
 //line stdlib/json/json_test.kuki:192
-			if buf.Len() == 0 {
+			err := json.Encode(enc, p)
 //line stdlib/json/json_test.kuki:193
+			test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:194
+			if buf.Len() == 0 {
+//line stdlib/json/json_test.kuki:195
 				t.Error("Expected non-empty buffer after Encode with indent")
 			}
 		})
 	}
 }
 
-//line stdlib/json/json_test.kuki:197
+//line stdlib/json/json_test.kuki:199
 type UnmarshalInvalidCase struct {
 	name string
 }
 
-//line stdlib/json/json_test.kuki:200
+//line stdlib/json/json_test.kuki:202
 func TestUnmarshalInvalidJSON(t *testing.T) {
-//line stdlib/json/json_test.kuki:201
-	cases := []UnmarshalInvalidCase{UnmarshalInvalidCase{name: "invalid json"}}
 //line stdlib/json/json_test.kuki:203
-	for _, tc := range cases {
-//line stdlib/json/json_test.kuki:204
-		t.Run(tc.name, func(t *testing.T) {
+	cases := []UnmarshalInvalidCase{UnmarshalInvalidCase{name: "invalid json"}}
 //line stdlib/json/json_test.kuki:205
-			invalid := []byte("not valid json")
+	for _, tc := range cases {
 //line stdlib/json/json_test.kuki:206
-			result := *new(Person)
+		t.Run(tc.name, func(t *testing.T) {
 //line stdlib/json/json_test.kuki:207
-			err := json.Unmarshal(invalid, &result)
+			invalid := []byte("not valid json")
 //line stdlib/json/json_test.kuki:208
+			result := *new(Person)
+//line stdlib/json/json_test.kuki:209
+			err := json.Unmarshal(invalid, &result)
+//line stdlib/json/json_test.kuki:210
 			test.AssertError(t, err)
 		})
 	}
 }
 
-//line stdlib/json/json_test.kuki:212
-func TestParseStringSample(t *testing.T) {
-//line stdlib/json/json_test.kuki:213
-	raw := `{"name": "Judy", "age": 27}`
 //line stdlib/json/json_test.kuki:214
-	p, err := json.ParseString(raw, *new(Person))
+func TestParseStringSample(t *testing.T) {
 //line stdlib/json/json_test.kuki:215
-	test.AssertNoError(t, err)
+	raw := `{"name": "Judy", "age": 27}`
 //line stdlib/json/json_test.kuki:216
-	test.AssertEqual(t, p.Name, "Judy")
+	p, err := json.ParseString(raw, *new(Person))
 //line stdlib/json/json_test.kuki:217
+	test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:218
+	test.AssertEqual(t, p.Name, "Judy")
+//line stdlib/json/json_test.kuki:219
 	test.AssertEqual(t, p.Age, 27)
 }
 
-//line stdlib/json/json_test.kuki:220
-func TestParseSample(t *testing.T) {
-//line stdlib/json/json_test.kuki:221
-	raw := []byte(`{"name": "Karl", "age": 51}`)
 //line stdlib/json/json_test.kuki:222
-	p, err := json.Parse(raw, *new(Person))
+func TestParseSample(t *testing.T) {
 //line stdlib/json/json_test.kuki:223
-	test.AssertNoError(t, err)
+	raw := []byte(`{"name": "Karl", "age": 51}`)
 //line stdlib/json/json_test.kuki:224
-	test.AssertEqual(t, p.Name, "Karl")
+	p, err := json.Parse(raw, *new(Person))
 //line stdlib/json/json_test.kuki:225
+	test.AssertNoError(t, err)
+//line stdlib/json/json_test.kuki:226
+	test.AssertEqual(t, p.Name, "Karl")
+//line stdlib/json/json_test.kuki:227
 	test.AssertEqual(t, p.Age, 51)
 }
 
-//line stdlib/json/json_test.kuki:228
-func TestParseInvalidJSON(t *testing.T) {
-//line stdlib/json/json_test.kuki:229
-	_, err := json.ParseString("not valid json", *new(Person))
 //line stdlib/json/json_test.kuki:230
+func TestParseInvalidJSON(t *testing.T) {
+//line stdlib/json/json_test.kuki:231
+	_, err := json.ParseString("not valid json", *new(Person))
+//line stdlib/json/json_test.kuki:232
 	test.AssertError(t, err)
 }

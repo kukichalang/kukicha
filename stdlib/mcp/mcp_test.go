@@ -126,8 +126,8 @@ func TestCallToolRichContent(t *testing.T) {
 	}
 //line stdlib/mcp/mcp_test.kuki:98
 	test.AssertEqual(t, result.Text, "hello\n[image: image/png]\n[audio: audio/wav]\n[resource: file:///doc.txt]\nembedded text")
-//line stdlib/mcp/mcp_test.kuki:99
+//line stdlib/mcp/mcp_test.kuki:103
 	test.AssertEqual(t, len(result.Content), 5)
-//line stdlib/mcp/mcp_test.kuki:100
+//line stdlib/mcp/mcp_test.kuki:104
 	test.AssertFalse(t, result.IsError)
 }

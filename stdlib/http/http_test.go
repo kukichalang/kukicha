@@ -82,134 +82,134 @@ func TestResponseHelpers(t *testing.T) {
 func TestSafeURL(t *testing.T) {
 //line stdlib/http/http_test.kuki:46
 	safe, err := httphelper.SafeURL("/items/test-id", map[string]string{}, map[string]string{"q": "kuki"})
-//line stdlib/http/http_test.kuki:47
+//line stdlib/http/http_test.kuki:51
 	if err != nil {
-//line stdlib/http/http_test.kuki:48
+//line stdlib/http/http_test.kuki:52
 		t.Fatalf("SafeURL failed: %v", err)
 	}
-//line stdlib/http/http_test.kuki:49
+//line stdlib/http/http_test.kuki:53
 	_, parseErr := url.ParseRequestURI(safe)
-//line stdlib/http/http_test.kuki:50
+//line stdlib/http/http_test.kuki:54
 	if parseErr != nil {
-//line stdlib/http/http_test.kuki:51
+//line stdlib/http/http_test.kuki:55
 		t.Errorf("SafeURL should return valid URL, parse error %v", parseErr)
 	}
 }
 
-//line stdlib/http/http_test.kuki:54
+//line stdlib/http/http_test.kuki:58
 func TestRequestHelpers(t *testing.T) {
-//line stdlib/http/http_test.kuki:55
+//line stdlib/http/http_test.kuki:59
 	req, _ := http.NewRequest("GET", "https://example.com/search?page=3&verbose=1", nil)
-//line stdlib/http/http_test.kuki:56
+//line stdlib/http/http_test.kuki:60
 	if httphelper.GetQueryParam(req, "page") != "3" {
-//line stdlib/http/http_test.kuki:57
+//line stdlib/http/http_test.kuki:61
 		t.Errorf("GetQueryParam returned wrong page")
 	}
-//line stdlib/http/http_test.kuki:58
+//line stdlib/http/http_test.kuki:62
 	if httphelper.GetQueryParamOr(req, "missing", "5") != "5" {
-//line stdlib/http/http_test.kuki:59
+//line stdlib/http/http_test.kuki:63
 		t.Errorf("GetQueryParamOr should fallback to default")
 	}
-//line stdlib/http/http_test.kuki:61
+//line stdlib/http/http_test.kuki:65
 	page, err := httphelper.GetQueryInt(req, "page")
-//line stdlib/http/http_test.kuki:62
+//line stdlib/http/http_test.kuki:66
 	if err != nil {
-//line stdlib/http/http_test.kuki:63
+//line stdlib/http/http_test.kuki:67
 		t.Fatalf("GetQueryInt failed: %v", err)
 	}
-//line stdlib/http/http_test.kuki:64
+//line stdlib/http/http_test.kuki:68
 	if page != 3 {
-//line stdlib/http/http_test.kuki:65
+//line stdlib/http/http_test.kuki:69
 		t.Errorf("Expected page 3, got %v", page)
 	}
-//line stdlib/http/http_test.kuki:66
+//line stdlib/http/http_test.kuki:70
 	if httphelper.GetQueryIntOr(req, "missing", 7) != 7 {
-//line stdlib/http/http_test.kuki:67
+//line stdlib/http/http_test.kuki:71
 		t.Errorf("GetQueryIntOr default mismatch")
 	}
-//line stdlib/http/http_test.kuki:69
+//line stdlib/http/http_test.kuki:73
 	verbose, err2 := httphelper.GetQueryBool(req, "verbose")
-//line stdlib/http/http_test.kuki:70
+//line stdlib/http/http_test.kuki:74
 	if err2 != nil {
-//line stdlib/http/http_test.kuki:71
+//line stdlib/http/http_test.kuki:75
 		t.Fatalf("GetQueryBool failed: %v", err2)
 	}
-//line stdlib/http/http_test.kuki:72
+//line stdlib/http/http_test.kuki:76
 	if !verbose {
-//line stdlib/http/http_test.kuki:73
+//line stdlib/http/http_test.kuki:77
 		t.Errorf("Expected verbose true")
 	}
-//line stdlib/http/http_test.kuki:74
+//line stdlib/http/http_test.kuki:78
 	if !httphelper.GetQueryBoolOr(req, "missing", true) {
-//line stdlib/http/http_test.kuki:75
+//line stdlib/http/http_test.kuki:79
 		t.Errorf("GetQueryBoolOr should return default when missing")
 	}
 }
 
-//line stdlib/http/http_test.kuki:78
-func TestSafeRedirect(t *testing.T) {
-//line stdlib/http/http_test.kuki:79
-	rec := httptest.NewRecorder()
-//line stdlib/http/http_test.kuki:80
-	req, _ := http.NewRequest("GET", "https://example.com", nil)
-//line stdlib/http/http_test.kuki:81
-	err := httphelper.SafeRedirect(rec, req, "https://example.com/home", "example.com")
 //line stdlib/http/http_test.kuki:82
-	if err != nil {
+func TestSafeRedirect(t *testing.T) {
 //line stdlib/http/http_test.kuki:83
+	rec := httptest.NewRecorder()
+//line stdlib/http/http_test.kuki:84
+	req, _ := http.NewRequest("GET", "https://example.com", nil)
+//line stdlib/http/http_test.kuki:85
+	err := httphelper.SafeRedirect(rec, req, "https://example.com/home", "example.com")
+//line stdlib/http/http_test.kuki:86
+	if err != nil {
+//line stdlib/http/http_test.kuki:87
 		t.Fatalf("SafeRedirect failed: %v", err)
 	}
-//line stdlib/http/http_test.kuki:84
+//line stdlib/http/http_test.kuki:88
 	if rec.Result().Header.Get("Location") != "https://example.com/home" {
-//line stdlib/http/http_test.kuki:85
+//line stdlib/http/http_test.kuki:89
 		t.Errorf("Expected location header to match redirect target")
 	}
-//line stdlib/http/http_test.kuki:87
+//line stdlib/http/http_test.kuki:91
 	rec2 := httptest.NewRecorder()
-//line stdlib/http/http_test.kuki:88
+//line stdlib/http/http_test.kuki:92
 	err2 := httphelper.SafeRedirect(rec2, req, "https://evil.com", "example.com")
-//line stdlib/http/http_test.kuki:89
+//line stdlib/http/http_test.kuki:93
 	if err2 == nil {
-//line stdlib/http/http_test.kuki:90
+//line stdlib/http/http_test.kuki:94
 		t.Fatalf("SafeRedirect should return error for blocked host")
 	}
 }
 
-//line stdlib/http/http_test.kuki:93
+//line stdlib/http/http_test.kuki:97
 func TestMethodAndSecurityHelpers(t *testing.T) {
-//line stdlib/http/http_test.kuki:94
+//line stdlib/http/http_test.kuki:98
 	req := httptest.NewRequest("POST", "/", nil)
-//line stdlib/http/http_test.kuki:95
+//line stdlib/http/http_test.kuki:99
 	if !httphelper.IsPost(req) {
-//line stdlib/http/http_test.kuki:96
+//line stdlib/http/http_test.kuki:100
 		t.Errorf("Expected IsPost true")
 	}
-//line stdlib/http/http_test.kuki:97
+//line stdlib/http/http_test.kuki:101
 	if httphelper.IsGet(req) {
-//line stdlib/http/http_test.kuki:98
+//line stdlib/http/http_test.kuki:102
 		t.Errorf("Expected IsGet false when method is POST")
 	}
-//line stdlib/http/http_test.kuki:100
+//line stdlib/http/http_test.kuki:104
 	rec := httptest.NewRecorder()
-//line stdlib/http/http_test.kuki:101
+//line stdlib/http/http_test.kuki:105
 	httphelper.SetSecureHeaders(rec)
-//line stdlib/http/http_test.kuki:102
+//line stdlib/http/http_test.kuki:106
 	if rec.Header().Get("X-Content-Type-Options") != "nosniff" {
-//line stdlib/http/http_test.kuki:103
+//line stdlib/http/http_test.kuki:107
 		t.Errorf("Expected secure headers to be set")
 	}
-//line stdlib/http/http_test.kuki:105
+//line stdlib/http/http_test.kuki:109
 	rec2 := httptest.NewRecorder()
-//line stdlib/http/http_test.kuki:106
+//line stdlib/http/http_test.kuki:110
 	httphelper.MethodNotAllowed(rec2, "GET", "POST")
-//line stdlib/http/http_test.kuki:107
+//line stdlib/http/http_test.kuki:111
 	if rec2.Result().StatusCode != 405 {
-//line stdlib/http/http_test.kuki:108
+//line stdlib/http/http_test.kuki:112
 		t.Errorf("Expected 405 for MethodNotAllowed")
 	}
-//line stdlib/http/http_test.kuki:109
+//line stdlib/http/http_test.kuki:113
 	if rec2.Header().Get("Allow") != "GET, POST" {
-//line stdlib/http/http_test.kuki:110
+//line stdlib/http/http_test.kuki:114
 		t.Errorf("Allow header should list provided methods")
 	}
 }

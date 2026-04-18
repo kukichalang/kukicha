@@ -81,7 +81,11 @@ func doDeploy(args cli.Args)
         writeTfvars(config, "/tmp/kukicha-django-{ns}.tfvars")
 
     # Apply Django stacks concurrently — two at a time to respect API limits
-    results := concurrent.MapWithLimit(namespaces, 2, ns => applyStack(djangoStack(), "/tmp/kukicha-django-{ns}.tfvars", "django-{ns}", autoApprove))
+    results := concurrent.MapWithLimit(
+        namespaces,
+        2,
+        ns => applyStack(djangoStack(), "/tmp/kukicha-django-{ns}.tfvars", "django-{ns}", autoApprove),
+    )
 
     # ── Summary ───────────────────────────────────────────────
     print("")
@@ -110,7 +114,9 @@ func doStatus(args cli.Args)
     cli.Info("Configuration per namespace:")
     print("")
 
-    t := table.New(list of string{"namespace", "replicas", "cpu (req/lim)", "memory (req/lim)", "debug", "extras"})
+    t := table.New(
+        list of string{"namespace", "replicas", "cpu (req/lim)", "memory (req/lim)", "debug", "extras"},
+    )
 
     for ns in targetNamespaces()
         config := djangoConfigFor(ns)

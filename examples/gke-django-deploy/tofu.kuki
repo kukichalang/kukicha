@@ -51,7 +51,15 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
     tofuInit(stack.path)
 
     # Plan: human output streams to terminal, structured log goes to file
-    shell.Output("tofu", "-chdir=" + stack.path, "plan", "-var-file=" + varsFile, "-out=" + planFile, "-json-into=" + jsonLog, "-input=false") onerr
+    shell.Output(
+        "tofu",
+        "-chdir=" + stack.path,
+        "plan",
+        "-var-file=" + varsFile,
+        "-out=" + planFile,
+        "-json-into=" + jsonLog,
+        "-input=false",
+    ) onerr
         return Failed{reason: "{error}", step: "plan"}
 
     # Guard: flag destructive changes for human review
@@ -67,7 +75,15 @@ func applyStack(stack Stack, varsFile string, label string, autoApprove bool) Ap
 
     # Apply: same dual-output pattern
     applyLog := "/tmp/kukicha-{label}-apply.json"
-    shell.Output("tofu", "-chdir=" + stack.path, "apply", "-auto-approve", planFile, "-json-into=" + applyLog, "-input=false") onerr
+    shell.Output(
+        "tofu",
+        "-chdir=" + stack.path,
+        "apply",
+        "-auto-approve",
+        planFile,
+        "-json-into=" + applyLog,
+        "-input=false",
+    ) onerr
         return Failed{reason: "{error}", step: "apply"}
 
     return Succeeded{outputs: make(map of string to string), elapsed: time.Since(start)}

@@ -319,14 +319,14 @@ func TestIsSuperset(t *testing.T) {
 //line stdlib/set/set_test.kuki:241
 		test.AssertTrue(t, set.IsSuperset(set.From([]string{"a", "b", "c"}), set.From([]string{"a", "b"})))
 	})
-//line stdlib/set/set_test.kuki:244
+//line stdlib/set/set_test.kuki:247
 	t.Run("not superset", func(t *testing.T) {
-//line stdlib/set/set_test.kuki:245
+//line stdlib/set/set_test.kuki:248
 		test.AssertFalse(t, set.IsSuperset(set.From([]string{"a"}), set.From([]string{"a", "b"})))
 	})
 }
 
-//line stdlib/set/set_test.kuki:249
+//line stdlib/set/set_test.kuki:255
 type EqualCase struct {
 	name string
 	a    []string
@@ -334,15 +334,15 @@ type EqualCase struct {
 	want bool
 }
 
-//line stdlib/set/set_test.kuki:255
+//line stdlib/set/set_test.kuki:261
 func TestEqual(t *testing.T) {
-//line stdlib/set/set_test.kuki:256
+//line stdlib/set/set_test.kuki:262
 	cases := []EqualCase{EqualCase{name: "equal", a: []string{"a", "b"}, b: []string{"b", "a"}, want: true}, EqualCase{name: "different elements", a: []string{"a"}, b: []string{"b"}, want: false}, EqualCase{name: "different sizes", a: []string{"a", "b"}, b: []string{"a"}, want: false}, EqualCase{name: "both empty", a: []string{}, b: []string{}, want: true}}
-//line stdlib/set/set_test.kuki:273
+//line stdlib/set/set_test.kuki:279
 	for _, tc := range cases {
-//line stdlib/set/set_test.kuki:274
+//line stdlib/set/set_test.kuki:280
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/set/set_test.kuki:275
+//line stdlib/set/set_test.kuki:281
 			test.AssertEqual(t, set.Equal(set.From(tc.a), set.From(tc.b)), tc.want)
 		})
 	}

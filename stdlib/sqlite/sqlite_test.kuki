@@ -230,7 +230,10 @@ func TestForeignKeyEnforcement(t reference testing.T)
     defer db.Close(pool)
 
     db.Exec(pool, "CREATE TABLE parents (id INTEGER PRIMARY KEY)") onerr panic "create: {error}"
-    db.Exec(pool, "CREATE TABLE children (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES parents(id))") onerr panic "create: {error}"
+    db.Exec(
+        pool,
+        "CREATE TABLE children (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES parents(id))",
+    ) onerr panic "create: {error}"
 
     # Should fail: no parent with id=999 exists
     _, err := db.Exec(pool, "INSERT INTO children (parent_id) VALUES (999)")
@@ -594,7 +597,10 @@ func TestDropCheck(t reference testing.T)
         pool := sqlite.OpenMemory() onerr panic "open: {error}"
         defer db.Close(pool)
 
-        db.Exec(pool, "CREATE TABLE ages (id INTEGER PRIMARY KEY, age INTEGER, CONSTRAINT age_positive CHECK (age >= 0))") onerr panic "create: {error}"
+        db.Exec(
+            pool,
+            "CREATE TABLE ages (id INTEGER PRIMARY KEY, age INTEGER, CONSTRAINT age_positive CHECK (age >= 0))",
+        ) onerr panic "create: {error}"
 
         _, err := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1)
         test.AssertError(t, err)

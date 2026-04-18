@@ -48,136 +48,136 @@ func TagExists(repo string, tag string) (bool, error) {
 func DefaultBranch(repo string) (string, error) {
 //line stdlib/git/git.kuki:47
 	branch, err_2 := shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name")
-//line stdlib/git/git.kuki:47
+//line stdlib/git/git.kuki:56
 	if err_2 != nil {
-//line stdlib/git/git.kuki:47
+//line stdlib/git/git.kuki:56
 		return "", fmt.Errorf("failed to get default branch for %v: %v", repo, err_2)
 	}
-//line stdlib/git/git.kuki:48
+//line stdlib/git/git.kuki:57
 	return kukistring.TrimSpace(branch), nil
 }
 
-//line stdlib/git/git.kuki:52
+//line stdlib/git/git.kuki:61
 func CurrentBranch() (string, error) {
-//line stdlib/git/git.kuki:53
+//line stdlib/git/git.kuki:62
 	branch, err_3 := shell.Output("git", "rev-parse", "--abbrev-ref", "HEAD")
-//line stdlib/git/git.kuki:53
+//line stdlib/git/git.kuki:62
 	if err_3 != nil {
-//line stdlib/git/git.kuki:53
+//line stdlib/git/git.kuki:62
 		return "", fmt.Errorf("failed to get current branch: %v", err_3)
 	}
-//line stdlib/git/git.kuki:54
+//line stdlib/git/git.kuki:63
 	return kukistring.TrimSpace(branch), nil
 }
 
-//line stdlib/git/git.kuki:60
+//line stdlib/git/git.kuki:69
 func ReleaseExists(repo string, tag string) (bool, error) {
-//line stdlib/git/git.kuki:61
+//line stdlib/git/git.kuki:70
 	result := shell.Execute(shell.New("gh", "release", "view", tag, "--repo", repo))
-//line stdlib/git/git.kuki:62
+//line stdlib/git/git.kuki:71
 	return shell.Success(result), nil
 }
 
-//line stdlib/git/git.kuki:67
+//line stdlib/git/git.kuki:76
 func CreateRelease(repo string, tag string, opts ReleaseOptions) error {
-//line stdlib/git/git.kuki:68
+//line stdlib/git/git.kuki:77
 	title := opts.Title
-//line stdlib/git/git.kuki:69
+//line stdlib/git/git.kuki:78
 	if title == "" {
-//line stdlib/git/git.kuki:70
+//line stdlib/git/git.kuki:79
 		title = tag
 	}
-//line stdlib/git/git.kuki:72
+//line stdlib/git/git.kuki:81
 	cmd := shell.FlagIf(shell.FlagIf(shell.FlagIf(shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title), (opts.Target != ""), "--target", opts.Target), opts.GenerateNotes, "--generate-notes"), opts.Draft, "--draft")
-//line stdlib/git/git.kuki:77
+//line stdlib/git/git.kuki:86
 	result := shell.Execute(cmd)
-//line stdlib/git/git.kuki:78
+//line stdlib/git/git.kuki:87
 	if !shell.Success(result) {
-//line stdlib/git/git.kuki:79
+//line stdlib/git/git.kuki:88
 		errStr := string(shell.GetError(result))
-//line stdlib/git/git.kuki:80
+//line stdlib/git/git.kuki:89
 		return fmt.Errorf("release creation failed: %v", errStr)
 	}
-//line stdlib/git/git.kuki:81
+//line stdlib/git/git.kuki:90
 	return nil
 }
 
-//line stdlib/git/git.kuki:86
+//line stdlib/git/git.kuki:95
 func PreviewRelease(repo string, tag string, opts ReleaseOptions) string {
-//line stdlib/git/git.kuki:87
+//line stdlib/git/git.kuki:96
 	title := opts.Title
-//line stdlib/git/git.kuki:88
+//line stdlib/git/git.kuki:97
 	if title == "" {
-//line stdlib/git/git.kuki:89
+//line stdlib/git/git.kuki:98
 		title = tag
 	}
-//line stdlib/git/git.kuki:91
+//line stdlib/git/git.kuki:100
 	cmd := shell.FlagIf(shell.FlagIf(shell.FlagIf(shell.New("gh", "release", "create", tag, "--repo", repo, "--title", title), (opts.Target != ""), "--target", opts.Target), opts.GenerateNotes, "--generate-notes"), opts.Draft, "--draft")
-//line stdlib/git/git.kuki:96
+//line stdlib/git/git.kuki:105
 	return shell.Preview(cmd)
 }
 
-//line stdlib/git/git.kuki:102
+//line stdlib/git/git.kuki:111
 func RepoExists(repo string) (bool, error) {
-//line stdlib/git/git.kuki:103
+//line stdlib/git/git.kuki:112
 	result := shell.Execute(shell.New("gh", "repo", "view", repo))
-//line stdlib/git/git.kuki:104
+//line stdlib/git/git.kuki:113
 	return shell.Success(result), nil
 }
 
-//line stdlib/git/git.kuki:108
+//line stdlib/git/git.kuki:117
 func CurrentUser() (string, error) {
-//line stdlib/git/git.kuki:109
+//line stdlib/git/git.kuki:118
 	login, err_4 := shell.Output("gh", "api", "user", "--jq", ".login")
-//line stdlib/git/git.kuki:109
+//line stdlib/git/git.kuki:118
 	if err_4 != nil {
-//line stdlib/git/git.kuki:109
+//line stdlib/git/git.kuki:118
 		return "", fmt.Errorf("failed to get current user: %v", err_4)
 	}
-//line stdlib/git/git.kuki:110
+//line stdlib/git/git.kuki:119
 	return kukistring.TrimSpace(login), nil
 }
 
-//line stdlib/git/git.kuki:116
+//line stdlib/git/git.kuki:125
 func Clone(url string, path string) error {
-//line stdlib/git/git.kuki:117
+//line stdlib/git/git.kuki:126
 	_, err_5 := shell.Output("git", "clone", url, path)
-//line stdlib/git/git.kuki:117
+//line stdlib/git/git.kuki:126
 	if err_5 != nil {
-//line stdlib/git/git.kuki:117
+//line stdlib/git/git.kuki:126
 		return fmt.Errorf("clone failed: %v", err_5)
 	}
-//line stdlib/git/git.kuki:118
+//line stdlib/git/git.kuki:127
 	return nil
 }
 
-//line stdlib/git/git.kuki:122
+//line stdlib/git/git.kuki:131
 func CloneShallow(url string, path string, depth int) error {
-//line stdlib/git/git.kuki:123
+//line stdlib/git/git.kuki:132
 	depthStr := fmt.Sprintf("%d", depth)
-//line stdlib/git/git.kuki:124
+//line stdlib/git/git.kuki:133
 	_, err_6 := shell.Output("git", "clone", "--depth", depthStr, url, path)
-//line stdlib/git/git.kuki:124
+//line stdlib/git/git.kuki:133
 	if err_6 != nil {
-//line stdlib/git/git.kuki:124
+//line stdlib/git/git.kuki:133
 		return fmt.Errorf("shallow clone failed: %v", err_6)
 	}
-//line stdlib/git/git.kuki:125
+//line stdlib/git/git.kuki:134
 	return nil
 }
 
-//line stdlib/git/git.kuki:129
+//line stdlib/git/git.kuki:138
 func filterBlank(lines []string) []string {
-//line stdlib/git/git.kuki:130
+//line stdlib/git/git.kuki:139
 	result := []string{}
-//line stdlib/git/git.kuki:131
+//line stdlib/git/git.kuki:140
 	for _, line := range lines {
-//line stdlib/git/git.kuki:132
+//line stdlib/git/git.kuki:141
 		if !kukistring.IsBlank(line) {
-//line stdlib/git/git.kuki:133
+//line stdlib/git/git.kuki:142
 			result = append(result, line)
 		}
 	}
-//line stdlib/git/git.kuki:134
+//line stdlib/git/git.kuki:143
 	return result
 }

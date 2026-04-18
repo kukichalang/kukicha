@@ -388,96 +388,96 @@ func BearerConnect(ctx context.Context, endpoint string, token string) (*ClientS
 func ConnectWithClient(ctx context.Context, endpoint string, httpClient *http.Client) (*ClientSession, error) {
 //line stdlib/mcp/mcp.kuki:309
 	client := mcp.NewClient(&mcp.Implementation{Name: "kukicha-mcp-client", Version: "1.0.0"}, nil)
-//line stdlib/mcp/mcp.kuki:310
+//line stdlib/mcp/mcp.kuki:313
 	transport := &mcp.StreamableClientTransport{Endpoint: endpoint, HTTPClient: httpClient}
-//line stdlib/mcp/mcp.kuki:311
+//line stdlib/mcp/mcp.kuki:314
 	session, err_4 := client.Connect(ctx, transport, nil)
-//line stdlib/mcp/mcp.kuki:311
+//line stdlib/mcp/mcp.kuki:314
 	if err_4 != nil {
-//line stdlib/mcp/mcp.kuki:311
+//line stdlib/mcp/mcp.kuki:314
 		return nil, fmt.Errorf("MCP connect to %v failed: %v", endpoint, err_4)
 	}
-//line stdlib/mcp/mcp.kuki:312
+//line stdlib/mcp/mcp.kuki:315
 	return &ClientSession{inner: session}, nil
 }
 
-//line stdlib/mcp/mcp.kuki:317
+//line stdlib/mcp/mcp.kuki:320
 func ConnectFromSession(inner *mcp.ClientSession) *ClientSession {
-//line stdlib/mcp/mcp.kuki:318
+//line stdlib/mcp/mcp.kuki:321
 	return &ClientSession{inner: inner}
 }
 
-//line stdlib/mcp/mcp.kuki:321
+//line stdlib/mcp/mcp.kuki:324
 func Close(session *ClientSession) error {
-//line stdlib/mcp/mcp.kuki:322
+//line stdlib/mcp/mcp.kuki:325
 	return session.inner.Close()
 }
 
-//line stdlib/mcp/mcp.kuki:325
+//line stdlib/mcp/mcp.kuki:328
 func ListTools(ctx context.Context, session *ClientSession) ([]ClientTool, error) {
-//line stdlib/mcp/mcp.kuki:326
+//line stdlib/mcp/mcp.kuki:329
 	return session.ListTools(ctx)
 }
 
-//line stdlib/mcp/mcp.kuki:329
+//line stdlib/mcp/mcp.kuki:332
 func CallTool(ctx context.Context, session *ClientSession, name string, args map[string]any) (CallToolResult, error) {
-//line stdlib/mcp/mcp.kuki:330
+//line stdlib/mcp/mcp.kuki:333
 	return session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: args})
 }
 
-//line stdlib/mcp/mcp.kuki:352
+//line stdlib/mcp/mcp.kuki:355
 type Server = mcp.Server
 
-//line stdlib/mcp/mcp.kuki:355
+//line stdlib/mcp/mcp.kuki:358
 type AudioContent = mcp.AudioContent
 
-//line stdlib/mcp/mcp.kuki:358
+//line stdlib/mcp/mcp.kuki:361
 type ResourceLink = mcp.ResourceLink
 
-//line stdlib/mcp/mcp.kuki:361
+//line stdlib/mcp/mcp.kuki:364
 type EmbeddedResource = mcp.EmbeddedResource
 
-//line stdlib/mcp/mcp.kuki:365
+//line stdlib/mcp/mcp.kuki:368
 type ResourceContents = mcp.ResourceContents
 
-//line stdlib/mcp/mcp.kuki:368
+//line stdlib/mcp/mcp.kuki:371
 type TextContent = mcp.TextContent
 
-//line stdlib/mcp/mcp.kuki:371
+//line stdlib/mcp/mcp.kuki:374
 type ImageContent = mcp.ImageContent
 
-//line stdlib/mcp/mcp.kuki:374
+//line stdlib/mcp/mcp.kuki:377
 type CallToolParams = mcp.CallToolParams
 
-//line stdlib/mcp/mcp.kuki:377
+//line stdlib/mcp/mcp.kuki:380
 type SamplingMessage = mcp.SamplingMessage
 
-//line stdlib/mcp/mcp.kuki:381
+//line stdlib/mcp/mcp.kuki:384
 type SamplingMessageV2 = mcp.SamplingMessageV2
 
-//line stdlib/mcp/mcp.kuki:384
+//line stdlib/mcp/mcp.kuki:387
 type CreateMessageParams = mcp.CreateMessageParams
 
-//line stdlib/mcp/mcp.kuki:388
+//line stdlib/mcp/mcp.kuki:391
 type CreateMessageWithToolsParams = mcp.CreateMessageWithToolsParams
 
-//line stdlib/mcp/mcp.kuki:391
+//line stdlib/mcp/mcp.kuki:394
 type CreateMessageResult = mcp.CreateMessageResult
 
-//line stdlib/mcp/mcp.kuki:395
+//line stdlib/mcp/mcp.kuki:398
 type CreateMessageWithToolsResult = mcp.CreateMessageWithToolsResult
 
-//line stdlib/mcp/mcp.kuki:399
+//line stdlib/mcp/mcp.kuki:402
 type ToolUseContent = mcp.ToolUseContent
 
-//line stdlib/mcp/mcp.kuki:403
+//line stdlib/mcp/mcp.kuki:406
 type ToolResultContent = mcp.ToolResultContent
 
-//line stdlib/mcp/mcp.kuki:406
+//line stdlib/mcp/mcp.kuki:409
 type ToolChoice = mcp.ToolChoice
 
-//line stdlib/mcp/mcp.kuki:409
+//line stdlib/mcp/mcp.kuki:412
 type SamplingCapabilities = mcp.SamplingCapabilities
 
-//line stdlib/mcp/mcp.kuki:412
+//line stdlib/mcp/mcp.kuki:415
 type SamplingToolsCapabilities = mcp.SamplingToolsCapabilities

@@ -391,1078 +391,1078 @@ func Run(engine Engine, img string, cmd []string) (string, error) {
 	bg := ctxpkg.Background()
 //line stdlib/container/container.kuki:267
 	resp, err_8 := engine.cli.ContainerCreate(ctxpkg.Value(bg), &dockercontainer.Config{Image: img, Cmd: cmd}, nil, nil, nil, "")
-//line stdlib/container/container.kuki:267
+//line stdlib/container/container.kuki:274
 	if err_8 != nil {
-//line stdlib/container/container.kuki:267
+//line stdlib/container/container.kuki:274
 		err_8 = fmt.Errorf("container run create: %w", err_8)
-//line stdlib/container/container.kuki:267
+//line stdlib/container/container.kuki:274
 		return "", err_8
 	}
-//line stdlib/container/container.kuki:269
+//line stdlib/container/container.kuki:276
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:269
+//line stdlib/container/container.kuki:276
 	err_9 := engine.cli.ContainerStart(ctxpkg.Value(bg), resp.ID, dockercontainer.StartOptions{})
-//line stdlib/container/container.kuki:269
+//line stdlib/container/container.kuki:276
 	if err_9 != nil {
-//line stdlib/container/container.kuki:269
+//line stdlib/container/container.kuki:276
 		err_9 = fmt.Errorf("container run start: %w", err_9)
-//line stdlib/container/container.kuki:269
+//line stdlib/container/container.kuki:276
 		return "", err_9
 	}
-//line stdlib/container/container.kuki:271
+//line stdlib/container/container.kuki:278
 	return resp.ID, nil
 }
 
-//line stdlib/container/container.kuki:274
+//line stdlib/container/container.kuki:281
 func Inspect(engine Engine, containerID string) (ContainerInfo, error) {
-//line stdlib/container/container.kuki:275
+//line stdlib/container/container.kuki:282
 	bg := ctxpkg.Background()
-//line stdlib/container/container.kuki:276
+//line stdlib/container/container.kuki:283
 	info, err_10 := engine.cli.ContainerInspect(ctxpkg.Value(bg), containerID)
-//line stdlib/container/container.kuki:276
+//line stdlib/container/container.kuki:283
 	if err_10 != nil {
-//line stdlib/container/container.kuki:276
+//line stdlib/container/container.kuki:283
 		err_10 = fmt.Errorf("container inspect: %w", err_10)
 		var _zero0 ContainerInfo
-//line stdlib/container/container.kuki:276
+//line stdlib/container/container.kuki:283
 		return _zero0, err_10
 	}
-//line stdlib/container/container.kuki:278
+//line stdlib/container/container.kuki:285
 	names := make([]string, 0)
-//line stdlib/container/container.kuki:279
+//line stdlib/container/container.kuki:286
 	if info.Name != "" {
-//line stdlib/container/container.kuki:280
+//line stdlib/container/container.kuki:287
 		names = append(names, kukistring.TrimPrefix(info.Name, "/"))
 	}
-//line stdlib/container/container.kuki:281
+//line stdlib/container/container.kuki:288
 	status := ""
-//line stdlib/container/container.kuki:282
+//line stdlib/container/container.kuki:289
 	state := ""
-//line stdlib/container/container.kuki:283
+//line stdlib/container/container.kuki:290
 	if info.State != nil {
-//line stdlib/container/container.kuki:284
+//line stdlib/container/container.kuki:291
 		status = info.State.Status
-//line stdlib/container/container.kuki:285
+//line stdlib/container/container.kuki:292
 		state = info.State.Status
 	}
-//line stdlib/container/container.kuki:286
+//line stdlib/container/container.kuki:293
 	return ContainerInfo{id: info.ID, image: info.Config.Image, status: status, state: state, names: names}, nil
 }
 
-//line stdlib/container/container.kuki:290
+//line stdlib/container/container.kuki:297
 func Exec(engine Engine, containerID string, cmd []string, handles ...ctxpkg.Handle) (string, error) {
-//line stdlib/container/container.kuki:291
+//line stdlib/container/container.kuki:298
 	ctx := ctxpkg.Background()
-//line stdlib/container/container.kuki:292
+//line stdlib/container/container.kuki:299
 	if len(handles) > 0 {
-//line stdlib/container/container.kuki:293
+//line stdlib/container/container.kuki:300
 		ctx = handles[0]
 	}
-//line stdlib/container/container.kuki:294
+//line stdlib/container/container.kuki:301
 	createResp, err_11 := engine.cli.ContainerExecCreate(ctxpkg.Value(ctx), containerID, dockertypes.ExecConfig{Cmd: cmd, AttachStdout: true, AttachStderr: true})
-//line stdlib/container/container.kuki:294
+//line stdlib/container/container.kuki:305
 	if err_11 != nil {
-//line stdlib/container/container.kuki:294
+//line stdlib/container/container.kuki:305
 		err_11 = fmt.Errorf("container exec create: %w", err_11)
-//line stdlib/container/container.kuki:294
+//line stdlib/container/container.kuki:305
 		return "", err_11
 	}
-//line stdlib/container/container.kuki:296
+//line stdlib/container/container.kuki:307
 	attachResp, err_12 := engine.cli.ContainerExecAttach(ctxpkg.Value(ctx), createResp.ID, dockertypes.ExecStartCheck{})
-//line stdlib/container/container.kuki:296
+//line stdlib/container/container.kuki:307
 	if err_12 != nil {
-//line stdlib/container/container.kuki:296
+//line stdlib/container/container.kuki:307
 		err_12 = fmt.Errorf("container exec attach: %w", err_12)
-//line stdlib/container/container.kuki:296
+//line stdlib/container/container.kuki:307
 		return "", err_12
 	}
-//line stdlib/container/container.kuki:297
+//line stdlib/container/container.kuki:308
 	defer attachResp.Close()
-//line stdlib/container/container.kuki:299
+//line stdlib/container/container.kuki:310
 	stdout := bytes.Buffer{}
-//line stdlib/container/container.kuki:300
+//line stdlib/container/container.kuki:311
 	stderr := bytes.Buffer{}
-//line stdlib/container/container.kuki:301
+//line stdlib/container/container.kuki:312
 	_, err_13 := stdcopy.StdCopy(&stdout, &stderr, attachResp.Reader)
-//line stdlib/container/container.kuki:301
+//line stdlib/container/container.kuki:312
 	if err_13 != nil {
-//line stdlib/container/container.kuki:301
-		//line stdlib/container/container.kuki:302
+//line stdlib/container/container.kuki:312
+		//line stdlib/container/container.kuki:313
 		raw, err_14 := io.ReadAll(attachResp.Reader)
-		//line stdlib/container/container.kuki:302
+		//line stdlib/container/container.kuki:313
 		if err_14 != nil {
-			//line stdlib/container/container.kuki:302
+			//line stdlib/container/container.kuki:313
 			err_14 = fmt.Errorf("container exec read: %w", err_14)
-			//line stdlib/container/container.kuki:302
+			//line stdlib/container/container.kuki:313
 			return "", err_14
 		}
-		//line stdlib/container/container.kuki:303
+		//line stdlib/container/container.kuki:314
 		return string(raw), nil
 	}
-//line stdlib/container/container.kuki:305
+//line stdlib/container/container.kuki:316
 	inspectResult, err_15 := engine.cli.ContainerExecInspect(ctxpkg.Value(ctx), createResp.ID)
-//line stdlib/container/container.kuki:305
+//line stdlib/container/container.kuki:316
 	if err_15 != nil {
-//line stdlib/container/container.kuki:305
+//line stdlib/container/container.kuki:316
 		err_15 = fmt.Errorf("container exec inspect: %w", err_15)
-//line stdlib/container/container.kuki:305
+//line stdlib/container/container.kuki:316
 		return "", err_15
 	}
-//line stdlib/container/container.kuki:307
+//line stdlib/container/container.kuki:318
 	combined := stdout.String()
-//line stdlib/container/container.kuki:308
+//line stdlib/container/container.kuki:319
 	if stderr.Len() > 0 {
-//line stdlib/container/container.kuki:309
+//line stdlib/container/container.kuki:320
 		combined = (combined + stderr.String())
 	}
-//line stdlib/container/container.kuki:310
+//line stdlib/container/container.kuki:321
 	if inspectResult.ExitCode != 0 {
-//line stdlib/container/container.kuki:311
+//line stdlib/container/container.kuki:322
 		return combined, fmt.Errorf("container exec exit %v", inspectResult.ExitCode)
 	}
-//line stdlib/container/container.kuki:312
+//line stdlib/container/container.kuki:323
 	return combined, nil
 }
 
-//line stdlib/container/container.kuki:318
+//line stdlib/container/container.kuki:329
 func Wait(engine Engine, containerID string, timeoutSeconds int64) (int64, error) {
-//line stdlib/container/container.kuki:319
+//line stdlib/container/container.kuki:330
 	h := ctxpkg.Background()
-//line stdlib/container/container.kuki:320
+//line stdlib/container/container.kuki:331
 	if timeoutSeconds > 0 {
-//line stdlib/container/container.kuki:321
+//line stdlib/container/container.kuki:332
 		h = ctxpkg.WithTimeout(h, timeoutSeconds)
 	}
-//line stdlib/container/container.kuki:322
+//line stdlib/container/container.kuki:333
 	defer ctxpkg.Cancel(h)
-//line stdlib/container/container.kuki:323
+//line stdlib/container/container.kuki:334
 	return WaitCtx(engine, h, containerID)
 }
 
-//line stdlib/container/container.kuki:326
+//line stdlib/container/container.kuki:337
 func WaitCtx(engine Engine, h ctxpkg.Handle, containerID string) (int64, error) {
-//line stdlib/container/container.kuki:327
+//line stdlib/container/container.kuki:338
 	goCtx := ctxpkg.Value(h)
-//line stdlib/container/container.kuki:328
+//line stdlib/container/container.kuki:339
 	waitCh, errCh := engine.cli.ContainerWait(goCtx, containerID, dockercontainer.WaitConditionNotRunning)
-//line stdlib/container/container.kuki:329
+//line stdlib/container/container.kuki:340
 	select {
 	case err := <-errCh:
-//line stdlib/container/container.kuki:331
+//line stdlib/container/container.kuki:342
 		if err == nil {
-//line stdlib/container/container.kuki:332
+//line stdlib/container/container.kuki:343
 			return -1, errors.New("container wait: unknown wait error")
 		}
-//line stdlib/container/container.kuki:333
+//line stdlib/container/container.kuki:344
 		return -1, fmt.Errorf("container wait: %v", err)
 	case res := <-waitCh:
-//line stdlib/container/container.kuki:335
+//line stdlib/container/container.kuki:346
 		return res.StatusCode, nil
 	}
 }
 
-//line stdlib/container/container.kuki:340
+//line stdlib/container/container.kuki:351
 func convertEvent(msg dockerevents.Message) ContainerEvent {
-//line stdlib/container/container.kuki:341
+//line stdlib/container/container.kuki:352
 	ts := time.Unix(msg.Time, 0).UTC().Format(time.RFC3339)
-//line stdlib/container/container.kuki:342
+//line stdlib/container/container.kuki:353
 	actor := msg.Actor.ID
-//line stdlib/container/container.kuki:343
-	if //line stdlib/container/container.kuki:343
+//line stdlib/container/container.kuki:354
+	if //line stdlib/container/container.kuki:354
 	name, ok := msg.Actor.Attributes["name"]; ok && (name != "") {
-//line stdlib/container/container.kuki:344
+//line stdlib/container/container.kuki:355
 		actor = name
 	}
-//line stdlib/container/container.kuki:345
+//line stdlib/container/container.kuki:356
 	return ContainerEvent{id: msg.ID, resource: string(msg.Type), action: string(msg.Action), actor: actor, time: ts}
 }
 
-//line stdlib/container/container.kuki:354
+//line stdlib/container/container.kuki:365
 func eventsWithContext(engine Engine, h ctxpkg.Handle) ([]ContainerEvent, error) {
-//line stdlib/container/container.kuki:355
+//line stdlib/container/container.kuki:366
 	goCtx := ctxpkg.Value(h)
-//line stdlib/container/container.kuki:356
+//line stdlib/container/container.kuki:367
 	msgCh, errCh := engine.cli.Events(goCtx, dockertypes.EventsOptions{})
-//line stdlib/container/container.kuki:357
+//line stdlib/container/container.kuki:368
 	events := make([]ContainerEvent, 0)
-//line stdlib/container/container.kuki:358
+//line stdlib/container/container.kuki:369
 	for {
-//line stdlib/container/container.kuki:359
+//line stdlib/container/container.kuki:370
 		select {
 		case <-goCtx.Done():
-//line stdlib/container/container.kuki:361
+//line stdlib/container/container.kuki:372
 			return events, nil
 		case err := <-errCh:
-//line stdlib/container/container.kuki:363
+//line stdlib/container/container.kuki:374
 			if (err == nil) || (goCtx.Err() != nil) {
-//line stdlib/container/container.kuki:364
+//line stdlib/container/container.kuki:375
 				return events, nil
 			}
-//line stdlib/container/container.kuki:365
+//line stdlib/container/container.kuki:376
 			return events, fmt.Errorf("container events: %v", err)
 		case msg, ok := <-msgCh:
-//line stdlib/container/container.kuki:367
+//line stdlib/container/container.kuki:378
 			if !ok {
-//line stdlib/container/container.kuki:368
+//line stdlib/container/container.kuki:379
 				return events, nil
 			}
-//line stdlib/container/container.kuki:369
+//line stdlib/container/container.kuki:380
 			events = append(events, convertEvent(msg))
 		}
 	}
 }
 
-//line stdlib/container/container.kuki:373
+//line stdlib/container/container.kuki:384
 func Events(engine Engine, timeoutSeconds int64) ([]ContainerEvent, error) {
-//line stdlib/container/container.kuki:374
+//line stdlib/container/container.kuki:385
 	if timeoutSeconds <= 0 {
-//line stdlib/container/container.kuki:375
+//line stdlib/container/container.kuki:386
 		timeoutSeconds = 15
 	}
-//line stdlib/container/container.kuki:376
+//line stdlib/container/container.kuki:387
 	h := ctxpkg.WithTimeout(ctxpkg.Background(), timeoutSeconds)
-//line stdlib/container/container.kuki:377
-	defer ctxpkg.Cancel(h)
-//line stdlib/container/container.kuki:378
-	return eventsWithContext(engine, h)
-}
-
-//line stdlib/container/container.kuki:381
-func EventsCtx(engine Engine, h ctxpkg.Handle) ([]ContainerEvent, error) {
-//line stdlib/container/container.kuki:382
-	return eventsWithContext(engine, h)
-}
-
 //line stdlib/container/container.kuki:388
-func Pull(engine Engine, ref string, handles ...ctxpkg.Handle) (string, error) {
+	defer ctxpkg.Cancel(h)
 //line stdlib/container/container.kuki:389
+	return eventsWithContext(engine, h)
+}
+
+//line stdlib/container/container.kuki:392
+func EventsCtx(engine Engine, h ctxpkg.Handle) ([]ContainerEvent, error) {
+//line stdlib/container/container.kuki:393
+	return eventsWithContext(engine, h)
+}
+
+//line stdlib/container/container.kuki:399
+func Pull(engine Engine, ref string, handles ...ctxpkg.Handle) (string, error) {
+//line stdlib/container/container.kuki:400
 	bg := ctxpkg.Background()
-//line stdlib/container/container.kuki:390
+//line stdlib/container/container.kuki:401
 	if len(handles) > 0 {
-//line stdlib/container/container.kuki:391
+//line stdlib/container/container.kuki:402
 		bg = handles[0]
 	}
-//line stdlib/container/container.kuki:392
+//line stdlib/container/container.kuki:403
 	reader, err_16 := engine.cli.ImagePull(ctxpkg.Value(bg), ref, dockerimage.PullOptions{})
-//line stdlib/container/container.kuki:392
+//line stdlib/container/container.kuki:403
 	if err_16 != nil {
-//line stdlib/container/container.kuki:392
+//line stdlib/container/container.kuki:403
 		err_16 = fmt.Errorf("container pull: %w", err_16)
-//line stdlib/container/container.kuki:392
+//line stdlib/container/container.kuki:403
 		return "", err_16
 	}
-//line stdlib/container/container.kuki:393
+//line stdlib/container/container.kuki:404
 	defer reader.Close()
-//line stdlib/container/container.kuki:394
+//line stdlib/container/container.kuki:405
 	digest := ""
-//line stdlib/container/container.kuki:395
+//line stdlib/container/container.kuki:406
 	scanner := bufio.NewScanner(reader)
-//line stdlib/container/container.kuki:396
+//line stdlib/container/container.kuki:407
 	for scanner.Scan() {
-//line stdlib/container/container.kuki:397
+//line stdlib/container/container.kuki:408
 		msg := pullStatusMsg{}
-//line stdlib/container/container.kuki:398
-//line stdlib/container/container.kuki:398
+//line stdlib/container/container.kuki:409
+//line stdlib/container/container.kuki:409
 		err_17 := json.Unmarshal(scanner.Bytes(), &msg)
-//line stdlib/container/container.kuki:398
+//line stdlib/container/container.kuki:409
 		if err_17 != nil {
-//line stdlib/container/container.kuki:398
-			//line stdlib/container/container.kuki:399
+//line stdlib/container/container.kuki:409
+			//line stdlib/container/container.kuki:410
 			continue
 		}
-//line stdlib/container/container.kuki:401
+//line stdlib/container/container.kuki:412
 		if kukistring.HasPrefix(msg.Status, "Digest:") {
-//line stdlib/container/container.kuki:402
+//line stdlib/container/container.kuki:413
 			digest = kukistring.TrimPrefix(msg.Status, "Digest: ")
 		}
 	}
-//line stdlib/container/container.kuki:403
+//line stdlib/container/container.kuki:414
 	if digest == "" {
-//line stdlib/container/container.kuki:404
+//line stdlib/container/container.kuki:415
 		digest = ref
 	}
-//line stdlib/container/container.kuki:405
+//line stdlib/container/container.kuki:416
 	return digest, nil
 }
 
-//line stdlib/container/container.kuki:408
+//line stdlib/container/container.kuki:419
 func PullAuth(engine Engine, ref string, auth Auth) (string, error) {
-//line stdlib/container/container.kuki:409
+//line stdlib/container/container.kuki:420
 	authJSON, err_18 := json.Marshal(map[string]string{"username": auth.username, "password": auth.password, "serveraddress": auth.serverAddress})
-//line stdlib/container/container.kuki:413
+//line stdlib/container/container.kuki:424
 	if err_18 != nil {
-//line stdlib/container/container.kuki:413
+//line stdlib/container/container.kuki:424
 		err_18 = fmt.Errorf("container pull auth: %w", err_18)
-//line stdlib/container/container.kuki:413
+//line stdlib/container/container.kuki:424
 		return "", err_18
 	}
-//line stdlib/container/container.kuki:415
+//line stdlib/container/container.kuki:426
 	encoded := base64.URLEncoding.EncodeToString(authJSON)
-//line stdlib/container/container.kuki:416
+//line stdlib/container/container.kuki:427
 	reader, err_19 := engine.cli.ImagePull(ctxpkg.Value(ctxpkg.Background()), ref, dockerimage.PullOptions{RegistryAuth: encoded})
-//line stdlib/container/container.kuki:416
+//line stdlib/container/container.kuki:431
 	if err_19 != nil {
-//line stdlib/container/container.kuki:416
+//line stdlib/container/container.kuki:431
 		err_19 = fmt.Errorf("container pull: %w", err_19)
-//line stdlib/container/container.kuki:416
+//line stdlib/container/container.kuki:431
 		return "", err_19
 	}
-//line stdlib/container/container.kuki:418
+//line stdlib/container/container.kuki:433
 	defer reader.Close()
-//line stdlib/container/container.kuki:420
+//line stdlib/container/container.kuki:435
 	digest := ""
-//line stdlib/container/container.kuki:421
+//line stdlib/container/container.kuki:436
 	scanner := bufio.NewScanner(reader)
-//line stdlib/container/container.kuki:422
+//line stdlib/container/container.kuki:437
 	for scanner.Scan() {
-//line stdlib/container/container.kuki:423
+//line stdlib/container/container.kuki:438
 		msg := pullStatusMsg{}
-//line stdlib/container/container.kuki:424
-//line stdlib/container/container.kuki:424
+//line stdlib/container/container.kuki:439
+//line stdlib/container/container.kuki:439
 		err_20 := json.Unmarshal(scanner.Bytes(), &msg)
-//line stdlib/container/container.kuki:424
+//line stdlib/container/container.kuki:439
 		if err_20 != nil {
-//line stdlib/container/container.kuki:424
-			//line stdlib/container/container.kuki:425
+//line stdlib/container/container.kuki:439
+			//line stdlib/container/container.kuki:440
 			continue
 		}
-//line stdlib/container/container.kuki:427
+//line stdlib/container/container.kuki:442
 		if kukistring.HasPrefix(msg.Status, "Digest:") {
-//line stdlib/container/container.kuki:428
+//line stdlib/container/container.kuki:443
 			digest = kukistring.TrimPrefix(msg.Status, "Digest: ")
 		}
 	}
-//line stdlib/container/container.kuki:429
+//line stdlib/container/container.kuki:444
 	if digest == "" {
-//line stdlib/container/container.kuki:430
+//line stdlib/container/container.kuki:445
 		digest = ref
 	}
-//line stdlib/container/container.kuki:431
+//line stdlib/container/container.kuki:446
 	return digest, nil
 }
 
-//line stdlib/container/container.kuki:436
+//line stdlib/container/container.kuki:451
 func loadDockerAuth(serverAddress string) (string, string, string, error) {
-//line stdlib/container/container.kuki:437
+//line stdlib/container/container.kuki:452
 	home, err_21 := os.UserHomeDir()
-//line stdlib/container/container.kuki:437
+//line stdlib/container/container.kuki:452
 	if err_21 != nil {
-//line stdlib/container/container.kuki:437
+//line stdlib/container/container.kuki:452
 		err_21 = fmt.Errorf("container auth: %w", err_21)
-//line stdlib/container/container.kuki:437
+//line stdlib/container/container.kuki:452
 		return "", "", "", err_21
 	}
-//line stdlib/container/container.kuki:438
+//line stdlib/container/container.kuki:453
 	configPath := filepath.Join(home, ".docker", "config.json")
-//line stdlib/container/container.kuki:439
+//line stdlib/container/container.kuki:454
 	data, err_22 := os.ReadFile(configPath)
-//line stdlib/container/container.kuki:439
+//line stdlib/container/container.kuki:454
 	if err_22 != nil {
-//line stdlib/container/container.kuki:439
+//line stdlib/container/container.kuki:454
 		err_22 = fmt.Errorf("container auth: %w", err_22)
-//line stdlib/container/container.kuki:439
+//line stdlib/container/container.kuki:454
 		return "", "", "", err_22
 	}
-//line stdlib/container/container.kuki:440
+//line stdlib/container/container.kuki:455
 	config := dockerConfig{}
-//line stdlib/container/container.kuki:441
-//line stdlib/container/container.kuki:441
+//line stdlib/container/container.kuki:456
+//line stdlib/container/container.kuki:456
 	err_23 := json.Unmarshal(data, &config)
-//line stdlib/container/container.kuki:441
+//line stdlib/container/container.kuki:456
 	if err_23 != nil {
-//line stdlib/container/container.kuki:441
+//line stdlib/container/container.kuki:456
 		err_23 = fmt.Errorf("container auth parse: %w", err_23)
-//line stdlib/container/container.kuki:441
+//line stdlib/container/container.kuki:456
 		return "", "", "", err_23
 	}
-//line stdlib/container/container.kuki:442
+//line stdlib/container/container.kuki:457
 	authEntry, ok := config.Auths[serverAddress]
-//line stdlib/container/container.kuki:443
+//line stdlib/container/container.kuki:458
 	if !ok {
-//line stdlib/container/container.kuki:444
+//line stdlib/container/container.kuki:459
 		variations := []string{("https://" + serverAddress), ("http://" + serverAddress), kukistring.TrimPrefix(serverAddress, "https://"), kukistring.TrimPrefix(serverAddress, "http://")}
-//line stdlib/container/container.kuki:451
+//line stdlib/container/container.kuki:466
 		for _, v := range variations {
-//line stdlib/container/container.kuki:452
+//line stdlib/container/container.kuki:467
 			a, found := config.Auths[v]
-//line stdlib/container/container.kuki:453
+//line stdlib/container/container.kuki:468
 			if found {
-//line stdlib/container/container.kuki:454
+//line stdlib/container/container.kuki:469
 				authEntry = a
-//line stdlib/container/container.kuki:455
+//line stdlib/container/container.kuki:470
 				ok = true
-//line stdlib/container/container.kuki:456
+//line stdlib/container/container.kuki:471
 				break
 			}
 		}
 	}
-//line stdlib/container/container.kuki:457
+//line stdlib/container/container.kuki:472
 	if !ok {
-//line stdlib/container/container.kuki:458
+//line stdlib/container/container.kuki:473
 		return "", "", "", fmt.Errorf("container auth: no credentials found for %v", serverAddress)
 	}
-//line stdlib/container/container.kuki:459
+//line stdlib/container/container.kuki:474
 	if authEntry.Auth == "" {
-//line stdlib/container/container.kuki:460
+//line stdlib/container/container.kuki:475
 		return "", "", "", fmt.Errorf("container auth: empty credentials for %v", serverAddress)
 	}
-//line stdlib/container/container.kuki:461
+//line stdlib/container/container.kuki:476
 	decoded, err_24 := base64.StdEncoding.DecodeString(authEntry.Auth)
-//line stdlib/container/container.kuki:461
+//line stdlib/container/container.kuki:476
 	if err_24 != nil {
-//line stdlib/container/container.kuki:461
+//line stdlib/container/container.kuki:476
 		err_24 = fmt.Errorf("container auth decode: %w", err_24)
-//line stdlib/container/container.kuki:461
+//line stdlib/container/container.kuki:476
 		return "", "", "", err_24
 	}
-//line stdlib/container/container.kuki:462
+//line stdlib/container/container.kuki:477
 	parts := kukistring.SplitN(string(decoded), ":", 2)
-//line stdlib/container/container.kuki:463
+//line stdlib/container/container.kuki:478
 	if len(parts) != 2 {
-//line stdlib/container/container.kuki:464
+//line stdlib/container/container.kuki:479
 		return "", "", "", fmt.Errorf("container auth: invalid credential format for %v", serverAddress)
 	}
-//line stdlib/container/container.kuki:465
+//line stdlib/container/container.kuki:480
 	return parts[0], parts[1], serverAddress, nil
 }
 
-//line stdlib/container/container.kuki:468
+//line stdlib/container/container.kuki:483
 func LoginFromConfig(server string) (Auth, error) {
-//line stdlib/container/container.kuki:469
+//line stdlib/container/container.kuki:484
 	username, password, addr, err_25 := loadDockerAuth(server)
-//line stdlib/container/container.kuki:469
+//line stdlib/container/container.kuki:484
 	if err_25 != nil {
 		var _zero0 Auth
-//line stdlib/container/container.kuki:469
+//line stdlib/container/container.kuki:484
 		return _zero0, err_25
 	}
-//line stdlib/container/container.kuki:470
+//line stdlib/container/container.kuki:485
 	return Auth{username: username, password: password, serverAddress: addr}, nil
 }
 
-//line stdlib/container/container.kuki:477
+//line stdlib/container/container.kuki:492
 func newClient(host string) (*client.Client, error) {
-//line stdlib/container/container.kuki:478
+//line stdlib/container/container.kuki:493
 	opts := []client.Opt{client.FromEnv, client.WithAPIVersionNegotiation()}
-//line stdlib/container/container.kuki:479
+//line stdlib/container/container.kuki:494
 	if host != "" {
-//line stdlib/container/container.kuki:480
+//line stdlib/container/container.kuki:495
 		opts = append(opts, client.WithHost(host))
 	}
-//line stdlib/container/container.kuki:481
+//line stdlib/container/container.kuki:496
 	cli, err_26 := client.NewClientWithOpts(opts...)
-//line stdlib/container/container.kuki:481
+//line stdlib/container/container.kuki:496
 	if err_26 != nil {
-//line stdlib/container/container.kuki:481
+//line stdlib/container/container.kuki:496
 		err_26 = fmt.Errorf("container connect: %w", err_26)
-//line stdlib/container/container.kuki:481
+//line stdlib/container/container.kuki:496
 		return nil, err_26
 	}
-//line stdlib/container/container.kuki:482
+//line stdlib/container/container.kuki:497
 	return cli, nil
 }
 
-//line stdlib/container/container.kuki:485
+//line stdlib/container/container.kuki:500
 func Connect() (Engine, error) {
-//line stdlib/container/container.kuki:486
+//line stdlib/container/container.kuki:501
 	socketPaths := []string{fmt.Sprintf("/run/user/%d/podman/podman.sock", os.Getuid()), "/var/run/docker.sock", "/run/podman/podman.sock"}
-//line stdlib/container/container.kuki:492
+//line stdlib/container/container.kuki:507
 	host := ""
-//line stdlib/container/container.kuki:493
+//line stdlib/container/container.kuki:508
 	for _, p := range socketPaths {
-//line stdlib/container/container.kuki:494
+//line stdlib/container/container.kuki:509
 		_, statErr := os.Stat(p)
-//line stdlib/container/container.kuki:495
+//line stdlib/container/container.kuki:510
 		if statErr == nil {
-//line stdlib/container/container.kuki:496
+//line stdlib/container/container.kuki:511
 			host = ("unix://" + p)
-//line stdlib/container/container.kuki:497
+//line stdlib/container/container.kuki:512
 			break
 		}
 	}
-//line stdlib/container/container.kuki:498
+//line stdlib/container/container.kuki:513
 	cli, err_27 := newClient(host)
-//line stdlib/container/container.kuki:498
+//line stdlib/container/container.kuki:513
 	if err_27 != nil {
 		var _zero0 Engine
-//line stdlib/container/container.kuki:498
+//line stdlib/container/container.kuki:513
 		return _zero0, err_27
-	}
-//line stdlib/container/container.kuki:499
-	return Engine{cli: cli}, nil
-}
-
-//line stdlib/container/container.kuki:502
-func ConnectRemote(host string) (Engine, error) {
-//line stdlib/container/container.kuki:503
-	cli, err_28 := newClient(host)
-//line stdlib/container/container.kuki:503
-	if err_28 != nil {
-		var _zero0 Engine
-//line stdlib/container/container.kuki:503
-		return _zero0, err_28
-	}
-//line stdlib/container/container.kuki:504
-	return Engine{cli: cli}, nil
-}
-
-//line stdlib/container/container.kuki:507
-func Open(cfg Config) (Engine, error) {
-//line stdlib/container/container.kuki:508
-	opts := []client.Opt{client.FromEnv, client.WithAPIVersionNegotiation()}
-//line stdlib/container/container.kuki:509
-	if cfg.host != "" {
-//line stdlib/container/container.kuki:510
-		opts = append(opts, client.WithHost(cfg.host))
-	}
-//line stdlib/container/container.kuki:511
-	if cfg.apiVersion != "" {
-//line stdlib/container/container.kuki:512
-		opts = append(opts, client.WithVersion(cfg.apiVersion))
-	}
-//line stdlib/container/container.kuki:513
-	cli, err_29 := client.NewClientWithOpts(opts...)
-//line stdlib/container/container.kuki:513
-	if err_29 != nil {
-//line stdlib/container/container.kuki:513
-		err_29 = fmt.Errorf("container open: %w", err_29)
-		var _zero0 Engine
-//line stdlib/container/container.kuki:513
-		return _zero0, err_29
 	}
 //line stdlib/container/container.kuki:514
 	return Engine{cli: cli}, nil
 }
 
+//line stdlib/container/container.kuki:517
+func ConnectRemote(host string) (Engine, error) {
 //line stdlib/container/container.kuki:518
-func buildImage(cli *client.Client, contextPath string, tag string) (string, string, error) {
+	cli, err_28 := newClient(host)
+//line stdlib/container/container.kuki:518
+	if err_28 != nil {
+		var _zero0 Engine
+//line stdlib/container/container.kuki:518
+		return _zero0, err_28
+	}
 //line stdlib/container/container.kuki:519
+	return Engine{cli: cli}, nil
+}
+
+//line stdlib/container/container.kuki:522
+func Open(cfg Config) (Engine, error) {
+//line stdlib/container/container.kuki:523
+	opts := []client.Opt{client.FromEnv, client.WithAPIVersionNegotiation()}
+//line stdlib/container/container.kuki:524
+	if cfg.host != "" {
+//line stdlib/container/container.kuki:525
+		opts = append(opts, client.WithHost(cfg.host))
+	}
+//line stdlib/container/container.kuki:526
+	if cfg.apiVersion != "" {
+//line stdlib/container/container.kuki:527
+		opts = append(opts, client.WithVersion(cfg.apiVersion))
+	}
+//line stdlib/container/container.kuki:528
+	cli, err_29 := client.NewClientWithOpts(opts...)
+//line stdlib/container/container.kuki:528
+	if err_29 != nil {
+//line stdlib/container/container.kuki:528
+		err_29 = fmt.Errorf("container open: %w", err_29)
+		var _zero0 Engine
+//line stdlib/container/container.kuki:528
+		return _zero0, err_29
+	}
+//line stdlib/container/container.kuki:529
+	return Engine{cli: cli}, nil
+}
+
+//line stdlib/container/container.kuki:533
+func buildImage(cli *client.Client, contextPath string, tag string) (string, string, error) {
+//line stdlib/container/container.kuki:534
 	buf := bytes.Buffer{}
-//line stdlib/container/container.kuki:520
+//line stdlib/container/container.kuki:535
 	tw := tar.NewWriter(&buf)
-//line stdlib/container/container.kuki:521
+//line stdlib/container/container.kuki:536
 	absContextPath, err_30 := filepath.Abs(contextPath)
-//line stdlib/container/container.kuki:521
+//line stdlib/container/container.kuki:536
 	if err_30 != nil {
-//line stdlib/container/container.kuki:521
+//line stdlib/container/container.kuki:536
 		err_30 = fmt.Errorf("container build: %w", err_30)
-//line stdlib/container/container.kuki:521
+//line stdlib/container/container.kuki:536
 		return "", "", err_30
 	}
-//line stdlib/container/container.kuki:522
+//line stdlib/container/container.kuki:537
 	walkErr := filepath.WalkDir(absContextPath, func(walkPath string, d os.DirEntry, err error) error {
-//line stdlib/container/container.kuki:523
+//line stdlib/container/container.kuki:538
 		if err != nil {
-//line stdlib/container/container.kuki:524
+//line stdlib/container/container.kuki:539
 			return err
 		}
-//line stdlib/container/container.kuki:525
+//line stdlib/container/container.kuki:540
 		if d.IsDir() && (d.Name() == ".git") {
-//line stdlib/container/container.kuki:526
+//line stdlib/container/container.kuki:541
 			return filepath.SkipDir
 		}
-//line stdlib/container/container.kuki:528
-		if d.Type() == os.ModeSymlink {
-//line stdlib/container/container.kuki:529
-			return nil
-		}
-//line stdlib/container/container.kuki:530
-		relPath, relErr := filepath.Rel(absContextPath, walkPath)
-//line stdlib/container/container.kuki:531
-		if relErr != nil {
-//line stdlib/container/container.kuki:532
-			return relErr
-		}
-//line stdlib/container/container.kuki:533
-		if d.IsDir() {
-//line stdlib/container/container.kuki:534
-			return nil
-		}
-//line stdlib/container/container.kuki:535
-		info, infoErr := d.Info()
-//line stdlib/container/container.kuki:536
-		if infoErr != nil {
-//line stdlib/container/container.kuki:537
-			return infoErr
-		}
-//line stdlib/container/container.kuki:538
-		header, headerErr := tar.FileInfoHeader(info, "")
-//line stdlib/container/container.kuki:539
-		if headerErr != nil {
-//line stdlib/container/container.kuki:540
-			return headerErr
-		}
-//line stdlib/container/container.kuki:541
-		header.Name = relPath
-//line stdlib/container/container.kuki:542
-		writeErr := tw.WriteHeader(header)
 //line stdlib/container/container.kuki:543
-		if writeErr != nil {
+		if d.Type() == os.ModeSymlink {
 //line stdlib/container/container.kuki:544
-			return writeErr
+			return nil
 		}
 //line stdlib/container/container.kuki:545
-		f, openErr := os.Open(walkPath)
+		relPath, relErr := filepath.Rel(absContextPath, walkPath)
 //line stdlib/container/container.kuki:546
-		if openErr != nil {
+		if relErr != nil {
 //line stdlib/container/container.kuki:547
-			return openErr
+			return relErr
 		}
 //line stdlib/container/container.kuki:548
-		defer f.Close()
+		if d.IsDir() {
 //line stdlib/container/container.kuki:549
-		_, copyErr := io.Copy(tw, f)
+			return nil
+		}
 //line stdlib/container/container.kuki:550
+		info, infoErr := d.Info()
+//line stdlib/container/container.kuki:551
+		if infoErr != nil {
+//line stdlib/container/container.kuki:552
+			return infoErr
+		}
+//line stdlib/container/container.kuki:553
+		header, headerErr := tar.FileInfoHeader(info, "")
+//line stdlib/container/container.kuki:554
+		if headerErr != nil {
+//line stdlib/container/container.kuki:555
+			return headerErr
+		}
+//line stdlib/container/container.kuki:556
+		header.Name = relPath
+//line stdlib/container/container.kuki:557
+		writeErr := tw.WriteHeader(header)
+//line stdlib/container/container.kuki:558
+		if writeErr != nil {
+//line stdlib/container/container.kuki:559
+			return writeErr
+		}
+//line stdlib/container/container.kuki:560
+		f, openErr := os.Open(walkPath)
+//line stdlib/container/container.kuki:561
+		if openErr != nil {
+//line stdlib/container/container.kuki:562
+			return openErr
+		}
+//line stdlib/container/container.kuki:563
+		defer f.Close()
+//line stdlib/container/container.kuki:564
+		_, copyErr := io.Copy(tw, f)
+//line stdlib/container/container.kuki:565
 		return copyErr
 	})
-//line stdlib/container/container.kuki:555
+//line stdlib/container/container.kuki:570
 	if walkErr != nil {
-//line stdlib/container/container.kuki:556
+//line stdlib/container/container.kuki:571
 		return "", "", fmt.Errorf("container build context: %v", walkErr)
 	}
-//line stdlib/container/container.kuki:557
+//line stdlib/container/container.kuki:572
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:557
+//line stdlib/container/container.kuki:572
 	err_31 := tw.Close()
-//line stdlib/container/container.kuki:557
+//line stdlib/container/container.kuki:572
 	if err_31 != nil {
-//line stdlib/container/container.kuki:557
+//line stdlib/container/container.kuki:572
 		err_31 = fmt.Errorf("container build tar: %w", err_31)
-//line stdlib/container/container.kuki:557
+//line stdlib/container/container.kuki:572
 		return "", "", err_31
 	}
-//line stdlib/container/container.kuki:558
+//line stdlib/container/container.kuki:573
 	buildOpts := dockertypes.ImageBuildOptions{Tags: []string{tag}, Remove: true, Dockerfile: "Dockerfile"}
-//line stdlib/container/container.kuki:560
+//line stdlib/container/container.kuki:575
 	resp, err_32 := cli.ImageBuild(ctxpkg.Value(ctxpkg.Background()), &buf, buildOpts)
-//line stdlib/container/container.kuki:560
+//line stdlib/container/container.kuki:575
 	if err_32 != nil {
-//line stdlib/container/container.kuki:560
+//line stdlib/container/container.kuki:575
 		err_32 = fmt.Errorf("container build: %w", err_32)
-//line stdlib/container/container.kuki:560
+//line stdlib/container/container.kuki:575
 		return "", "", err_32
 	}
-//line stdlib/container/container.kuki:561
+//line stdlib/container/container.kuki:576
 	defer resp.Body.Close()
-//line stdlib/container/container.kuki:562
+//line stdlib/container/container.kuki:577
 	output := bytes.Buffer{}
-//line stdlib/container/container.kuki:563
+//line stdlib/container/container.kuki:578
 	imageID := ""
-//line stdlib/container/container.kuki:564
+//line stdlib/container/container.kuki:579
 	scanner := bufio.NewScanner(resp.Body)
-//line stdlib/container/container.kuki:565
+//line stdlib/container/container.kuki:580
 	for scanner.Scan() {
-//line stdlib/container/container.kuki:566
+//line stdlib/container/container.kuki:581
 		line := scanner.Text()
-//line stdlib/container/container.kuki:567
+//line stdlib/container/container.kuki:582
 		output.WriteString(line)
-//line stdlib/container/container.kuki:568
+//line stdlib/container/container.kuki:583
 		output.WriteString("\n")
-//line stdlib/container/container.kuki:569
+//line stdlib/container/container.kuki:584
 		msg := buildStreamMsg{}
-//line stdlib/container/container.kuki:570
-//line stdlib/container/container.kuki:570
+//line stdlib/container/container.kuki:585
+//line stdlib/container/container.kuki:585
 		err_33 := json.Unmarshal(scanner.Bytes(), &msg)
-//line stdlib/container/container.kuki:570
+//line stdlib/container/container.kuki:585
 		if err_33 != nil {
-//line stdlib/container/container.kuki:570
+//line stdlib/container/container.kuki:585
 			continue
 		}
-//line stdlib/container/container.kuki:571
+//line stdlib/container/container.kuki:586
 		if msg.Error != "" {
-//line stdlib/container/container.kuki:572
+//line stdlib/container/container.kuki:587
 			return "", output.String(), fmt.Errorf("container build: %v", msg.Error)
 		}
-//line stdlib/container/container.kuki:573
+//line stdlib/container/container.kuki:588
 		if msg.Aux.ID != "" {
-//line stdlib/container/container.kuki:574
+//line stdlib/container/container.kuki:589
 			imageID = msg.Aux.ID
 		}
 	}
-//line stdlib/container/container.kuki:575
-//line stdlib/container/container.kuki:575
+//line stdlib/container/container.kuki:590
+//line stdlib/container/container.kuki:590
 	err_34 := scanner.Err()
-//line stdlib/container/container.kuki:575
+//line stdlib/container/container.kuki:590
 	if err_34 != nil {
-//line stdlib/container/container.kuki:575
+//line stdlib/container/container.kuki:590
 		err_34 = fmt.Errorf("container build stream: %w", err_34)
-//line stdlib/container/container.kuki:575
+//line stdlib/container/container.kuki:590
 		return "", "", err_34
 	}
-//line stdlib/container/container.kuki:576
+//line stdlib/container/container.kuki:591
 	return imageID, output.String(), nil
 }
 
-//line stdlib/container/container.kuki:579
+//line stdlib/container/container.kuki:594
 func Build(engine Engine, path string, tag string) (BuildOutput, error) {
-//line stdlib/container/container.kuki:580
+//line stdlib/container/container.kuki:595
 	imageID, output, err_35 := buildImage(engine.cli, path, tag)
-//line stdlib/container/container.kuki:580
+//line stdlib/container/container.kuki:595
 	if err_35 != nil {
 		var _zero0 BuildOutput
-//line stdlib/container/container.kuki:580
+//line stdlib/container/container.kuki:595
 		return _zero0, err_35
 	}
-//line stdlib/container/container.kuki:581
+//line stdlib/container/container.kuki:596
 	return BuildOutput{imageID: imageID, output: output}, nil
 }
 
-//line stdlib/container/container.kuki:584
+//line stdlib/container/container.kuki:599
 func extractTar(reader io.Reader, destPath string) error {
-//line stdlib/container/container.kuki:585
+//line stdlib/container/container.kuki:600
 	tr := tar.NewReader(reader)
-//line stdlib/container/container.kuki:586
+//line stdlib/container/container.kuki:601
 	cleanDest := filepath.Clean(destPath)
-//line stdlib/container/container.kuki:587
+//line stdlib/container/container.kuki:602
 	for {
-//line stdlib/container/container.kuki:588
+//line stdlib/container/container.kuki:603
 		header, err := tr.Next()
-//line stdlib/container/container.kuki:589
+//line stdlib/container/container.kuki:604
 		if err == io.EOF {
-//line stdlib/container/container.kuki:590
+//line stdlib/container/container.kuki:605
 			break
 		}
-//line stdlib/container/container.kuki:591
+//line stdlib/container/container.kuki:606
 		if err != nil {
-//line stdlib/container/container.kuki:592
+//line stdlib/container/container.kuki:607
 			return err
 		}
-//line stdlib/container/container.kuki:593
+//line stdlib/container/container.kuki:608
 		cleanName := filepath.Clean(header.Name)
-//line stdlib/container/container.kuki:594
+//line stdlib/container/container.kuki:609
 		target := filepath.Join(destPath, cleanName)
-//line stdlib/container/container.kuki:595
+//line stdlib/container/container.kuki:610
 		if !kukistring.HasPrefix(target, (cleanDest+string(filepath.Separator))) && (filepath.Clean(target) != cleanDest) {
-//line stdlib/container/container.kuki:596
+//line stdlib/container/container.kuki:611
 			return fmt.Errorf("invalid archive path: %v", header.Name)
 		}
-//line stdlib/container/container.kuki:597
+//line stdlib/container/container.kuki:612
 		switch header.Typeflag {
 		case tar.TypeDir:
-//line stdlib/container/container.kuki:599
-//line stdlib/container/container.kuki:599
+//line stdlib/container/container.kuki:614
+//line stdlib/container/container.kuki:614
 			err_36 := os.MkdirAll(target, os.FileMode(header.Mode))
-//line stdlib/container/container.kuki:599
+//line stdlib/container/container.kuki:614
 			if err_36 != nil {
-//line stdlib/container/container.kuki:599
+//line stdlib/container/container.kuki:614
 				return err_36
 			}
 		case tar.TypeReg:
-//line stdlib/container/container.kuki:601
-//line stdlib/container/container.kuki:601
+//line stdlib/container/container.kuki:616
+//line stdlib/container/container.kuki:616
 			err_37 := os.MkdirAll(filepath.Dir(target), 493)
-//line stdlib/container/container.kuki:601
+//line stdlib/container/container.kuki:616
 			if err_37 != nil {
-//line stdlib/container/container.kuki:601
+//line stdlib/container/container.kuki:616
 				return err_37
 			}
-//line stdlib/container/container.kuki:602
+//line stdlib/container/container.kuki:617
 			f, err_38 := os.OpenFile(target, ((os.O_CREATE | os.O_WRONLY) | os.O_TRUNC), os.FileMode(header.Mode))
-//line stdlib/container/container.kuki:602
+//line stdlib/container/container.kuki:621
 			if err_38 != nil {
-//line stdlib/container/container.kuki:602
+//line stdlib/container/container.kuki:621
 				return err_38
 			}
-//line stdlib/container/container.kuki:603
-//line stdlib/container/container.kuki:603
+//line stdlib/container/container.kuki:622
+//line stdlib/container/container.kuki:622
 			_, err_39 := io.Copy(f, tr)
-//line stdlib/container/container.kuki:603
+//line stdlib/container/container.kuki:622
 			if err_39 != nil {
-//line stdlib/container/container.kuki:603
-				//line stdlib/container/container.kuki:604
+//line stdlib/container/container.kuki:622
+				//line stdlib/container/container.kuki:623
 				f.Close()
-				//line stdlib/container/container.kuki:605
+				//line stdlib/container/container.kuki:624
 				return fmt.Errorf("%v", err_39)
 			}
-//line stdlib/container/container.kuki:607
-//line stdlib/container/container.kuki:607
+//line stdlib/container/container.kuki:626
+//line stdlib/container/container.kuki:626
 			err_40 := f.Close()
-//line stdlib/container/container.kuki:607
+//line stdlib/container/container.kuki:626
 			if err_40 != nil {
-//line stdlib/container/container.kuki:607
+//line stdlib/container/container.kuki:626
 				return err_40
 			}
 		case tar.TypeSymlink, tar.TypeLink:
-//line stdlib/container/container.kuki:609
+//line stdlib/container/container.kuki:628
 			return fmt.Errorf("archive contains unsupported link entry: %v", header.Name)
 		default:
-//line stdlib/container/container.kuki:611
+//line stdlib/container/container.kuki:630
 			return fmt.Errorf("archive contains unsupported entry type %v: %v", header.Typeflag, header.Name)
 		}
 	}
-//line stdlib/container/container.kuki:612
+//line stdlib/container/container.kuki:631
 	return nil
 }
 
-//line stdlib/container/container.kuki:615
+//line stdlib/container/container.kuki:634
 func createTarFromPath(sourcePath string) (io.Reader, error) {
-//line stdlib/container/container.kuki:616
+//line stdlib/container/container.kuki:635
 	absSourcePath, err_41 := filepath.Abs(sourcePath)
-//line stdlib/container/container.kuki:616
+//line stdlib/container/container.kuki:635
 	if err_41 != nil {
-//line stdlib/container/container.kuki:616
+//line stdlib/container/container.kuki:635
 		err_41 = fmt.Errorf("container copy to abs path: %w", err_41)
-//line stdlib/container/container.kuki:616
+//line stdlib/container/container.kuki:635
 		return nil, err_41
 	}
-//line stdlib/container/container.kuki:619
+//line stdlib/container/container.kuki:638
 	info, err_42 := os.Lstat(absSourcePath)
-//line stdlib/container/container.kuki:619
+//line stdlib/container/container.kuki:638
 	if err_42 != nil {
-//line stdlib/container/container.kuki:619
+//line stdlib/container/container.kuki:638
 		err_42 = fmt.Errorf("container copy to stat: %w", err_42)
-//line stdlib/container/container.kuki:619
+//line stdlib/container/container.kuki:638
 		return nil, err_42
 	}
-//line stdlib/container/container.kuki:621
+//line stdlib/container/container.kuki:640
 	if info.Mode().Type() == os.ModeSymlink {
-//line stdlib/container/container.kuki:622
+//line stdlib/container/container.kuki:641
 		return nil, fmt.Errorf("container copy to: source path is a symlink: %v", absSourcePath)
 	}
-//line stdlib/container/container.kuki:623
+//line stdlib/container/container.kuki:642
 	buf := bytes.Buffer{}
-//line stdlib/container/container.kuki:624
+//line stdlib/container/container.kuki:643
 	tw := tar.NewWriter(&buf)
-//line stdlib/container/container.kuki:625
+//line stdlib/container/container.kuki:644
 	if info.IsDir() {
-//line stdlib/container/container.kuki:626
+//line stdlib/container/container.kuki:645
 		// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:626
+//line stdlib/container/container.kuki:645
 		err_43 := filepath.WalkDir(absSourcePath, func(walkPath string, d os.DirEntry, err error) error {
-//line stdlib/container/container.kuki:627
+//line stdlib/container/container.kuki:646
 			if err != nil {
-//line stdlib/container/container.kuki:628
+//line stdlib/container/container.kuki:647
 				return err
 			}
-//line stdlib/container/container.kuki:630
+//line stdlib/container/container.kuki:649
 			if d.Type() == os.ModeSymlink {
-//line stdlib/container/container.kuki:631
+//line stdlib/container/container.kuki:650
 				return nil
 			}
-//line stdlib/container/container.kuki:632
+//line stdlib/container/container.kuki:651
 			fi, err_1 := d.Info()
-//line stdlib/container/container.kuki:632
+//line stdlib/container/container.kuki:651
 			if err_1 != nil {
-//line stdlib/container/container.kuki:632
+//line stdlib/container/container.kuki:651
 				return err_1
 			}
-//line stdlib/container/container.kuki:634
+//line stdlib/container/container.kuki:653
 			if fi.Mode().Type() == os.ModeSymlink {
-//line stdlib/container/container.kuki:635
+//line stdlib/container/container.kuki:654
 				return nil
 			}
-//line stdlib/container/container.kuki:637
+//line stdlib/container/container.kuki:656
 			rel, err_2 := filepath.Rel(filepath.Dir(absSourcePath), walkPath)
-//line stdlib/container/container.kuki:637
+//line stdlib/container/container.kuki:656
 			if err_2 != nil {
-//line stdlib/container/container.kuki:637
+//line stdlib/container/container.kuki:656
 				return err_2
 			}
-//line stdlib/container/container.kuki:638
+//line stdlib/container/container.kuki:657
 			header, err_3 := tar.FileInfoHeader(fi, "")
-//line stdlib/container/container.kuki:638
+//line stdlib/container/container.kuki:657
 			if err_3 != nil {
-//line stdlib/container/container.kuki:638
+//line stdlib/container/container.kuki:657
 				return err_3
 			}
-//line stdlib/container/container.kuki:639
+//line stdlib/container/container.kuki:658
 			header.Name = filepath.ToSlash(rel)
-//line stdlib/container/container.kuki:640
+//line stdlib/container/container.kuki:659
 			if fi.IsDir() {
-//line stdlib/container/container.kuki:641
+//line stdlib/container/container.kuki:660
 				header.Name = (header.Name + "/")
 			}
-//line stdlib/container/container.kuki:642
+//line stdlib/container/container.kuki:661
 			// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:642
+//line stdlib/container/container.kuki:661
 			err_4 := tw.WriteHeader(header)
-//line stdlib/container/container.kuki:642
+//line stdlib/container/container.kuki:661
 			if err_4 != nil {
-//line stdlib/container/container.kuki:642
+//line stdlib/container/container.kuki:661
 				return err_4
 			}
-//line stdlib/container/container.kuki:643
+//line stdlib/container/container.kuki:662
 			if fi.Mode().IsRegular() {
-//line stdlib/container/container.kuki:644
+//line stdlib/container/container.kuki:663
 				f, err_5 := os.Open(walkPath)
-//line stdlib/container/container.kuki:644
+//line stdlib/container/container.kuki:663
 				if err_5 != nil {
-//line stdlib/container/container.kuki:644
+//line stdlib/container/container.kuki:663
 					return err_5
 				}
-//line stdlib/container/container.kuki:645
+//line stdlib/container/container.kuki:664
 				defer f.Close()
-//line stdlib/container/container.kuki:646
+//line stdlib/container/container.kuki:665
 				_, err := io.Copy(tw, f)
-//line stdlib/container/container.kuki:646
+//line stdlib/container/container.kuki:665
 				if err != nil {
-//line stdlib/container/container.kuki:646
+//line stdlib/container/container.kuki:665
 					return err
 				}
 			}
-//line stdlib/container/container.kuki:647
+//line stdlib/container/container.kuki:666
 			return nil
 		})
-//line stdlib/container/container.kuki:648
+//line stdlib/container/container.kuki:667
 		if err_43 != nil {
-//line stdlib/container/container.kuki:648
+//line stdlib/container/container.kuki:667
 			err_43 = fmt.Errorf("container copy to walk: %w", err_43)
-//line stdlib/container/container.kuki:648
+//line stdlib/container/container.kuki:667
 			return nil, err_43
 		}
 	} else {
-//line stdlib/container/container.kuki:654
+//line stdlib/container/container.kuki:673
 		fi, err_44 := os.Stat(absSourcePath)
-//line stdlib/container/container.kuki:654
+//line stdlib/container/container.kuki:673
 		if err_44 != nil {
-//line stdlib/container/container.kuki:654
+//line stdlib/container/container.kuki:673
 			err_44 = fmt.Errorf("container copy to stat file: %w", err_44)
-//line stdlib/container/container.kuki:654
+//line stdlib/container/container.kuki:673
 			return nil, err_44
 		}
-//line stdlib/container/container.kuki:655
+//line stdlib/container/container.kuki:674
 		header, err_45 := tar.FileInfoHeader(fi, "")
-//line stdlib/container/container.kuki:655
+//line stdlib/container/container.kuki:674
 		if err_45 != nil {
-//line stdlib/container/container.kuki:655
+//line stdlib/container/container.kuki:674
 			err_45 = fmt.Errorf("container copy to header: %w", err_45)
-//line stdlib/container/container.kuki:655
+//line stdlib/container/container.kuki:674
 			return nil, err_45
 		}
-//line stdlib/container/container.kuki:656
+//line stdlib/container/container.kuki:675
 		header.Name = filepath.ToSlash(filepath.Base(absSourcePath))
-//line stdlib/container/container.kuki:657
+//line stdlib/container/container.kuki:676
 		// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:657
+//line stdlib/container/container.kuki:676
 		err_46 := tw.WriteHeader(header)
-//line stdlib/container/container.kuki:657
+//line stdlib/container/container.kuki:676
 		if err_46 != nil {
-//line stdlib/container/container.kuki:657
+//line stdlib/container/container.kuki:676
 			err_46 = fmt.Errorf("container copy to write header: %w", err_46)
-//line stdlib/container/container.kuki:657
+//line stdlib/container/container.kuki:676
 			return nil, err_46
 		}
-//line stdlib/container/container.kuki:658
+//line stdlib/container/container.kuki:677
 		f, err_47 := os.Open(absSourcePath)
-//line stdlib/container/container.kuki:658
+//line stdlib/container/container.kuki:677
 		if err_47 != nil {
-//line stdlib/container/container.kuki:658
+//line stdlib/container/container.kuki:677
 			err_47 = fmt.Errorf("container copy to open: %w", err_47)
-//line stdlib/container/container.kuki:658
+//line stdlib/container/container.kuki:677
 			return nil, err_47
 		}
-//line stdlib/container/container.kuki:659
+//line stdlib/container/container.kuki:678
 		defer f.Close()
-//line stdlib/container/container.kuki:660
+//line stdlib/container/container.kuki:679
 		_, err := io.Copy(tw, f)
-//line stdlib/container/container.kuki:660
+//line stdlib/container/container.kuki:679
 		if err != nil {
-//line stdlib/container/container.kuki:660
+//line stdlib/container/container.kuki:679
 			err = fmt.Errorf("container copy to write file: %w", err)
-//line stdlib/container/container.kuki:660
+//line stdlib/container/container.kuki:679
 			return nil, err
 		}
 	}
-//line stdlib/container/container.kuki:662
+//line stdlib/container/container.kuki:681
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:662
+//line stdlib/container/container.kuki:681
 	err_48 := tw.Close()
-//line stdlib/container/container.kuki:662
+//line stdlib/container/container.kuki:681
 	if err_48 != nil {
-//line stdlib/container/container.kuki:662
+//line stdlib/container/container.kuki:681
 		err_48 = fmt.Errorf("container copy to close tar: %w", err_48)
-//line stdlib/container/container.kuki:662
+//line stdlib/container/container.kuki:681
 		return nil, err_48
 	}
-//line stdlib/container/container.kuki:663
+//line stdlib/container/container.kuki:682
 	return &buf, nil
 }
 
-//line stdlib/container/container.kuki:667
+//line stdlib/container/container.kuki:686
 func CopyFrom(engine Engine, containerID string, sourcePath string, destPath string, handles ...ctxpkg.Handle) error {
-//line stdlib/container/container.kuki:668
+//line stdlib/container/container.kuki:687
 	ctx := ctxpkg.Background()
-//line stdlib/container/container.kuki:669
+//line stdlib/container/container.kuki:688
 	if len(handles) > 0 {
-//line stdlib/container/container.kuki:670
+//line stdlib/container/container.kuki:689
 		ctx = handles[0]
 	}
-//line stdlib/container/container.kuki:671
+//line stdlib/container/container.kuki:690
 	return copyFromWithContext(engine, ctx, containerID, sourcePath, destPath)
 }
 
-//line stdlib/container/container.kuki:674
+//line stdlib/container/container.kuki:693
 func copyFromWithContext(engine Engine, ctx ctxpkg.Handle, containerID string, sourcePath string, destPath string) error {
-//line stdlib/container/container.kuki:675
+//line stdlib/container/container.kuki:694
 	reader, _, err := engine.cli.CopyFromContainer(ctxpkg.Value(ctx), containerID, sourcePath)
-//line stdlib/container/container.kuki:675
+//line stdlib/container/container.kuki:694
 	if err != nil {
-//line stdlib/container/container.kuki:675
+//line stdlib/container/container.kuki:694
 		err = fmt.Errorf("container copy from: %w", err)
-//line stdlib/container/container.kuki:675
+//line stdlib/container/container.kuki:694
 		return err
 	}
-//line stdlib/container/container.kuki:676
+//line stdlib/container/container.kuki:695
 	defer reader.Close()
-//line stdlib/container/container.kuki:677
-//line stdlib/container/container.kuki:677
+//line stdlib/container/container.kuki:696
+//line stdlib/container/container.kuki:696
 	err_49 := os.MkdirAll(destPath, 493)
-//line stdlib/container/container.kuki:677
+//line stdlib/container/container.kuki:696
 	if err_49 != nil {
-//line stdlib/container/container.kuki:677
+//line stdlib/container/container.kuki:696
 		err_49 = fmt.Errorf("container copy from mkdir: %w", err_49)
-//line stdlib/container/container.kuki:677
+//line stdlib/container/container.kuki:696
 		return err_49
 	}
-//line stdlib/container/container.kuki:678
-//line stdlib/container/container.kuki:678
+//line stdlib/container/container.kuki:697
+//line stdlib/container/container.kuki:697
 	err_50 := extractTar(reader, destPath)
-//line stdlib/container/container.kuki:678
+//line stdlib/container/container.kuki:697
 	if err_50 != nil {
-//line stdlib/container/container.kuki:678
+//line stdlib/container/container.kuki:697
 		err_50 = fmt.Errorf("container copy from extract: %w", err_50)
-//line stdlib/container/container.kuki:678
+//line stdlib/container/container.kuki:697
 		return err_50
 	}
-//line stdlib/container/container.kuki:679
+//line stdlib/container/container.kuki:698
 	return nil
 }
 
-//line stdlib/container/container.kuki:683
+//line stdlib/container/container.kuki:702
 func CopyTo(engine Engine, containerID string, sourcePath string, destPath string, handles ...ctxpkg.Handle) error {
-//line stdlib/container/container.kuki:684
+//line stdlib/container/container.kuki:703
 	ctx := ctxpkg.Background()
-//line stdlib/container/container.kuki:685
+//line stdlib/container/container.kuki:704
 	if len(handles) > 0 {
-//line stdlib/container/container.kuki:686
+//line stdlib/container/container.kuki:705
 		ctx = handles[0]
 	}
-//line stdlib/container/container.kuki:687
+//line stdlib/container/container.kuki:706
 	return copyToWithContext(engine, ctx, containerID, sourcePath, destPath)
 }
 
-//line stdlib/container/container.kuki:690
+//line stdlib/container/container.kuki:709
 func copyToWithContext(engine Engine, ctx ctxpkg.Handle, containerID string, sourcePath string, destPath string) error {
-//line stdlib/container/container.kuki:691
+//line stdlib/container/container.kuki:710
 	archive, err_51 := createTarFromPath(sourcePath)
-//line stdlib/container/container.kuki:691
+//line stdlib/container/container.kuki:710
 	if err_51 != nil {
-//line stdlib/container/container.kuki:691
+//line stdlib/container/container.kuki:710
 		return err_51
 	}
-//line stdlib/container/container.kuki:692
+//line stdlib/container/container.kuki:711
 	copyOpts := dockercontainer.CopyToContainerOptions{AllowOverwriteDirWithFile: true}
-//line stdlib/container/container.kuki:693
+//line stdlib/container/container.kuki:712
 	// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/container/container.kuki:693
+//line stdlib/container/container.kuki:712
 	err_52 := engine.cli.CopyToContainer(ctxpkg.Value(ctx), containerID, destPath, archive, copyOpts)
-//line stdlib/container/container.kuki:693
+//line stdlib/container/container.kuki:712
 	if err_52 != nil {
-//line stdlib/container/container.kuki:693
+//line stdlib/container/container.kuki:712
 		err_52 = fmt.Errorf("container copy to: %w", err_52)
-//line stdlib/container/container.kuki:693
+//line stdlib/container/container.kuki:712
 		return err_52
 	}
-//line stdlib/container/container.kuki:694
+//line stdlib/container/container.kuki:713
 	return nil
 }

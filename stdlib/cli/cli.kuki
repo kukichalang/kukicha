@@ -86,7 +86,10 @@ func Action(app App, handler func(Args)) App
 # Command registers a subcommand with the given name and description
 # Example: app |> cli.Command("list", "List all items")
 func Command(app App, name string, desc string) App
-    app.subcommands = append(app.subcommands, SubcommandDef{name: name, description: desc, flags: make(list of FlagDef), action: empty})
+    app.subcommands = append(
+        app.subcommands,
+        SubcommandDef{name: name, description: desc, flags: make(list of FlagDef), action: empty},
+    )
     return app
 
 # CommandFlag adds a flag to a specific subcommand
@@ -94,7 +97,10 @@ func Command(app App, name string, desc string) App
 func CommandFlag(app App, cmd string, name string, desc string, defaultValue string) App
     for i from 0 to len(app.subcommands)
         if app.subcommands[i].name equals cmd
-            app.subcommands[i].flags = append(app.subcommands[i].flags, FlagDef{name: name, description: desc, defaultValue: defaultValue})
+            app.subcommands[i].flags = append(
+                app.subcommands[i].flags,
+                FlagDef{name: name, description: desc, defaultValue: defaultValue},
+            )
             return app
     return app
 

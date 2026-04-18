@@ -44,7 +44,16 @@ func TagExists(repo string, tag string) (bool, error)
 # DefaultBranch returns the default branch name for a remote GitHub repo
 # Example: branch := git.DefaultBranch("owner/repo") onerr panic "{error}"
 func DefaultBranch(repo string) (string, error)
-    branch := shell.Output("gh", "repo", "view", repo, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name") onerr return "", error "failed to get default branch for {repo}: {error}"
+    branch := shell.Output(
+        "gh",
+        "repo",
+        "view",
+        repo,
+        "--json",
+        "defaultBranchRef",
+        "--jq",
+        ".defaultBranchRef.name",
+    ) onerr return "", error "failed to get default branch for {repo}: {error}"
     return branch |> string.TrimSpace(), empty
 
 # CurrentBranch returns the current local branch name

@@ -45,10 +45,14 @@ type Lexer struct {
 	// Paren continuation support: inside (), NEWLINE tokens are suppressed so
 	// multi-line function calls work. The exception is block-bodied closures —
 	// when => is followed by an indented block, normal INDENT/DEDENT processing
-	// resumes for that closure's body. closureIndentStack tracks the indent levels
-	// where those closure bodies started; the suppression condition is
-	// parenDepth > len(closureIndentStack).
-	closureIndentStack  []int // indent levels of open block-bodied closures inside ()
+	// resumes for that closure's body. closureIndentStack tracks the indent
+	// levels where those closure bodies started; closureParenDepthStack
+	// tracks the parenDepth at the moment each body opened. We're in
+	// paren-continuation mode when parenDepth exceeds the parenDepth recorded
+	// when the topmost closure body opened (or, with no open body, simply
+	// when parenDepth > 0).
+	closureIndentStack    []int // indent levels of open block-bodied closures inside ()
+	closureParenDepthStack []int // parenDepth at the moment each closure body opened
 	afterFatArrow       bool  // true after emitting => inside paren-continuation mode
 	pendingClosureBlock bool  // true when the next INDENT should open a closure block
 
@@ -181,7 +185,7 @@ func (l *Lexer) scanToken() {
 		// Pipe continuation (|>) is handled by mergeLineContinuations post-pass.
 		if l.braceDepth > 0 {
 			l.continuationLine = true
-		} else if l.parenDepth > len(l.closureIndentStack) {
+		} else if l.inParenContinuation() {
 			// Inside a paren call. Two tokens can precede a block-bodied body
 			// that needs real INDENT/DEDENT:
 			//   • => (fat arrow closure)
@@ -209,7 +213,7 @@ func (l *Lexer) scanToken() {
 		}
 		if l.braceDepth > 0 {
 			l.continuationLine = true
-		} else if l.parenDepth > len(l.closureIndentStack) {
+		} else if l.inParenContinuation() {
 			if (l.afterFatArrow || l.inFunctionLiteral) && l.peekNextLineIndent() > l.indentStack[len(l.indentStack)-1] {
 				l.pendingClosureBlock = true
 				l.addToken(TOKEN_NEWLINE)
@@ -438,7 +442,7 @@ func (l *Lexer) handleIndentation() {
 	// Exception: pendingClosureBlock means the previous line ended with => or a
 	// func signature, and this line opens the closure/function body — handle
 	// indentation normally so we emit the INDENT and register the closure.
-	if l.parenDepth > len(l.closureIndentStack) && !l.pendingClosureBlock {
+	if l.inParenContinuation() && !l.pendingClosureBlock {
 		return
 	}
 
@@ -470,6 +474,7 @@ func (l *Lexer) handleIndentation() {
 		// record it so we know when to resume paren-continuation suppression.
 		if l.pendingClosureBlock {
 			l.closureIndentStack = append(l.closureIndentStack, spaces)
+			l.closureParenDepthStack = append(l.closureParenDepthStack, l.parenDepth)
 			l.pendingClosureBlock = false
 		}
 	} else if spaces < currentIndent {
@@ -485,13 +490,14 @@ func (l *Lexer) handleIndentation() {
 			// that closure is closed — resume paren-continuation suppression.
 			if len(l.closureIndentStack) > 0 && l.indentStack[len(l.indentStack)-1] < l.closureIndentStack[len(l.closureIndentStack)-1] {
 				l.closureIndentStack = l.closureIndentStack[:len(l.closureIndentStack)-1]
+				l.closureParenDepthStack = l.closureParenDepthStack[:len(l.closureParenDepthStack)-1]
 			}
 		}
 
 		// If we've exited all closure blocks and are back inside the paren call,
 		// the current line's indentation is just continuation formatting — no
 		// alignment check needed.
-		if l.parenDepth > len(l.closureIndentStack) {
+		if l.inParenContinuation() {
 			return
 		}
 
@@ -504,6 +510,20 @@ func (l *Lexer) handleIndentation() {
 			l.error(fmt.Sprintf("indentation error: dedent does not match any outer indent level (found %d spaces, expected one of: %s)", spaces, strings.Join(parts, ", ")))
 		}
 	}
+}
+
+// inParenContinuation reports whether the lexer should currently treat
+// newlines as continuations (suppressed) rather than statement
+// terminators. True when we're inside an open `(` AND we are not at the
+// natural scope of a block-bodied closure body.
+func (l *Lexer) inParenContinuation() bool {
+	if l.parenDepth == 0 {
+		return false
+	}
+	if len(l.closureParenDepthStack) == 0 {
+		return true
+	}
+	return l.parenDepth > l.closureParenDepthStack[len(l.closureParenDepthStack)-1]
 }
 
 // peekNextLineIndent returns the number of leading spaces on the line that

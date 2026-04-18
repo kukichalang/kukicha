@@ -218,14 +218,15 @@ function Close on d Database()
 ```kukicha
 # InsertLink creates a new link in the database
 function InsertLink on d Database(code string, url string) (Link, error)
-    db.Exec(d.pool, "INSERT INTO links (code, url) VALUES (?, ?)", code, url) onerr return
+    db.Exec(d.pool,
+        "INSERT INTO links (code, url) VALUES (?, ?)",
+        code, url) onerr return
     return d.GetLink(code)
 
 # GetLink retrieves a link by its code
 function GetLink on d Database(code string) (Link, error)
     sql := "SELECT code, url, clicks, created_at FROM links WHERE code = ?"
-    result := db.Query(d.pool, sql, code) |> db.ScanAll(empty list of Link) onerr return
-    links := result as list of Link
+    links := db.Query(d.pool, sql, code) |> db.ScanAll(empty list of Link) onerr return
     if len(links) equals 0
         return {}, error "link not found: {code}"
     return links[0], empty
@@ -233,17 +234,21 @@ function GetLink on d Database(code string) (Link, error)
 # GetAllLinks returns all links, newest first
 function GetAllLinks on d Database() (list of Link, error)
     sql := "SELECT code, url, clicks, created_at FROM links ORDER BY created_at DESC"
-    result := db.Query(d.pool, sql) |> db.ScanAll(empty list of Link) onerr return
-    return result as list of Link, empty
+    links := db.Query(d.pool, sql) |> db.ScanAll(empty list of Link) onerr return
+    return links, empty
 
 # IncrementClicks adds 1 to the click counter (called on every redirect)
 function IncrementClicks on d Database(code string) error
-    db.Exec(d.pool, "UPDATE links SET clicks = clicks + 1 WHERE code = ?", code) onerr explain "failed to increment clicks"
+    db.Exec(d.pool,
+        "UPDATE links SET clicks = clicks + 1 WHERE code = ?",
+        code) onerr explain "failed to increment clicks"
     return empty
 
 # DeleteLink removes a link by its code
 function DeleteLink on d Database(code string) error
-    db.Exec(d.pool, "DELETE FROM links WHERE code = ?", code) onerr explain "failed to delete link"
+    db.Exec(d.pool,
+        "DELETE FROM links WHERE code = ?",
+        code) onerr explain "failed to delete link"
     return empty
 ```
 

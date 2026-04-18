@@ -585,6 +585,43 @@ func TestFormatTypeCastOperandParens(t *testing.T) {
 // TestFormatBacktickRawStringWithBrace guards against a preprocessor bug
 // where `{` inside a backtick raw string was misread as a Go-style block
 // opener, corrupting indentation for the rest of the file.
+func TestFormatLongCallWraps(t *testing.T) {
+	source := `func f()
+    db.Exec(pool, "INSERT INTO longer_table (col_a, col_b, col_c) VALUES (?, ?, ?)", "v1", "v2", "v3")
+`
+	expected := `func f()
+    db.Exec(
+        pool,
+        "INSERT INTO longer_table (col_a, col_b, col_c) VALUES (?, ?, ?)",
+        "v1",
+        "v2",
+        "v3",
+    )
+`
+	assertFormatted(t, source, expected)
+}
+
+func TestFormatShortCallStaysSingleLine(t *testing.T) {
+	source := `func f()
+    foo(a, b, c)
+`
+	assertFormatted(t, source, source)
+}
+
+func TestFormatLongMethodCallWraps(t *testing.T) {
+	source := `func f()
+    obj.MethodWithLongerName("argument_one_is_long", "argument_two_is_long", "argument_three_is_long")
+`
+	expected := `func f()
+    obj.MethodWithLongerName(
+        "argument_one_is_long",
+        "argument_two_is_long",
+        "argument_three_is_long",
+    )
+`
+	assertFormatted(t, source, expected)
+}
+
 func TestFormatBacktickRawStringWithBrace(t *testing.T) {
 	source := "func f() string\n" +
 		"    q := `query($x: String) {\n" +

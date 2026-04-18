@@ -522,22 +522,41 @@ func maxExprLine(expr ast.Expression) int {
 			pe = left
 		}
 	case *ast.CallExpr:
-		// Call's closing `)` is merged with the last arg's closing `}`/`]`/`)`
-		// when that arg is multi-line (see callExprToString), so no +1 is
-		// needed for the call itself.
+		// When a call wraps each arg on its own line (width-based wrap), the
+		// closing `)` lives on a separate trailing line. When an arg is itself
+		// a multi-line composite, callExprToString merges the call's `)` onto
+		// the arg's closing delimiter line — no +1 needed in that case.
+		openLine := line
+		anyMultilineArg := false
 		for _, arg := range e.Arguments {
-			if al := maxExprLine(arg); al > line {
-				line = al
+			argMax := maxExprLine(arg)
+			if argMax > arg.Pos().Line {
+				anyMultilineArg = true
 			}
+			if argMax > line {
+				line = argMax
+			}
+		}
+		if !anyMultilineArg && line > openLine {
+			line++
 		}
 	case *ast.MethodCallExpr:
 		if ol := maxExprLine(e.Object); ol > line {
 			line = ol
 		}
+		openLine := line
+		anyMultilineArg := false
 		for _, arg := range e.Arguments {
-			if al := maxExprLine(arg); al > line {
-				line = al
+			argMax := maxExprLine(arg)
+			if argMax > arg.Pos().Line {
+				anyMultilineArg = true
 			}
+			if argMax > line {
+				line = argMax
+			}
+		}
+		if !anyMultilineArg && line > openLine {
+			line++
 		}
 	case *ast.StructLiteralExpr:
 		openLine := line
@@ -1560,30 +1579,56 @@ func flattenPipeChain(expr *ast.PipeExpr) []ast.Expression {
 func (p *Printer) callExprToString(expr *ast.CallExpr) string {
 	funcName := p.exprToString(expr.Function)
 	args := make([]string, len(expr.Arguments))
+	anyMultilineArg := false
 	for i, arg := range expr.Arguments {
 		s := p.exprToString(arg)
 		// Add "many" prefix for the last argument if variadic
 		if expr.Variadic && i == len(expr.Arguments)-1 {
 			s = "many " + s
 		}
+		if strings.Contains(s, "\n") {
+			anyMultilineArg = true
+		}
 		args[i] = s
 	}
 
 	joined := strings.Join(args, ", ")
-	if !strings.Contains(joined, "\n") {
-		return fmt.Sprintf("%s(%s)", funcName, joined)
+	singleLine := fmt.Sprintf("%s(%s)", funcName, joined)
+	if !anyMultilineArg && len(p.indent())+len(singleLine) <= maxLineWidth {
+		return singleLine
 	}
 
-	// Multi-line argument: closing ) must be on its own dedented line so the
-	// parser sees a proper DEDENT before the paren. However, if the last
-	// line is already just closing delimiters (from nested calls or
-	// multiline literals), merge our ) onto that line.
-	lastNL := strings.LastIndex(joined, "\n")
-	lastLine := strings.TrimSpace(joined[lastNL+1:])
-	if lastLine != "" && strings.Trim(lastLine, ")}]") == "" {
-		return fmt.Sprintf("%s(%s)", funcName, joined)
+	// An argument already contains newlines (block-bodied closure, multi-line
+	// literal, etc.) — keep the existing inline-after-paren shape so the
+	// closure body's indentation lines up correctly.
+	if anyMultilineArg {
+		if canMergeOuterClose(joined, p.indent()) {
+			return singleLine
+		}
+		return fmt.Sprintf("%s(%s\n%s)", funcName, joined, p.indent())
 	}
-	return fmt.Sprintf("%s(%s\n%s)", funcName, joined, p.indent())
+
+	// Width-based wrap: each argument on its own line.
+	return p.multilineParenthesized(funcName, args)
+}
+
+// canMergeOuterClose reports whether the outer call's `)` can be merged
+// onto the last line of the joined args. It can only be merged when that
+// line consists entirely of closing delimiters AND its leading indent
+// matches the outer call's indent — otherwise the outer `)` would land
+// at the wrong column.
+func canMergeOuterClose(joined, outerIndent string) bool {
+	lastNL := strings.LastIndex(joined, "\n")
+	if lastNL < 0 {
+		return false
+	}
+	rawLast := joined[lastNL+1:]
+	trimmed := strings.TrimSpace(rawLast)
+	if trimmed == "" || strings.Trim(trimmed, ")}]") != "" {
+		return false
+	}
+	leading := rawLast[:len(rawLast)-len(strings.TrimLeft(rawLast, " \t"))]
+	return leading == outerIndent
 }
 
 func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
@@ -1595,26 +1640,32 @@ func (p *Printer) methodCallExprToString(expr *ast.MethodCallExpr) string {
 	}
 
 	args := make([]string, len(expr.Arguments))
+	anyMultilineArg := false
 	for i, arg := range expr.Arguments {
 		s := p.exprToString(arg)
 		if expr.Variadic && i == len(expr.Arguments)-1 {
 			s = "many " + s
 		}
+		if strings.Contains(s, "\n") {
+			anyMultilineArg = true
+		}
 		args[i] = s
 	}
 
 	joined := strings.Join(args, ", ")
-	if !strings.Contains(joined, "\n") {
-		return fmt.Sprintf("%s.%s(%s)", object, method, joined)
+	singleLine := fmt.Sprintf("%s.%s(%s)", object, method, joined)
+	if !anyMultilineArg && len(p.indent())+len(singleLine) <= maxLineWidth {
+		return singleLine
 	}
 
-	// Merge closing delimiters if the last line is already just )}] chars.
-	lastNL := strings.LastIndex(joined, "\n")
-	lastLine := strings.TrimSpace(joined[lastNL+1:])
-	if lastLine != "" && strings.Trim(lastLine, ")}]") == "" {
-		return fmt.Sprintf("%s.%s(%s)", object, method, joined)
+	if anyMultilineArg {
+		if canMergeOuterClose(joined, p.indent()) {
+			return singleLine
+		}
+		return fmt.Sprintf("%s.%s(%s\n%s)", object, method, joined, p.indent())
 	}
-	return fmt.Sprintf("%s.%s(%s\n%s)", object, method, joined, p.indent())
+
+	return p.multilineParenthesized(fmt.Sprintf("%s.%s", object, method), args)
 }
 
 func (p *Printer) fieldAccessExprToString(expr *ast.FieldAccessExpr) string {
@@ -1756,6 +1807,27 @@ func (p *Printer) multilineBraced(prefix string, entries []string) string {
 	}
 	b.WriteString(p.indent())
 	b.WriteByte('}')
+	return b.String()
+}
+
+// multilineParenthesized formats entries as a multiline parenthesized call:
+//
+//	prefix(
+//	    entry1,
+//	    entry2,
+//	)
+func (p *Printer) multilineParenthesized(prefix string, entries []string) string {
+	innerIndent := p.indent() + p.indentStr
+	var b strings.Builder
+	b.WriteString(prefix)
+	b.WriteString("(\n")
+	for _, entry := range entries {
+		b.WriteString(innerIndent)
+		b.WriteString(entry)
+		b.WriteString(",\n")
+	}
+	b.WriteString(p.indent())
+	b.WriteByte(')')
 	return b.String()
 }
 
