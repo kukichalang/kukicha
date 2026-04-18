@@ -65,7 +65,10 @@ func TestBrewProducesValidGo(t *testing.T) {
 			}
 
 			// Compile with line directives stripped (same as brew)
-			cr := compile(absPath, "", "", true)
+			cr, err := compile(absPath, "", "", true)
+			if err != nil {
+				t.Fatalf("compile failed: %v", err)
+			}
 			clean := stripGeneratedHeader(cr.formatted)
 
 			// Verify it parses as valid Go

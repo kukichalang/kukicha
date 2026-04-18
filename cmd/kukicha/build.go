@@ -30,11 +30,18 @@ func buildMain(args []string) {
 		fmt.Fprintln(os.Stderr, "Usage: kukicha build [--target <target>] [--skip-build] [--if-changed] [--vulncheck] [--wasm] [--no-line-directives] <file.kuki>")
 		os.Exit(1)
 	}
-	buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck, *wasm, *noLineDirectives)
+	code := buildCommand(buildArgs[0], *target, *skipBuild, *ifChanged, *vulncheck, *wasm, *noLineDirectives)
+	if code != 0 {
+		os.Exit(code)
+	}
 }
 
-func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool, wasm bool, noLineDirectives bool) {
-	cr := compile(filename, targetFlag, "", noLineDirectives)
+func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged bool, vulncheck bool, wasm bool, noLineDirectives bool) int {
+	cr, err := compile(filename, targetFlag, "", noLineDirectives)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 1
+	}
 
 	// Write Go file — for directory builds, use <dir>/main.go; for files, use <file>.go
 	var outputFile string
@@ -53,14 +60,14 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 				// but don't rewrite content (preserves old version comment).
 				now := time.Now()
 				os.Chtimes(outputFile, now, now)
-				return
+				return 0
 			}
 		}
 	}
 
 	if err := os.WriteFile(outputFile, cr.formatted, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing output file: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	if isDir {
@@ -69,7 +76,10 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 		fmt.Printf("Successfully compiled %s to %s\n", cr.absFile, outputFile)
 	}
 
-	ensureStdlibIfNeeded(cr.goCode, cr.projectDir)
+	if err := ensureStdlibIfNeeded(cr.goCode, cr.projectDir); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		return 1
+	}
 
 	// Determine the output binary name. When cross-compiling for Windows
 	// (GOOS=windows), append .exe so the binary is recognised as executable.
@@ -97,7 +107,7 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 	cwd, cwdErr := os.Getwd()
 	if cwdErr != nil {
 		fmt.Fprintf(os.Stderr, "Error getting working directory: %v\n", cwdErr)
-		os.Exit(1)
+		return 1
 	}
 	binaryPath := filepath.Join(cwd, binaryName)
 	if info, err := os.Stat(binaryPath); err == nil && info.IsDir() {
@@ -124,7 +134,7 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: go build failed: %v\n", err)
-			os.Exit(1)
+			return 1
 		}
 
 		fmt.Printf("Successfully built binary: %s\n", binaryName)
@@ -137,9 +147,10 @@ func buildCommand(filename string, targetFlag string, skipBuild bool, ifChanged 
 	if vulncheck {
 		code := runAudit(AuditOptions{Dir: cr.projectDir})
 		if code != 0 {
-			os.Exit(code)
+			return code
 		}
 	}
+	return 0
 }
 
 // setEnvVar sets or replaces an environment variable in the env slice.

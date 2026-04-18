@@ -156,37 +156,37 @@ func detectMultipleMains(files []string) []string {
 // runModuleCommand handles `kukicha run github.com/foo/cmd@latest`.
 // It downloads the module, sets up a temp workspace, and delegates to
 // runCommand which uses the existing compile+run pipeline.
-func runModuleCommand(moduleArg, targetFlag string, scriptArgs []string) {
+func runModuleCommand(moduleArg, targetFlag string, scriptArgs []string) int {
 	modulePath, version, err := parseModulePath(moduleArg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	cacheDir, err := downloadModule(modulePath, version)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	workspaceDir, cleanup, err := setupModuleWorkspace(cacheDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 	defer cleanup()
 
 	kukiFiles, err := resolveKukiFilesRecursive(workspaceDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: module %s: %v\n", moduleArg, err)
-		os.Exit(1)
+		return 1
 	}
 
 	if mains := detectMultipleMains(kukiFiles); len(mains) > 1 {
 		fmt.Fprintf(os.Stderr, "Error: module %s contains multiple commands (%s).\nkukicha run only supports single-command modules.\n",
 			moduleArg, strings.Join(mains, ", "))
-		os.Exit(1)
+		return 1
 	}
 
-	runCommand(workspaceDir, targetFlag, scriptArgs)
+	return runCommand(workspaceDir, targetFlag, scriptArgs)
 }

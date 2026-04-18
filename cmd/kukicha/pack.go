@@ -25,7 +25,10 @@ func packMain(args []string) {
 		fmt.Fprintln(os.Stderr, "Usage: kukicha pack [--output <dir>] <skill.kuki>")
 		os.Exit(1)
 	}
-	packCommand(packArgs[0], *outputDir)
+	code := packCommand(packArgs[0], *outputDir)
+	if code != 0 {
+		os.Exit(code)
+	}
 }
 
 // packCommand produces an agentskills.io-compliant skill directory.
@@ -43,12 +46,16 @@ func packMain(args []string) {
 //
 // Agents invoke via the command shown in SKILL.md — matching the
 // "ship source, not binaries" pattern recommended by the spec.
-func packCommand(filename string, outputDir string) {
-	cr := compile(filename, "", "mcp", false)
+func packCommand(filename string, outputDir string) int {
+	cr, err := compile(filename, "", "mcp", false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 1
+	}
 
 	if cr.program.SkillDecl == nil {
 		fmt.Fprintln(os.Stderr, "Error: no skill declaration found in source")
-		os.Exit(1)
+		return 1
 	}
 	skill := cr.program.SkillDecl
 	skillName := toKebabCase(skill.Name.Value)
@@ -57,7 +64,7 @@ func packCommand(filename string, outputDir string) {
 	info, err := os.Stat(cr.absFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error stat-ing source: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 	srcIsDir := info.IsDir()
 
@@ -78,14 +85,14 @@ func packCommand(filename string, outputDir string) {
 	scriptsDir := filepath.Join(outputDir, "scripts")
 	if err := os.MkdirAll(scriptsDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output directory: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	// Write SKILL.md
 	skillMDPath := filepath.Join(outputDir, "SKILL.md")
 	if err := os.WriteFile(skillMDPath, []byte(skillMD), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing SKILL.md: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 	fmt.Printf("Generated %s\n", skillMDPath)
 
@@ -94,24 +101,25 @@ func packCommand(filename string, outputDir string) {
 		destRoot := filepath.Join(scriptsDir, skillName)
 		if err := copyKukiTree(cr.absFile, destRoot); err != nil {
 			fmt.Fprintf(os.Stderr, "Error copying source tree: %v\n", err)
-			os.Exit(1)
+			return 1
 		}
 		fmt.Printf("Copied source tree: %s\n", destRoot)
 	} else {
 		sourceBytes, err := os.ReadFile(cr.absFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading source: %v\n", err)
-			os.Exit(1)
+			return 1
 		}
 		scriptPath := filepath.Join(scriptsDir, skillName+".kuki")
 		if err := os.WriteFile(scriptPath, sourceBytes, 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing script: %v\n", err)
-			os.Exit(1)
+			return 1
 		}
 		fmt.Printf("Copied source: %s\n", scriptPath)
 	}
 
 	fmt.Printf("Skill packed successfully in %s\n", outputDir)
+	return 0
 }
 
 // copyKukiTree walks src and copies every non-test .kuki file into dst,

@@ -1,7 +1,7 @@
 package main
 
-//go:generate sh -c "cd ../.. && go run ./cmd/genstdlibregistry"
-//go:generate sh -c "cd ../.. && go run ./cmd/gengostdlib"
+//go:generate go run -C ../.. ./cmd/genstdlibregistry
+//go:generate go run -C ../.. ./cmd/gengostdlib
 
 import (
 	"fmt"
@@ -35,7 +35,9 @@ func main() {
 	case "brew":
 		brewMain(args)
 	case "init":
-		initCommand(args)
+		if code := initCommand(args); code != 0 {
+			os.Exit(code)
+		}
 	case "version":
 		fmt.Printf("kukicha version %s\n", version.Version)
 	case "help", "-h", "--help":

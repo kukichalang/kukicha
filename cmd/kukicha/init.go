@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 )
 
-func initCommand(args []string) {
+func initCommand(args []string) int {
 	projectDir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting working directory: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	// Check if go.mod exists; if not, run go mod init
@@ -28,7 +28,7 @@ func initCommand(args []string) {
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error running 'go mod init': %v\n", err)
-			os.Exit(1)
+			return 1
 		}
 	}
 
@@ -36,13 +36,13 @@ func initCommand(args []string) {
 	stdlibPath, err := ensureStdlib(projectDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error extracting stdlib: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	// Update go.mod with require and replace directives
 	if err := ensureGoMod(projectDir, stdlibPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating go.mod: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	// Populate go.sum with stdlib transitive dependencies (e.g. gopkg.in/yaml.v3).
@@ -65,4 +65,5 @@ func initCommand(args []string) {
 	fmt.Println()
 	fmt.Println("Commit AGENTS.md. Add .kukicha/ to your .gitignore:")
 	fmt.Println("  echo '.kukicha/' >> .gitignore")
+	return 0
 }

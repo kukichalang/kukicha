@@ -30,19 +30,17 @@ type compileResult struct {
 // generate Go code, and format it. targetFlag overrides auto-detection when non-empty.
 // defaultTarget is used when no flag is given and no target directive is found in source.
 // stripLineDirectives suppresses //line directives in generated output.
-func compile(filename, targetFlag, defaultTarget string, stripLineDirectives bool) compileResult {
+func compile(filename, targetFlag, defaultTarget string, stripLineDirectives bool) (compileResult, error) {
 	files, isDir, err := resolveKukiFiles(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		return compileResult{}, err
 	}
 
 	// For directory mode, also include subdirectories
 	if isDir {
 		files, err = resolveKukiFilesRecursive(filename)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			return compileResult{}, err
 		}
 	}
 
@@ -50,14 +48,12 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 	if isDir {
 		absFile, err = filepath.Abs(filename)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error resolving directory path: %v\n", err)
-			os.Exit(1)
+			return compileResult{}, fmt.Errorf("Error resolving directory path: %w", err)
 		}
 	} else {
 		absFile, err = filepath.Abs(files[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error resolving file path: %v\n", err)
-			os.Exit(1)
+			return compileResult{}, fmt.Errorf("Error resolving file path: %w", err)
 		}
 	}
 	projectDir := findProjectDir(absFile)
@@ -70,8 +66,7 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 		program, result, err = loadAndAnalyze(absFile)
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return compileResult{}, err
 	}
 
 	// Detect target from source if not provided by flag
@@ -104,8 +99,7 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 	}
 	goCode, err := gen.Generate()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Code generation error: %v\n", err)
-		os.Exit(1)
+		return compileResult{}, fmt.Errorf("Code generation error: %w", err)
 	}
 
 	for _, w := range gen.Warnings() {
@@ -126,24 +120,23 @@ func compile(filename, targetFlag, defaultTarget string, stripLineDirectives boo
 		goCode:     goCode,
 		formatted:  formatted,
 		varMap:     gen.VarMap(),
-	}
+	}, nil
 }
 
 // ensureStdlibIfNeeded checks if the generated Go code imports Kukicha stdlib
 // packages and, if so, extracts the stdlib and configures go.mod.
-func ensureStdlibIfNeeded(goCode, projectDir string) {
+func ensureStdlibIfNeeded(goCode, projectDir string) error {
 	if !needsStdlib(goCode, projectDir) {
-		return
+		return nil
 	}
 	stdlibPath, err := ensureStdlib(projectDir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error extracting stdlib: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error extracting stdlib: %w", err)
 	}
 	if err := ensureGoMod(projectDir, stdlibPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Error updating go.mod: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error updating go.mod: %w", err)
 	}
+	return nil
 }
 
 // resolveKukiFiles determines whether the argument is a single .kuki file or a
