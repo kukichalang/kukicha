@@ -141,6 +141,41 @@ type Tool
     Type string as "type"
     Function ToolFunction as "function"
 
+# SchemaProperty describes a single JSON-schema property for a tool parameter.
+# Mirrors stdlib/mcp.SchemaProperty so authoring local llm.Tool definitions
+# reads the same as registering an MCP tool.
+# Note: only scalar types are expressed here — array properties needing an
+# `items` schema must still be built as map of string to any directly.
+type SchemaProperty
+    Name string
+    Type string
+    Description string
+
+# Prop constructs a SchemaProperty for use with Schema.
+func Prop(name string, typ string, description string) SchemaProperty
+    return {Name: name, Type: typ, Description: description}
+
+# Schema builds a JSON-schema object from a list of SchemaProperty values.
+# The result is suitable for Tool.Function.Parameters or any of the
+# AddTool / RAddTool / MAddTool variants.
+func Schema(props list of SchemaProperty) map of string to any
+    properties := make(map of string to any)
+    for prop in props
+        properties[prop.Name] = map of string to any{
+            "type": prop.Type,
+            "description": prop.Description,
+        }
+    return map of string to any{
+        "type": "object",
+        "properties": properties,
+    }
+
+# Required marks a set of property names as required on a schema produced
+# by Schema. Designed for pipe use: `Schema(...) |> Required(list of string{...})`.
+func Required(schema map of string to any, names list of string) map of string to any
+    schema["required"] = names
+    return schema
+
 # ToolCall represents a tool call made by the model
 type ToolCall
     ID string as "id"
