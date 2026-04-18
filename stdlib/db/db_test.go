@@ -180,354 +180,348 @@ func TestScanAll(t *testing.T) {
 			}
 			// pipe step 2: db.ScanAll(...)
 //line stdlib/db/db_test.kuki:111
-			result, err_4 := db.ScanAll(pipe_1, []User{})
+			users, err_4 := db.ScanAll(pipe_1, []User{})
 //line stdlib/db/db_test.kuki:111
 			if err_4 != nil {
 //line stdlib/db/db_test.kuki:111
 				panic(fmt.Sprintf("scan: %v", err_4))
 			}
-//line stdlib/db/db_test.kuki:113
-			users := result.([]User)
-//line stdlib/db/db_test.kuki:114
+//line stdlib/db/db_test.kuki:112
 			test.AssertEqual(t, len(users), tc.wantLen)
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:118
+//line stdlib/db/db_test.kuki:116
 type ScanAllValuesCase struct {
 	name string
 }
 
-//line stdlib/db/db_test.kuki:121
+//line stdlib/db/db_test.kuki:119
 func TestScanAllValues(t *testing.T) {
-//line stdlib/db/db_test.kuki:122
+//line stdlib/db/db_test.kuki:120
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:123
+//line stdlib/db/db_test.kuki:121
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:124
+//line stdlib/db/db_test.kuki:122
 	cases := []ScanAllValuesCase{ScanAllValuesCase{name: "verify field values"}}
-//line stdlib/db/db_test.kuki:126
+//line stdlib/db/db_test.kuki:124
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:127
+//line stdlib/db/db_test.kuki:125
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:128
+//line stdlib/db/db_test.kuki:126
 			// pipe step 1: db.Query(...)
-//line stdlib/db/db_test.kuki:128
+//line stdlib/db/db_test.kuki:126
 			pipe_1, err_2 := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
-//line stdlib/db/db_test.kuki:129
+//line stdlib/db/db_test.kuki:127
 			if err_2 != nil {
-//line stdlib/db/db_test.kuki:129
+//line stdlib/db/db_test.kuki:127
 				panic(fmt.Sprintf("scan: %v", err_2))
 			}
 			// pipe step 2: db.ScanAll(...)
-//line stdlib/db/db_test.kuki:129
-			result, err_4 := db.ScanAll(pipe_1, []User{})
-//line stdlib/db/db_test.kuki:129
+//line stdlib/db/db_test.kuki:127
+			users, err_4 := db.ScanAll(pipe_1, []User{})
+//line stdlib/db/db_test.kuki:127
 			if err_4 != nil {
-//line stdlib/db/db_test.kuki:129
+//line stdlib/db/db_test.kuki:127
 				panic(fmt.Sprintf("scan: %v", err_4))
 			}
-//line stdlib/db/db_test.kuki:131
-			users := result.([]User)
-//line stdlib/db/db_test.kuki:132
+//line stdlib/db/db_test.kuki:129
 			test.AssertEqual(t, len(users), 1)
-//line stdlib/db/db_test.kuki:133
+//line stdlib/db/db_test.kuki:130
 			test.AssertEqual(t, users[0].Id, int64(1))
-//line stdlib/db/db_test.kuki:134
+//line stdlib/db/db_test.kuki:131
 			test.AssertEqual(t, users[0].Name, "Alice")
-//line stdlib/db/db_test.kuki:135
+//line stdlib/db/db_test.kuki:132
 			test.AssertEqual(t, users[0].Email, "alice@example.com")
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:139
+//line stdlib/db/db_test.kuki:136
 type ScanOneCase struct {
 	name    string
 	query   string
 	wantErr bool
 }
 
-//line stdlib/db/db_test.kuki:144
+//line stdlib/db/db_test.kuki:141
 func TestScanOne(t *testing.T) {
-//line stdlib/db/db_test.kuki:145
+//line stdlib/db/db_test.kuki:142
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:146
+//line stdlib/db/db_test.kuki:143
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:147
+//line stdlib/db/db_test.kuki:144
 	cases := []ScanOneCase{ScanOneCase{name: "one row", query: "SELECT id, name, email FROM users WHERE id = 1", wantErr: false}, ScanOneCase{name: "no rows", query: "SELECT id, name, email FROM users WHERE id = 999", wantErr: true}}
-//line stdlib/db/db_test.kuki:160
+//line stdlib/db/db_test.kuki:157
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:161
+//line stdlib/db/db_test.kuki:158
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:162
-			result, err := db.ScanOne(func() db.Rows { val, _ := db.Query(pool, tc.query); return val }(), User{})
-//line stdlib/db/db_test.kuki:163
+//line stdlib/db/db_test.kuki:159
+			user, err := db.ScanOne(func() db.Rows { val, _ := db.Query(pool, tc.query); return val }(), User{})
+//line stdlib/db/db_test.kuki:160
 			if tc.wantErr {
-//line stdlib/db/db_test.kuki:164
+//line stdlib/db/db_test.kuki:161
 				test.AssertError(t, err)
 			} else {
-//line stdlib/db/db_test.kuki:166
+//line stdlib/db/db_test.kuki:163
 				test.AssertNoError(t, err)
-//line stdlib/db/db_test.kuki:167
-				user := result.(User)
-//line stdlib/db/db_test.kuki:168
+//line stdlib/db/db_test.kuki:164
 				test.AssertEqual(t, user.Id, int64(1))
-//line stdlib/db/db_test.kuki:169
+//line stdlib/db/db_test.kuki:165
 				test.AssertEqual(t, user.Name, "Alice")
 			}
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:173
+//line stdlib/db/db_test.kuki:169
 type ScanRowCase struct {
 	name string
 }
 
-//line stdlib/db/db_test.kuki:176
+//line stdlib/db/db_test.kuki:172
 func TestScanRow(t *testing.T) {
-//line stdlib/db/db_test.kuki:177
+//line stdlib/db/db_test.kuki:173
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:178
+//line stdlib/db/db_test.kuki:174
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:179
+//line stdlib/db/db_test.kuki:175
 	cases := []ScanRowCase{ScanRowCase{name: "single row via QueryRow"}}
-//line stdlib/db/db_test.kuki:181
+//line stdlib/db/db_test.kuki:177
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:182
+//line stdlib/db/db_test.kuki:178
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:183
+//line stdlib/db/db_test.kuki:179
 			row := db.QueryRow(pool, "SELECT id, name, email FROM users WHERE id = 1")
-//line stdlib/db/db_test.kuki:184
+//line stdlib/db/db_test.kuki:180
 			result, err_1 := db.ScanRow(row, User{})
-//line stdlib/db/db_test.kuki:184
+//line stdlib/db/db_test.kuki:180
 			if err_1 != nil {
-//line stdlib/db/db_test.kuki:184
+//line stdlib/db/db_test.kuki:180
 				panic(fmt.Sprintf("scan: %v", err_1))
 			}
-//line stdlib/db/db_test.kuki:185
+//line stdlib/db/db_test.kuki:181
 			user := result.(User)
-//line stdlib/db/db_test.kuki:186
+//line stdlib/db/db_test.kuki:182
 			test.AssertEqual(t, user.Name, "Alice")
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:190
+//line stdlib/db/db_test.kuki:186
 type TransactionCase struct {
 	name string
 }
 
-//line stdlib/db/db_test.kuki:193
+//line stdlib/db/db_test.kuki:189
 func TestTransaction(t *testing.T) {
-//line stdlib/db/db_test.kuki:194
+//line stdlib/db/db_test.kuki:190
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:195
+//line stdlib/db/db_test.kuki:191
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:196
+//line stdlib/db/db_test.kuki:192
 	cases := []TransactionCase{TransactionCase{name: "commit on success"}}
-//line stdlib/db/db_test.kuki:198
+//line stdlib/db/db_test.kuki:194
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:199
+//line stdlib/db/db_test.kuki:195
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:200
+//line stdlib/db/db_test.kuki:196
 			err := db.Transaction(pool, func(tx db.Tx) error {
-//line stdlib/db/db_test.kuki:201
-//line stdlib/db/db_test.kuki:201
+//line stdlib/db/db_test.kuki:197
+//line stdlib/db/db_test.kuki:197
 				_, err_1 := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 4, "Diana", "diana@example.com")
-//line stdlib/db/db_test.kuki:201
+//line stdlib/db/db_test.kuki:197
 				if err_1 != nil {
-//line stdlib/db/db_test.kuki:201
+//line stdlib/db/db_test.kuki:197
 					return err_1
 				}
-//line stdlib/db/db_test.kuki:202
+//line stdlib/db/db_test.kuki:198
 				return nil
 			})
-//line stdlib/db/db_test.kuki:205
+//line stdlib/db/db_test.kuki:201
 			test.AssertNoError(t, err)
-//line stdlib/db/db_test.kuki:207
+//line stdlib/db/db_test.kuki:203
 			found, err_1 := db.Exists(pool, "SELECT 1 FROM users WHERE id = 4")
-//line stdlib/db/db_test.kuki:207
+//line stdlib/db/db_test.kuki:203
 			if err_1 != nil {
-//line stdlib/db/db_test.kuki:207
+//line stdlib/db/db_test.kuki:203
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line stdlib/db/db_test.kuki:208
+//line stdlib/db/db_test.kuki:204
 			test.AssertTrue(t, found)
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:212
+//line stdlib/db/db_test.kuki:208
 type TransactionRollbackCase struct {
 	name string
 }
 
-//line stdlib/db/db_test.kuki:215
+//line stdlib/db/db_test.kuki:211
 func TestTransactionRollback(t *testing.T) {
-//line stdlib/db/db_test.kuki:216
+//line stdlib/db/db_test.kuki:212
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:217
+//line stdlib/db/db_test.kuki:213
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:218
+//line stdlib/db/db_test.kuki:214
 	cases := []TransactionRollbackCase{TransactionRollbackCase{name: "rollback on error"}}
-//line stdlib/db/db_test.kuki:220
+//line stdlib/db/db_test.kuki:216
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:221
+//line stdlib/db/db_test.kuki:217
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:222
+//line stdlib/db/db_test.kuki:218
 			err := db.Transaction(pool, func(tx db.Tx) error {
-//line stdlib/db/db_test.kuki:223
-//line stdlib/db/db_test.kuki:223
+//line stdlib/db/db_test.kuki:219
+//line stdlib/db/db_test.kuki:219
 				_, err_1 := db.TxExec(tx, "INSERT INTO users (id, name, email) VALUES (?, ?, ?)", 5, "Eve", "eve@example.com")
-//line stdlib/db/db_test.kuki:223
+//line stdlib/db/db_test.kuki:219
 				if err_1 != nil {
-//line stdlib/db/db_test.kuki:223
+//line stdlib/db/db_test.kuki:219
 					return err_1
 				}
-//line stdlib/db/db_test.kuki:224
+//line stdlib/db/db_test.kuki:220
 				return errors.New("deliberate rollback")
 			})
-//line stdlib/db/db_test.kuki:227
+//line stdlib/db/db_test.kuki:223
 			test.AssertError(t, err)
-//line stdlib/db/db_test.kuki:229
+//line stdlib/db/db_test.kuki:225
 			found, err_1 := db.Exists(pool, "SELECT 1 FROM users WHERE id = 5")
-//line stdlib/db/db_test.kuki:229
+//line stdlib/db/db_test.kuki:225
 			if err_1 != nil {
-//line stdlib/db/db_test.kuki:229
+//line stdlib/db/db_test.kuki:225
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line stdlib/db/db_test.kuki:230
+//line stdlib/db/db_test.kuki:226
 			test.AssertFalse(t, found)
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:234
+//line stdlib/db/db_test.kuki:230
 type CountCase struct {
 	name      string
 	query     string
 	wantCount int64
 }
 
-//line stdlib/db/db_test.kuki:239
+//line stdlib/db/db_test.kuki:235
 func TestCount(t *testing.T) {
-//line stdlib/db/db_test.kuki:240
+//line stdlib/db/db_test.kuki:236
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:241
+//line stdlib/db/db_test.kuki:237
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:242
+//line stdlib/db/db_test.kuki:238
 	cases := []CountCase{CountCase{name: "all users", query: "SELECT COUNT(*) FROM users", wantCount: 3}, CountCase{name: "filtered", query: "SELECT COUNT(*) FROM users WHERE id > 1", wantCount: 2}}
-//line stdlib/db/db_test.kuki:247
+//line stdlib/db/db_test.kuki:243
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:248
+//line stdlib/db/db_test.kuki:244
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:249
+//line stdlib/db/db_test.kuki:245
 			n, err_1 := db.Count(pool, tc.query)
-//line stdlib/db/db_test.kuki:249
+//line stdlib/db/db_test.kuki:245
 			if err_1 != nil {
-//line stdlib/db/db_test.kuki:249
+//line stdlib/db/db_test.kuki:245
 				panic(fmt.Sprintf("count: %v", err_1))
 			}
-//line stdlib/db/db_test.kuki:250
+//line stdlib/db/db_test.kuki:246
 			test.AssertEqual(t, n, tc.wantCount)
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:254
+//line stdlib/db/db_test.kuki:250
 type ExistsCase struct {
 	name       string
 	query      string
 	wantExists bool
 }
 
-//line stdlib/db/db_test.kuki:259
+//line stdlib/db/db_test.kuki:255
 func TestExists(t *testing.T) {
-//line stdlib/db/db_test.kuki:260
+//line stdlib/db/db_test.kuki:256
 	pool := setupTestDB(t)
-//line stdlib/db/db_test.kuki:261
+//line stdlib/db/db_test.kuki:257
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:262
+//line stdlib/db/db_test.kuki:258
 	cases := []ExistsCase{ExistsCase{name: "exists", query: "SELECT 1 FROM users WHERE id = 1", wantExists: true}, ExistsCase{name: "not exists", query: "SELECT 1 FROM users WHERE id = 999", wantExists: false}}
-//line stdlib/db/db_test.kuki:267
+//line stdlib/db/db_test.kuki:263
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:268
+//line stdlib/db/db_test.kuki:264
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:269
+//line stdlib/db/db_test.kuki:265
 			found, err_1 := db.Exists(pool, tc.query)
-//line stdlib/db/db_test.kuki:269
+//line stdlib/db/db_test.kuki:265
 			if err_1 != nil {
-//line stdlib/db/db_test.kuki:269
+//line stdlib/db/db_test.kuki:265
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line stdlib/db/db_test.kuki:270
+//line stdlib/db/db_test.kuki:266
 			test.AssertEqual(t, found, tc.wantExists)
 		})
 	}
 }
 
-//line stdlib/db/db_test.kuki:274
+//line stdlib/db/db_test.kuki:270
 type NullUser struct {
 	Id   int64  `json:"id"`
 	Name string `json:"name"`
 	Bio  string `json:"bio"`
 }
 
-//line stdlib/db/db_test.kuki:279
+//line stdlib/db/db_test.kuki:275
 type NullCase struct {
 	name string
 }
 
-//line stdlib/db/db_test.kuki:282
+//line stdlib/db/db_test.kuki:278
 func TestNullHandling(t *testing.T) {
-//line stdlib/db/db_test.kuki:283
+//line stdlib/db/db_test.kuki:279
 	pool, err_6 := db.Open("sqlite3", ":memory:")
-//line stdlib/db/db_test.kuki:283
+//line stdlib/db/db_test.kuki:279
 	if err_6 != nil {
-//line stdlib/db/db_test.kuki:283
+//line stdlib/db/db_test.kuki:279
 		panic(fmt.Sprintf("open: %v", err_6))
 	}
-//line stdlib/db/db_test.kuki:284
+//line stdlib/db/db_test.kuki:280
 	defer db.Close(pool)
-//line stdlib/db/db_test.kuki:285
-//line stdlib/db/db_test.kuki:285
+//line stdlib/db/db_test.kuki:281
+//line stdlib/db/db_test.kuki:281
 	_, err_7 := db.Exec(pool, "CREATE TABLE null_test (id INTEGER PRIMARY KEY, name TEXT, bio TEXT)")
-//line stdlib/db/db_test.kuki:285
+//line stdlib/db/db_test.kuki:281
 	if err_7 != nil {
-//line stdlib/db/db_test.kuki:285
+//line stdlib/db/db_test.kuki:281
 		panic(fmt.Sprintf("create: %v", err_7))
 	}
-//line stdlib/db/db_test.kuki:286
-//line stdlib/db/db_test.kuki:286
+//line stdlib/db/db_test.kuki:282
+//line stdlib/db/db_test.kuki:282
 	_, err_8 := db.Exec(pool, "INSERT INTO null_test (id, name) VALUES (?, ?)", 1, "Alice")
-//line stdlib/db/db_test.kuki:286
+//line stdlib/db/db_test.kuki:282
 	if err_8 != nil {
-//line stdlib/db/db_test.kuki:286
+//line stdlib/db/db_test.kuki:282
 		panic(fmt.Sprintf("insert: %v", err_8))
 	}
-//line stdlib/db/db_test.kuki:288
+//line stdlib/db/db_test.kuki:284
 	cases := []NullCase{NullCase{name: "null becomes zero value"}}
-//line stdlib/db/db_test.kuki:290
+//line stdlib/db/db_test.kuki:286
 	for _, tc := range cases {
-//line stdlib/db/db_test.kuki:291
+//line stdlib/db/db_test.kuki:287
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/db/db_test.kuki:292
+//line stdlib/db/db_test.kuki:288
 			row := db.QueryRow(pool, "SELECT id, name, bio FROM null_test WHERE id = 1")
-//line stdlib/db/db_test.kuki:293
+//line stdlib/db/db_test.kuki:289
 			result, err_1 := db.ScanRow(row, NullUser{})
-//line stdlib/db/db_test.kuki:293
+//line stdlib/db/db_test.kuki:289
 			if err_1 != nil {
-//line stdlib/db/db_test.kuki:293
+//line stdlib/db/db_test.kuki:289
 				panic(fmt.Sprintf("scan: %v", err_1))
 			}
-//line stdlib/db/db_test.kuki:294
+//line stdlib/db/db_test.kuki:290
 			user := result.(NullUser)
-//line stdlib/db/db_test.kuki:295
+//line stdlib/db/db_test.kuki:291
 			test.AssertEqual(t, user.Name, "Alice")
-//line stdlib/db/db_test.kuki:296
+//line stdlib/db/db_test.kuki:292
 			test.AssertEqual(t, user.Bio, "")
 		})
 	}

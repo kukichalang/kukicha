@@ -241,6 +241,108 @@ func DecodeRead(reader io.Reader, sample any) (any, error)
 	}
 }
 
+func TestDBScanAllGenerics(t *testing.T) {
+	input := `petiole db
+
+type Rows
+    rows int
+
+func ScanAll(rows Rows, sample list of any) (list of any, error)
+    return sample, empty
+`
+
+	p, err := parser.New(input, "stdlib/db/db.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	gen.SetSourceFile("stdlib/db/db.kuki")
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "func ScanAll[T any](rows Rows, sample []T) ([]T, error)") {
+		t.Errorf("expected db.ScanAll generic signature, got: %s", output)
+	}
+}
+
+func TestDBScanOneGenerics(t *testing.T) {
+	input := `petiole db
+
+type Rows
+    rows int
+
+func ScanOne(rows Rows, sample any) (any, error)
+    return sample, empty
+`
+
+	p, err := parser.New(input, "stdlib/db/db.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	gen.SetSourceFile("stdlib/db/db.kuki")
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if !strings.Contains(output, "func ScanOne[T any](rows Rows, sample T) (T, error)") {
+		t.Errorf("expected db.ScanOne generic signature, got: %s", output)
+	}
+}
+
+// TestDBQueryNotGeneric guards against the variadic `many args any` parameter
+// on db.Query (and similar helpers) being mis-detected as a generic placeholder.
+// These take real ...interface{} arguments and must NOT receive a [T any] header.
+func TestDBQueryNotGeneric(t *testing.T) {
+	input := `petiole db
+
+type Pool
+    conn int
+
+type Rows
+    rows int
+
+func Query(pool Pool, query string, many args any) (Rows, error)
+    return Rows{}, empty
+`
+
+	p, err := parser.New(input, "stdlib/db/db.kuki")
+	if err != nil {
+		t.Fatalf("parser error: %v", err)
+	}
+
+	program, parseErrors := p.Parse()
+	if len(parseErrors) > 0 {
+		t.Fatalf("parse errors: %v", parseErrors)
+	}
+
+	gen := New(program)
+	gen.SetSourceFile("stdlib/db/db.kuki")
+	output, err := gen.Generate()
+	if err != nil {
+		t.Fatalf("codegen error: %v", err)
+	}
+
+	if strings.Contains(output, "func Query[") {
+		t.Errorf("db.Query must not be made generic — variadic ...any is interface{}, got: %s", output)
+	}
+}
+
 func TestStdlibImportRewriting(t *testing.T) {
 	tests := []struct {
 		name           string

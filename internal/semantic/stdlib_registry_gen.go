@@ -170,7 +170,7 @@ var generatedStdlibRegistry = map[string]goStdlibEntry{
 	"db.Query":                        {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "db.Rows"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pool", "query", "args"}},
 	"db.QueryRow":                     {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "db.Row"}}, ParamNames: []string{"pool", "query", "args"}},
 	"db.RawDB":                        {Count: 1, Types: []goStdlibType{{Kind: TypeKindReference}}, ParamNames: []string{"pool"}},
-	"db.ScanAll":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"rows", "sample"}},
+	"db.ScanAll":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindList, ElementType: &goStdlibType{Kind: TypeKindNamed, Name: "any"}}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"rows", "sample"}},
 	"db.ScanOne":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"rows", "sample"}},
 	"db.ScanRow":                      {Count: 2, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "any"}, {Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"row", "sample"}},
 	"db.Transaction":                  {Count: 1, Types: []goStdlibType{{Kind: TypeKindNamed, Name: "error"}}, ParamNames: []string{"pool", "fn"}, ParamFuncParams: map[int][]goStdlibType{1: {{Kind: TypeKindNamed, Name: "db.Tx"}}}, ParamFuncReturns: map[int][]goStdlibType{1: {{Kind: TypeKindNamed, Name: "error"}}}},

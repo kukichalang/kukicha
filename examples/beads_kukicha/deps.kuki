@@ -29,7 +29,7 @@ func removeDep(pool db.Pool, issueId string, dependsOnId string) error
 func listDeps(pool db.Pool, issueId string) (list of Dep, error)
     result := db.Query(pool, "SELECT issue_id, depends_on_id, dep_type, created_at FROM dependencies WHERE issue_id = ? OR depends_on_id = ? ORDER BY created_at", issueId, issueId)
         |> db.ScanAll(empty list of Dep) onerr return
-    return result.(list of Dep), empty
+    return result, empty
 
 # rebuildBlockedCache rebuilds the materialized blocked issues cache.
 # An issue is blocked if it has a "blocks" dependency on an open issue.
@@ -48,12 +48,12 @@ func listReady(pool db.Pool, limit int) (list of Issue, error)
     if limit > 0
         q = q + " LIMIT ?"
         result := db.Query(pool, q, limit) |> db.ScanAll(empty list of Issue) onerr return
-        return result.(list of Issue), empty
+        return result, empty
     result := db.Query(pool, q) |> db.ScanAll(empty list of Issue) onerr return
-    return result.(list of Issue), empty
+    return result, empty
 
 # listBlocked returns issues that are currently blocked with their blocker info.
 func listBlocked(pool db.Pool) (list of BlockedInfo, error)
     q := "SELECT c.issue_id AS issue_id, i1.title AS title, c.blocked_by_id AS blocker_id, i2.title AS blocker_title FROM blocked_issues_cache c JOIN issues i1 ON i1.id = c.issue_id JOIN issues i2 ON i2.id = c.blocked_by_id ORDER BY i1.priority ASC"
     result := db.Query(pool, q) |> db.ScanAll(empty list of BlockedInfo) onerr return
-    return result.(list of BlockedInfo), empty
+    return result, empty

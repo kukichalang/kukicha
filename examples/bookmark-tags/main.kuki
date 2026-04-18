@@ -64,7 +64,7 @@ func main()
     print("--- All bookmarks ---")
     listSQL := "SELECT id, url, title, json(tags) AS tags FROM bookmarks ORDER BY id"
     all := db.Query(pool, listSQL) |> db.ScanAll(empty list of Bookmark) onerr panic "scan: {error}"
-    for b in all.(list of Bookmark)
+    for b in all
         print("  [{b.Id}] {b.Title} — {b.Url}")
         print("       tags: {b.Tags}")
 
@@ -73,7 +73,7 @@ func main()
     print("--- Bookmarks tagged 'lang' ---")
     byTagSQL := "SELECT b.id, b.url, b.title, json(b.tags) AS tags FROM bookmarks b, json_each(b.tags) t WHERE t.value = ? ORDER BY b.id"
     tagged := db.Query(pool, byTagSQL, "lang") |> db.ScanAll(empty list of Bookmark) onerr panic "scan: {error}"
-    for b in tagged.(list of Bookmark)
+    for b in tagged
         print("  {b.Title}: {b.Tags}")
 
     # --- Tag histogram: which tags show up most often? ---
@@ -81,7 +81,7 @@ func main()
     print("--- Tag histogram ---")
     histoSQL := "SELECT t.value AS tag, COUNT(*) AS count FROM bookmarks b, json_each(b.tags) t GROUP BY t.value ORDER BY count DESC, tag"
     counts := db.Query(pool, histoSQL) |> db.ScanAll(empty list of TagCount) onerr panic "scan: {error}"
-    for c in counts.(list of TagCount)
+    for c in counts
         print("  {c.Tag}: {c.Count}")
 
     print("")

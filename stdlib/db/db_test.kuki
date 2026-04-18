@@ -108,9 +108,7 @@ func TestScanAll(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            result := db.Query(pool, tc.query) |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
-
-            users := result.(list of User)
+            users := db.Query(pool, tc.query) |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
             test.AssertEqual(t, len(users), tc.wantLen)
         )
 
@@ -125,10 +123,9 @@ func TestScanAllValues(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            result := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
+            users := db.Query(pool, "SELECT id, name, email FROM users WHERE id = 1")
                 |> db.ScanAll(empty list of User) onerr panic "scan: {error}"
 
-            users := result.(list of User)
             test.AssertEqual(t, len(users), 1)
             test.AssertEqual(t, users[0].Id, 1 as int64)
             test.AssertEqual(t, users[0].Name, "Alice")
@@ -159,12 +156,11 @@ func TestScanOne(t reference testing.T)
 
     for tc in cases
         t.Run(tc.name, (t reference testing.T) =>
-            result, err := db.Query(pool, tc.query) |> db.ScanOne(User{})
+            user, err := db.Query(pool, tc.query) |> db.ScanOne(User{})
             if tc.wantErr
                 test.AssertError(t, err)
             else
                 test.AssertNoError(t, err)
-                user := result.(User)
                 test.AssertEqual(t, user.Id, 1 as int64)
                 test.AssertEqual(t, user.Name, "Alice")
         )

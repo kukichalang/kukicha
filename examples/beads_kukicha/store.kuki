@@ -44,7 +44,7 @@ func createIssue(pool db.Pool, title string, desc string, issueType int, priorit
 func getIssue(pool db.Pool, id string) (Issue, error)
     sqlStr := "SELECT id, title, description, status, priority, issue_type, assignee, json(labels) AS labels, content_hash, created_at, updated_at, closed_at FROM issues WHERE id = ?"
     result := db.Query(pool, sqlStr, id) |> db.ScanOne(empty Issue) onerr return
-    return result.(Issue), empty
+    return result, empty
 
 func listIssues(pool db.Pool, statusFilter int, priorityFilter int, typeFilter int, assignee string, label string, limit int) (list of Issue, error)
     q := "SELECT id, title, description, status, priority, issue_type, assignee, json(labels) AS labels, content_hash, created_at, updated_at, closed_at FROM issues"
@@ -77,7 +77,7 @@ func listIssues(pool db.Pool, statusFilter int, priorityFilter int, typeFilter i
         args = append(args, limit)
 
     result := db.Query(pool, q, many args) |> db.ScanAll(empty list of Issue) onerr return
-    return result.(list of Issue), empty
+    return result, empty
 
 func updateIssueTitle(pool db.Pool, id string, title string) error
     old := getIssue(pool, id) onerr return
@@ -154,9 +154,9 @@ func searchIssues(pool db.Pool, query string, limit int) (list of Issue, error)
     if limit > 0
         q = q + " LIMIT ?"
         result := db.Query(pool, q, pattern, pattern, limit) |> db.ScanAll(empty list of Issue) onerr return
-        return result.(list of Issue), empty
+        return result, empty
     result := db.Query(pool, q, pattern, pattern) |> db.ScanAll(empty list of Issue) onerr return
-    return result.(list of Issue), empty
+    return result, empty
 
 # --- Labels (JSON column) ---
 
@@ -186,24 +186,24 @@ func addComment(pool db.Pool, issueId string, body string, author string) error
 func listComments(pool db.Pool, issueId string) (list of Comment, error)
     result := db.Query(pool, "SELECT id, issue_id, body, author, created_at FROM comments WHERE issue_id = ? ORDER BY created_at", issueId)
         |> db.ScanAll(empty list of Comment) onerr return
-    return result.(list of Comment), empty
+    return result, empty
 
 # --- Stats ---
 
 func getStatusStats(pool db.Pool) (list of StatRow, error)
     result := db.Query(pool, "SELECT CASE status WHEN 0 THEN 'open' WHEN 1 THEN 'in-progress' WHEN 2 THEN 'blocked' WHEN 3 THEN 'closed' END AS label, COUNT(*) AS count FROM issues GROUP BY status ORDER BY status")
         |> db.ScanAll(empty list of StatRow) onerr return
-    return result.(list of StatRow), empty
+    return result, empty
 
 func getPriorityStats(pool db.Pool) (list of StatRow, error)
     result := db.Query(pool, "SELECT CASE priority WHEN 0 THEN 'critical' WHEN 1 THEN 'high' WHEN 2 THEN 'medium' WHEN 3 THEN 'low' WHEN 4 THEN 'backlog' END AS label, COUNT(*) AS count FROM issues GROUP BY priority ORDER BY priority")
         |> db.ScanAll(empty list of StatRow) onerr return
-    return result.(list of StatRow), empty
+    return result, empty
 
 func getTypeStats(pool db.Pool) (list of StatRow, error)
     result := db.Query(pool, "SELECT CASE issue_type WHEN 0 THEN 'task' WHEN 1 THEN 'bug' WHEN 2 THEN 'feature' WHEN 3 THEN 'epic' WHEN 4 THEN 'chore' END AS label, COUNT(*) AS count FROM issues GROUP BY issue_type ORDER BY issue_type")
         |> db.ScanAll(empty list of StatRow) onerr return
-    return result.(list of StatRow), empty
+    return result, empty
 
 # --- Internal helpers ---
 

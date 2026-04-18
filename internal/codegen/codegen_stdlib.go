@@ -175,6 +175,41 @@ func (g *Generator) inferSetTypeParameters(decl *ast.FunctionDecl) []*TypeParame
 	return g.typeParamsFromClass(class)
 }
 
+// isStdlibDB checks if we're generating code in stdlib/db.
+func (g *Generator) isStdlibDB() bool {
+	return strings.Contains(g.sourceFile, "stdlib/db/") || strings.Contains(g.sourceFile, "stdlib\\db\\")
+}
+
+// inferDBTypeParameters infers type parameters for selected stdlib/db helpers.
+// ScanAll / ScanOne use the "any" placeholder on the sample parameter to emit:
+//
+//	func ScanAll[T any](rows Rows, sample []T) ([]T, error)
+//	func ScanOne[T any](rows Rows, sample T) (T, error)
+//
+// so callers no longer need a `.(list of T)` / `.(T)` cast on the result.
+//
+// Other db functions take real `...any` variadic arguments and must NOT be
+// made generic, so we whitelist by name rather than relying on placeholder
+// detection.
+func (g *Generator) inferDBTypeParameters(decl *ast.FunctionDecl) []*TypeParameter {
+	if decl.Name == nil {
+		return nil
+	}
+	switch decl.Name.Value {
+	case "ScanAll", "ScanOne":
+	default:
+		return nil
+	}
+
+	return []*TypeParameter{
+		{
+			Name:        "T",
+			Placeholder: "any",
+			Constraint:  "any",
+		},
+	}
+}
+
 // isStdlibMaps checks if we're generating code in stdlib/maps.
 func (g *Generator) isStdlibMaps() bool {
 	return strings.Contains(g.sourceFile, "stdlib/maps/") || strings.Contains(g.sourceFile, "stdlib\\maps\\")

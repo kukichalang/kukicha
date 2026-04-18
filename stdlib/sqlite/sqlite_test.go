@@ -85,1304 +85,1300 @@ func TestOpenMemory(t *testing.T) {
 			}
 			// pipe step 2: db.ScanAll(...)
 //line stdlib/sqlite/sqlite_test.kuki:38
-			result, err_4 := db.ScanAll(pipe_1, []User{})
+			users, err_4 := db.ScanAll(pipe_1, []User{})
 //line stdlib/sqlite/sqlite_test.kuki:38
 			if err_4 != nil {
 //line stdlib/sqlite/sqlite_test.kuki:38
 				panic(fmt.Sprintf("scan: %v", err_4))
 			}
 //line stdlib/sqlite/sqlite_test.kuki:40
-			users := result.([]User)
-//line stdlib/sqlite/sqlite_test.kuki:41
 			test.AssertEqual(t, len(users), 2)
-//line stdlib/sqlite/sqlite_test.kuki:42
+//line stdlib/sqlite/sqlite_test.kuki:41
 			test.AssertEqual(t, users[0].Name, "Alice")
-//line stdlib/sqlite/sqlite_test.kuki:43
+//line stdlib/sqlite/sqlite_test.kuki:42
 			test.AssertEqual(t, users[1].Name, "Bob")
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:47
+//line stdlib/sqlite/sqlite_test.kuki:46
 type OpenCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:50
+//line stdlib/sqlite/sqlite_test.kuki:49
 func TestOpen(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:51
+//line stdlib/sqlite/sqlite_test.kuki:50
 	cases := []OpenCase{OpenCase{name: "open file database with WAL"}}
-//line stdlib/sqlite/sqlite_test.kuki:53
+//line stdlib/sqlite/sqlite_test.kuki:52
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:54
+//line stdlib/sqlite/sqlite_test.kuki:53
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:55
+//line stdlib/sqlite/sqlite_test.kuki:54
 			dir := t.TempDir()
-//line stdlib/sqlite/sqlite_test.kuki:56
+//line stdlib/sqlite/sqlite_test.kuki:55
 			path := filepath.Join(dir, "test.db")
-//line stdlib/sqlite/sqlite_test.kuki:57
+//line stdlib/sqlite/sqlite_test.kuki:56
 			pool, err_1 := sqlite.Open(path)
-//line stdlib/sqlite/sqlite_test.kuki:57
+//line stdlib/sqlite/sqlite_test.kuki:56
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:57
+//line stdlib/sqlite/sqlite_test.kuki:56
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:58
+//line stdlib/sqlite/sqlite_test.kuki:57
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:60
-//line stdlib/sqlite/sqlite_test.kuki:60
+//line stdlib/sqlite/sqlite_test.kuki:59
+//line stdlib/sqlite/sqlite_test.kuki:59
 			_, err_2 := db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:60
+//line stdlib/sqlite/sqlite_test.kuki:59
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:60
+//line stdlib/sqlite/sqlite_test.kuki:59
 				panic(fmt.Sprintf("create: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:61
-//line stdlib/sqlite/sqlite_test.kuki:61
+//line stdlib/sqlite/sqlite_test.kuki:60
+//line stdlib/sqlite/sqlite_test.kuki:60
 			_, err_3 := db.Exec(pool, "INSERT INTO items (name) VALUES (?)", "widget")
-//line stdlib/sqlite/sqlite_test.kuki:61
+//line stdlib/sqlite/sqlite_test.kuki:60
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:61
+//line stdlib/sqlite/sqlite_test.kuki:60
 				panic(fmt.Sprintf("insert: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:63
+//line stdlib/sqlite/sqlite_test.kuki:62
 			mode, err_4 := sqlite.Pragma(pool, "journal_mode")
-//line stdlib/sqlite/sqlite_test.kuki:63
+//line stdlib/sqlite/sqlite_test.kuki:62
 			if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:63
+//line stdlib/sqlite/sqlite_test.kuki:62
 				panic(fmt.Sprintf("pragma: %v", err_4))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:64
+//line stdlib/sqlite/sqlite_test.kuki:63
 			test.AssertEqual(t, mode, "wal")
-//line stdlib/sqlite/sqlite_test.kuki:66
+//line stdlib/sqlite/sqlite_test.kuki:65
 			fk, err_5 := sqlite.Pragma(pool, "foreign_keys")
-//line stdlib/sqlite/sqlite_test.kuki:66
+//line stdlib/sqlite/sqlite_test.kuki:65
 			if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:66
+//line stdlib/sqlite/sqlite_test.kuki:65
 				panic(fmt.Sprintf("pragma: %v", err_5))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:67
+//line stdlib/sqlite/sqlite_test.kuki:66
 			test.AssertEqual(t, fk, "1")
-//line stdlib/sqlite/sqlite_test.kuki:69
+//line stdlib/sqlite/sqlite_test.kuki:68
 			timeout, err_6 := sqlite.Pragma(pool, "busy_timeout")
-//line stdlib/sqlite/sqlite_test.kuki:69
+//line stdlib/sqlite/sqlite_test.kuki:68
 			if err_6 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:69
+//line stdlib/sqlite/sqlite_test.kuki:68
 				panic(fmt.Sprintf("pragma: %v", err_6))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:70
+//line stdlib/sqlite/sqlite_test.kuki:69
 			test.AssertEqual(t, timeout, "5000")
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:80
+//line stdlib/sqlite/sqlite_test.kuki:79
 type OpenWithCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:83
+//line stdlib/sqlite/sqlite_test.kuki:82
 func TestOpenWith(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:84
+//line stdlib/sqlite/sqlite_test.kuki:83
 	cases := []OpenWithCase{OpenWithCase{name: "open with custom pragmas"}}
-//line stdlib/sqlite/sqlite_test.kuki:86
+//line stdlib/sqlite/sqlite_test.kuki:85
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:87
+//line stdlib/sqlite/sqlite_test.kuki:86
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:88
+//line stdlib/sqlite/sqlite_test.kuki:87
 			dir := t.TempDir()
-//line stdlib/sqlite/sqlite_test.kuki:89
+//line stdlib/sqlite/sqlite_test.kuki:88
 			path := filepath.Join(dir, "test.db")
-//line stdlib/sqlite/sqlite_test.kuki:90
+//line stdlib/sqlite/sqlite_test.kuki:89
 			pragmas := map[string]string{"journal_mode": "WAL", "busy_timeout": "5000"}
-//line stdlib/sqlite/sqlite_test.kuki:95
+//line stdlib/sqlite/sqlite_test.kuki:94
 			pool, err_1 := sqlite.OpenWith(path, pragmas)
-//line stdlib/sqlite/sqlite_test.kuki:95
+//line stdlib/sqlite/sqlite_test.kuki:94
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:95
+//line stdlib/sqlite/sqlite_test.kuki:94
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:96
+//line stdlib/sqlite/sqlite_test.kuki:95
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:98
+//line stdlib/sqlite/sqlite_test.kuki:97
 			timeout, err_2 := sqlite.Pragma(pool, "busy_timeout")
-//line stdlib/sqlite/sqlite_test.kuki:98
+//line stdlib/sqlite/sqlite_test.kuki:97
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:98
+//line stdlib/sqlite/sqlite_test.kuki:97
 				panic(fmt.Sprintf("pragma: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:99
+//line stdlib/sqlite/sqlite_test.kuki:98
 			test.AssertEqual(t, timeout, "5000")
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:103
+//line stdlib/sqlite/sqlite_test.kuki:102
 type PragmaCase struct {
 	name     string
 	pragma   string
 	setValue string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:108
+//line stdlib/sqlite/sqlite_test.kuki:107
 func TestPragma(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:109
+//line stdlib/sqlite/sqlite_test.kuki:108
 	cases := []PragmaCase{PragmaCase{name: "get and set cache_size", pragma: "cache_size", setValue: "-4000"}}
-//line stdlib/sqlite/sqlite_test.kuki:113
+//line stdlib/sqlite/sqlite_test.kuki:112
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:114
+//line stdlib/sqlite/sqlite_test.kuki:113
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:115
+//line stdlib/sqlite/sqlite_test.kuki:114
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:115
+//line stdlib/sqlite/sqlite_test.kuki:114
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:115
+//line stdlib/sqlite/sqlite_test.kuki:114
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:116
+//line stdlib/sqlite/sqlite_test.kuki:115
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:118
-//line stdlib/sqlite/sqlite_test.kuki:118
+//line stdlib/sqlite/sqlite_test.kuki:117
+//line stdlib/sqlite/sqlite_test.kuki:117
 			err_2 := sqlite.SetPragma(pool, tc.pragma, tc.setValue)
-//line stdlib/sqlite/sqlite_test.kuki:118
+//line stdlib/sqlite/sqlite_test.kuki:117
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:118
+//line stdlib/sqlite/sqlite_test.kuki:117
 				panic(fmt.Sprintf("set: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:119
+//line stdlib/sqlite/sqlite_test.kuki:118
 			got, err_3 := sqlite.Pragma(pool, tc.pragma)
-//line stdlib/sqlite/sqlite_test.kuki:119
+//line stdlib/sqlite/sqlite_test.kuki:118
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:119
+//line stdlib/sqlite/sqlite_test.kuki:118
 				panic(fmt.Sprintf("get: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:120
+//line stdlib/sqlite/sqlite_test.kuki:119
 			test.AssertEqual(t, got, tc.setValue)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:124
+//line stdlib/sqlite/sqlite_test.kuki:123
 type PragmaInvalidCase struct {
 	name   string
 	pragma string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:128
+//line stdlib/sqlite/sqlite_test.kuki:127
 func TestPragmaInvalidName(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:129
+//line stdlib/sqlite/sqlite_test.kuki:128
 	cases := []PragmaInvalidCase{PragmaInvalidCase{name: "reject injection attempt", pragma: "cache_size; DROP TABLE users"}}
-//line stdlib/sqlite/sqlite_test.kuki:133
+//line stdlib/sqlite/sqlite_test.kuki:132
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:134
+//line stdlib/sqlite/sqlite_test.kuki:133
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:135
+//line stdlib/sqlite/sqlite_test.kuki:134
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:135
+//line stdlib/sqlite/sqlite_test.kuki:134
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:135
+//line stdlib/sqlite/sqlite_test.kuki:134
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:136
+//line stdlib/sqlite/sqlite_test.kuki:135
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:138
+//line stdlib/sqlite/sqlite_test.kuki:137
 			_, err := sqlite.Pragma(pool, tc.pragma)
-//line stdlib/sqlite/sqlite_test.kuki:139
+//line stdlib/sqlite/sqlite_test.kuki:138
 			test.AssertError(t, err)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:144
+//line stdlib/sqlite/sqlite_test.kuki:143
 func TestSetPragmaInvalidValue(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:145
+//line stdlib/sqlite/sqlite_test.kuki:144
 	pool, err_5 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:145
+//line stdlib/sqlite/sqlite_test.kuki:144
 	if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:145
+//line stdlib/sqlite/sqlite_test.kuki:144
 		panic(fmt.Sprintf("open: %v", err_5))
 	}
-//line stdlib/sqlite/sqlite_test.kuki:146
+//line stdlib/sqlite/sqlite_test.kuki:145
 	defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:148
+//line stdlib/sqlite/sqlite_test.kuki:147
 	err := sqlite.SetPragma(pool, "cache_size", "-4000; DROP TABLE users")
-//line stdlib/sqlite/sqlite_test.kuki:149
+//line stdlib/sqlite/sqlite_test.kuki:148
 	test.AssertError(t, err)
-//line stdlib/sqlite/sqlite_test.kuki:151
+//line stdlib/sqlite/sqlite_test.kuki:150
 	err2 := sqlite.SetPragma(pool, "journal_mode", "WAL; DROP TABLE users")
-//line stdlib/sqlite/sqlite_test.kuki:152
+//line stdlib/sqlite/sqlite_test.kuki:151
 	test.AssertError(t, err2)
-//line stdlib/sqlite/sqlite_test.kuki:154
+//line stdlib/sqlite/sqlite_test.kuki:153
 	err3 := sqlite.SetPragma(pool, "cache_size", "")
-//line stdlib/sqlite/sqlite_test.kuki:155
+//line stdlib/sqlite/sqlite_test.kuki:154
 	test.AssertError(t, err3)
-//line stdlib/sqlite/sqlite_test.kuki:158
+//line stdlib/sqlite/sqlite_test.kuki:157
 	err4 := sqlite.SetPragma(pool, "cache_size", "-64000")
-//line stdlib/sqlite/sqlite_test.kuki:159
+//line stdlib/sqlite/sqlite_test.kuki:158
 	test.AssertNoError(t, err4)
-//line stdlib/sqlite/sqlite_test.kuki:161
+//line stdlib/sqlite/sqlite_test.kuki:160
 	err5 := sqlite.SetPragma(pool, "journal_mode", "WAL")
-//line stdlib/sqlite/sqlite_test.kuki:162
+//line stdlib/sqlite/sqlite_test.kuki:161
 	test.AssertNoError(t, err5)
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:165
+//line stdlib/sqlite/sqlite_test.kuki:164
 type TablesCase struct {
 	name      string
 	createSQL []string
 	wantLen   int
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:170
+//line stdlib/sqlite/sqlite_test.kuki:169
 func TestTables(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:171
+//line stdlib/sqlite/sqlite_test.kuki:170
 	cases := []TablesCase{TablesCase{name: "list created tables", createSQL: []string{"CREATE TABLE alpha (id INTEGER PRIMARY KEY)", "CREATE TABLE beta (id INTEGER PRIMARY KEY)"}, wantLen: 2}, TablesCase{name: "empty database", createSQL: []string{}, wantLen: 0}}
-//line stdlib/sqlite/sqlite_test.kuki:183
+//line stdlib/sqlite/sqlite_test.kuki:182
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:184
+//line stdlib/sqlite/sqlite_test.kuki:183
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:185
+//line stdlib/sqlite/sqlite_test.kuki:184
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:185
+//line stdlib/sqlite/sqlite_test.kuki:184
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:185
+//line stdlib/sqlite/sqlite_test.kuki:184
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:186
+//line stdlib/sqlite/sqlite_test.kuki:185
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:187
+//line stdlib/sqlite/sqlite_test.kuki:186
 			for _, sql := range tc.createSQL {
-//line stdlib/sqlite/sqlite_test.kuki:188
-//line stdlib/sqlite/sqlite_test.kuki:188
+//line stdlib/sqlite/sqlite_test.kuki:187
+//line stdlib/sqlite/sqlite_test.kuki:187
 				_, err_2 := db.Exec(pool, sql)
-//line stdlib/sqlite/sqlite_test.kuki:188
+//line stdlib/sqlite/sqlite_test.kuki:187
 				if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:188
+//line stdlib/sqlite/sqlite_test.kuki:187
 					panic(fmt.Sprintf("create: %v", err_2))
 				}
 			}
-//line stdlib/sqlite/sqlite_test.kuki:190
+//line stdlib/sqlite/sqlite_test.kuki:189
 			tables, err_3 := sqlite.Tables(pool)
-//line stdlib/sqlite/sqlite_test.kuki:190
+//line stdlib/sqlite/sqlite_test.kuki:189
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:190
+//line stdlib/sqlite/sqlite_test.kuki:189
 				panic(fmt.Sprintf("tables: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:191
+//line stdlib/sqlite/sqlite_test.kuki:190
 			test.AssertEqual(t, len(tables), tc.wantLen)
-//line stdlib/sqlite/sqlite_test.kuki:192
+//line stdlib/sqlite/sqlite_test.kuki:191
 			if tc.wantLen == 2 {
-//line stdlib/sqlite/sqlite_test.kuki:193
+//line stdlib/sqlite/sqlite_test.kuki:192
 				test.AssertEqual(t, tables[0], "alpha")
-//line stdlib/sqlite/sqlite_test.kuki:194
+//line stdlib/sqlite/sqlite_test.kuki:193
 				test.AssertEqual(t, tables[1], "beta")
 			}
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:198
+//line stdlib/sqlite/sqlite_test.kuki:197
 type TableExistsCase struct {
 	name  string
 	table string
 	want  bool
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:203
+//line stdlib/sqlite/sqlite_test.kuki:202
 func TestTableExists(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:204
+//line stdlib/sqlite/sqlite_test.kuki:203
 	cases := []TableExistsCase{TableExistsCase{name: "existing table", table: "users", want: true}, TableExistsCase{name: "missing table", table: "nonexistent", want: false}}
-//line stdlib/sqlite/sqlite_test.kuki:209
+//line stdlib/sqlite/sqlite_test.kuki:208
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:210
+//line stdlib/sqlite/sqlite_test.kuki:209
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:211
+//line stdlib/sqlite/sqlite_test.kuki:210
 			pool := setupTestDB(t)
-//line stdlib/sqlite/sqlite_test.kuki:212
+//line stdlib/sqlite/sqlite_test.kuki:211
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:214
+//line stdlib/sqlite/sqlite_test.kuki:213
 			exists, err_1 := sqlite.TableExists(pool, tc.table)
-//line stdlib/sqlite/sqlite_test.kuki:214
+//line stdlib/sqlite/sqlite_test.kuki:213
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:214
+//line stdlib/sqlite/sqlite_test.kuki:213
 				panic(fmt.Sprintf("exists: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:215
+//line stdlib/sqlite/sqlite_test.kuki:214
 			test.AssertEqual(t, exists, tc.want)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:220
+//line stdlib/sqlite/sqlite_test.kuki:219
 func TestIntegrityCheck(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:221
+//line stdlib/sqlite/sqlite_test.kuki:220
 	pool := setupTestDB(t)
-//line stdlib/sqlite/sqlite_test.kuki:222
+//line stdlib/sqlite/sqlite_test.kuki:221
 	defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:224
+//line stdlib/sqlite/sqlite_test.kuki:223
 	err := sqlite.IntegrityCheck(pool)
-//line stdlib/sqlite/sqlite_test.kuki:225
+//line stdlib/sqlite/sqlite_test.kuki:224
 	test.AssertNoError(t, err)
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:229
+//line stdlib/sqlite/sqlite_test.kuki:228
 func TestForeignKeyEnforcement(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:230
+//line stdlib/sqlite/sqlite_test.kuki:229
 	pool, err_6 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:230
+//line stdlib/sqlite/sqlite_test.kuki:229
 	if err_6 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:230
+//line stdlib/sqlite/sqlite_test.kuki:229
 		panic(fmt.Sprintf("open: %v", err_6))
 	}
-//line stdlib/sqlite/sqlite_test.kuki:231
+//line stdlib/sqlite/sqlite_test.kuki:230
 	defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:233
-//line stdlib/sqlite/sqlite_test.kuki:233
+//line stdlib/sqlite/sqlite_test.kuki:232
+//line stdlib/sqlite/sqlite_test.kuki:232
 	_, err_7 := db.Exec(pool, "CREATE TABLE parents (id INTEGER PRIMARY KEY)")
-//line stdlib/sqlite/sqlite_test.kuki:233
+//line stdlib/sqlite/sqlite_test.kuki:232
 	if err_7 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:233
+//line stdlib/sqlite/sqlite_test.kuki:232
 		panic(fmt.Sprintf("create: %v", err_7))
 	}
-//line stdlib/sqlite/sqlite_test.kuki:234
-//line stdlib/sqlite/sqlite_test.kuki:234
+//line stdlib/sqlite/sqlite_test.kuki:233
+//line stdlib/sqlite/sqlite_test.kuki:233
 	_, err_8 := db.Exec(pool, "CREATE TABLE children (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES parents(id))")
-//line stdlib/sqlite/sqlite_test.kuki:234
+//line stdlib/sqlite/sqlite_test.kuki:233
 	if err_8 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:234
+//line stdlib/sqlite/sqlite_test.kuki:233
 		panic(fmt.Sprintf("create: %v", err_8))
 	}
-//line stdlib/sqlite/sqlite_test.kuki:237
+//line stdlib/sqlite/sqlite_test.kuki:236
 	_, err := db.Exec(pool, "INSERT INTO children (parent_id) VALUES (999)")
-//line stdlib/sqlite/sqlite_test.kuki:238
+//line stdlib/sqlite/sqlite_test.kuki:237
 	test.AssertError(t, err)
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:241
+//line stdlib/sqlite/sqlite_test.kuki:240
 type VacuumCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:244
+//line stdlib/sqlite/sqlite_test.kuki:243
 func TestVacuum(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:245
+//line stdlib/sqlite/sqlite_test.kuki:244
 	cases := []VacuumCase{VacuumCase{name: "vacuum succeeds"}}
-//line stdlib/sqlite/sqlite_test.kuki:247
+//line stdlib/sqlite/sqlite_test.kuki:246
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:248
+//line stdlib/sqlite/sqlite_test.kuki:247
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:249
+//line stdlib/sqlite/sqlite_test.kuki:248
 			pool := setupTestDB(t)
-//line stdlib/sqlite/sqlite_test.kuki:250
+//line stdlib/sqlite/sqlite_test.kuki:249
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:252
+//line stdlib/sqlite/sqlite_test.kuki:251
 			err := sqlite.Vacuum(pool)
-//line stdlib/sqlite/sqlite_test.kuki:253
+//line stdlib/sqlite/sqlite_test.kuki:252
 			test.AssertNoError(t, err)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:257
+//line stdlib/sqlite/sqlite_test.kuki:256
 type BackupCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:260
+//line stdlib/sqlite/sqlite_test.kuki:259
 func TestBackup(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:261
+//line stdlib/sqlite/sqlite_test.kuki:260
 	cases := []BackupCase{BackupCase{name: "backup and verify"}}
-//line stdlib/sqlite/sqlite_test.kuki:263
+//line stdlib/sqlite/sqlite_test.kuki:262
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:264
+//line stdlib/sqlite/sqlite_test.kuki:263
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:265
+//line stdlib/sqlite/sqlite_test.kuki:264
 			pool := setupTestDB(t)
-//line stdlib/sqlite/sqlite_test.kuki:266
+//line stdlib/sqlite/sqlite_test.kuki:265
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:268
+//line stdlib/sqlite/sqlite_test.kuki:267
 			dir := t.TempDir()
-//line stdlib/sqlite/sqlite_test.kuki:269
+//line stdlib/sqlite/sqlite_test.kuki:268
 			backupPath := filepath.Join(dir, "backup.db")
-//line stdlib/sqlite/sqlite_test.kuki:270
-//line stdlib/sqlite/sqlite_test.kuki:270
+//line stdlib/sqlite/sqlite_test.kuki:269
+//line stdlib/sqlite/sqlite_test.kuki:269
 			err_1 := sqlite.Backup(pool, backupPath)
-//line stdlib/sqlite/sqlite_test.kuki:270
+//line stdlib/sqlite/sqlite_test.kuki:269
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:270
+//line stdlib/sqlite/sqlite_test.kuki:269
 				panic(fmt.Sprintf("backup: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:272
+//line stdlib/sqlite/sqlite_test.kuki:271
 			_, statErr := os.Stat(backupPath)
-//line stdlib/sqlite/sqlite_test.kuki:273
+//line stdlib/sqlite/sqlite_test.kuki:272
 			test.AssertNoError(t, statErr)
-//line stdlib/sqlite/sqlite_test.kuki:275
+//line stdlib/sqlite/sqlite_test.kuki:274
 			backupPool, err_2 := sqlite.Open(backupPath)
-//line stdlib/sqlite/sqlite_test.kuki:275
+//line stdlib/sqlite/sqlite_test.kuki:274
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:275
+//line stdlib/sqlite/sqlite_test.kuki:274
 				panic(fmt.Sprintf("open backup: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:276
+//line stdlib/sqlite/sqlite_test.kuki:275
 			defer db.Close(backupPool)
-//line stdlib/sqlite/sqlite_test.kuki:278
+//line stdlib/sqlite/sqlite_test.kuki:277
 			// pipe step 1: db.Query(...)
-//line stdlib/sqlite/sqlite_test.kuki:278
+//line stdlib/sqlite/sqlite_test.kuki:277
 			pipe_3, err_4 := db.Query(backupPool, "SELECT id, name, email FROM users ORDER BY id")
-//line stdlib/sqlite/sqlite_test.kuki:279
+//line stdlib/sqlite/sqlite_test.kuki:278
 			if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:279
+//line stdlib/sqlite/sqlite_test.kuki:278
 				panic(fmt.Sprintf("scan: %v", err_4))
 			}
 			// pipe step 2: db.ScanAll(...)
-//line stdlib/sqlite/sqlite_test.kuki:279
-			result, err_6 := db.ScanAll(pipe_3, []User{})
-//line stdlib/sqlite/sqlite_test.kuki:279
+//line stdlib/sqlite/sqlite_test.kuki:278
+			users, err_6 := db.ScanAll(pipe_3, []User{})
+//line stdlib/sqlite/sqlite_test.kuki:278
 			if err_6 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:279
+//line stdlib/sqlite/sqlite_test.kuki:278
 				panic(fmt.Sprintf("scan: %v", err_6))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:281
-			users := result.([]User)
-//line stdlib/sqlite/sqlite_test.kuki:282
+//line stdlib/sqlite/sqlite_test.kuki:280
 			test.AssertEqual(t, len(users), 2)
-//line stdlib/sqlite/sqlite_test.kuki:283
+//line stdlib/sqlite/sqlite_test.kuki:281
 			test.AssertEqual(t, users[0].Name, "Alice")
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:291
+//line stdlib/sqlite/sqlite_test.kuki:289
 type VersionCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:294
+//line stdlib/sqlite/sqlite_test.kuki:292
 func TestVersion(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:295
+//line stdlib/sqlite/sqlite_test.kuki:293
 	cases := []VersionCase{VersionCase{name: "returns version string"}}
-//line stdlib/sqlite/sqlite_test.kuki:297
+//line stdlib/sqlite/sqlite_test.kuki:295
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:298
+//line stdlib/sqlite/sqlite_test.kuki:296
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:299
+//line stdlib/sqlite/sqlite_test.kuki:297
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:299
+//line stdlib/sqlite/sqlite_test.kuki:297
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:299
+//line stdlib/sqlite/sqlite_test.kuki:297
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:300
+//line stdlib/sqlite/sqlite_test.kuki:298
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:302
+//line stdlib/sqlite/sqlite_test.kuki:300
 			v, err_2 := sqlite.Version(pool)
-//line stdlib/sqlite/sqlite_test.kuki:302
+//line stdlib/sqlite/sqlite_test.kuki:300
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:302
+//line stdlib/sqlite/sqlite_test.kuki:300
 				panic(fmt.Sprintf("version: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:303
+//line stdlib/sqlite/sqlite_test.kuki:301
 			test.AssertTrue(t, (len(v) > 0))
-//line stdlib/sqlite/sqlite_test.kuki:304
+//line stdlib/sqlite/sqlite_test.kuki:302
 			test.AssertTrue(t, strpkg.HasPrefix(v, "3."))
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:308
+//line stdlib/sqlite/sqlite_test.kuki:306
 type BatchExecCase struct {
 	name      string
 	batchSize int
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:312
+//line stdlib/sqlite/sqlite_test.kuki:310
 func TestBatchExec(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:313
+//line stdlib/sqlite/sqlite_test.kuki:311
 	cases := []BatchExecCase{BatchExecCase{name: "batch insert 100 rows", batchSize: 100}}
-//line stdlib/sqlite/sqlite_test.kuki:315
+//line stdlib/sqlite/sqlite_test.kuki:313
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:316
+//line stdlib/sqlite/sqlite_test.kuki:314
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:317
+//line stdlib/sqlite/sqlite_test.kuki:315
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:317
+//line stdlib/sqlite/sqlite_test.kuki:315
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:317
+//line stdlib/sqlite/sqlite_test.kuki:315
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:318
+//line stdlib/sqlite/sqlite_test.kuki:316
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:319
-//line stdlib/sqlite/sqlite_test.kuki:319
+//line stdlib/sqlite/sqlite_test.kuki:317
+//line stdlib/sqlite/sqlite_test.kuki:317
 			_, err_2 := db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:319
+//line stdlib/sqlite/sqlite_test.kuki:317
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:319
+//line stdlib/sqlite/sqlite_test.kuki:317
 				panic(fmt.Sprintf("create: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:321
+//line stdlib/sqlite/sqlite_test.kuki:319
 			rows := make([][]any, tc.batchSize)
-//line stdlib/sqlite/sqlite_test.kuki:322
+//line stdlib/sqlite/sqlite_test.kuki:320
 			for i := range tc.batchSize {
-//line stdlib/sqlite/sqlite_test.kuki:323
+//line stdlib/sqlite/sqlite_test.kuki:321
 				rows[i] = []any{fmt.Sprintf("item_%d", i)}
 			}
-//line stdlib/sqlite/sqlite_test.kuki:325
+//line stdlib/sqlite/sqlite_test.kuki:323
 			n, err_3 := sqlite.BatchExec(pool, "INSERT INTO items (name) VALUES (?)", rows)
-//line stdlib/sqlite/sqlite_test.kuki:325
+//line stdlib/sqlite/sqlite_test.kuki:323
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:325
+//line stdlib/sqlite/sqlite_test.kuki:323
 				panic(fmt.Sprintf("batch: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:326
+//line stdlib/sqlite/sqlite_test.kuki:324
 			test.AssertEqual(t, n, int64(tc.batchSize))
-//line stdlib/sqlite/sqlite_test.kuki:328
+//line stdlib/sqlite/sqlite_test.kuki:326
 			count, err_4 := db.Count(pool, "SELECT COUNT(*) FROM items")
-//line stdlib/sqlite/sqlite_test.kuki:328
+//line stdlib/sqlite/sqlite_test.kuki:326
 			if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:328
+//line stdlib/sqlite/sqlite_test.kuki:326
 				panic(fmt.Sprintf("count: %v", err_4))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:329
+//line stdlib/sqlite/sqlite_test.kuki:327
 			test.AssertEqual(t, count, int64(tc.batchSize))
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:333
+//line stdlib/sqlite/sqlite_test.kuki:331
 type CreateFunctionCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:336
+//line stdlib/sqlite/sqlite_test.kuki:334
 func TestCreateFunction(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:337
+//line stdlib/sqlite/sqlite_test.kuki:335
 	cases := []CreateFunctionCase{CreateFunctionCase{name: "register and use custom function"}}
-//line stdlib/sqlite/sqlite_test.kuki:339
+//line stdlib/sqlite/sqlite_test.kuki:337
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:340
+//line stdlib/sqlite/sqlite_test.kuki:338
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:341
+//line stdlib/sqlite/sqlite_test.kuki:339
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:341
+//line stdlib/sqlite/sqlite_test.kuki:339
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:341
+//line stdlib/sqlite/sqlite_test.kuki:339
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:342
+//line stdlib/sqlite/sqlite_test.kuki:340
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:344
+//line stdlib/sqlite/sqlite_test.kuki:342
 			shoutFn := func(args []string) string {
-//line stdlib/sqlite/sqlite_test.kuki:345
+//line stdlib/sqlite/sqlite_test.kuki:343
 				return strpkg.ToUpper(args[0])
 			}
-//line stdlib/sqlite/sqlite_test.kuki:347
-//line stdlib/sqlite/sqlite_test.kuki:347
+//line stdlib/sqlite/sqlite_test.kuki:345
+//line stdlib/sqlite/sqlite_test.kuki:345
 			err_2 := sqlite.CreateFunction(pool, "shout", 1, shoutFn)
-//line stdlib/sqlite/sqlite_test.kuki:347
+//line stdlib/sqlite/sqlite_test.kuki:345
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:347
+//line stdlib/sqlite/sqlite_test.kuki:345
 				panic(fmt.Sprintf("create function: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:349
-//line stdlib/sqlite/sqlite_test.kuki:349
+//line stdlib/sqlite/sqlite_test.kuki:347
+//line stdlib/sqlite/sqlite_test.kuki:347
 			_, err_3 := db.Exec(pool, "CREATE TABLE words (word TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:349
+//line stdlib/sqlite/sqlite_test.kuki:347
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:349
+//line stdlib/sqlite/sqlite_test.kuki:347
 				panic(fmt.Sprintf("create: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:350
-//line stdlib/sqlite/sqlite_test.kuki:350
+//line stdlib/sqlite/sqlite_test.kuki:348
+//line stdlib/sqlite/sqlite_test.kuki:348
 			_, err_4 := db.Exec(pool, "INSERT INTO words (word) VALUES (?)", "hello")
-//line stdlib/sqlite/sqlite_test.kuki:350
+//line stdlib/sqlite/sqlite_test.kuki:348
 			if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:350
+//line stdlib/sqlite/sqlite_test.kuki:348
 				panic(fmt.Sprintf("insert: %v", err_4))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:352
+//line stdlib/sqlite/sqlite_test.kuki:350
 			rawDB := db.RawDB(pool)
-//line stdlib/sqlite/sqlite_test.kuki:353
+//line stdlib/sqlite/sqlite_test.kuki:351
 			row := rawDB.QueryRow("SELECT shout(word) FROM words")
-//line stdlib/sqlite/sqlite_test.kuki:354
+//line stdlib/sqlite/sqlite_test.kuki:352
 			result := ""
-//line stdlib/sqlite/sqlite_test.kuki:355
+//line stdlib/sqlite/sqlite_test.kuki:353
 			// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/sqlite/sqlite_test.kuki:355
+//line stdlib/sqlite/sqlite_test.kuki:353
 			err_5 := row.Scan(&result)
-//line stdlib/sqlite/sqlite_test.kuki:355
+//line stdlib/sqlite/sqlite_test.kuki:353
 			if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:355
+//line stdlib/sqlite/sqlite_test.kuki:353
 				panic(fmt.Sprintf("scan: %v", err_5))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:356
+//line stdlib/sqlite/sqlite_test.kuki:354
 			test.AssertEqual(t, result, "HELLO")
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:360
+//line stdlib/sqlite/sqlite_test.kuki:358
 type CreateFunctionFloatCase struct {
 	name  string
 	input string
 	want  float64
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:365
+//line stdlib/sqlite/sqlite_test.kuki:363
 func TestCreateFunctionFloat(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:366
+//line stdlib/sqlite/sqlite_test.kuki:364
 	cases := []CreateFunctionFloatCase{CreateFunctionFloatCase{name: "str len as float", input: "hello", want: 5.0}, CreateFunctionFloatCase{name: "empty string", input: "", want: 0.0}}
-//line stdlib/sqlite/sqlite_test.kuki:371
+//line stdlib/sqlite/sqlite_test.kuki:369
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:372
+//line stdlib/sqlite/sqlite_test.kuki:370
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:373
+//line stdlib/sqlite/sqlite_test.kuki:371
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:373
+//line stdlib/sqlite/sqlite_test.kuki:371
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:373
+//line stdlib/sqlite/sqlite_test.kuki:371
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:374
+//line stdlib/sqlite/sqlite_test.kuki:372
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:376
+//line stdlib/sqlite/sqlite_test.kuki:374
 			lenFn := func(args []string) float64 {
-//line stdlib/sqlite/sqlite_test.kuki:377
+//line stdlib/sqlite/sqlite_test.kuki:375
 				return float64(len(args[0]))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:379
-//line stdlib/sqlite/sqlite_test.kuki:379
+//line stdlib/sqlite/sqlite_test.kuki:377
+//line stdlib/sqlite/sqlite_test.kuki:377
 			err_2 := sqlite.CreateFunctionFloat(pool, "str_len_f", 1, lenFn)
-//line stdlib/sqlite/sqlite_test.kuki:379
+//line stdlib/sqlite/sqlite_test.kuki:377
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:379
+//line stdlib/sqlite/sqlite_test.kuki:377
 				panic(fmt.Sprintf("create function: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:381
-//line stdlib/sqlite/sqlite_test.kuki:381
+//line stdlib/sqlite/sqlite_test.kuki:379
+//line stdlib/sqlite/sqlite_test.kuki:379
 			_, err_3 := db.Exec(pool, "CREATE TABLE words (w TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:381
+//line stdlib/sqlite/sqlite_test.kuki:379
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:381
+//line stdlib/sqlite/sqlite_test.kuki:379
 				panic(fmt.Sprintf("create: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:382
-//line stdlib/sqlite/sqlite_test.kuki:382
+//line stdlib/sqlite/sqlite_test.kuki:380
+//line stdlib/sqlite/sqlite_test.kuki:380
 			_, err_4 := db.Exec(pool, "INSERT INTO words (w) VALUES (?)", tc.input)
-//line stdlib/sqlite/sqlite_test.kuki:382
+//line stdlib/sqlite/sqlite_test.kuki:380
 			if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:382
+//line stdlib/sqlite/sqlite_test.kuki:380
 				panic(fmt.Sprintf("insert: %v", err_4))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:384
+//line stdlib/sqlite/sqlite_test.kuki:382
 			rawDB := db.RawDB(pool)
-//line stdlib/sqlite/sqlite_test.kuki:385
+//line stdlib/sqlite/sqlite_test.kuki:383
 			row := rawDB.QueryRow("SELECT str_len_f(w) FROM words")
-//line stdlib/sqlite/sqlite_test.kuki:386
+//line stdlib/sqlite/sqlite_test.kuki:384
 			result := 0.0
-//line stdlib/sqlite/sqlite_test.kuki:387
+//line stdlib/sqlite/sqlite_test.kuki:385
 			// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/sqlite/sqlite_test.kuki:387
+//line stdlib/sqlite/sqlite_test.kuki:385
 			err_5 := row.Scan(&result)
-//line stdlib/sqlite/sqlite_test.kuki:387
+//line stdlib/sqlite/sqlite_test.kuki:385
 			if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:387
+//line stdlib/sqlite/sqlite_test.kuki:385
 				panic(fmt.Sprintf("scan: %v", err_5))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:388
+//line stdlib/sqlite/sqlite_test.kuki:386
 			test.AssertEqual(t, result, tc.want)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:392
+//line stdlib/sqlite/sqlite_test.kuki:390
 type CreateFunctionIntCase struct {
 	name  string
 	input string
 	want  int64
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:397
+//line stdlib/sqlite/sqlite_test.kuki:395
 func TestCreateFunctionInt(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:398
+//line stdlib/sqlite/sqlite_test.kuki:396
 	cases := []CreateFunctionIntCase{CreateFunctionIntCase{name: "str len as int", input: "hello", want: 5}, CreateFunctionIntCase{name: "empty string", input: "", want: 0}}
-//line stdlib/sqlite/sqlite_test.kuki:403
+//line stdlib/sqlite/sqlite_test.kuki:401
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:404
+//line stdlib/sqlite/sqlite_test.kuki:402
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:405
+//line stdlib/sqlite/sqlite_test.kuki:403
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:405
+//line stdlib/sqlite/sqlite_test.kuki:403
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:405
+//line stdlib/sqlite/sqlite_test.kuki:403
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:406
+//line stdlib/sqlite/sqlite_test.kuki:404
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:408
+//line stdlib/sqlite/sqlite_test.kuki:406
 			lenFn := func(args []string) int64 {
-//line stdlib/sqlite/sqlite_test.kuki:409
+//line stdlib/sqlite/sqlite_test.kuki:407
 				return int64(len(args[0]))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:411
-//line stdlib/sqlite/sqlite_test.kuki:411
+//line stdlib/sqlite/sqlite_test.kuki:409
+//line stdlib/sqlite/sqlite_test.kuki:409
 			err_2 := sqlite.CreateFunctionInt(pool, "str_len_i", 1, lenFn)
-//line stdlib/sqlite/sqlite_test.kuki:411
+//line stdlib/sqlite/sqlite_test.kuki:409
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:411
+//line stdlib/sqlite/sqlite_test.kuki:409
 				panic(fmt.Sprintf("create function: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:413
-//line stdlib/sqlite/sqlite_test.kuki:413
+//line stdlib/sqlite/sqlite_test.kuki:411
+//line stdlib/sqlite/sqlite_test.kuki:411
 			_, err_3 := db.Exec(pool, "CREATE TABLE words (w TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:413
+//line stdlib/sqlite/sqlite_test.kuki:411
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:413
+//line stdlib/sqlite/sqlite_test.kuki:411
 				panic(fmt.Sprintf("create: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:414
-//line stdlib/sqlite/sqlite_test.kuki:414
+//line stdlib/sqlite/sqlite_test.kuki:412
+//line stdlib/sqlite/sqlite_test.kuki:412
 			_, err_4 := db.Exec(pool, "INSERT INTO words (w) VALUES (?)", tc.input)
-//line stdlib/sqlite/sqlite_test.kuki:414
+//line stdlib/sqlite/sqlite_test.kuki:412
 			if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:414
+//line stdlib/sqlite/sqlite_test.kuki:412
 				panic(fmt.Sprintf("insert: %v", err_4))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:416
+//line stdlib/sqlite/sqlite_test.kuki:414
 			rawDB := db.RawDB(pool)
-//line stdlib/sqlite/sqlite_test.kuki:417
+//line stdlib/sqlite/sqlite_test.kuki:415
 			row := rawDB.QueryRow("SELECT str_len_i(w) FROM words")
-//line stdlib/sqlite/sqlite_test.kuki:418
+//line stdlib/sqlite/sqlite_test.kuki:416
 			result := int64(0)
-//line stdlib/sqlite/sqlite_test.kuki:419
+//line stdlib/sqlite/sqlite_test.kuki:417
 			// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/sqlite/sqlite_test.kuki:419
+//line stdlib/sqlite/sqlite_test.kuki:417
 			err_5 := row.Scan(&result)
-//line stdlib/sqlite/sqlite_test.kuki:419
+//line stdlib/sqlite/sqlite_test.kuki:417
 			if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:419
+//line stdlib/sqlite/sqlite_test.kuki:417
 				panic(fmt.Sprintf("scan: %v", err_5))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:420
+//line stdlib/sqlite/sqlite_test.kuki:418
 			test.AssertEqual(t, result, tc.want)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:424
+//line stdlib/sqlite/sqlite_test.kuki:422
 type CreateFunctionBoolCase struct {
 	name      string
 	values    []string
 	wantCount int64
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:429
+//line stdlib/sqlite/sqlite_test.kuki:427
 func TestCreateFunctionBool(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:430
+//line stdlib/sqlite/sqlite_test.kuki:428
 	cases := []CreateFunctionBoolCase{CreateFunctionBoolCase{name: "filter non-empty strings", values: []string{"hi", "", "there", ""}, wantCount: 2}}
-//line stdlib/sqlite/sqlite_test.kuki:434
+//line stdlib/sqlite/sqlite_test.kuki:432
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:435
+//line stdlib/sqlite/sqlite_test.kuki:433
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:436
+//line stdlib/sqlite/sqlite_test.kuki:434
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:436
+//line stdlib/sqlite/sqlite_test.kuki:434
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:436
+//line stdlib/sqlite/sqlite_test.kuki:434
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:437
+//line stdlib/sqlite/sqlite_test.kuki:435
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:439
+//line stdlib/sqlite/sqlite_test.kuki:437
 			nonEmptyFn := func(args []string) bool {
-//line stdlib/sqlite/sqlite_test.kuki:440
+//line stdlib/sqlite/sqlite_test.kuki:438
 				return (len(args[0]) > 0)
 			}
-//line stdlib/sqlite/sqlite_test.kuki:442
-//line stdlib/sqlite/sqlite_test.kuki:442
+//line stdlib/sqlite/sqlite_test.kuki:440
+//line stdlib/sqlite/sqlite_test.kuki:440
 			err_2 := sqlite.CreateFunctionBool(pool, "is_nonempty", 1, nonEmptyFn)
-//line stdlib/sqlite/sqlite_test.kuki:442
+//line stdlib/sqlite/sqlite_test.kuki:440
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:442
+//line stdlib/sqlite/sqlite_test.kuki:440
 				panic(fmt.Sprintf("create function: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:444
-//line stdlib/sqlite/sqlite_test.kuki:444
+//line stdlib/sqlite/sqlite_test.kuki:442
+//line stdlib/sqlite/sqlite_test.kuki:442
 			_, err_3 := db.Exec(pool, "CREATE TABLE vals (v TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:444
+//line stdlib/sqlite/sqlite_test.kuki:442
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:444
+//line stdlib/sqlite/sqlite_test.kuki:442
 				panic(fmt.Sprintf("create: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:445
+//line stdlib/sqlite/sqlite_test.kuki:443
 			for _, val := range tc.values {
-//line stdlib/sqlite/sqlite_test.kuki:446
-//line stdlib/sqlite/sqlite_test.kuki:446
+//line stdlib/sqlite/sqlite_test.kuki:444
+//line stdlib/sqlite/sqlite_test.kuki:444
 				_, err_4 := db.Exec(pool, "INSERT INTO vals (v) VALUES (?)", val)
-//line stdlib/sqlite/sqlite_test.kuki:446
+//line stdlib/sqlite/sqlite_test.kuki:444
 				if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:446
+//line stdlib/sqlite/sqlite_test.kuki:444
 					panic(fmt.Sprintf("insert: %v", err_4))
 				}
 			}
-//line stdlib/sqlite/sqlite_test.kuki:448
+//line stdlib/sqlite/sqlite_test.kuki:446
 			count, err_5 := db.Count(pool, "SELECT COUNT(*) FROM vals WHERE is_nonempty(v)")
-//line stdlib/sqlite/sqlite_test.kuki:448
+//line stdlib/sqlite/sqlite_test.kuki:446
 			if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:448
+//line stdlib/sqlite/sqlite_test.kuki:446
 				panic(fmt.Sprintf("count: %v", err_5))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:449
+//line stdlib/sqlite/sqlite_test.kuki:447
 			test.AssertEqual(t, count, tc.wantCount)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:453
+//line stdlib/sqlite/sqlite_test.kuki:451
 type CreateBlobFunctionCase struct {
 	name  string
 	input string
 	want  string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:458
+//line stdlib/sqlite/sqlite_test.kuki:456
 func TestCreateBlobFunction(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:459
+//line stdlib/sqlite/sqlite_test.kuki:457
 	cases := []CreateBlobFunctionCase{CreateBlobFunctionCase{name: "reverse bytes", input: "010203", want: "030201"}, CreateBlobFunctionCase{name: "single byte", input: "FF", want: "FF"}}
-//line stdlib/sqlite/sqlite_test.kuki:464
+//line stdlib/sqlite/sqlite_test.kuki:462
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:465
+//line stdlib/sqlite/sqlite_test.kuki:463
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:466
+//line stdlib/sqlite/sqlite_test.kuki:464
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:466
+//line stdlib/sqlite/sqlite_test.kuki:464
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:466
+//line stdlib/sqlite/sqlite_test.kuki:464
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:467
+//line stdlib/sqlite/sqlite_test.kuki:465
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:469
+//line stdlib/sqlite/sqlite_test.kuki:467
 			reverseFn := func(args [][]byte) []byte {
-//line stdlib/sqlite/sqlite_test.kuki:470
+//line stdlib/sqlite/sqlite_test.kuki:468
 				b := args[0]
-//line stdlib/sqlite/sqlite_test.kuki:471
+//line stdlib/sqlite/sqlite_test.kuki:469
 				out := make([]byte, len(b))
-//line stdlib/sqlite/sqlite_test.kuki:472
+//line stdlib/sqlite/sqlite_test.kuki:470
 				for i := range len(b) {
-//line stdlib/sqlite/sqlite_test.kuki:473
+//line stdlib/sqlite/sqlite_test.kuki:471
 					out[i] = b[((len(b) - 1) - i)]
 				}
-//line stdlib/sqlite/sqlite_test.kuki:474
+//line stdlib/sqlite/sqlite_test.kuki:472
 				return out
 			}
-//line stdlib/sqlite/sqlite_test.kuki:476
-//line stdlib/sqlite/sqlite_test.kuki:476
+//line stdlib/sqlite/sqlite_test.kuki:474
+//line stdlib/sqlite/sqlite_test.kuki:474
 			err_2 := sqlite.CreateBlobFunction(pool, "reverse_blob", 1, reverseFn)
-//line stdlib/sqlite/sqlite_test.kuki:476
+//line stdlib/sqlite/sqlite_test.kuki:474
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:476
+//line stdlib/sqlite/sqlite_test.kuki:474
 				panic(fmt.Sprintf("create function: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:478
+//line stdlib/sqlite/sqlite_test.kuki:476
 			rawDB := db.RawDB(pool)
-//line stdlib/sqlite/sqlite_test.kuki:479
+//line stdlib/sqlite/sqlite_test.kuki:477
 			row := rawDB.QueryRow(fmt.Sprintf("SELECT hex(reverse_blob(X'%s'))", tc.input))
-//line stdlib/sqlite/sqlite_test.kuki:480
+//line stdlib/sqlite/sqlite_test.kuki:478
 			result := ""
-//line stdlib/sqlite/sqlite_test.kuki:481
+//line stdlib/sqlite/sqlite_test.kuki:479
 			// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/sqlite/sqlite_test.kuki:481
+//line stdlib/sqlite/sqlite_test.kuki:479
 			err_3 := row.Scan(&result)
-//line stdlib/sqlite/sqlite_test.kuki:481
+//line stdlib/sqlite/sqlite_test.kuki:479
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:481
+//line stdlib/sqlite/sqlite_test.kuki:479
 				panic(fmt.Sprintf("scan: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:482
+//line stdlib/sqlite/sqlite_test.kuki:480
 			test.AssertEqual(t, result, tc.want)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:486
+//line stdlib/sqlite/sqlite_test.kuki:484
 type CreateBlobFunctionFloatCase struct {
 	name  string
 	input string
 	want  float64
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:491
+//line stdlib/sqlite/sqlite_test.kuki:489
 func TestCreateBlobFunctionFloat(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:492
+//line stdlib/sqlite/sqlite_test.kuki:490
 	cases := []CreateBlobFunctionFloatCase{CreateBlobFunctionFloatCase{name: "sum of bytes", input: "010203", want: 6.0}, CreateBlobFunctionFloatCase{name: "single byte", input: "0A", want: 10.0}, CreateBlobFunctionFloatCase{name: "empty blob", input: "", want: 0.0}}
-//line stdlib/sqlite/sqlite_test.kuki:498
+//line stdlib/sqlite/sqlite_test.kuki:496
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:499
+//line stdlib/sqlite/sqlite_test.kuki:497
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:500
+//line stdlib/sqlite/sqlite_test.kuki:498
 			pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:500
+//line stdlib/sqlite/sqlite_test.kuki:498
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:500
+//line stdlib/sqlite/sqlite_test.kuki:498
 				panic(fmt.Sprintf("open: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:501
+//line stdlib/sqlite/sqlite_test.kuki:499
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:503
+//line stdlib/sqlite/sqlite_test.kuki:501
 			sumFn := func(args [][]byte) float64 {
-//line stdlib/sqlite/sqlite_test.kuki:504
+//line stdlib/sqlite/sqlite_test.kuki:502
 				total := 0.0
-//line stdlib/sqlite/sqlite_test.kuki:505
+//line stdlib/sqlite/sqlite_test.kuki:503
 				for _, b := range args[0] {
-//line stdlib/sqlite/sqlite_test.kuki:506
+//line stdlib/sqlite/sqlite_test.kuki:504
 					total = (total + float64(b))
 				}
-//line stdlib/sqlite/sqlite_test.kuki:507
+//line stdlib/sqlite/sqlite_test.kuki:505
 				return total
 			}
-//line stdlib/sqlite/sqlite_test.kuki:509
-//line stdlib/sqlite/sqlite_test.kuki:509
+//line stdlib/sqlite/sqlite_test.kuki:507
+//line stdlib/sqlite/sqlite_test.kuki:507
 			err_2 := sqlite.CreateBlobFunctionFloat(pool, "blob_sum", 1, sumFn)
-//line stdlib/sqlite/sqlite_test.kuki:509
+//line stdlib/sqlite/sqlite_test.kuki:507
 			if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:509
+//line stdlib/sqlite/sqlite_test.kuki:507
 				panic(fmt.Sprintf("create function: %v", err_2))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:511
+//line stdlib/sqlite/sqlite_test.kuki:509
 			rawDB := db.RawDB(pool)
-//line stdlib/sqlite/sqlite_test.kuki:512
+//line stdlib/sqlite/sqlite_test.kuki:510
 			row := rawDB.QueryRow(fmt.Sprintf("SELECT blob_sum(X'%s')", tc.input))
-//line stdlib/sqlite/sqlite_test.kuki:513
+//line stdlib/sqlite/sqlite_test.kuki:511
 			result := 0.0
-//line stdlib/sqlite/sqlite_test.kuki:514
+//line stdlib/sqlite/sqlite_test.kuki:512
 			// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/sqlite/sqlite_test.kuki:514
+//line stdlib/sqlite/sqlite_test.kuki:512
 			err_3 := row.Scan(&result)
-//line stdlib/sqlite/sqlite_test.kuki:514
+//line stdlib/sqlite/sqlite_test.kuki:512
 			if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:514
+//line stdlib/sqlite/sqlite_test.kuki:512
 				panic(fmt.Sprintf("scan: %v", err_3))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:515
+//line stdlib/sqlite/sqlite_test.kuki:513
 			test.AssertEqual(t, result, tc.want)
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:519
+//line stdlib/sqlite/sqlite_test.kuki:517
 type DumpCase struct {
 	name string
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:522
+//line stdlib/sqlite/sqlite_test.kuki:520
 func TestDump(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:523
+//line stdlib/sqlite/sqlite_test.kuki:521
 	cases := []DumpCase{DumpCase{name: "dump contains schema and data"}}
-//line stdlib/sqlite/sqlite_test.kuki:525
+//line stdlib/sqlite/sqlite_test.kuki:523
 	for _, tc := range cases {
-//line stdlib/sqlite/sqlite_test.kuki:526
+//line stdlib/sqlite/sqlite_test.kuki:524
 		t.Run(tc.name, func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:527
+//line stdlib/sqlite/sqlite_test.kuki:525
 			pool := setupTestDB(t)
-//line stdlib/sqlite/sqlite_test.kuki:528
+//line stdlib/sqlite/sqlite_test.kuki:526
 			defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:530
+//line stdlib/sqlite/sqlite_test.kuki:528
 			sql, err_1 := sqlite.Dump(pool)
-//line stdlib/sqlite/sqlite_test.kuki:530
+//line stdlib/sqlite/sqlite_test.kuki:528
 			if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:530
+//line stdlib/sqlite/sqlite_test.kuki:528
 				panic(fmt.Sprintf("dump: %v", err_1))
 			}
-//line stdlib/sqlite/sqlite_test.kuki:531
+//line stdlib/sqlite/sqlite_test.kuki:529
 			test.AssertTrue(t, strpkg.Contains(sql, "CREATE TABLE"))
-//line stdlib/sqlite/sqlite_test.kuki:532
+//line stdlib/sqlite/sqlite_test.kuki:530
 			test.AssertTrue(t, strpkg.Contains(sql, "INSERT INTO"))
-//line stdlib/sqlite/sqlite_test.kuki:533
+//line stdlib/sqlite/sqlite_test.kuki:531
 			test.AssertTrue(t, strpkg.Contains(sql, "Alice"))
-//line stdlib/sqlite/sqlite_test.kuki:534
+//line stdlib/sqlite/sqlite_test.kuki:532
 			test.AssertTrue(t, strpkg.Contains(sql, "Bob"))
 		})
 	}
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:539
+//line stdlib/sqlite/sqlite_test.kuki:537
 func TestAddNotNull(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:540
+//line stdlib/sqlite/sqlite_test.kuki:538
 	t.Run("add NOT NULL to column", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:541
+//line stdlib/sqlite/sqlite_test.kuki:539
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:541
+//line stdlib/sqlite/sqlite_test.kuki:539
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:541
+//line stdlib/sqlite/sqlite_test.kuki:539
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:542
+//line stdlib/sqlite/sqlite_test.kuki:540
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:544
-//line stdlib/sqlite/sqlite_test.kuki:544
+//line stdlib/sqlite/sqlite_test.kuki:542
+//line stdlib/sqlite/sqlite_test.kuki:542
 		_, err_2 := db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:544
+//line stdlib/sqlite/sqlite_test.kuki:542
 		if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:544
+//line stdlib/sqlite/sqlite_test.kuki:542
 			panic(fmt.Sprintf("create: %v", err_2))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:545
-//line stdlib/sqlite/sqlite_test.kuki:545
+//line stdlib/sqlite/sqlite_test.kuki:543
+//line stdlib/sqlite/sqlite_test.kuki:543
 		_, err_3 := db.Exec(pool, "INSERT INTO items (name) VALUES (?)", "widget")
-//line stdlib/sqlite/sqlite_test.kuki:545
+//line stdlib/sqlite/sqlite_test.kuki:543
 		if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:545
+//line stdlib/sqlite/sqlite_test.kuki:543
 			panic(fmt.Sprintf("insert: %v", err_3))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:547
-//line stdlib/sqlite/sqlite_test.kuki:547
+//line stdlib/sqlite/sqlite_test.kuki:545
+//line stdlib/sqlite/sqlite_test.kuki:545
 		err_4 := sqlite.AddNotNull(pool, "items", "name")
-//line stdlib/sqlite/sqlite_test.kuki:547
+//line stdlib/sqlite/sqlite_test.kuki:545
 		if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:547
+//line stdlib/sqlite/sqlite_test.kuki:545
 			panic(fmt.Sprintf("add not null: %v", err_4))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:549
+//line stdlib/sqlite/sqlite_test.kuki:547
 		_, err := db.Exec(pool, "INSERT INTO items (name) VALUES (NULL)")
-//line stdlib/sqlite/sqlite_test.kuki:550
+//line stdlib/sqlite/sqlite_test.kuki:548
 		test.AssertError(t, err)
 	})
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:557
+//line stdlib/sqlite/sqlite_test.kuki:555
 func TestDropNotNull(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:558
+//line stdlib/sqlite/sqlite_test.kuki:556
 	t.Run("drop NOT NULL from column", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:559
+//line stdlib/sqlite/sqlite_test.kuki:557
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:559
+//line stdlib/sqlite/sqlite_test.kuki:557
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:559
+//line stdlib/sqlite/sqlite_test.kuki:557
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:560
+//line stdlib/sqlite/sqlite_test.kuki:558
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:562
-//line stdlib/sqlite/sqlite_test.kuki:562
+//line stdlib/sqlite/sqlite_test.kuki:560
+//line stdlib/sqlite/sqlite_test.kuki:560
 		_, err_2 := db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT NOT NULL)")
-//line stdlib/sqlite/sqlite_test.kuki:562
+//line stdlib/sqlite/sqlite_test.kuki:560
 		if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:562
+//line stdlib/sqlite/sqlite_test.kuki:560
 			panic(fmt.Sprintf("create: %v", err_2))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:564
-//line stdlib/sqlite/sqlite_test.kuki:564
+//line stdlib/sqlite/sqlite_test.kuki:562
+//line stdlib/sqlite/sqlite_test.kuki:562
 		err_3 := sqlite.DropNotNull(pool, "items", "name")
-//line stdlib/sqlite/sqlite_test.kuki:564
+//line stdlib/sqlite/sqlite_test.kuki:562
 		if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:564
+//line stdlib/sqlite/sqlite_test.kuki:562
 			panic(fmt.Sprintf("drop not null: %v", err_3))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:566
-//line stdlib/sqlite/sqlite_test.kuki:566
+//line stdlib/sqlite/sqlite_test.kuki:564
+//line stdlib/sqlite/sqlite_test.kuki:564
 		_, err_4 := db.Exec(pool, "INSERT INTO items (name) VALUES (NULL)")
-//line stdlib/sqlite/sqlite_test.kuki:566
+//line stdlib/sqlite/sqlite_test.kuki:564
 		if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:566
+//line stdlib/sqlite/sqlite_test.kuki:564
 			panic(fmt.Sprintf("insert null: %v", err_4))
 		}
 	})
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:573
+//line stdlib/sqlite/sqlite_test.kuki:571
 func TestAddCheck(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:574
+//line stdlib/sqlite/sqlite_test.kuki:572
 	t.Run("add CHECK constraint", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:575
+//line stdlib/sqlite/sqlite_test.kuki:573
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:575
+//line stdlib/sqlite/sqlite_test.kuki:573
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:575
+//line stdlib/sqlite/sqlite_test.kuki:573
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:576
+//line stdlib/sqlite/sqlite_test.kuki:574
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:578
-//line stdlib/sqlite/sqlite_test.kuki:578
+//line stdlib/sqlite/sqlite_test.kuki:576
+//line stdlib/sqlite/sqlite_test.kuki:576
 		_, err_2 := db.Exec(pool, "CREATE TABLE ages (id INTEGER PRIMARY KEY, age INTEGER)")
-//line stdlib/sqlite/sqlite_test.kuki:578
+//line stdlib/sqlite/sqlite_test.kuki:576
 		if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:578
+//line stdlib/sqlite/sqlite_test.kuki:576
 			panic(fmt.Sprintf("create: %v", err_2))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:580
-//line stdlib/sqlite/sqlite_test.kuki:580
+//line stdlib/sqlite/sqlite_test.kuki:578
+//line stdlib/sqlite/sqlite_test.kuki:578
 		err_3 := sqlite.AddCheck(pool, "ages", "age >= 0")
-//line stdlib/sqlite/sqlite_test.kuki:580
+//line stdlib/sqlite/sqlite_test.kuki:578
 		if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:580
+//line stdlib/sqlite/sqlite_test.kuki:578
 			panic(fmt.Sprintf("add check: %v", err_3))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:582
+//line stdlib/sqlite/sqlite_test.kuki:580
 		_, err := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1)
-//line stdlib/sqlite/sqlite_test.kuki:583
+//line stdlib/sqlite/sqlite_test.kuki:581
 		test.AssertError(t, err)
-//line stdlib/sqlite/sqlite_test.kuki:585
-//line stdlib/sqlite/sqlite_test.kuki:585
+//line stdlib/sqlite/sqlite_test.kuki:583
+//line stdlib/sqlite/sqlite_test.kuki:583
 		_, err_4 := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", 25)
-//line stdlib/sqlite/sqlite_test.kuki:585
+//line stdlib/sqlite/sqlite_test.kuki:583
 		if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:585
+//line stdlib/sqlite/sqlite_test.kuki:583
 			panic(fmt.Sprintf("insert: %v", err_4))
 		}
 	})
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:594
+//line stdlib/sqlite/sqlite_test.kuki:592
 func TestDropCheck(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:595
+//line stdlib/sqlite/sqlite_test.kuki:593
 	t.Run("drop named CHECK constraint", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:596
+//line stdlib/sqlite/sqlite_test.kuki:594
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:596
+//line stdlib/sqlite/sqlite_test.kuki:594
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:596
+//line stdlib/sqlite/sqlite_test.kuki:594
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:597
+//line stdlib/sqlite/sqlite_test.kuki:595
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:599
-//line stdlib/sqlite/sqlite_test.kuki:599
+//line stdlib/sqlite/sqlite_test.kuki:597
+//line stdlib/sqlite/sqlite_test.kuki:597
 		_, err_2 := db.Exec(pool, "CREATE TABLE ages (id INTEGER PRIMARY KEY, age INTEGER, CONSTRAINT age_positive CHECK (age >= 0))")
-//line stdlib/sqlite/sqlite_test.kuki:599
+//line stdlib/sqlite/sqlite_test.kuki:597
 		if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:599
+//line stdlib/sqlite/sqlite_test.kuki:597
 			panic(fmt.Sprintf("create: %v", err_2))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:601
+//line stdlib/sqlite/sqlite_test.kuki:599
 		_, err := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1)
-//line stdlib/sqlite/sqlite_test.kuki:602
+//line stdlib/sqlite/sqlite_test.kuki:600
 		test.AssertError(t, err)
-//line stdlib/sqlite/sqlite_test.kuki:604
-//line stdlib/sqlite/sqlite_test.kuki:604
+//line stdlib/sqlite/sqlite_test.kuki:602
+//line stdlib/sqlite/sqlite_test.kuki:602
 		err_3 := sqlite.DropCheck(pool, "ages", "age_positive")
-//line stdlib/sqlite/sqlite_test.kuki:604
+//line stdlib/sqlite/sqlite_test.kuki:602
 		if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:604
+//line stdlib/sqlite/sqlite_test.kuki:602
 			panic(fmt.Sprintf("drop check: %v", err_3))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:606
-//line stdlib/sqlite/sqlite_test.kuki:606
+//line stdlib/sqlite/sqlite_test.kuki:604
+//line stdlib/sqlite/sqlite_test.kuki:604
 		_, err_4 := db.Exec(pool, "INSERT INTO ages (age) VALUES (?)", -1)
-//line stdlib/sqlite/sqlite_test.kuki:606
+//line stdlib/sqlite/sqlite_test.kuki:604
 		if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:606
+//line stdlib/sqlite/sqlite_test.kuki:604
 			panic(fmt.Sprintf("insert: %v", err_4))
 		}
 	})
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:615
+//line stdlib/sqlite/sqlite_test.kuki:613
 func TestAddNotNullInvalidName(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:616
+//line stdlib/sqlite/sqlite_test.kuki:614
 	t.Run("reject invalid names", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:617
+//line stdlib/sqlite/sqlite_test.kuki:615
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:617
+//line stdlib/sqlite/sqlite_test.kuki:615
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:617
+//line stdlib/sqlite/sqlite_test.kuki:615
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:618
+//line stdlib/sqlite/sqlite_test.kuki:616
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:620
+//line stdlib/sqlite/sqlite_test.kuki:618
 		err := sqlite.AddNotNull(pool, "table; DROP TABLE users", "col")
-//line stdlib/sqlite/sqlite_test.kuki:621
+//line stdlib/sqlite/sqlite_test.kuki:619
 		test.AssertError(t, err)
-//line stdlib/sqlite/sqlite_test.kuki:623
+//line stdlib/sqlite/sqlite_test.kuki:621
 		err2 := sqlite.DropNotNull(pool, "ok", "col; DROP TABLE users")
-//line stdlib/sqlite/sqlite_test.kuki:624
+//line stdlib/sqlite/sqlite_test.kuki:622
 		test.AssertError(t, err2)
 	})
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:629
+//line stdlib/sqlite/sqlite_test.kuki:627
 func TestAddCheckInvalid(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:630
+//line stdlib/sqlite/sqlite_test.kuki:628
 	t.Run("reject empty expression", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:631
+//line stdlib/sqlite/sqlite_test.kuki:629
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:631
+//line stdlib/sqlite/sqlite_test.kuki:629
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:631
+//line stdlib/sqlite/sqlite_test.kuki:629
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:632
+//line stdlib/sqlite/sqlite_test.kuki:630
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:634
+//line stdlib/sqlite/sqlite_test.kuki:632
 		err := sqlite.AddCheck(pool, "t", "")
-//line stdlib/sqlite/sqlite_test.kuki:635
+//line stdlib/sqlite/sqlite_test.kuki:633
 		test.AssertError(t, err)
 	})
 }
 
-//line stdlib/sqlite/sqlite_test.kuki:640
+//line stdlib/sqlite/sqlite_test.kuki:638
 func TestReindexExpressions(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:641
+//line stdlib/sqlite/sqlite_test.kuki:639
 	t.Run("reindex expressions succeeds", func(t *testing.T) {
-//line stdlib/sqlite/sqlite_test.kuki:642
+//line stdlib/sqlite/sqlite_test.kuki:640
 		pool, err_1 := sqlite.OpenMemory()
-//line stdlib/sqlite/sqlite_test.kuki:642
+//line stdlib/sqlite/sqlite_test.kuki:640
 		if err_1 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:642
+//line stdlib/sqlite/sqlite_test.kuki:640
 			panic(fmt.Sprintf("open: %v", err_1))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:643
+//line stdlib/sqlite/sqlite_test.kuki:641
 		defer db.Close(pool)
-//line stdlib/sqlite/sqlite_test.kuki:645
-//line stdlib/sqlite/sqlite_test.kuki:645
+//line stdlib/sqlite/sqlite_test.kuki:643
+//line stdlib/sqlite/sqlite_test.kuki:643
 		_, err_2 := db.Exec(pool, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
-//line stdlib/sqlite/sqlite_test.kuki:645
+//line stdlib/sqlite/sqlite_test.kuki:643
 		if err_2 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:645
+//line stdlib/sqlite/sqlite_test.kuki:643
 			panic(fmt.Sprintf("create: %v", err_2))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:646
-//line stdlib/sqlite/sqlite_test.kuki:646
+//line stdlib/sqlite/sqlite_test.kuki:644
+//line stdlib/sqlite/sqlite_test.kuki:644
 		_, err_3 := db.Exec(pool, "CREATE INDEX idx_name_lower ON items (lower(name))")
-//line stdlib/sqlite/sqlite_test.kuki:646
+//line stdlib/sqlite/sqlite_test.kuki:644
 		if err_3 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:646
+//line stdlib/sqlite/sqlite_test.kuki:644
 			panic(fmt.Sprintf("index: %v", err_3))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:647
-//line stdlib/sqlite/sqlite_test.kuki:647
+//line stdlib/sqlite/sqlite_test.kuki:645
+//line stdlib/sqlite/sqlite_test.kuki:645
 		_, err_4 := db.Exec(pool, "INSERT INTO items (name) VALUES (?)", "Hello")
-//line stdlib/sqlite/sqlite_test.kuki:647
+//line stdlib/sqlite/sqlite_test.kuki:645
 		if err_4 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:647
+//line stdlib/sqlite/sqlite_test.kuki:645
 			panic(fmt.Sprintf("insert: %v", err_4))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:649
-//line stdlib/sqlite/sqlite_test.kuki:649
+//line stdlib/sqlite/sqlite_test.kuki:647
+//line stdlib/sqlite/sqlite_test.kuki:647
 		err_5 := sqlite.ReindexExpressions(pool)
-//line stdlib/sqlite/sqlite_test.kuki:649
+//line stdlib/sqlite/sqlite_test.kuki:647
 		if err_5 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:649
+//line stdlib/sqlite/sqlite_test.kuki:647
 			panic(fmt.Sprintf("reindex: %v", err_5))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:651
+//line stdlib/sqlite/sqlite_test.kuki:649
 		rawDB := db.RawDB(pool)
-//line stdlib/sqlite/sqlite_test.kuki:652
+//line stdlib/sqlite/sqlite_test.kuki:650
 		row := rawDB.QueryRow("SELECT name FROM items WHERE lower(name) = ?", "hello")
-//line stdlib/sqlite/sqlite_test.kuki:653
+//line stdlib/sqlite/sqlite_test.kuki:651
 		result := ""
-//line stdlib/sqlite/sqlite_test.kuki:654
+//line stdlib/sqlite/sqlite_test.kuki:652
 		// kukicha: could not infer return count; use explicit capture if incorrect
-//line stdlib/sqlite/sqlite_test.kuki:654
+//line stdlib/sqlite/sqlite_test.kuki:652
 		err_6 := row.Scan(&result)
-//line stdlib/sqlite/sqlite_test.kuki:654
+//line stdlib/sqlite/sqlite_test.kuki:652
 		if err_6 != nil {
-//line stdlib/sqlite/sqlite_test.kuki:654
+//line stdlib/sqlite/sqlite_test.kuki:652
 			panic(fmt.Sprintf("scan: %v", err_6))
 		}
-//line stdlib/sqlite/sqlite_test.kuki:655
+//line stdlib/sqlite/sqlite_test.kuki:653
 		test.AssertEqual(t, result, "Hello")
 	})
 }

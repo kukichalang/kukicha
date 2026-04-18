@@ -98,13 +98,13 @@ func Exec(pool Pool, query string, many args any) (int64, error)
 # Automatically closes rows when done.
 # Column-to-field mapping: as "tag" > exact name (case-insensitive) > snake_case.
 # NULL values become Go zero values.
-# Example: users := db.Query(pool, "SELECT id, name FROM users") |> db.ScanAll(list of User) onerr panic "{error}"
-func ScanAll(rows Rows, sample any) (any, error)
+# Example: users := db.Query(pool, "SELECT id, name FROM users") |> db.ScanAll(empty list of User) onerr panic "{error}"
+func ScanAll(rows Rows, sample list of any) (list of any, error)
     defer rows.rows.Close()
 
     columns := rows.rows.Columns() onerr return
 
-    sliceType := reflect.TypeOf(sample)
+    sliceType := reflect.ValueOf(sample).Type()
     elemType := sliceType.Elem()
     resultSlice := reflect.MakeSlice(sliceType, 0, 0)
 
@@ -115,7 +115,7 @@ func ScanAll(rows Rows, sample any) (any, error)
         resultSlice = reflect.Append(resultSlice, elemPtr.Elem())
 
     rows.rows.Err() onerr return
-    return resultSlice.Interface(), empty
+    return resultSlice.Interface().(list of any), empty
 
 # ScanOne scans exactly one row from the result set.
 # Returns an error if zero or more than one row is returned.
@@ -140,7 +140,7 @@ func ScanOne(rows Rows, sample any) (any, error)
         return sample, error "db.ScanOne: more than one row returned"
 
     rows.rows.Err() onerr return
-    return elemPtr.Elem().Interface(), empty
+    return elemPtr.Elem().Interface().(any), empty
 
 # ScanRow scans a single Row (from QueryRow) into a struct.
 # Example: user := db.QueryRow(pool, "SELECT * FROM users WHERE id = $1", id) |> db.ScanRow(empty User) onerr panic "{error}"

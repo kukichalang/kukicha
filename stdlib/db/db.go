@@ -121,19 +121,18 @@ func Exec(pool Pool, query string, args ...any) (int64, error) {
 }
 
 //line stdlib/db/db.kuki:102
-func ScanAll(rows Rows, sample any) (any, error) {
+func ScanAll[T any](rows Rows, sample []T) ([]T, error) {
 //line stdlib/db/db.kuki:103
 	defer rows.rows.Close()
 //line stdlib/db/db.kuki:105
 	columns, err_6 := rows.rows.Columns()
 //line stdlib/db/db.kuki:105
 	if err_6 != nil {
-		var _zero0 any
 //line stdlib/db/db.kuki:105
-		return _zero0, err_6
+		return []T{}, err_6
 	}
 //line stdlib/db/db.kuki:107
-	sliceType := reflect.TypeOf(sample)
+	sliceType := reflect.ValueOf(sample).Type()
 //line stdlib/db/db.kuki:108
 	elemType := sliceType.Elem()
 //line stdlib/db/db.kuki:109
@@ -150,9 +149,8 @@ func ScanAll(rows Rows, sample any) (any, error) {
 		err_7 := rows.rows.Scan(fieldPtrs...)
 //line stdlib/db/db.kuki:114
 		if err_7 != nil {
-			var _zero0 any
 //line stdlib/db/db.kuki:114
-			return _zero0, err_7
+			return []T{}, err_7
 		}
 //line stdlib/db/db.kuki:115
 		resultSlice = reflect.Append(resultSlice, elemPtr.Elem())
@@ -163,23 +161,22 @@ func ScanAll(rows Rows, sample any) (any, error) {
 	err_8 := rows.rows.Err()
 //line stdlib/db/db.kuki:117
 	if err_8 != nil {
-		var _zero0 any
 //line stdlib/db/db.kuki:117
-		return _zero0, err_8
+		return []T{}, err_8
 	}
 //line stdlib/db/db.kuki:118
-	return resultSlice.Interface(), nil
+	return resultSlice.Interface().([]T), nil
 }
 
 //line stdlib/db/db.kuki:124
-func ScanOne(rows Rows, sample any) (any, error) {
+func ScanOne[T any](rows Rows, sample T) (T, error) {
 //line stdlib/db/db.kuki:125
 	defer rows.rows.Close()
 //line stdlib/db/db.kuki:127
 	columns, err_9 := rows.rows.Columns()
 //line stdlib/db/db.kuki:127
 	if err_9 != nil {
-		var _zero0 any
+		var _zero0 T
 //line stdlib/db/db.kuki:127
 		return _zero0, err_9
 	}
@@ -195,7 +192,7 @@ func ScanOne(rows Rows, sample any) (any, error) {
 		err_10 := rows.rows.Err()
 //line stdlib/db/db.kuki:133
 		if err_10 != nil {
-			var _zero0 any
+			var _zero0 T
 //line stdlib/db/db.kuki:133
 			return _zero0, err_10
 		}
@@ -210,7 +207,7 @@ func ScanOne(rows Rows, sample any) (any, error) {
 	err_11 := rows.rows.Scan(fieldPtrs...)
 //line stdlib/db/db.kuki:137
 	if err_11 != nil {
-		var _zero0 any
+		var _zero0 T
 //line stdlib/db/db.kuki:137
 		return _zero0, err_11
 	}
@@ -225,12 +222,12 @@ func ScanOne(rows Rows, sample any) (any, error) {
 	err_12 := rows.rows.Err()
 //line stdlib/db/db.kuki:142
 	if err_12 != nil {
-		var _zero0 any
+		var _zero0 T
 //line stdlib/db/db.kuki:142
 		return _zero0, err_12
 	}
 //line stdlib/db/db.kuki:143
-	return elemPtr.Elem().Interface(), nil
+	return elemPtr.Elem().Interface().(T), nil
 }
 
 //line stdlib/db/db.kuki:147
