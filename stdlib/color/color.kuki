@@ -14,7 +14,7 @@
 petiole color
 
 import "os"
-import "strings"
+import "stdlib/string"
 import "sync"
 
 # --- internal state ---
@@ -72,7 +72,7 @@ func wrap(code string, s string) string
     if not Enabled()
         return s
     reopen := "\x1b[0m\x1b[{code}m"
-    inner := strings.ReplaceAll(s, "\x1b[0m", reopen)
+    inner := string.ReplaceAll(s, "\x1b[0m", reopen)
     return "\x1b[{code}m{inner}\x1b[0m"
 
 # --- Style wrappers ---

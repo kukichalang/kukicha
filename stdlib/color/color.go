@@ -4,8 +4,8 @@ package color
 
 import (
 	"fmt"
+	kukistring "github.com/kukichalang/kukicha/stdlib/string"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -79,7 +79,7 @@ func wrap(code string, s string) string {
 //line stdlib/color/color.kuki:74
 	reopen := fmt.Sprintf("\x1b[0m\x1b[%vm", code)
 //line stdlib/color/color.kuki:75
-	inner := strings.ReplaceAll(s, "\x1b[0m", reopen)
+	inner := kukistring.ReplaceAll(s, "\x1b[0m", reopen)
 //line stdlib/color/color.kuki:76
 	return fmt.Sprintf("\x1b[%vm%v\x1b[0m", code, inner)
 }

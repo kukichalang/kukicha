@@ -11,6 +11,7 @@ import "bytes"
 import "encoding/csv"
 import "net/url"
 import "stdlib/json"
+import "stdlib/slice"
 import "stdlib/string"
 import "time"
 
@@ -83,13 +84,10 @@ func Lines(data string) list of string
     return splitNonEmpty(data)
 
 func splitNonEmpty(data string) list of string
-    raw := string.Split(data, "\n")
-    result := make(list of string, 0, len(raw))
-    for line in raw
-        line = string.TrimSpace(line)
-        if len(line) > 0
-            result = append(result, line)
-    return result
+    return data
+        |> string.Split("\n")
+        |> slice.Map(string.TrimSpace)
+        |> slice.Filter((line string) => len(line) > 0)
 
 # Duration parses a duration string like "1h30m", "250ms", or "2.5s".
 # Example: timeout := parse.Duration("30s") onerr return
