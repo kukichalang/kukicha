@@ -17,7 +17,6 @@
 
 petiole main
 
-import "fmt"
 import "os"
 import "stdlib/cli"
 import "stdlib/concurrent"
@@ -120,10 +119,10 @@ func doStatus(args cli.Args)
 
     for ns in targetNamespaces()
         config := djangoConfigFor(ns)
-        replicas := fmt.Sprintf("%v", config["django_replicas"])
-        cpu := fmt.Sprintf("%v / %v", config["cpu_request"], config["cpu_limit"])
-        memory := fmt.Sprintf("%v / %v", config["memory_request"], config["memory_limit"])
-        debug := fmt.Sprintf("%v", config["debug_mode"])
+        replicas := "{config["django_replicas"]}"
+        cpu := "{config["cpu_request"]} / {config["cpu_limit"]}"
+        memory := "{config["memory_request"]} / {config["memory_limit"]}"
+        debug := "{config["debug_mode"]}"
 
         # Prod keeps cdn/waf/ssl keys (maps.Omit strips them from non-prod)
         extras := "—"

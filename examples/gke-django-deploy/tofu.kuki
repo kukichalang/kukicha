@@ -28,8 +28,8 @@ func formatTfvar(key string, value any) string
         return fmt.Sprintf("%s = %q", key, str)
     b, isBool := value as bool
     if isBool
-        return fmt.Sprintf("%s = %t", key, b)
-    return fmt.Sprintf("%s = %v", key, value)
+        return "{key} = {b}"
+    return "{key} = {value}"
 
 # ── OpenTofu Wrappers ────────────────────────────────────────
 

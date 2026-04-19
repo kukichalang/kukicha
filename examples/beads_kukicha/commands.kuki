@@ -3,11 +3,12 @@
 
 petiole main
 
-import "fmt"
 import "os"
 import "stdlib/cli"
 import "stdlib/color"
 import "stdlib/db"
+import "stdlib/json" as jsonpkg
+import "stdlib/slice"
 import "stdlib/string" as strpkg
 
 # doInit initializes the beads database.
@@ -53,12 +54,11 @@ func doCreate(args cli.Args)
     labelsJSON := "[]"
     if labelsStr isnt ""
         parts := strpkg.Split(labelsStr, ",")
-        labelsJSON = "["
-        for i, part in parts
-            if i > 0
-                labelsJSON = labelsJSON + ","
-            labelsJSON = labelsJSON + "\"" + strpkg.TrimSpace(part) + "\""
-        labelsJSON = labelsJSON + "]"
+            |> slice.Map((p string) => strpkg.TrimSpace(p))
+        bytes := jsonpkg.Marshal(parts) onerr
+            errPrint("cannot build labels: {error}")
+            return
+        labelsJSON = bytes as string
 
     dbPath := cli.GetString(args, "db")
     pool := openDB(dbPath) onerr

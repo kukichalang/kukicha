@@ -2,8 +2,7 @@
 
 petiole main
 
-import "fmt"
-import "os"
+import "stdlib/cli"
 import "stdlib/color"
 import "stdlib/datetime"
 import "stdlib/json" as jsonpkg
@@ -195,10 +194,10 @@ func printIssueList(issues list of Issue)
 
 func printJSON(v any)
     data := jsonpkg.MarshalPretty(v) onerr
-        fmt.Fprintln(os.Stderr, "json error: {error}")
+        cli.Error("json error: {error}")
         return
 
-    fmt.Println(data as string)
+    print(data as string)
 
 func errPrint(msg string)
-    fmt.Fprintln(os.Stderr, "{color.Red("error:")} {msg}")
+    cli.Error("{color.Red("error:")} {msg}")
