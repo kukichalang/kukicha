@@ -55,13 +55,13 @@ func main()
         print("  [P{v.severity}] {v.kind}  #{v.number}  {v.summary}")
 ```
 
-You can read this top-to-bottom without knowing the language: fetch issues, classify four at a time, filter the severe ones, sort, print. The stdlib names carry the weight — `fetch.Json`, `slice.Filter`, `concurrent.MapWithLimit`, `sort.ByKey` — and `onerr` keeps error handling out of the flow. A Go developer can write the same program in plain Go — `[]Issue`, `&v`, `!= nil`, closures — and Kukicha will compile it unchanged.
+You can read this top-to-bottom without knowing the language: fetch issues, classify four at a time, filter the severe ones, sort, print. The stdlib names carry the weight — `fetch.Json`, `slice.Filter`, `concurrent.MapWithLimit`, `sort.ByKey` and `onerr` keeps error handling out of the flow. A Go developer can write the same program in plain Go `[]Issue`, `&v`, `!= nil`, closures and Kukicha will compile it unchanged.
 
 ---
 
 ## Two tiers, one stdlib
 
-Kukicha is a strict superset of Go: the language you graduate *into* is Go itself. The Kukicha tier gives you scannable forms while you're learning; the Go tier is waiting whenever you're ready. Pick the one that fits — or mix them in the same file.
+Kukicha is a strict superset of Go: the language you graduate *into* is Go itself. The Kukicha tier gives you scannable forms while you're learning; the Go tier is waiting whenever you're ready. Pick the one that fits or mix them in the same file.
 
 | Concept | Kukicha form | Go form |
 | --- | --- | --- |
@@ -123,7 +123,7 @@ kukicha run hello.kuki
 
 ## Why bother
 
-* **Skimmable at every skill level** — beginners read the Kukicha forms, Go developers write plain Go, both call the same readable stdlib
+* **Skimmable at every skill level** — beginners read the Kukicha forms, Go developers write plain Go, both call the same friendly stdlib
 * **Compile-time security checks** — catches SQL injection, XSS, SSRF, path traversal, command injection, and open redirects before you ship
 * **42+ batteries-included stdlib packages** — `fetch`, `slice`, `sort`, `mcp`, `llm`, `html`, `crypto`, `shell`, and [more](.claude/skills/stdlib/SKILL.md)
 * **Ships as Go** — single binary, cross-compile, WASM, full Go ecosystem
