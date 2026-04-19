@@ -77,7 +77,7 @@ func nextTag(current string, bump string, initialTag string) (string, error)
 func highestSemverTag(repo string) (string, error)
     tags := git.ListTags(repo) onerr return "", error "{error}"
 
-    if slice.IsEmpty(tags)
+    if len(tags) equals 0
         return "", empty
 
     best, err := semver.Highest(tags)
@@ -297,7 +297,7 @@ func doPick(args cli.Args, initialTag string)
     entries := concurrent.MapWithLimit(repos, 4, r => buildEntry(r, bump, initialTag))
         |> slice.Filter(e => e.name isnt "")
 
-    if slice.IsEmpty(entries)
+    if len(entries) equals 0
         print("No repos found.")
         os.Exit(1)
 
